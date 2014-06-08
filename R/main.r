@@ -3,8 +3,8 @@
 # Package name: SNPRelate
 #
 # Description:
-#     A high-performance computing toolset for relatedness and
-#   principal component analysis in GWAS
+#     A High-performance Computing Toolset for Relatedness and
+# Principal Component Analysis of SNP Data
 #
 # Author: Xiuwen Zheng
 # Email: zhengx@u.washington.edu
@@ -1510,7 +1510,7 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=-1, samp.sel=NULL)
 #   snp1 -- an array of snp genotypes at the first locus
 #   snp2 -- an array of snp genotypes at the second locus
 #   method -- "composite"  Composite LD coefficients (by default)
-#             "r"          LD coefficient (by EM algorithm)
+#             "r"          R coefficient (by EM algorithm assuming HWE)
 #             "dprime"     D' coefficient
 #             "corr"       Correlation coefficient (BB, AB, AA are codes as 0, 1, 2)
 #
@@ -1529,9 +1529,15 @@ snpgdsLDpair <- function(snp1, snp2, method=c("composite", "r", "dprime", "corr"
 
 	# call
 	rv <- .C("gnrLDpair", as.integer(snp1), as.integer(snp2), length(snp1), method,
-		out=double(1), err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		out=double(1), pA_A=double(1), pA_B=double(1), pB_A=double(1), pB_B=double(1),
+		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (rv$err != 0) stop(snpgdsErrMsg())
-	return(rv$out)
+
+	# output
+	if (method %in% c(2, 3))
+		return(data.frame(ld=rv$out, pA_A=rv$pA_A, pA_B=rv$pA_B, pB_A=rv$pB_A, pB_B=rv$pB_B))
+	else
+		return(data.frame(ld=rv$out))
 }
 
 
@@ -1542,8 +1548,11 @@ snpgdsLDpair <- function(snp1, snp2, method=c("composite", "r", "dprime", "corr"
 #   gdsobj -- a object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
+#   slide -- the size of sliding windows,
+#            if slide <= 0, no sliding window, output a n-by-n LD matrix
+#            otherwise, output a slide-by-n LD matrix
 #   method -- "composite"  Composite LD coefficients (by default)
-#             "r"          LD coefficient (by EM algorithm)
+#             "r"          R coefficient (by EM algorithm assuming HWE)
 #             "dprime"     D' coefficient
 #             "corr"       Correlation coefficient (BB, AB, AA are codes as 0, 1, 2)
 #   num.thread -- the number of threads to be used
@@ -1551,7 +1560,7 @@ snpgdsLDpair <- function(snp1, snp2, method=c("composite", "r", "dprime", "corr"
 #
 
 snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-	method=c("composite", "r", "dprime", "corr"),
+	slide=250, method=c("composite", "r", "dprime", "corr"),
 	num.thread=1, verbose=TRUE)
 {
 	# check
@@ -1601,6 +1610,10 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (node$err != 0) stop(snpgdsErrMsg())
 
+	slide <- as.integer(slide)
+	if (is.na(slide)) slide <- as.integer(-1)
+	if (slide > node$n.snp) slide <- node$n.snp
+
 	if (verbose)
 	{
 		cat("Linkage Disequilibrium (LD) analysis on SNP genotypes:\n");
@@ -1609,16 +1622,21 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 			cat("\tUsing", num.thread, "CPU core.\n")
 		else
 			cat("\tUsing", num.thread, "CPU cores.\n")
+		if (slide > 0)
+			cat("\tSliding window size:", slide, "\n")
 	}
 
 	# call parallel IBD
-	rv <- .C("gnrLDMat", method, verbose, TRUE, as.integer(num.thread),
-		LD = matrix(NaN, ncol=node$n.snp, nrow=node$n.snp),
+	rv <- .C("gnrLDMat", method, verbose, TRUE, as.integer(num.thread), slide,
+		LD = { if (slide <= 0)
+					matrix(NaN, nrow=node$n.snp, ncol=node$n.snp)
+				else
+					matrix(NaN, nrow=slide, ncol=node$n.snp) },
 		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (rv$err != 0) stop(snpgdsErrMsg())
 
 	# return
-	rv <- list(sample.id=sample.ids, snp.id=snp.ids, LD=rv$LD)
+	rv <- list(sample.id=sample.ids, snp.id=snp.ids, LD=rv$LD, slide=slide)
 	return(rv)
 }
 
@@ -1635,7 +1653,7 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #   maf -- the threshold of minor allele frequencies, keeping ">= maf"
 #   missing.rate -- the threshold of missing rates, keeping "<= missing.rate"
 #   method -- "composite"  Composite LD coefficients (by default)
-#             "r"          LD coefficient (by EM algorithm)
+#             "r"          R coefficient (by EM algorithm assuming HWE)
 #             "dprime"     D' coefficient
 #             "corr"       Correlation coefficient (BB, AB, AA are codes as 0, 1, 2)
 #   num.thread -- the number of threads to be used
@@ -2292,80 +2310,64 @@ snpgdsSummary <- function(gds, show=TRUE)
 	}
 	if (warn.flag)
 	{
-		warning(sprintf("The SNP positions are not in ascending order on chromosome %d, call `snpgdsPosition' to make positions ascending.", chr))
+		warning(sprintf("The SNP positions are not in ascending order on chromosome %d.", chr))
 	}
 
 	# check -- sample annotation
-	# if (index.gsnd
+	if (!is.null(index.gdsn(gds.tmp, "sample.annot", TRUE)))
+	{
+		# sample.id
+		if (!is.null(index.gdsn(gds.tmp, c("sample.annot", "sample.id"), TRUE)))
+		{
+			s <- read.gdsn(index.gdsn(gds.tmp, c("sample.annot", "sample.id")))
+			if (length(s) != length(samp.id))
+				warning("Invalid length of `sample.annot/sample.id'.")
+			if (any(s != samp.id))
+				warning("Invalid `sample.annot/sample.id'.")
+		}
 
+		# others
+		lst <- ls.gdsn(index.gdsn(gds.tmp, "sample.annot"))
+		for (n in lst)
+		{
+			dm <- objdesp.gdsn(index.gdsn(gds.tmp, c("sample.annot", n)))$dim
+			if (!is.null(dm))
+			{
+				if (dm[1] != length(samp.id))
+					warning(sprintf("Invalid `sample.annot/%s'.", n))
+			}
+		}
+	}
 
 	# check -- snp annotation
+	if (!is.null(index.gdsn(gds.tmp, "snp.annot", TRUE)))
+	{
+		if (!is.null(index.gdsn(gds.tmp, c("snp.annot", "snp.id"), TRUE)))
+		{
+			s <- read.gdsn(index.gdsn(gds.tmp, c("snp.annot", "snp.id")))
+			if (length(s) != length(snp.id))
+				warning("Invalid length of `snp.annot/snp.id'.")
+			if (any(s != snp.id))
+				warning("Invalid `snp.annot/snp.id'.")
+		}
 
+		# others
+		lst <- ls.gdsn(index.gdsn(gds.tmp, "snp.annot"))
+		for (n in lst)
+		{
+			dm <- objdesp.gdsn(index.gdsn(gds.tmp, c("snp.annot", n)))$dim
+			if (!is.null(dm))
+			{
+				if (dm[1] != length(snp.id))
+					warning(sprintf("Invalid `snp.annot/%s'.", n))
+			}
+		}
+	}
 
 	# close ...
 	if (is.character(gds)) closefn.gds(gds.tmp)
 
 	invisible(list(sample.id = samp.id, snp.id = snp.id[snp.flag]))
-}
-
-
-#######################################################################
-# To make positions ascending
-#
-# INPUT:
-#   gds -- a object of gds file, or a file names
-#
-
-snpgdsPosition <- function(gds)
-{
-	# check
-	stopifnot(class(gds) %in% c("gdsclass", "character"))
-
-	# open ...
-	if (is.character(gds))
-	{
-		gds.tmp <- openfn.gds(gds, FALSE)
-	} else {
-		gds.tmp <- gds
-	}
-
-	# read chromosome index and position
-	chr <- read.gdsn(index.gdsn(gds.tmp, "snp.chromosome"))
-	pos <- read.gdsn(index.gdsn(gds.tmp, "snp.position"))
-
-	# check genotype
-	dm <- objdesp.gdsn(index.gdsn(gds.tmp, "genotype"))$dim
-	if (length(dm) != 2)
-	{
-		print(gds.tmp)
-		if (is.character(gds)) closefn.gds(gds.tmp)
-		stop("Invalid dimension of `genotype'.")
-	}
-	# storage order
-	lv <- get.attr.gdsn(index.gdsn(gds.tmp, "genotype"))
-	if ("sample.order" %in% names(lv))
-	{
-		if ( (dm[2]!=length(chr)) | (dm[2]!=length(pos)) )
-		{
-			print(gds.tmp)
-			if (is.character(gds)) closefn.gds(gds.tmp)
-			stop("Invalid dimension of `genotype'.")
-		}
-
-	} else {
-		if ( (dm[1]!=length(chr)) | (dm[1]!=length(pos)) )
-		{
-			print(gds.tmp)
-			if (is.character(gds)) closefn.gds(gds.tmp)
-			stop("Invalid dimension of `genotype'.")
-		}
-
-	}
-
-	# close ...
-	if (is.character(gds)) closefn.gds(gds.tmp)
-
-	stop("This function will be provided in future.")
 }
 
 
@@ -2791,7 +2793,25 @@ snpgdsCombineGeno <- function(gds.fn, out.fn,
 		if (is.null(name.prefix))
 			total.sampid <- c(total.sampid, sample.ids)
 		else
-			total.sampid <- c(total.sampid, paste(name.prefix[i], sample.ids, sep="-"))
+			total.sampid <- c(total.sampid, paste(name.prefix[i], sample.ids, sep="."))
+	}
+
+	# check whether total.sampid is unique
+	if (length(unique(total.sampid)) != length(total.sampid))
+	{
+		if (!is.null(name.prefix))
+			stop("Unable to make sample id unique, please specify correct `name.prefix'.")
+
+		snpgdsCombineGeno(gds.fn=gds.fn, out.fn=out.fn,
+			sample.id=sample.id, snpobj=snpobj,
+			name.prefix = sprintf("p%02d", 1:length(gds.fn)),
+			snpfirstorder=snpfirstorder,
+			compress.annotation=compress.annotation, compress.geno=compress.geno,
+			other.vars=other.vars, verbose=verbose)
+
+		if (verbose)
+			warning("Has specified the value of `name.prefix' to make sample id unique.")
+		return(invisible(NULL))
 	}
 
 	# SNPs
@@ -2800,8 +2820,17 @@ snpgdsCombineGeno <- function(gds.fn, out.fn,
 		gdsobj <- openfn.gds(gds.fn[i])
 		s <- snpgdsSNPList(gdsobj)
 		if (is.null(snpobj))
+		{
+			# get unique snp id
+			tmps <- paste(s$rs.id, s$chromosome, s$position, sep="-")
+			i <- match(unique(tmps), tmps)
 			snpobj <- s
-		else
+			snpobj$rs.id <- snpobj$rs.id[i]
+			snpobj$chromosome <- snpobj$chromosome[i]
+			snpobj$position <- snpobj$position[i]
+			snpobj$allele <- snpobj$allele[i]
+			snpobj$afreq <- snpobj$afreq[i]
+		} else
 			snpobj <- snpgdsSNPListIntersect(snpobj, s)
 		closefn.gds(gdsobj)
 		# check
@@ -2868,11 +2897,15 @@ snpgdsCombineGeno <- function(gds.fn, out.fn,
 
 		# set genotype working space
 		rv <- .C("gnrSetGenoSpace", as.integer(index.gdsn(gdsobj, "genotype")),
-			as.integer(sampid), as.integer(!is.null(sampid)),
-			as.integer(!is.na(L)), as.integer(TRUE),
+			as.logical(sampid), as.integer(!is.null(sampid)),
+			as.logical(!is.na(L)), as.integer(TRUE),
 			n.snp=integer(1), n.samp=integer(1),
 			err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+
+		# check
 		if (rv$err != 0) stop(snpgdsErrMsg())
+		if (rv$n.snp != length(snpobj$position))
+			stop("Invalid snp alleles.")
 
 		# write genotypes
 		rv <- .C("gnrAppendGenoSpaceStrand", as.integer(node.geno), snpfirstorder,
@@ -3095,8 +3128,9 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, verbose=T
 	# output a bim file
 	snp.idx <- match(snp.ids, total.snp.ids)
 	xchr <- as.character(read.gdsn(index.gdsn(gdsobj, "snp.chromosome")))[snp.idx]
-	xchr[xchr=="23"] <- "X"; xchr[xchr=="24"] <- "Y"
-	xchr[xchr=="25"] <- "XY"; xchr[xchr=="26"] <- "MT"
+	xchr[is.na(xchr)] <- "0"
+	xchr[xchr=="X"] <- "23"; xchr[xchr=="Y"] <- "24"
+	xchr[xchr=="XY"] <- "25"; xchr[xchr=="MT"] <- "26"
 	if (!is.null(index.gdsn(gdsobj, "snp.allele", TRUE)))
 	{
 		allele <- read.gdsn(index.gdsn(gdsobj, "snp.allele"))
@@ -3244,14 +3278,14 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn,
 	# sync file
 	sync.gds(gfile)
 
+	nSamp <- dim(famD)[1]; nSNP <- dim(bimD)[1]
 	if (verbose)
 	{
 		cat(date(), "\tstore sample id, snp id, position, and chromosome.\n")
-		cat("\tstart writing ...\n")
+		cat(sprintf("\tstart writing: %d samples, %d SNPs ...\n", nSamp, nSNP))
 	}
 
 	# add "gonetype", 2 bits to store one genotype
-	nSamp <- dim(famD)[1]; nSNP <- dim(bimD)[1]
 	if (bed$snporder == 0)
 	{
 		gGeno <- add.gdsn(gfile, "genotype", storage="bit2", valdim=c(nSNP, nSamp))
@@ -3394,7 +3428,7 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbo
 
 
 #######################################################################
-# Convert a VCF (sequence) file to a GDS file
+# Convert a VCF (sequence) file to a GDS file (extract SNP data)
 #
 # INPUT:
 #   vcf.fn -- the file name of VCF format
@@ -3479,7 +3513,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024, compress.annotation="Z
 	snp.rs <- snp.rs[1:snp.cnt]; snp.allele <- snp.allele[1:snp.cnt]
 	nSamp <- length(samp.id); nSNP <- length(chr)
 	geno.str <- c("0|0", "0|1", "1|0", "1|1", "0/0", "0/1", "1/0", "1/1")
-	geno.code <- c(2, 1, 1, 0, 2, 1, 1, 0)
+	geno.code <- as.integer(c(2, 1, 1, 0, 2, 1, 1, 0))
 
 
 	######################################################################
@@ -3506,7 +3540,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024, compress.annotation="Z
 	if (verbose)
 	{
 		cat(date(), "\tstore sample id, snp id, position, and chromosome.\n")
-		cat("\tstart writing ...\n")
+		cat(sprintf("\tstart writing: %d samples, %d SNPs ...\n", nSamp, nSNP))
 	}
 
 	# add "gonetype", 2 bits to store one genotype
@@ -3536,8 +3570,10 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024, compress.annotation="Z
 			{
 				ss <- scan(text=s[i], what=character(0), quiet=TRUE)[-c(1:9)]
 				x <- match(substr(ss, 1, 3), geno.str)
+				x <- geno.code[x]
+				x[is.na(x)] <- as.integer(3)
 				snp.cnt <- snp.cnt + 1
-				write.gdsn(gGeno, geno.code[x], start=c(1,snp.cnt), count=c(-1,1))
+				write.gdsn(gGeno, x, start=c(1,snp.cnt), count=c(-1,1))
 			}
 		}
 	}
@@ -3571,7 +3607,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024, compress.annotation="Z
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.6")
+	packageStartupMessage("SNPRelate: 0.9.7")
 	if (rv$sse != 0)
 		packageStartupMessage("Streaming SIMD Extensions 2 (SSE2) supported.\n")
 	TRUE

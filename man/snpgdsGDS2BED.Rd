@@ -40,7 +40,7 @@ snpgdsGDS2BED(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, verbose=TRUE)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
 snpset <- snpgdsSelectSNP(genofile, missing.rate=0.95)
-snpgdsGDS2BED(genofile, bed.fn="hapmap", snp.id=snpset)
+snpgdsGDS2BED(genofile, bed.fn="test", snp.id=snpset)
 
 # close the genotype file
 closefn.gds(genofile)

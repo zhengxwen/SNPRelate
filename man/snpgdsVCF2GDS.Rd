@@ -2,7 +2,7 @@
 \alias{snpgdsVCF2GDS}
 \title{Conversion from VCF to GDS}
 \description{
-	Convert a VCF sequence file to a GDS file.
+	Extract SNP data from a VCF sequence file
 }
 \usage{
 snpgdsVCF2GDS(vcf.fn, outfn.gds, nblock=1024, compress.annotation="ZIP.max",
@@ -46,6 +46,7 @@ vcf.fn <- system.file("extdata", "sequence.vcf", package="SNPRelate")
 readLines(vcf.fn)
 
 snpgdsVCF2GDS(vcf.fn, "test.gds", verbose=TRUE)
+snpgdsSummary("test.gds")
 
 
 # open "test.gds"

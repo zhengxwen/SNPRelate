@@ -55,23 +55,12 @@
 #endif
 
 #include <cfloat>
+#include <limits>
 #include <string>
 
 
 namespace CoreArray
 {
-	// CPU MACRO definition
-
-	#if (SIZE_MAX == UINT16_MAX) || (SIZE_MAX == INT16_MAX)
-	#  define COREARRAY_CPU 16
-	#elif (SIZE_MAX == UINT32_MAX) || (SIZE_MAX == INT32_MAX)
-	#  define COREARRAY_CPU 32
-	#elif (SIZE_MAX == UINT64_MAX) || (SIZE_MAX == INT64_MAX)
-	#  define COREARRAY_CPU 64
-	#else
-	#  error "Unable to determine CPU."
-	#endif
-
 	/// Memory data type id
 	enum TSVType {
 		svCustom = 0,   ///< Unknown or customized type
@@ -257,8 +246,8 @@ namespace CoreArray
 		static const char * TraitName() { return "Int64"; }
 		static const char * StreamName() { return "dInt64"; }
 
-		COREARRAY_INLINE static Int64 Min() { return INT64_MIN; }
-		COREARRAY_INLINE static Int64 Max() { return INT64_MAX; }
+		COREARRAY_INLINE static Int64 Min() { return std::numeric_limits<Int64>::min(); }
+		COREARRAY_INLINE static Int64 Max() { return std::numeric_limits<Int64>::max(); }
 	};
 
 	template<> struct TdTraits<UInt64>
@@ -273,7 +262,7 @@ namespace CoreArray
 		static const char * StreamName() { return "dUInt64"; }
 
 		COREARRAY_INLINE static UInt64 Min() { return 0; }
-		COREARRAY_INLINE static UInt64 Max() { return UINT64_MAX; }
+		COREARRAY_INLINE static UInt64 Max() { return std::numeric_limits<UInt64>::max(); }
 	};
 
 
@@ -327,7 +316,7 @@ namespace CoreArray
 			typedef UInt32 Type;
 			typedef UInt64 TypeEx;
 			static const Type Val = UINT32_MAX;
-			static const TypeEx ValEx = UINT64_MAX;
+			static const TypeEx ValEx = UInt64(0) - UInt64(1); // UINT64_MAX;
 		};
 		template<> struct _Bit2Int<3, true>
 		{

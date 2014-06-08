@@ -4,15 +4,15 @@
 \docType{package}
 \title{Parallel Computing Toolset for genome-wide association studies}
 \description{
-	A high-performance computing toolset for relatedness and principal component analysis in
-Genome-wide Association Studies
+	A high-performance computing toolset for relatedness and principal component analysis
+in Genome-wide Association Studies
 }
 \details{
 	\tabular{ll}{
 		Package: \tab SNPRelate\cr
 		Type: \tab Package\cr
-		Version: \tab 0.9.6\cr
-		Date: \tab 2012-07-14\cr
+		Version: \tab 0.9.7\cr
+		Date: \tab 2012-08-30\cr
 		License: \tab LGPL version 3\cr
 		Depends: \tab gdsfmt (>= 0.9.7)\cr
 	}
@@ -26,9 +26,9 @@ Genome-wide Association Studies
 	Forums:	\url{http://sourceforge.net/projects/corearray/forums}
 }
 \references{
-	X. Zheng, D. Levine, J. Shen, C. Laurie, B. Weir.
-	A high-performance computing package for relatedness and principal component analysis in GWAS.
-	Poster, International Congress of Human Genetics (ICHG), Montreal, QC Canada, Oct 11 - 15, 2011
+	Xiuwen Zheng, David Levine, Jess Shen, Stephanie M. Gogarten, Cathy Laurie,
+and Bruce S. Weir. A High-performance Computing Toolset for Relatedness and Principal
+Component Analysis in GWAS. (submitted).
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 

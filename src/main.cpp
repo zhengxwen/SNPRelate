@@ -139,8 +139,10 @@ namespace LD
 
 	void InitPackedGeno();
 	void DonePackedGeno();
-	double calcLD(const int *snp1, const int *snp2, int cnt);
+	double calcLD(const int *snp1, const int *snp2, int cnt,
+		double &pA_A, double &pA_B, double &pB_A, double &pB_B);
 	void calcLD_mat(int nThread, double *out_LD);
+	void calcLD_slide_mat(int nThread, double *out_LD, int n_slide);
 	void calcLDpruning(int StartIdx, int *pos_bp, int slide_max_bp, int slide_max_n,
 		const double LD_threshold, bool *out_SNP);
 }
@@ -1131,11 +1133,12 @@ DLLEXPORT void gnrPairIBDLogLik(int *n, int *geno1, int *geno2, double *AlleleFr
 
 /// the functions for Linkage Disequilibrium (LD) analysis
 DLLEXPORT void gnrLDpair(int *snp1, int *snp2, int *len, int *method,
-	double *out_LD, LongBool *out_err)
+	double *out_LD, double &pA_A, double &pA_B, double &pB_A, double &pB_B,
+	LongBool *out_err)
 {
 	CORETRY
 		LD::LD_Method = *method;
-		*out_LD = LD::calcLD(snp1, snp2, *len);
+		*out_LD = LD::calcLD(snp1, snp2, *len, pA_A, pA_B, pB_A, pB_B);
 		// output
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
@@ -1144,7 +1147,7 @@ DLLEXPORT void gnrLDpair(int *snp1, int *snp2, int *len, int *method,
 
 /// to compute the IBD coefficients by MLE
 DLLEXPORT void gnrLDMat(int *method, LongBool *Verbose, LongBool *DataCache,
-	int *NumThread, double *out_LD, LongBool *out_err)
+	int *NumThread, int *n_slide, double *out_LD, LongBool *out_err)
 {
 	CORETRY
 		// ******** to cache the genotype data ********
@@ -1153,13 +1156,16 @@ DLLEXPORT void gnrLDMat(int *method, LongBool *Verbose, LongBool *DataCache,
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
 			if (*Verbose)
-				Rprintf("MLE IBD:\tthe sum of all working genotypes = %.0f\n", GenoSum);
+				Rprintf("LD matrix:\tthe sum of all working genotypes = %.0f\n", GenoSum);
 		}
 
 		// initialize the packed genotypes
 		LD::InitPackedGeno();
 		LD::LD_Method = *method;
-		LD::calcLD_mat(*NumThread, out_LD);
+		if (*n_slide <= 0)
+			LD::calcLD_mat(*NumThread, out_LD);
+		else
+			LD::calcLD_slide_mat(*NumThread, out_LD, *n_slide);
 		// output
 		*out_err = 0;
 	CORECATCH(*out_err = 1)

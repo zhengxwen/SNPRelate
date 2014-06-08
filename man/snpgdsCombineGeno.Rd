@@ -42,7 +42,16 @@ which are data.frame objects.
 # get the file name of a gds file
 fn <- snpgdsExampleFileName()
 
+# combine
+snpgdsCombineGeno(c(fn, fn), "test.gds")
 
+snpgdsSummary("test.gds")
+
+# check
+gfile <- openfn.gds("test.gds")
+pca <- snpgdsPCA(gfile)
+plot(pca$eigenvect[,1], pca$eigenvect[,2], pch="*")
+closefn.gds(gfile)
 }
 
 \keyword{gds}

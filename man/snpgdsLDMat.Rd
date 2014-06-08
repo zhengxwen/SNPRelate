@@ -7,28 +7,35 @@
 	Return a LD matrix for SNP pairs.
 }
 \usage{
-snpgdsLDMat(gdsobj, sample.id = NULL, snp.id = NULL,
-	method = c("composite", "r", "dprime", "corr"), num.thread = 1, verbose = TRUE)
+snpgdsLDMat(gdsobj, sample.id=NULL, snp.id=NULL, slide=250,
+	method=c("composite", "r", "dprime", "corr"), num.thread=1, verbose=TRUE)
 }
 \arguments{
 	\item{gdsobj}{the \code{\link[gdsfmt]{gdsclass}} object in the \link{gdsfmt} package}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
+	\item{slide}{# of SNPs, the size of sliding window, see details}
 	\item{method}{"composite", "r", "dprime", "corr", see details}
 	\item{num.thread}{the number of CPU cores used}
 	\item{verbose}{if TRUE, show information}
 }
 \details{
 	Four methods can be used to calculate linkage disequilibrium values:
-"composite" for LD composite measure, "r" for r square, "dprime" for D', and "corr" for
-correlation coefficient. The method "corr" is equivalent to "composite", when SNP genotypes
-are coded as: 0 -- BB, 1 -- AB, 2 -- AA.
+"composite" for LD composite measure, "r" for R coefficient (by EM algorithm assuming HWE),
+"dprime" for D', and "corr" for correlation coefficient. The method "corr" is equivalent
+to "composite", when SNP genotypes are coded as: 0 -- BB, 1 -- AB, 2 -- AA.
+
+	if \code{slide} <= 0, output a n-by-n LD matrix; otherwise, output a m-by-n LD matrix,
+where n is the total number of SNPs, m is the size of sliding window.
+	For n-by-n matrix, the value of i row and j column is LD of i and j SNPs.
+	For m-by-n matrix, the value of i row and j column is LD of j and j+i SNPs.
 }
 \value{
 	Return a list:
 	\item{sample.id}{the sample ids used in the analysis}
 	\item{snp.id}{the SNP ids used in the analysis}
 	\item{LD}{a matrix of LD values}
+	\item{slide}{the size of sliding window}
 }
 \references{
 	Weir B: Inferences about linkage disequilibrium. Biometrics 1979; 35: 235-254.
@@ -45,17 +52,29 @@ are coded as: 0 -- BB, 1 -- AB, 2 -- AA.
 }
 
 \examples{
+library(lattice)
+
 # open an example dataset (HapMap)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
-snpset <- read.gdsn(index.gdsn(genofile, "snp.id"))[1:200]
-L1 <- snpgdsLDMat(genofile, snp.id=snpset, method="composite")
-L2 <- snpgdsLDMat(genofile, snp.id=snpset, method="r")
-L3 <- snpgdsLDMat(genofile, snp.id=snpset, method="dprime")
-L4 <- snpgdsLDMat(genofile, snp.id=snpset, method="corr")
+# chromosome 1
+snpset <- read.gdsn(index.gdsn(genofile, "snp.id"))[
+	read.gdsn(index.gdsn(genofile, "snp.chromosome")) == 1]
+length(snpset)
+
+# LD matrix
+ld.slide <- snpgdsLDMat(genofile, snp.id=snpset, method="composite")
 
 # plot
-image(abs(L1$LD))
+levelplot(t(ld.slide$LD^2), col.regions = terrain.colors)
+
+
+# LD matrix
+ld.noslide <- snpgdsLDMat(genofile, snp.id=snpset, slide=-1, method="composite")
+
+# plot
+levelplot(t(ld.noslide$LD^2), col.regions = terrain.colors)
+
 
 # close the genotype file
 closefn.gds(genofile)

@@ -34,8 +34,8 @@
  *	\details
 **/
 
-#ifndef _GDSDEF_H_
-#define _GDSDEF_H_
+#ifndef _COREDEF_H_
+#define _COREDEF_H_
 
 
 // C++ Compiler MACRO
@@ -330,17 +330,28 @@
 
 
 /// force inline keyword
-#define COREARRAY_SUPPORT_FORCE_INLINE
+#ifndef COREARRAY_NO_FORCEINLINE
 
-#if defined(COREARRAY_BORLANDC) || defined(COREARRAY_MSC)
-#   define COREARRAY_FORCE_INLINE	__forceinline
-#elif defined(COREARRAY_SUN)
-#   define COREARRAY_FORCE_INLINE	COREARRAY_INLINE
-#elif (defined(__GNUC__) && ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)))
-#   define COREARRAY_FORCE_INLINE	__attribute__((always_inline))
+#  define COREARRAY_SUPPORT_FORCE_INLINE
+
+#  if defined(COREARRAY_BORLANDC) || defined(COREARRAY_MSC)
+#     define COREARRAY_FORCE_INLINE	__forceinline
+#  elif defined(COREARRAY_SUN)
+#     define COREARRAY_FORCE_INLINE	COREARRAY_INLINE
+#  elif (defined(__GNUC__) && ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)))
+#     define COREARRAY_FORCE_INLINE	__attribute__((always_inline))
+#  else
+#     define COREARRAY_FORCE_INLINE	COREARRAY_INLINE
+#     undef COREARRAY_SUPPORT_FORCE_INLINE
+#  endif
+
 #else
-#   define COREARRAY_FORCE_INLINE	COREARRAY_INLINE
-#   undef COREARRAY_SUPPORT_FORCE_INLINE
+
+#  ifdef COREARRAY_SUPPORT_FORCE_INLINE
+#    undef COREARRAY_SUPPORT_FORCE_INLINE
+#  endif
+#  define COREARRAY_FORCE_INLINE	COREARRAY_INLINE
+
 #endif
 
 
@@ -368,4 +379,4 @@
 #define COREARRAY_HINT_CODE
 
 
-#endif /* _GDSDEF_H_ */
+#endif /* _COREDEF_H_ */

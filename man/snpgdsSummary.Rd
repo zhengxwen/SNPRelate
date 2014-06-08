@@ -1,7 +1,7 @@
 \name{snpgdsSummary}
 \alias{snpgdsSummary}
 \title{
-	Summary
+	Summary of GDS genotype file
 }
 \description{
 	Print the information stored in the gds object

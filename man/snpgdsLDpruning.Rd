@@ -32,9 +32,10 @@ snpgdsLDpruning(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 calculated over all the samples in \code{sample.id}.
 
 	Four methods can be used to calculate linkage disequilibrium values:
-"composite" for LD composite measure, "r" for r square, "dprime" for D', and "corr" for
-correlation coefficient. The method "corr" is equivalent to "composite", when SNP genotypes
-are coded as: 0 -- BB, 1 -- AB, 2 -- AA. The LD is the absolute value of measurement.
+"composite" for LD composite measure, "r" for R coefficient (by EM algorithm assuming HWE),
+"dprime" for D', and "corr" for correlation coefficient. The method "corr" is equivalent
+to "composite", when SNP genotypes are coded as: 0 -- BB, 1 -- AB, 2 -- AA. The LD is the
+absolute value of measurement.
 
 	It is useful to generate a pruned subset of SNPs that are in approximate linkage
 equilibrium with each other. The function \code{snpgdsLDpruning} recursively removes SNPs

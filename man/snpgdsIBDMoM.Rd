@@ -42,6 +42,7 @@ calculated over all the samples in \code{sample.id}.
 	\item{snp.id}{the SNP ids used in the analysis}
 	\item{k0}{IBD coefficient, the probability of sharing ZERO IBD}
 	\item{k1}{IBD coefficient, the probability of sharing ONE IBD}
+	\item{kinship}{the estimated kinship coefficients, if the parameter \code{kinship=TRUE}}
 }
 \references{
 	Purcell S, Neale B, Todd-Brown K, Thomas L, Ferreira MAR, Bender D, Maller J, Sklar P,

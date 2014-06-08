@@ -16,12 +16,19 @@ snpgdsLDpair(snp1, snp2, method = c("composite", "r", "dprime", "corr"))
 }
 \details{
 	Four methods can be used to calculate linkage disequilibrium values:
-"composite" for LD composite measure, "r" for r square, "dprime" for D', and "corr" for
-correlation coefficient. The method "corr" is equivalent to "composite", when SNP genotypes
-are coded as: 0 -- BB, 1 -- AB, 2 -- AA.
+"composite" for LD composite measure, "r" for R coefficient (by EM algorithm assuming HWE),
+"dprime" for D', and "corr" for correlation coefficient. The method "corr" is equivalent
+to "composite", when SNP genotypes are coded as: 0 -- BB, 1 -- AB, 2 -- AA.
 }
 \value{
-	A measure of linkage disequilibrium.
+	Return a \code{data.frame}:
+	\item{ld}{a measure of linkage disequilibrium}
+
+	if \code{method = "r" or "dprime"},
+	\item{pA_A}{haplotype frequency of AA, the first locus is A and the second locus is A}
+	\item{pA_B}{haplotype frequency of AB, the first locus is A and the second locus is B}
+	\item{pB_A}{haplotype frequency of BA, the first locus is B and the second locus is A}
+	\item{pB_B}{haplotype frequency of BB, the first locus is B and the second locus is B}
 }
 \references{
 	Weir B: Inferences about linkage disequilibrium. Biometrics 1979; 35: 235-254.
@@ -44,7 +51,10 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 snp1 <- read.gdsn(index.gdsn(genofile, "genotype"), start=c(1,1), count=c(1,-1))
 snp2 <- read.gdsn(index.gdsn(genofile, "genotype"), start=c(2,1), count=c(1,-1))
 
-snpgdsLDpair(snp1, snp2)
+snpgdsLDpair(snp1, snp2, method = "composite")
+snpgdsLDpair(snp1, snp2, method = "r")
+snpgdsLDpair(snp1, snp2, method = "dprime")
+snpgdsLDpair(snp1, snp2, method = "corr")
 
 # close the genotype file
 closefn.gds(genofile)

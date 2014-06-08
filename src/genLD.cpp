@@ -335,8 +335,9 @@ namespace LD
 		}
 	}
 
-	/// r^2 by EM algorithm
-	static double PairR(const int *snp1, const int *snp2, int cnt)
+	/// r by EM algorithm assuming HWE
+	static double PairR(const int *snp1, const int *snp2, int cnt,
+		double &pA_A, double &pA_B, double &pB_A, double &pB_B)
 	{
 		// The number of haplotypes, nDH - double hets
 		long nA_A, nA_B, nB_A, nB_B, nDH2;
@@ -353,7 +354,6 @@ namespace LD
 			nDH2 += Num_DH2[_p];
 		}
 
-		double pA_A, pA_B, pB_A, pB_B;
 		ProportionHaplo(nA_A, nA_B, nB_A, nB_B, nDH2, pA_A, pA_B, pB_A, pB_B);
 
 		double pA = pA_A + pA_B;
@@ -391,7 +391,8 @@ namespace LD
 
 	// ---------------------------------------------------------------------
 	/// D' by EM algorithm
-	static double PairDPrime(const int *snp1, const int *snp2, int cnt)
+	static double PairDPrime(const int *snp1, const int *snp2, int cnt,
+		double &pA_A, double &pA_B, double &pB_A, double &pB_B)
 	{
 		// The number of haplotypes, nDH - double hets
 		long nA_A, nA_B, nB_A, nB_B, nDH2;
@@ -408,7 +409,6 @@ namespace LD
 			nDH2 += Num_DH2[_p];
 		}
 
-		double pA_A, pA_B, pB_A, pB_B;
 		ProportionHaplo(nA_A, nA_B, nB_A, nB_B, nDH2, pA_A, pA_B, pB_A, pB_B);
 
 		double pA = pA_A + pA_B;
@@ -546,23 +546,24 @@ namespace LD
 
 
 	// to compute pair LD
-	double calcLD(const int *snp1, const int *snp2, int cnt)
+	double calcLD(const int *snp1, const int *snp2, int cnt,
+		double &pA_A, double &pA_B, double &pB_A, double &pB_B)
 	{
 		switch (LD_Method)
 		{
 			case 1:
 				return PairComposite(snp1, snp2, cnt);
 			case 2:
-				return PairR(snp1, snp2, cnt);
+				return PairR(snp1, snp2, cnt, pA_A, pA_B, pB_A, pB_B);
 			case 3:
-				return PairDPrime(snp1, snp2, cnt);
+				return PairDPrime(snp1, snp2, cnt, pA_A, pA_B, pB_A, pB_B);
 			case 4:
 				return PairCorr(snp1, snp2, cnt);
 		}
 		return conf_F64_NaN();
 	}
 
-	// to compute LD matrix
+	// to compute LD matrix (n x n)
 	void calcLD_mat(int nThread, double *out_LD)
 	{
 		for (int i=0; i < nSNP; i++)
@@ -589,6 +590,35 @@ namespace LD
 			}
 		}
 	}
+
+	// to compute LD matrix (n_slide x n)
+	void calcLD_slide_mat(int nThread, double *out_LD, int n_slide)
+	{
+		for (int i=0; i < nSNP; i++)
+		{
+			for (int j=i+1; (j < nSNP) && ((j-i) <= n_slide); j++)
+			{
+				int d = j - i - 1;
+				double &pVal = out_LD[i*n_slide + d];				
+				UInt8 *s1 = PackedGeno.get() + i*nPackedSamp;
+				UInt8 *s2 = PackedGeno.get() + j*nPackedSamp;
+				switch (LD_Method)
+				{
+					case 1:
+						pVal = PairComposite(s1, s2); break;
+					case 2:
+						pVal = PairR(s1, s2); break;
+					case 3:
+						pVal = PairDPrime(s1, s2); break;
+					case 4:
+						pVal = PairCorr(s1, s2); break;
+					default:
+						pVal = conf_F64_NaN();
+				}
+			}
+		}
+	}
+
 
 
 	// ---------------------------------------------------------------------

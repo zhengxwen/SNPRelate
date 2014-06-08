@@ -1,0 +1,359 @@
+%\VignetteIndexEntry{A Tutorial for the R Package SNPRelate}
+%\VignetteDepends{gdsfmt, SNPRelate}
+%\VignetteKeywords{GWAS, SNP}
+%\VignettePackage{SNPRelate}
+
+\documentclass[12pt]{article}
+\usepackage{fullpage}
+\usepackage{indentfirst}
+\usepackage{Sweave}
+\usepackage{amsmath}  
+\usepackage{graphicx}
+\usepackage[pdftex,plainpages=false, letterpaper, bookmarks, bookmarksnumbered, colorlinks, linkcolor=blue, citecolor=blue, filecolor=blue, urlcolor=blue]{hyperref}
+\usepackage{url}
+
+% Different font in captions
+\newcommand{\captionfonts}{\footnotesize}
+\newcommand{\hn}[1]{\textsf{#1}}
+\newcommand{\fn}[1]{\textbf{#1}}
+\newcommand{\vr}[1]{\textbf{#1}}
+
+
+\begin{document}
+
+\title{A Tutorial for the R Package SNPRelate}
+\author{Xiuwen Zheng\\
+	GENEVA Coordinating Center\\
+	Department of Biostatistics\\
+	University of Washington}
+\date{Aug 11, 2012}
+
+
+\maketitle
+\tableofcontents
+
+\SweaveOpts{keep.source=TRUE, eps=FALSE} 
+
+% ---- Overview ----
+\section{Overview}
+
+Genome-wide association studies (GWAS) are widely used to help determine the genetic basis of diseases and traits, but they pose many computational challenges. We developed \hn{gdsfmt} and \hn{SNPRelate} (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures. The kernels of our algorithms are written in C/C++ and have been highly optimized. The calculations of the genetic covariance matrix in PCA and pairwise IBD coefficients are split into non-overlapping parts and assigned to multiple cores for performance acceleration, as shown in Figure~1. Benchmarks show the uniprocessor implementations of PCA and IBD are $\sim$10 to 45 times faster than the implementations provided in the popular \hn{EIGENSTRAT} (v3.0) and \hn{PLINK} (v1.07) programs respectively, and can be sped up to 70$\sim$250 folds by utilizing multiple cores.
+
+% -------- BEGIN FIGURE --------
+\begin{figure}[!tpb]
+	\centering
+	\includegraphics[width=0.9\columnwidth]{flowchart.png}
+\caption{Flowchart of parallel computing for principal component analysis and identity-by-descent analysis.}
+\end{figure}
+% -------- END FIGURE --------
+
+R is the most popular statistical programming environment, but one not typically optimized for high performance or parallel computing which would ease the burden of large-scale GWAS calculations. To overcome these limitations we have developed a project named CoreArray (\url{http://corearray.sourceforge.net/}) that includes two R packages: \hn{gdsfmt} to provide efficient, platform independent memory and file management for genome-wide numerical data, and \hn{SNPRelate} to solve large-scale, numerically intensive GWAS calculations (i.e., PCA and IBD) on multi-core symmetric multiprocessing (SMP) computer architectures.
+
+This vignette takes the user through the relatedness and principal component analysis used for genome wide association data. The methods in these vignettes have been introduced in the paper of Zheng {\it et al.} (2012).\footnote{Zheng, Xiuwen., {\it et al}. A High-performance Computing Toolset for Relatedness and Principal Component Analysis in GWAS. {\it Submitted}.} For replication purposes the data used here are taken from the HapMap Phase II project. These data were kindly provided by the Center for Inherited Disease Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard University (Broad). The data supplied here should not be used for any purpose other than this tutorial.
+
+
+
+% ---- Preparing Data ----
+\section{Preparing Data}
+
+% -------- Data formats used in SNPRelate --------
+\subsection{Data formats used in SNPRelate}
+
+To support efficient memory management for genome-wide numerical data, the \hn{gdsfmt} package provides the genomic data structure (GDS) file format for array-oriented bioinformatic data, which is a container for storing annotation data and SNP genotypes. In this format each byte encodes up to four SNP genotypes thereby reducing file size and access time. The GDS format supports data blocking so that only the subset of data that is being processed needs to reside in memory. GDS formatted data is also designed for efficient random access to large data sets.
+
+<<>>=
+# load the R packages: gdsfmt and SNPRelate
+library(gdsfmt)
+library(SNPRelate)
+@
+
+Here is a typical GDS file:
+<<>>=
+snpgdsSummary(snpgdsExampleFileName())
+@
+\fn{snpgdsExampleFileName()} returns the file name of a GDS file used as an example in \hn{SNPRelate}, and it is a subset of data from the HapMap project and the samples were genotyped by the Center for Inherited Disease Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard University (Broad). \fn{snpgdsSummary()} summarizes the genotypes stored in the GDS file. ``Individual-major mode'' indicates listing all SNPs for an individual before listing the SNPs for the next individual, etc. Conversely, ``SNP-major mode'' indicates listing all individuals for the first SNP before listing all individuals for the second SNP, etc. Sometimes ``SNP-major mode'' is more computationally efficient than ``individual-major model''. For example, the calculation of genetic covariance matrix deals with genotypic data SNP by SNP, and then ``SNP-major mode'' should be more efficient.
+<<>>=
+# open a GDS file
+(genofile <- openfn.gds(snpgdsExampleFileName()))
+@
+The output lists all variables stored in the GDS file. At the first level, it saves variables \vr{sample.id}, \vr{snp.id}, etc. The second-level variables \vr{sex} and \vr{pop.group} are both stored in the directory of \vr{sample.annot}. All of the functions in \hn{SNPRelate} require a minimum set of variables in the SNP annotation data.  The minimum required variables are
+\begin{itemize}
+	\item{\vr{snp.id}, a unique identifier for each SNP;}
+	\item{\vr{snp.chromosome}, an integer mapping for each chromosome, with values 1-26, mapped in order from 1-22, 23=X,24=XY (the pseudoautosomal region), 25=Y, 26=M (the mitochondrial probes), and 0 for probes with unknown positions; it does not allow NA.}
+	\item{\vr{snp.position}, the base position of each SNP on the chromosome, and 0 for unknown position; it does not allow NA.}
+\end{itemize}
+<<>>=
+# Take out snp.id
+head(read.gdsn(index.gdsn(genofile, "snp.id")))
+# Take out snp.rs.id
+head(read.gdsn(index.gdsn(genofile, "snp.rs.id")))
+@
+There are two additional variables:
+\begin{itemize}
+	\item{\vr{snp.rs.id}, a character string identifier for the SNP that may not be unique.}
+	\item{\vr{snp.allele}, it is not necessary for the analysis, but it is necessary when merging genotypes from different platforms. The format of \vr{snp.allele} is ``A allele/B allele'', like ``T/G'' where T is A allele and G is B allele.}
+\end{itemize}
+There are four possible values stored in the variable \vr{genotype}: 0, 1, 2 and 3. ``0'' indicates two B alleles, ``1'' indicates one A allele and one B allele, ``2'' indicates two A alleles, and ``3'' is a missing genotype. ``Bit2'' indicates that each byte encodes up to four SNP genotypes since one byte consists of eight bits.
+<<>>=
+# Take out genotype data for the first 3 samples and the first 5 SNPs
+(g <- read.gdsn(index.gdsn(genofile, "genotype"), start=c(1,1), count=c(5,3)))
+
+# read population information
+pop <- read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))
+table(pop)
+
+# close the GDS file
+closefn.gds(genofile)
+@
+
+
+
+% -------- Create a GDS File of Your Own --------
+\subsection{Create a GDS File of Your Own}
+
+The function \fn{snpgdsCreateGeno} helps to create a GDS file of you own. There are possible values stored in the input genotype matrix: 0, 1, 2 and other values. ``0'' indicates two B alleles, ``1'' indicates one A allele and one B allele, ``2'' indicates two A alleles, and other values indicate a missing genotype. For example,
+
+<<>>=
+# load data
+data(hapmap.geno)
+
+# create a gds file
+with(hapmap.geno, snpgdsCreateGeno("test.gds", genmat=genotype,
+    sample.id=sample.id, snp.id=snp.id, snp.chromosome=snp.chromosome,
+    snp.position=snp.position, snp.allele=snp.allele, snpfirstorder=TRUE))
+
+# open the gds file
+(genofile <- openfn.gds("test.gds"))
+
+# close the genotype file
+closefn.gds(genofile)
+@
+
+
+
+% -------- Format conversion from PLINK binary files --------
+\subsection{Format conversion from PLINK binary files}
+
+The \hn{SNPRelate} package provides a function \fn{snpgdsBED2GDS} for converting a PLINK binary file to a GDS file:
+
+<<>>=
+# the PLINK BED file
+bed.fn <- system.file("extdata", "plinkhapmap.bed", package="SNPRelate")
+bim.fn <- system.file("extdata", "plinkhapmap.bim", package="SNPRelate")
+fam.fn <- system.file("extdata", "plinkhapmap.fam", package="SNPRelate")
+
+# convert
+snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "test.gds")
+
+# summary
+snpgdsSummary("test.gds")
+@
+
+
+% -------- Format conversion from Sequence VCF files --------
+\subsection{Format conversion from Sequence VCF files}
+
+The \hn{SNPRelate} package provides a function \fn{snpgdsVCF2GDS} for converting a VCF file to a GDS file:
+
+<<>>=
+# the VCF file
+vcf.fn <- system.file("extdata", "sequence.vcf", package="SNPRelate")
+
+# convert
+snpgdsVCF2GDS(vcf.fn, "test.gds")
+
+# summary
+snpgdsSummary("test.gds")
+@
+
+
+
+% ---- Data Analysis ----
+\section{Data Analysis}
+
+We developed \hn{gdsfmt} and \hn{SNPRelate} (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures.
+
+<<>>=
+# open the GDS file
+genofile <- openfn.gds(snpgdsExampleFileName())
+@
+
+
+% -------- LD-based SNP pruning --------
+\subsection{LD-based SNP pruning}
+
+It is important to use a pruned set of SNPs which are in approximate linkage equilibrium with each other to avoid the strong influence of SNP clusters in principal component analysis and relatedness analysis.
+
+<<>>=
+set.seed(1000)
+# try different LD thresholds for sensitivity analysis
+snpset <- snpgdsLDpruning(genofile, ld.threshold=0.2)
+names(snpset)
+head(snpset$chr1)  # snp.id
+# get all selected snp id
+snpset.id <- unlist(snpset)
+@
+
+
+% -------- Principal Component Analysis --------
+\subsection{Principal Component Analysis}
+
+The functions in \hn{SNPRelate} for PCA include calculating the genetic covariance matrix from genotypes, computing the correlation coefficients between sample loadings and genotypes for each SNP, calculating SNP eigenvectors (loadings), and estimating the sample loadings of a new dataset from specified SNP eigenvectors.
+
+<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+pca <- snpgdsPCA(genofile, maf=0.05, missing.rate=0.05,
+	snp.id=snpset.id, num.thread=2)
+plot(pca$eigenvect[,2], pca$eigenvect[,1], xlab="Principal Component 2",
+	ylab="Principal Component 1", type="n")
+# uses different colors with respect to ethnicities
+race <- as.factor(read.gdsn(index.gdsn(genofile,
+	c("sample.annot", "pop.group"))))
+points(pca$eigenvect[,2], pca$eigenvect[,1], col=race)
+legend("topleft", legend=levels(race), text.col=1:nlevels(race))
+@
+
+The code below shows how to calculate the percent of variation is accounted for by the principal component for the first 16 PCs. It is clear to see the first two eigenvectors hold the largest percentage of variance among the population, although the total variance accounted for is still less the one-quarter of the total.
+<<>>=
+pc.percent <- 100 * pca$eigenval[1:16]/sum(pca$eigenval)
+pc.percent
+@
+
+Plot the principal component pairs for the first four PCs:
+<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+lbls <- paste("PC", 1:4, "\n", format(pc.percent[1:4], digits=2), "%", sep="")
+pairs(pca$eigenvect[,1:4], col=race, labels=lbls)
+@
+
+To calculate the SNP correlations between eigenvactors and SNP genotypes:
+<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+# get chromosome index
+chr <- read.gdsn(index.gdsn(genofile, "snp.chromosome"))
+CORR <- snpgdsPCACorr(pca, genofile, eig.which=1:4)
+
+par( mfrow=c(3,1))
+for (i in 1:3)
+{
+	plot(abs(CORR$snpcorr[i,]), ylim=c(0,1), xlab="SNP Index",
+		ylab=paste("PC", i), col=chr, pch="+")
+}
+@
+
+
+
+% -------- Relatedness Analysis --------
+\subsection{Relatedness Analysis}
+
+For relatedness analysis, identity-by-descent (IBD) estimation in \hn{SNPRelate} can be done by either the method of moments (MoM) (Purcell et al., 2007) or maximum likelihood estimation (MLE) (Milligan, 2003; Choi et al., 2009). Although MLE estimates are more reliable than MoM, MLE is significantly more computationally intensive. For both of these methods it is preffered to use a LD pruned SNP set.
+
+<<>>=
+# YRI samples
+sample.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
+YRI.id <- sample.id[read.gdsn(index.gdsn(genofile,
+	c("sample.annot", "pop.group"))) == "YRI"]
+@
+
+\subsubsection{PLINK method of moments (MoM)}
+<<>>=
+# estimate IBD coefficients
+ibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id, snp.id=snpset.id,
+	maf=0.05, missing.rate=0.05)
+ibd.coeff <- snpgdsIBDSelection(ibd)
+head(ibd.coeff)
+@
+<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+plot(ibd.coeff$k0, ibd.coeff$k1, xlim=c(0,1), ylim=c(0,1),
+	xlab="k0", ylab="k1", main="YRI samples (MoM)")
+lines(c(0,1), c(1,0), col="red", lty=2)
+@
+
+\subsubsection{IBD Using Maximum Likelihood Estimation (MLE)}
+<<eval=FALSE>>=
+# estimate IBD coefficients
+set.seed(1000)
+snp.id <- sample(snpset.id, 5000)  # random 5000 SNPs
+ibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snp.id,
+	maf=0.05, missing.rate=0.05)
+ibd.coeff <- snpgdsIBDSelection(ibd)
+
+plot(ibd.coeff$k0, ibd.coeff$k1, xlim=c(0,1), ylim=c(0,1),
+	xlab="k0", ylab="k1", main="YRI samples (MLE)")
+lines(c(0,1), c(1,0), col="red", lty=2)
+@
+\includegraphics{SNPRelateTutorial-IBDMLE.png}
+
+
+
+% -------- Identity-By-State Analysis --------
+\subsection{Identity-By-State Analysis}
+
+For the $n$ individuals in a sample, \fn{snpgdsIBS} can be used to create a $n \times n$ matrix of genome-wide average IBS pairwise identities:
+
+<<>>=
+ibs <- snpgdsIBS(genofile, num.thread=2)
+pop <- read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))
+@
+The heat map is shown:
+<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+library(lattice)
+
+L <- order(pop)
+levelplot(ibs$ibs[L, L], col.regions = terrain.colors)
+@
+
+To perform multidimensional scaling analysis on the $n \times n$ matrix of genome-wide IBS pairwise distances:
+<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+loc <- cmdscale(1 - ibs$ibs, k = 2)
+x <- loc[, 1]; y <- loc[, 2]
+race <- as.factor(pop)
+plot(x, y, col=race, xlab = "", ylab = "",
+	main = "Multidimensional Scaling Analysis (IBS Distance)")
+legend("topleft", legend=levels(race), text.col=1:nlevels(race))
+@
+
+To perform cluster analysis on the $n \times n$ matrix of genome-wide IBS pairwise distances:
+<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+d <- 1 - ibs$ibs
+colnames(d) <- rownames(d) <- pop
+hc <- hclust(as.dist(d))
+obj <- as.dendrogram(hc, hang=0.2)
+add.point <- function(n, group) {
+  if (is.leaf(n))
+  {
+    attr(n, "nodePar") <- list(pch=20, col=match(attr(n, "label"), group))
+  }
+  n
+}
+obj <- dendrapply(obj, add.point, group=levels(race))
+
+plot(obj, leaflab="none", main="Hierarchical Clustering based on IBS")
+legend("topright", legend=levels(race), col=1:nlevels(race), pch=19, ncol=4)
+@
+
+<<>>=
+# close the GDS file
+closefn.gds(genofile)
+@
+
+
+
+
+% ---- Resources ----
+\section{Resources}
+
+\begin{enumerate}
+	\item \hn{CoreArray} project: \url{http://corearray.sourceforge.net/}
+	\item \hn{gdsfmt} R package: \url{http://cran.r-project.org/web/packages/gdsfmt/index.html}
+	\item \hn{SNPRelate} R package: \url{http://cran.r-project.org/web/packages/SNPRelate/index.html}
+\end{enumerate}
+
+
+
+
+
+\section{Acknowledgements}
+The author would like to thank members of the GENEVA consortium (\url{http://www.genevastudy.org}) for access to the data used for testing the \hn{gdsfmt} and \hn{SNPRelate} packages.
+
+Funding: National Institutes of Health (HG 004446).
+
+
+\end{document}
