@@ -59,6 +59,15 @@ pop.level <- levels(pop.group)
 diss <- snpgdsDiss(genofile, num.thread=2)
 hc <- snpgdsHCluster(diss)
 
+# close the genotype file
+closefn.gds(genofile)
+
+
+
+###################################################################
+# cluster individuals
+#
+
 set.seed(100)
 rv <- snpgdsCutTree(hc, label.H=TRUE, label.Z=TRUE)
 
@@ -70,17 +79,36 @@ snpgdsDrawTree(rv, main="HapMap Phase II",
 	edgePar=list(col=rgb(0.5,0.5,0.5, 0.75), t.col="black"))
 
 
-
+###################################################################
 # or cluster individuals by ethnic information
+#
 
-rv2 <- snpgdsCutTree(hc, samp.group=as.factor(pop.group))
+rv2 <- snpgdsCutTree(hc, samp.group=pop.group)
+
 # cluster individuals by Z score, specifying 'clust.count'
 snpgdsDrawTree(rv2, rv$clust.count, main="HapMap Phase II",
-	edgePar=list(col=rgb(0.5,0.5,0.5, 0.75), t.col="black"))
+	edgePar = list(col=rgb(0.5,0.5,0.5, 0.75), t.col="black"),
+	labels = c("YRI", "CHB/JPT", "CEU"), y.label=0.1)
+legend("bottomleft", legend=levels(pop.group), col=1:nlevels(pop.group),
+	pch=19, ncol=4, bg="white")
 
 
-# close the genotype file
-closefn.gds(genofile)
+
+###################################################################
+# zoom in ...
+#
+
+snpgdsDrawTree(rv2, rv$clust.count, dend.idx = c(1),
+	main="HapMap Phase II -- YRI",
+	edgePar=list(col=rgb(0.5,0.5,0.5, 0.75), t.col="black"), y.label.kinship=TRUE)
+
+snpgdsDrawTree(rv2, rv$clust.count, dend.idx = c(2,2),
+	main="HapMap Phase II -- CEU",
+	edgePar=list(col=rgb(0.5,0.5,0.5, 0.75), t.col="black"), y.label.kinship=TRUE)
+
+snpgdsDrawTree(rv2, rv$clust.count, dend.idx = c(2,1),
+	main="HapMap Phase II -- CHB/JPT",
+	edgePar=list(col=rgb(0.5,0.5,0.5, 0.75), t.col="black"), y.label.kinship=TRUE)
 }
 
 \keyword{multicore}

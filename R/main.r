@@ -1338,16 +1338,16 @@ snpgdsPairIBD <- function(geno1, geno2, allele.freq,
 	stopifnot(is.vector(allele.freq) & is.numeric(allele.freq))
 	stopifnot(length(geno1) == length(geno2))
 	stopifnot(length(geno1) == length(allele.freq))
-	stopifnot(method %in% c("EM", "downhill.simplex", "MoM"))
 	stopifnot(is.logical(kinship.constraint))
 	stopifnot(is.logical(coeff.correct))
+	method <- match.arg(method)
 
 	# method
-	if (method[1] == "EM")
+	if (method == "EM")
 		method <- 0
-	else if (method[1] == "downhill.simplex")
+	else if (method == "downhill.simplex")
 		method <- 1
-	else if (method[1] == "MoM")
+	else if (method == "MoM")
 		method <- -1
 	else
 		stop("Invalid MLE method!")
@@ -1371,7 +1371,7 @@ snpgdsPairIBD <- function(geno1, geno2, allele.freq,
 		as.double(allele.freq), as.logical(kinship.constraint), as.integer(max.niter),
 		as.double(reltol), as.logical(coeff.correct), as.integer(method),
 		out.k0 = double(1), out.k1 = double(1), out.loglik = double(1),
-		out.niter = integer(1), double(3*length(geno1)),
+		out.niter = integer(1), double(3*length(geno1) + 3*4),
 		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (rv$err != 0) stop(snpgdsErrMsg())
 
@@ -2414,13 +2414,17 @@ snpgdsCutTree <- function(hc, z.threshold=15, outlier.n=5, n.perm = 5000,
 #   verbose -- show information
 #
 
-snpgdsDrawTree <- function(obj, clust.count=NULL, type=c("dendrogram", "z-score"),
+snpgdsDrawTree <- function(obj, clust.count=NULL, dend.idx=NULL,
+	type=c("dendrogram", "z-score"), yaxis.height=TRUE, yaxis.kinship=TRUE,
+	y.kinship.baseline=NaN, y.label.kinship=FALSE,
 	outlier.n=NULL, shadow.col = c(rgb(0.5, 0.5, 0.5, 0.25), rgb(0.5, 0.5, 0.5, 0.05)),
-	outlier.col = rgb(1, 0.50, 0.50, 0.5), leaflab="none", labels=NULL, y.label=0.2,
+	outlier.col=rgb(1, 0.50, 0.50, 0.5), leaflab="none", labels=NULL, y.label=0.2,
 	...)
 {
 	# check
+	stopifnot(is.null(dend.idx) | is.numeric(dend.idx))
 	type <- match.arg(type)
+	stopifnot(is.numeric(y.kinship.baseline))
 
 	if (type == "dendrogram")
 	{
@@ -2434,8 +2438,57 @@ snpgdsDrawTree <- function(obj, clust.count=NULL, type=c("dendrogram", "z-score"
 			outlier.n <- obj$outlier.n
 
 		# draw
-		plot(obj$dendrogram, leaflab=leaflab, ...)
+		if (!is.null(dend.idx))
+		{
+			den <- obj$dendrogram[[dend.idx]]
+			x.offset <- 0
+			for (i in 1:length(dend.idx))
+			{
+				if (dend.idx[i] == 2)
+				{
+					IX <- dend.idx[1:i]
+					IX[i] <- 1
+					x.offset <- x.offset + attr(obj$dendrogram[[IX]], "member")
+				}
+			}
+		} else {
+			den <- obj$dendrogram
+			x.offset <- 0
+		}
 
+		par(mar=c(4, 4, 4, 4))
+		oldpar <- par(mgp=c(5, 1, 0))  # to avoid ylab
+		plot(den, leaflab=leaflab, axes=F, ...)
+		par(oldpar)
+
+		# draw left y-axis
+		if (yaxis.height)
+		{
+			axis(side=2, line=0)
+			tmp <- list(...)
+			if (!is.null(tmp$ylab))
+				ylab <- tmp$ylab
+			else
+				ylab <- "dissimilarity"
+			mtext(ylab, side=2, line=2.5)
+		}
+
+		# draw right y-axis
+		if (yaxis.kinship)
+		{
+			if (is.finite(y.kinship.baseline))
+			{
+				y.kinship.baseline <- y.kinship.baseline[1]
+			} else {
+				y.kinship.baseline <- attr(den, "height")
+			}
+
+			ym <- pretty(c(0, 1))
+			axis(side=4, (1 - ym) * y.kinship.baseline, ym, line=0)
+			mtext("kinship coefficient", 4, line=2.5)
+		}
+
+		# draw others
 		if (!is.null(clust.count))
 		{
 			m <- c(0, cumsum(clust.count))
@@ -2444,18 +2497,44 @@ snpgdsDrawTree <- function(obj, clust.count=NULL, type=c("dendrogram", "z-score"
 			{
 				if (clust.count[i] > outlier.n)
 				{
-					rect(m[i] + 0.5, par("usr")[3L], m[i+1] + 0.5, par("usr")[4L],
+					rect(m[i] + 0.5 - x.offset, par("usr")[3L],
+						m[i+1] + 0.5 - x.offset, par("usr")[4L],
 						col = shadow.col[jj], border = NA)
 					jj <- 3 - jj
 					if (!is.null(labels[k]))
-						text((m[i]+m[i+1])/2, y.label, labels[k])
+						text((m[i]+m[i+1])/2 - x.offset, y.label, labels[k])
 					k <- k + 1
 				} else {
-					rect(m[i] + 0.5, par("usr")[3L], m[i+1] + 0.5, par("usr")[4L],
+					rect(m[i] + 0.5 - x.offset, par("usr")[3L],
+						m[i+1] + 0.5 - x.offset, par("usr")[4L],
 						col = outlier.col, border = NA)
 				}
 			}
 		}
+
+		# draw kinship label
+		if (yaxis.kinship & y.label.kinship)
+		{
+			# identical twins
+			h1 <- (1 - 0.5)*y.kinship.baseline
+			abline(h=h1, lty=2, col="gray")
+
+			# parent–child / full-siblings
+			h2 <- (1 - 0.25)*y.kinship.baseline
+			abline(h=h2, lty=2, col="gray")
+
+			# parent–child / full-siblings
+			h3 <- (1 - 1/8)*y.kinship.baseline
+			abline(h=h3, lty=2, col="gray")
+
+			# first cousins
+			h4 <- (1 - 1/16)*y.kinship.baseline
+			abline(h=h4, lty=2, col="gray")
+
+			axis(side=4, c(h1, h2, h3, h4), c("twins", "PC/FS", "DFC/HS", "FC"),
+				tick=FALSE, line=-0.75, las=2, cex.axis=0.75, col.axis="gray25")
+		}
+
 	} else if (type == "z-score")
 	{
 		# the distribution of Z scores
@@ -3441,7 +3520,7 @@ snpgdsErrMsg <- function()
 #
 snpgdsExampleFileName <- function()
 {
-	system.file("extdata", "hapmap.geno.gds", package="SNPRelate")
+	system.file("extdata", "hapmap_geno.gds", package="SNPRelate")
 }
 
 
@@ -4394,7 +4473,7 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1, autosome.end=22, ...)
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.9")
+	packageStartupMessage("SNPRelate: 0.9.10")
 	if (rv$sse != 0)
 		packageStartupMessage("Streaming SIMD Extensions 2 (SSE2) supported.\n")
 

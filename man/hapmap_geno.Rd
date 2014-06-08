@@ -1,6 +1,6 @@
-\name{hapmap.geno}
+\name{hapmap_geno}
 \docType{data}
-\alias{hapmap.geno}
+\alias{hapmap_geno}
 \title{SNP genotypes of HapMap samples}
 \description{
 	A list object including the following components:
@@ -17,5 +17,5 @@
 
 	\code{genotype} -- a ``# of SNPs'' X ``# of samples'' genotype matrix.
 }
-\usage{hapmap.geno}
+\usage{hapmap_geno}
 \keyword{datasets}

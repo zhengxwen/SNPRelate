@@ -46,7 +46,17 @@ hc <- snpgdsHCluster(diss)
 rv <- snpgdsCutTree(hc)
 rv
 
+# call 'plot' to draw a dendrogram
 plot(rv$dendrogram, leaflab="none", main="HapMap Phase II")
+
+
+# the distribution of Z scores
+snpgdsDrawTree(rv, type="z-score", main="HapMap Phase II")
+
+# draw dendrogram
+snpgdsDrawTree(rv, main="HapMap Phase II",
+	edgePar=list(col=rgb(0.5,0.5,0.5, 0.75), t.col="black"))
+
 
 # close the genotype file
 closefn.gds(genofile)

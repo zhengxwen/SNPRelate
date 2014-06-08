@@ -47,10 +47,10 @@ which are data.frame objects.
 }
 \examples{
 # load data
-data(hapmap.geno)
+data(hapmap_geno)
 
 # create a gds file
-with(hapmap.geno, snpgdsCreateGeno("test.gds", genmat=genotype,
+with(hapmap_geno, snpgdsCreateGeno("test.gds", genmat=genotype,
 	sample.id=sample.id, snp.id=snp.id, snp.chromosome=snp.chromosome,
 	snp.position=snp.position, snp.allele=snp.allele, snpfirstorder=TRUE))
 

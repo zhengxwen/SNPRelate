@@ -431,12 +431,19 @@ namespace IBD
 		double OldLogLik = 0;
 		// the current value of - log likelihood function
 		double LogLik = EM_LogLik(PrIBD, k[0], k[1]);
-		// this will never happen
-		if (!conf_IsFinite64(LogLik))
-			throw "Invalid initial IBD coefficient parameters.";
-		// the converage tolerance
-		double ConvTol = FuncRelTol * (fabs(LogLik) + fabs(FuncRelTol));
-		if (ConvTol < 0) ConvTol = 0;
+		// convergence tolerance
+		double ConvTol;
+
+		// check log likelihood
+		if (conf_IsFinite64(LogLik))
+		{
+			// the converage tolerance
+			ConvTol = FuncRelTol * (fabs(LogLik) + fabs(FuncRelTol));
+			if (ConvTol < 0) ConvTol = 0;
+		} else {
+			LogLik = 1e+8;
+			ConvTol = FuncRelTol;
+		}
 
 		if (out_niter) *out_niter = nIterMax;
 
@@ -780,25 +787,39 @@ namespace IBD
 
 		// MLE
 		nTotalSNP = n;
+		nPackedSNP = n / 4;
+		if ((n & 0x03) != 0) nPackedSNP ++;
+
 		double *ptmp = tmpprob;
 		switch (MethodMLE)
 		{
 			case 0:
-				// fill PrIBD, Pr(ibs state|ibd state j)
+				// fill PrIBD, Pr(ibs state | ibd state j)
 				for (int i=0; i < n; i++)
 				{
 					prIBDTable(geno1[i], geno2[i], ptmp[0], ptmp[1], ptmp[2], AFreq[i]);
 					ptmp += 3;
 				}
+				for (int i=0; i < 4; i++)
+				{
+					ptmp[0] = ptmp[1] = ptmp[2] = 0;
+					ptmp += 3;
+				}
 				// MLE - EM algorithm
 				EMAlg(tmpprob, out_k0, out_k1, out_loglik, &out_niter);
 				break;
+
 			case 1:
-				// fill PrIBD, Pr(ibs state|ibd state j)
+				// fill PrIBD, Pr(ibs state | ibd state j)
 				for (int i=0; i < n; i++)
 				{
 					prIBDTable(geno1[i], geno2[i], ptmp[0], ptmp[1], ptmp[2], AFreq[i]);
 					ptmp[0] -= ptmp[2]; ptmp[1] -= ptmp[2];
+					ptmp += 3;
+				}
+				for (int i=0; i < 4; i++)
+				{
+					ptmp[0] = ptmp[1] = ptmp[2] = 0;
 					ptmp += 3;
 				}
 				// MLE - downhill simplex algorithm

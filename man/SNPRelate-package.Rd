@@ -11,8 +11,8 @@ in Genome-wide Association Studies
 	\tabular{ll}{
 		Package: \tab SNPRelate\cr
 		Type: \tab Package\cr
-		Version: \tab 0.9.9\cr
-		Date: \tab 2013-01-04\cr
+		Version: \tab 0.9.10\cr
+		Date: \tab 2013-01-21\cr
 		License: \tab LGPL version 3\cr
 		Depends: \tab gdsfmt (>= 0.9.7)\cr
 	}
