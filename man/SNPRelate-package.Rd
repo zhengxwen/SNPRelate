@@ -19,11 +19,9 @@ analysis in Genome-wide Association Studies
 	The genotypes stored in GDS format can be analyzed by the R functions in SNPRelate,
 	which utilize the multi-core feature of machine for a single computer.
 
-	Webpage: \url{http://corearray.sourceforge.net/}
+	Webpage: \url{http://github.com/zhengxwen/SNPRelate}
 
 	Tutorial: \url{http://corearray.sourceforge.net/tutorials/SNPRelate/}
-
-	Forums:	\url{http://sourceforge.net/projects/corearray/forums}
 }
 \references{
 	Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS.
