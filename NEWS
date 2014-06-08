@@ -1,13 +1,23 @@
+0.9.14	22-May-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+
+	* 'snpgdsGDS2BED' gives a warning if the allele information is missing
+	* adds 'snpgdsIBDKING' (KING robust relationship inference in genome-wide association studies)
+	* bug fixes in 'snpgdsIBS' and 'snpgdsIBSNum'
+	* some warnings in 'snpgdsSummary' are replaced by hints
+	* bug fix in 'snpgdsVCF2GDS': duplicate SNP id when importing multiple VCF files
+	* improve hint information in 'snpgdsGDS2BED'
+
+
 0.9.13	25-Feb-2013	Xiuwen Zheng <zhengx@u.washington.edu>
 
-	* Disable parallel functions in the Windows version of SNPRelate, until the internal multi-thread funcitons are replacted by the functions in win-pthreads
+	* Disable parallel functions in the Windows version of SNPRelate, until the internal multi-thread funcitons are replaced by the functions in win-pthreads
 	* Fix compiling issues in the Windows version of SNPRelate
 
 
 0.9.12	27-Feb-2013	Xiuwen Zheng <zhengx@u.washington.edu>
 
-	* add 'GetRNGstate' and 'PutRNGstate' to the C function 'gnrDistPerm'
-	* remove the upper limit of 200 chromosomes in 'snpgdsVCF2GDS' according to scaffolds/contigs from a de novo assembly not chromosomes
+	* adds 'GetRNGstate' and 'PutRNGstate' to the C function 'gnrDistPerm'
+	* removes the upper limit of 200 chromosomes in 'snpgdsVCF2GDS' according to scaffolds/contigs from a de novo assembly not chromosomes
 	* improves 'snpgdsSummary'
 
 
@@ -15,7 +25,7 @@
 
 	* bug fix in 'snpgdsVCF2GDS': to use "\t" as the field separator character
 	* bug fixes according to gdsfmt v0.9.11
-	* improve the vignette
+	* improves the vignette
 
 
 0.9.10	22-Jan-2013	Xiuwen Zheng <zhengx@u.washington.edu>
@@ -25,43 +35,43 @@
 
 0.9.9	04-Jan-2013	Xiuwen Zheng <zhengx@u.washington.edu>
 
-	* add a new argument 'family' to 'snpgdsBED2GDS'
-	* improve 'snpgdsCutTree'
-	* add a new function 'snpgdsDrawTree'
-	* add an argument 'option' to the function 'snpgdsBED2GDS'
-	* output chromosome codes according to 'snpgdsOption' in 'snpgdsGDS2BED'
+	* adds a new argument 'family' to 'snpgdsBED2GDS'
+	* improves 'snpgdsCutTree'
+	* adds a new function 'snpgdsDrawTree'
+	* adds an argument 'option' to the function 'snpgdsBED2GDS'
+	* outputs chromosome codes according to 'snpgdsOption' in 'snpgdsGDS2BED'
 
 
 0.9.8	28-Sep-2012	Xiuwen Zheng <zhengx@u.washington.edu>
 
-	* add an alternative method extracting variants from a VCF file in 'snpgdsVCF2GDS'
-	* support multiple files in 'snpgdsVCF2GDS'
-	* add 'snpgdsOption'
-	* add 'snpgdsHCluster'
-	* add 'snpgdsCutTree'
-	* add 'snpgdsDiss'
+	* adds an alternative method extracting variants from a VCF file in 'snpgdsVCF2GDS'
+	* supports multiple files in 'snpgdsVCF2GDS'
+	* adds 'snpgdsOption'
+	* adds 'snpgdsHCluster'
+	* adds 'snpgdsCutTree'
+	* adds 'snpgdsDiss'
 
 
 0.9.7	30-Aug-2012	Xiuwen Zheng <zhengx@u.washington.edu>
 
-	* fix an important bug of missing genotypes in 'snpgdsVCF2GDS'
-	* fix a bug in 'snpgdsGDS2BED' (output 23, 24, ..., instead of X, Y, XY)
-	* fix a bug in 'snpgdsCombineGeno' (due to duplicate SNPs)
+	* bug fix: an important bug of missing genotypes in 'snpgdsVCF2GDS'
+	* bug fix: a bug in 'snpgdsGDS2BED' (output 23, 24, ..., instead of X, Y, XY)
+	* bug fix: a bug in 'snpgdsCombineGeno' (due to duplicate SNPs)
 	* 'snpgdsLDpair' provides haplotype frequency estimates
 	* 'snpgdsLDMat' allows specifying sliding window size
-	* add RUnit tests
-	* add a vignette
+	* adds RUnit tests
+	* adds a vignette
 
 
 0.9.6	22-Jul-2012	Xiuwen Zheng <zhengx@u.washington.edu>
 
-	* add functions to 'snpgdsIBDMLE' and 'snpgdsIBDMoM'
-	* add a new function 'snpgdsVCF2GDS'
+	* adds functions to 'snpgdsIBDMLE' and 'snpgdsIBDMoM'
+	* adds a new function 'snpgdsVCF2GDS'
 
 
 0.9.1-0.9.5	25-Apr-2012	Xiuwen Zheng <zhengx@u.washington.edu>
 
-	* fix minor bugs
+	* bug fixes
 
 
 0.9.0	03-Aug-2011	Xiuwen Zheng <zhengx@u.washington.edu>

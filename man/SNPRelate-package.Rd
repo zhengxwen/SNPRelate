@@ -11,8 +11,8 @@ in Genome-wide Association Studies
 	\tabular{ll}{
 		Package: \tab SNPRelate\cr
 		Type: \tab Package\cr
-		Version: \tab 0.9.13\cr
-		Date: \tab 2013-02-27\cr
+		Version: \tab 0.9.14\cr
+		Date: \tab 2013-05-22\cr
 		License: \tab GPL version 3\cr
 		Depends: \tab gdsfmt (>= 0.9.7)\cr
 	}
@@ -52,7 +52,7 @@ snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "HapMap.gds")
 # open
 genofile <- openfn.gds("HapMap.gds")
 
-RV <- snpgdsPCA(genofile, num.thread=2)
+RV <- snpgdsPCA(genofile)
 plot(RV$eigenvect[,2], RV$eigenvect[,1], xlab="PC 2", ylab="PC 1",
 	col=rgb(0,0,150, 50, maxColorValue=255), pch=19)
 
@@ -67,7 +67,7 @@ closefn.gds(genofile)
 # open
 genofile <- openfn.gds(snpgdsExampleFileName())
 
-RV <- snpgdsIBDMoM(genofile, num.thread=2)
+RV <- snpgdsIBDMoM(genofile)
 flag <- lower.tri(RV$k0)
 plot(RV$k0[flag], RV$k1[flag], xlab="k0", ylab="k1",
 	col=rgb(0,0,150, 50, maxColorValue=255), pch=19)
@@ -84,7 +84,7 @@ closefn.gds(genofile)
 # open
 genofile <- openfn.gds(snpgdsExampleFileName())
 
-RV <- snpgdsIBS(genofile, num.thread=2)
+RV <- snpgdsIBS(genofile)
 m <- 1 - RV$ibs
 colnames(m) <- rownames(m) <- RV$sample.id
 GeneticDistance <- as.dist(m[1:45, 1:45])

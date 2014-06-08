@@ -13,7 +13,7 @@ snpgdsLDpruning(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 	slide.max.n = NA, ld.threshold = 0.2, num.thread = 1, verbose = TRUE)
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
 	\item{autosome.only}{if TRUE, use autosomal SNPs only}
@@ -32,10 +32,11 @@ snpgdsLDpruning(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 calculated over all the samples in \code{sample.id}.
 
 	Four methods can be used to calculate linkage disequilibrium values:
-"composite" for LD composite measure, "r" for R coefficient (by EM algorithm assuming HWE),
-"dprime" for D', and "corr" for correlation coefficient. The method "corr" is equivalent
-to "composite", when SNP genotypes are coded as: 0 -- BB, 1 -- AB, 2 -- AA. The LD is the
-absolute value of measurement.
+"composite" for LD composite measure, "r" for R coefficient (by EM algorithm assuming
+HWE, it could be negative), "dprime" for D', and "corr" for correlation coefficient.
+The method "corr" is equivalent to "composite", when SNP genotypes are coded as:
+0 -- BB, 1 -- AB, 2 -- AA. The argument \code{ld.threshold} is the absolute value of
+measurement.
 
 	It is useful to generate a pruned subset of SNPs that are in approximate linkage
 equilibrium with each other. The function \code{snpgdsLDpruning} recursively removes SNPs

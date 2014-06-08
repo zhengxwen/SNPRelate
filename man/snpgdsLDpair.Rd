@@ -16,9 +16,10 @@ snpgdsLDpair(snp1, snp2, method = c("composite", "r", "dprime", "corr"))
 }
 \details{
 	Four methods can be used to calculate linkage disequilibrium values:
-"composite" for LD composite measure, "r" for R coefficient (by EM algorithm assuming HWE),
-"dprime" for D', and "corr" for correlation coefficient. The method "corr" is equivalent
-to "composite", when SNP genotypes are coded as: 0 -- BB, 1 -- AB, 2 -- AA.
+"composite" for LD composite measure, "r" for R coefficient (by EM algorithm assuming
+HWE, it could be negative), "dprime" for D', and "corr" for correlation coefficient.
+The method "corr" is equivalent to "composite", when SNP genotypes are coded as:
+0 -- BB, 1 -- AB, 2 -- AA.
 }
 \value{
 	Return a \code{data.frame}:

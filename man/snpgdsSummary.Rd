@@ -10,7 +10,7 @@
 snpgdsSummary(gds, show=TRUE)
 }
 \arguments{
-	\item{gds}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package, or a file name}
+	\item{gds}{a GDS file object (\code{\link[gdsfmt]{gds.class}}), or a file name}
 	\item{show}{if TRUE, show information}
 }
 \value{

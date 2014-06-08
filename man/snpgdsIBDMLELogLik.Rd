@@ -8,10 +8,11 @@
 }
 \usage{
 snpgdsIBDMLELogLik(gdsobj, ibdobj, k0 = NaN, k1 = NaN,
-	relatedness = c("", "self", "fullsib", "offspring", "halfsib", "cousin", "unrelated"))
+	relatedness=c("", "self", "fullsib", "offspring",
+	"halfsib", "cousin", "unrelated"))
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{ibdobj}{the \code{snpgdsIBDClass} object returned from \link{snpgdsIBDMLE}}
 	\item{k0}{specified IBD coefficient}
 	\item{k1}{specified IBD coefficient}

@@ -8,10 +8,11 @@
 }
 \usage{
 snpgdsIBSNum(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
-	remove.monosnp = TRUE, maf = NaN, missing.rate = NaN, num.thread = 1, verbose = TRUE)
+	remove.monosnp = TRUE, maf = NaN, missing.rate = NaN, num.thread = 1,
+	verbose = TRUE)
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
 	\item{autosome.only}{if TRUE, use autosomal SNPs only}
@@ -42,7 +43,7 @@ calculated over all the samples in \code{sample.id}.
 # open an example dataset (HapMap)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
-RV <- snpgdsIBSNum(genofile, num.thread=2)
+RV <- snpgdsIBSNum(genofile)
 pop <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 L <- order(pop)
 image(RV$ibs0[L, L]/length(RV$snp.id))

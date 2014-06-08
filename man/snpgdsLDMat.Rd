@@ -11,7 +11,7 @@ snpgdsLDMat(gdsobj, sample.id=NULL, snp.id=NULL, slide=250,
 	method=c("composite", "r", "dprime", "corr"), num.thread=1, verbose=TRUE)
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
 	\item{slide}{# of SNPs, the size of sliding window, see details}
@@ -21,9 +21,10 @@ snpgdsLDMat(gdsobj, sample.id=NULL, snp.id=NULL, slide=250,
 }
 \details{
 	Four methods can be used to calculate linkage disequilibrium values:
-"composite" for LD composite measure, "r" for R coefficient (by EM algorithm assuming HWE),
-"dprime" for D', and "corr" for correlation coefficient. The method "corr" is equivalent
-to "composite", when SNP genotypes are coded as: 0 -- BB, 1 -- AB, 2 -- AA.
+"composite" for LD composite measure, "r" for R coefficient (by EM algorithm assuming
+HWE, it could be negative), "dprime" for D', and "corr" for correlation coefficient.
+The method "corr" is equivalent to "composite", when SNP genotypes are coded as:
+0 -- BB, 1 -- AB, 2 -- AA.
 
 	if \code{slide} <= 0, output a n-by-n LD matrix; otherwise, output a m-by-n LD matrix,
 where n is the total number of SNPs, m is the size of sliding window.

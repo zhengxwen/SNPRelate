@@ -13,7 +13,7 @@ snpgdsIBDMoM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 	kinship=FALSE, kinship.constraint=FALSE, num.thread=1, verbose=TRUE)
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
 	\item{autosome.only}{if TRUE, use autosomal SNPs only}
@@ -61,7 +61,7 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 # CEU population
 CEU.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="CEU"]
-pibd <- snpgdsIBDMoM(genofile, sample.id=CEU.id, num.thread=2, kinship=TRUE)
+pibd <- snpgdsIBDMoM(genofile, sample.id=CEU.id, kinship=TRUE)
 names(pibd)
 
 flag <- lower.tri(pibd$k0)
@@ -72,7 +72,7 @@ points(pibd$k0[flag], pibd$k1[flag])
 # YRI population
 YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="YRI"]
-pibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id, num.thread=2)
+pibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id)
 flag <- lower.tri(pibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
 lines(c(0,1), c(1,0), col="red", lty=3)
@@ -81,14 +81,14 @@ points(pibd$k0[flag], pibd$k1[flag])
 
 # specify the allele frequencies
 afreq <- snpgdsSNPRateFreq(genofile, sample.id=YRI.id)$AlleleFreq
-aibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id, num.thread=2, allele.freq=afreq)
+aibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id, allele.freq=afreq)
 flag <- lower.tri(aibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
 lines(c(0,1), c(1,0), col="red", lty=3)
 points(aibd$k0[flag], aibd$k1[flag])
 
 # analysis on a subset
-subibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id[1:25], num.thread=2, allele.freq=afreq)
+subibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id[1:25], allele.freq=afreq)
 summary(c(subibd$k0 - aibd$k0[1:25, 1:25]))
 # ZERO
 summary(c(subibd$k1 - aibd$k1[1:25, 1:25]))

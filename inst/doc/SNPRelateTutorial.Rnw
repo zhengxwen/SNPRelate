@@ -6,11 +6,11 @@
 \documentclass[12pt]{article}
 \usepackage{fullpage}
 \usepackage{indentfirst}
-\usepackage{Sweave}
 \usepackage{amsmath}  
 \usepackage{graphicx}
 \usepackage[pdftex,plainpages=false, letterpaper, bookmarks, bookmarksnumbered, colorlinks, linkcolor=blue, citecolor=blue, filecolor=blue, urlcolor=blue]{hyperref}
 \usepackage{url}
+\usepackage{Sweave}
 
 % Different font in captions
 \newcommand{\captionfonts}{\footnotesize}
@@ -23,10 +23,9 @@
 
 \title{A Tutorial for the R Package SNPRelate}
 \author{Xiuwen Zheng\\
-	GENEVA Coordinating Center\\
 	Department of Biostatistics\\
 	University of Washington}
-\date{Jan 28, 2013}
+\date{Mar 15, 2013}
 
 
 \maketitle
@@ -86,7 +85,7 @@ The output lists all variables stored in the GDS file. At the first level, it st
 	\item{\vr{snp.id}, a unique identifier for each SNP.}
 	\item{\vr{snp.position}, the base position of each SNP on the chromosome, and 0 for unknown position; it does not allow NA.}
 	\item{\vr{snp.chromosome}, an integer mapping for each chromosome, with values 1-26, mapped in order from 1-22, 23=X,24=XY (the pseudoautosomal region), 25=Y, 26=M (the mitochondrial probes), and 0 for probes with unknown positions; it does not allow NA.}
-	\item{\vr{genotype}, a SNP genotypic matrix. SNP-major mode: $n_\text{sample} \times n_\text{snp}$, individual-major mode: $n_\text{snp} \times n_\text{sample}$.}
+	\item{\vr{genotype}, a SNP genotypic matrix. SNP-major mode: $n_{sample} \times n_{snp}$, individual-major mode: $n_{snp} \times n_{sample}$.}
 \end{itemize}
 
 Users can define the numeric chromosome codes which are stored with the variable \vr{snp.chromosome} as attributes. For example, \vr{snp.chromosome} has the attributes of chromosome coding:
@@ -136,7 +135,7 @@ closefn.gds(genofile)
 %%%%%%%%
 \subsubsection{snpgdsCreateGeno}
 
-The function \fn{snpgdsCreateGeno} can be used to create a GDS file. The first argument should be a numeric matrix for SNP genotypes. There are possible values stored in the input genotype matrix: 0, 1, 2 and other values. ``0'' indicates two B alleles, ``1'' indicates one A allele and one B allele, ``2'' indicates two A alleles, and other values indicate a missing genotype. The SNP matrix can be either $n_\text{sample} \times n_\text{snp}$ (snpfirstdim=FALSE, the argument in \fn{snpgdsCreateGeno}) or $n_\text{snp} \times n_\text{sample}$ (snpfirstdim=TRUE).
+The function \fn{snpgdsCreateGeno} can be used to create a GDS file. The first argument should be a numeric matrix for SNP genotypes. There are possible values stored in the input genotype matrix: 0, 1, 2 and other values. ``0'' indicates two B alleles, ``1'' indicates one A allele and one B allele, ``2'' indicates two A alleles, and other values indicate a missing genotype. The SNP matrix can be either $n_{sample} \times n_{snp}$ (snpfirstdim=FALSE, the argument in \fn{snpgdsCreateGeno}) or $n_{snp} \times n_{sample}$ (snpfirstdim=TRUE).
 
 For example,
 

@@ -11,7 +11,7 @@ snpgdsSelectSNP(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 	remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, verbose=TRUE)
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
 	\item{autosome.only}{if TRUE, use autosomal SNPs only}

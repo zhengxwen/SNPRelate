@@ -41,7 +41,7 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 pop.group <- as.factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group")))
 pop.level <- levels(pop.group)
 
-diss <- snpgdsDiss(genofile, num.thread=2)
+diss <- snpgdsDiss(genofile)
 hc <- snpgdsHCluster(diss)
 rv <- snpgdsCutTree(hc)
 rv

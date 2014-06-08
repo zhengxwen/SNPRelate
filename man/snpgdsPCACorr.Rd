@@ -7,11 +7,11 @@
 	To calculate the SNP correlations between eigenvactors and SNP genotypes
 }
 \usage{
-snpgdsPCACorr(pcaobj, gdsobj, snp.id = NULL, eig.which = NULL, num.thread = 1, verbose = TRUE)
+snpgdsPCACorr(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL, num.thread=1, verbose=TRUE)
 }
 \arguments{
-	\item{pcaobj}{the snpgdsPCAClass object returned from the function \link{snpgdsPCA}}
-	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
+	\item{pcaobj}{the \code{snpgdsPCAClass} object returned from the function \link{snpgdsPCA}}
+	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
 	\item{eig.which}{a vector of integers, to specify which eigenvectors to be used}
 	\item{num.thread}{the number of CPU cores used}

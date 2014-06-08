@@ -1,7 +1,7 @@
 \name{snpgdsPCA}
 \alias{snpgdsPCA}
 \title{
-	Principal Component Analysis (PCA) for SNP genotype data
+	Principal Component Analysis (PCA) on SNP genotype data
 }
 \description{
 	To calculate the eigenvectors and eigenvalues for principal component analysis in GWAS.
@@ -13,7 +13,7 @@ snpgdsPCA(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 	verbose = TRUE)
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
 	\item{autosome.only}{if TRUE, use autosomal SNPs only}
@@ -61,7 +61,7 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 #   or pop_code <- scan("pop.txt", what=character()), if it is stored in a text file "pop.txt"
 pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 
-RV <- snpgdsPCA(genofile, num.thread=2)
+RV <- snpgdsPCA(genofile)
 plot(RV$eigenvect[,2], RV$eigenvect[,1], col=as.integer(factor(pop_code)),
 	xlab="PC 2", ylab="PC 1")
 legend("topleft", legend=levels(factor(pop_code)), pch="o", col=1:4)

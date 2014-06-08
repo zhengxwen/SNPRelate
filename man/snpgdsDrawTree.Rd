@@ -9,10 +9,10 @@
 \usage{
 snpgdsDrawTree(obj, clust.count=NULL, dend.idx=NULL,
 	type=c("dendrogram", "z-score"), yaxis.height=TRUE, yaxis.kinship=TRUE,
-	y.kinship.baseline=NaN, y.label.kinship=FALSE,
-	outlier.n=NULL, shadow.col = c(rgb(0.5, 0.5, 0.5, 0.25), rgb(0.5, 0.5, 0.5, 0.05)),
-	outlier.col=rgb(1, 0.50, 0.50, 0.5), leaflab="none", labels=NULL, y.label=0.2,
-	...)
+	y.kinship.baseline=NaN, y.label.kinship=FALSE, outlier.n=NULL,
+	shadow.col=c(rgb(0.5, 0.5, 0.5, 0.25), rgb(0.5, 0.5, 0.5, 0.05)),
+	outlier.col=rgb(1, 0.50, 0.50, 0.5), leaflab="none",
+	labels=NULL, y.label=0.2, ...)
 }
 \arguments{
 	\item{obj}{an object returned by \code{\link{snpgdsCutTree}}}

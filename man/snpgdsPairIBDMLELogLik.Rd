@@ -8,8 +8,8 @@
 }
 \usage{
 snpgdsPairIBDMLELogLik(geno1, geno2, allele.freq, k0=NaN, k1=NaN,
-	relatedness=c("", "self", "fullsib", "offspring", "halfsib", "cousin", "unrelated"),
-	verbose=TRUE)
+	relatedness=c("", "self", "fullsib", "offspring", "halfsib",
+	"cousin", "unrelated"), verbose=TRUE)
 }
 \arguments{
 	\item{geno1}{the SNP genotypes for the first individual, 0 -- BB, 1 -- AB, 2 -- AA,

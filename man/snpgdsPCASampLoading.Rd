@@ -1,17 +1,17 @@
 \name{snpgdsPCASampLoading}
 \alias{snpgdsPCASampLoading}
 \title{
-	Sample loadings in principal component analysis
+	Project individuals onto existing principal component axes
 }
 \description{
 	To calculate the sample eigenvectors using the specified SNP loadings
 }
 \usage{
-snpgdsPCASampLoading(loadobj, gdsobj, sample.id = NULL, num.thread = 1, verbose = TRUE)
+snpgdsPCASampLoading(loadobj, gdsobj, sample.id=NULL, num.thread=1, verbose=TRUE)
 }
 \arguments{
 	\item{loadobj}{the \code{snpgdsPCASNPLoadingClass} object, returned from \link{snpgdsPCASNPLoading}}
-	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{num.thread}{the number of CPU cores used}
 	\item{verbose}{if TRUE, show information}

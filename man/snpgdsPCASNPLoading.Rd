@@ -7,11 +7,11 @@
 	To calculate the SNP loadings in Principal Component Analysis
 }
 \usage{
-snpgdsPCASNPLoading(pcaobj, gdsobj, num.thread = 1, verbose = TRUE)
+snpgdsPCASNPLoading(pcaobj, gdsobj, num.thread=1, verbose=TRUE)
 }
 \arguments{
 	\item{pcaobj}{the snpgdsPCAClass object returned from the function \link{snpgdsPCA}}
-	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{num.thread}{the number of CPU cores used}
 	\item{verbose}{if TRUE, show information}
 }

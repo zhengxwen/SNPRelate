@@ -10,7 +10,7 @@
 snpgdsOption(gdsobj=NULL, autosome.start=1, autosome.end=22, ...)
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{autosome.start}{the starting index of autosome}
 	\item{autosome.end}{the ending index of autosome}
 	\item{...}{optional arguments for new chromosome coding}
