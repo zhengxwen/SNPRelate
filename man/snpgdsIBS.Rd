@@ -47,7 +47,7 @@ ibs <- snpgdsIBS(genofile, num.thread=2)
 # To perform multidimensional scaling analysis on the genome-wide IBS pairwise distances:
 loc <- cmdscale(1 - ibs$ibs, k = 2)
 x <- loc[, 1]; y <- loc[, 2]
-race <- as.factor(read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group"))))
+race <- as.factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group")))
 plot(x, y, col=race, xlab = "", ylab = "", main = "cmdscale(IBS Distance)")
 legend("topleft", legend=levels(race), text.col=1:nlevels(race))
 

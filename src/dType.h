@@ -220,7 +220,6 @@ namespace CoreArray
 	#define COREARRAY_TR_INTEGER    1
 	#define COREARRAY_TR_FLOAT      2
 	#define COREARRAY_TR_STRING     3
-	#define COREARRAY_TR_FIXEDSTR   4
 
 
 
@@ -280,6 +279,7 @@ namespace CoreArray
 	template<typename T> struct TdTraits
 	{
     	typedef T TType;
+		typedef T ElmType;
 		static const int trVal = COREARRAY_TR_UNKNOWN;
 		static const unsigned BitOf = sizeof(T)*8u;
 		static const bool isClass = false;
@@ -289,6 +289,7 @@ namespace CoreArray
 	template<> struct TdTraits<Int8>
 	{
 		typedef Int8 TType;
+		typedef Int8 ElmType;
 		static const int trVal = COREARRAY_TR_INTEGER;
 		static const unsigned BitOf = 8u;
 		static const bool isClass = false;
@@ -304,6 +305,7 @@ namespace CoreArray
 	template<> struct TdTraits<UInt8>
 	{
 		typedef UInt8 TType;
+		typedef UInt8 ElmType;
 		static const int trVal = COREARRAY_TR_INTEGER;
 		static const unsigned BitOf = 8u;
 		static const bool isClass = false;
@@ -321,6 +323,7 @@ namespace CoreArray
 	template<> struct TdTraits<Int16>
 	{
 		typedef Int16 TType;
+		typedef Int16 ElmType;
 		static const int trVal = COREARRAY_TR_INTEGER;
 		static const unsigned BitOf = 16u;
 		static const bool isClass = false;
@@ -336,6 +339,7 @@ namespace CoreArray
 	template<> struct TdTraits<UInt16>
 	{
 		typedef UInt16 TType;
+		typedef UInt16 ElmType;
 		static const int trVal = COREARRAY_TR_INTEGER;
 		static const unsigned BitOf = 16u;
 		static const bool isClass = false;
@@ -351,6 +355,7 @@ namespace CoreArray
 	template<> struct TdTraits<Int32>
 	{
 		typedef Int32 TType;
+		typedef Int32 ElmType;
 		static const int trVal = COREARRAY_TR_INTEGER;
 		static const unsigned BitOf = 32u;
 		static const bool isClass = false;
@@ -366,6 +371,7 @@ namespace CoreArray
 	template<> struct TdTraits<UInt32>
 	{
 		typedef UInt32 TType;
+		typedef UInt32 ElmType;
 		static const int trVal = COREARRAY_TR_INTEGER;
 		static const unsigned BitOf = 32u;
 		static const bool isClass = false;
@@ -381,6 +387,7 @@ namespace CoreArray
 	template<> struct TdTraits<Int64>
 	{
 		typedef Int64 TType;
+		typedef Int64 ElmType;
 		static const int trVal = COREARRAY_TR_INTEGER;
 		static const unsigned BitOf = 64u;
 		static const bool isClass = false;
@@ -396,6 +403,7 @@ namespace CoreArray
 	template<> struct TdTraits<UInt64>
 	{
 		typedef UInt64 TType;
+		typedef UInt64 ElmType;
 		static const int trVal = COREARRAY_TR_INTEGER;
 		static const unsigned BitOf = 64u;
 		static const bool isClass = false;
@@ -412,7 +420,7 @@ namespace CoreArray
 
 	// Bit Type
 
-	namespace Internal
+	namespace _Internal_
 	{
 		template<unsigned bits> struct _BitIndex
 		{
@@ -478,15 +486,17 @@ namespace CoreArray
 		static const unsigned NumBit = (bits > 0) ? bits : (-bits);
 		static const bool Sign = (bits > 0);
 		static const unsigned Flag = 1u << (NumBit-1);
+
 	private:
-		static const int _index = Internal::_BitIndex<NumBit>::Val;
-		typedef typename Internal::_Bit2Int<_index, true>::Type _IntType;
-		typedef typename Internal::_Bit2Int<_index, true>::TypeEx _IntTypeEx;
-		static const _IntType _IntVal = Internal::_Bit2Int<_index, true>::Val;
-		static const _IntTypeEx _IntValEx = Internal::_Bit2Int<_index, true>::ValEx;
+		static const int _index = _Internal_::_BitIndex<NumBit>::Val;
+		typedef typename _Internal_::_Bit2Int<_index, true>::Type _IntType;
+		typedef typename _Internal_::_Bit2Int<_index, true>::TypeEx _IntTypeEx;
+		static const _IntType _IntVal = _Internal_::_Bit2Int<_index, true>::Val;
+		static const _IntTypeEx _IntValEx = _Internal_::_Bit2Int<_index, true>::ValEx;
+
 	public:
-		typedef typename Internal::_Bit2Int< _index, bits<0 >::Type IntType;
-		typedef typename Internal::_Bit2Int< _index, bits<0 >::TypeEx IntTypeEx;
+		typedef typename _Internal_::_Bit2Int< _index, bits<0 >::Type IntType;
+		typedef typename _Internal_::_Bit2Int< _index, bits<0 >::TypeEx IntTypeEx;
 
 		static const IntType Mask = ~(_IntVal << NumBit);
 		static const _IntType NOTMask = (_IntVal << NumBit);
@@ -548,6 +558,7 @@ namespace CoreArray
 	template<int bits> struct TdTraits< BITS<bits> >
 	{
 		typedef typename BITS<bits>::IntType TType;
+		typedef typename BITS<bits>::IntType ElmType;
 		static const int trVal = COREARRAY_TR_INTEGER;
 		static const unsigned BitOf = (bits > 0) ? bits : (-bits);
 		static const bool isClass = false;
@@ -586,6 +597,7 @@ namespace CoreArray
 	template<> struct TdTraits<Float32>
 	{
 		typedef Float32 TType;
+		typedef Float32 ElmType;
 		static const int trVal = COREARRAY_TR_FLOAT;
 		static const unsigned BitOf = 32u;
 		static const bool isClass = false;
@@ -603,6 +615,7 @@ namespace CoreArray
 	template<> struct TdTraits<Float64>
 	{
 		typedef Float64 TType;
+		typedef Float64 ElmType;
 		static const int trVal = COREARRAY_TR_FLOAT;
 		static const unsigned BitOf = 64u;
 		static const bool isClass = false;
@@ -620,6 +633,7 @@ namespace CoreArray
 	template<> struct TdTraits<LongFloat>
 	{
 		typedef LongFloat TType;
+		typedef LongFloat ElmType;
 		static const int trVal = COREARRAY_TR_FLOAT;
 		static const unsigned BitOf = sizeof(LongFloat)*8u;
 		static const bool isClass = false;
@@ -694,13 +708,12 @@ namespace CoreArray
 	{
 		typedef UTF8String TType;
 		typedef UTF8 ElmType;
-		static const int trVal = COREARRAY_TR_FIXEDSTR;
+		static const int trVal = COREARRAY_TR_STRING;
 		static const unsigned BitOf = 8u;
 		static const bool isClass = false;
 		static const TSVType SVType = svStrUTF8;
 
-		static const char * TraitName() { return "FStr8"; }
-		static const char * StreamName() { return "dFStr8"; }
+		static const char * TraitName() { return "Str8"; }
 	};
 
 	template<> struct TdTraits<UTF16String>
@@ -719,13 +732,12 @@ namespace CoreArray
 	{
 		typedef UTF16String TType;
 		typedef UTF16 ElmType;
-		static const int trVal = COREARRAY_TR_FIXEDSTR;
+		static const int trVal = COREARRAY_TR_STRING;
 		static const unsigned BitOf = 16u;
 		static const bool isClass = false;
 		static const TSVType SVType = svStrUTF16;
 
-		static const char * TraitName() { return "FStr16"; }
-		static const char * StreamName() { return "dFStr16"; }
+		static const char * TraitName() { return "Str16"; }
 	};
 
 	template<> struct TdTraits<UTF32String>
@@ -744,17 +756,16 @@ namespace CoreArray
 	{
 		typedef UTF32String TType;
 		typedef UTF32 ElmType;
-		static const int trVal = COREARRAY_TR_FIXEDSTR;
+		static const int trVal = COREARRAY_TR_STRING;
 		static const unsigned BitOf = 32u;
 		static const bool isClass = false;
 		static const TSVType SVType = svCustomStr;
 
-		static const char * TraitName() { return "FStr32"; }
-		static const char * StreamName() { return "dFStr32"; }
+		static const char * TraitName() { return "Str32"; }
 	};
 
 
-	/// Customized type
+	/// Customized integer type
 	/** \tparam TYPE  any data type, e.g integer or float number
 	 *  \tparam SIZE  to specify the structure size, can be != sizeof(TYPE)
 	**/
@@ -791,6 +802,28 @@ namespace CoreArray
 	private:
 		TYPE fVal;
     };
+
+
+	/// fixed-length array
+	/** \tparam TYPE  any data type, e.g integer or float number
+	 *  \tparam SIZE  the array length
+	**/
+	template<typename TYPE, int SIZE=0> struct FIXED_LENGTH
+	{
+		typedef typename TdTraits<TYPE>::TType TType;
+		typedef typename TdTraits<TYPE>::ElmType ElmType;
+		TYPE Value[SIZE];
+	};
+
+	/// variable-length array
+	/** \tparam TYPE  any data type, e.g integer or float number
+	**/
+	template<typename TYPE> struct VARIABLE_LENGTH
+	{
+		typedef typename TdTraits<TYPE>::TType TType;
+		typedef typename TdTraits<TYPE>::ElmType ElmType;
+	};
+
 }
 
 #endif /* _dType_H_ */

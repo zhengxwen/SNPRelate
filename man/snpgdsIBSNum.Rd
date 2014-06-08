@@ -43,7 +43,7 @@ calculated over all the samples in \code{sample.id}.
 genofile <- openfn.gds(snpgdsExampleFileName())
 
 RV <- snpgdsIBSNum(genofile, num.thread=2)
-pop <- read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))
+pop <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 L <- order(pop)
 image(RV$ibs0[L, L]/length(RV$snp.id))
 

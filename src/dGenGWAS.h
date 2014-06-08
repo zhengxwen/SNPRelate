@@ -79,8 +79,10 @@ namespace GWAS
 
 		Int64 GenoSum();
 
-		void snpRead(Int32 SnpStart, Int32 SnpCount, UInt8 *OutBuf, bool SnpOrder);
-		void sampleRead(Int32 SampStart, Int32 SampCount, UInt8 *OutBuf, bool SnpOrder);
+		void snpRead(CoreArray::Int32 SnpStart, CoreArray::Int32 SnpCount,
+			UInt8 *OutBuf, bool SnpOrder);
+		void sampleRead(CoreArray::Int32 SampStart, CoreArray::Int32 SampCount,
+			UInt8 *OutBuf, bool SnpOrder);
 
 		void ExtractSNPs(long Start, long Length);
 		void ExtractSamples(long Start, long Length);
@@ -114,21 +116,21 @@ namespace GWAS
 
 		inline PdSequenceX Geno() { return fGeno; };
 		inline bool SNPOrder() const { return fSNPOrder; };
-		inline Int32 TotalSampleNum() const { return fTotalSampleNum; };
-		inline Int32 TotalSNPNum() const { return fTotalSNPNum; };
-		inline Int32 SampleNum() const { return fSampleNum; };
-		inline Int32 SNPNum() const { return fSNPNum; };
+		inline CoreArray::Int32 TotalSampleNum() const { return fTotalSampleNum; };
+		inline CoreArray::Int32 TotalSNPNum() const { return fTotalSNPNum; };
+		inline CoreArray::Int32 SampleNum() const { return fSampleNum; };
+		inline CoreArray::Int32 SNPNum() const { return fSNPNum; };
 		inline CBOOL *SampleSelection() { return &fSampleSelection[0]; };
 		inline CBOOL *SNPSelection() { return &fSNPSelection[0]; };
 
 	protected:
 		PdSequenceX fGeno;
 		bool fSNPOrder;
-		Int32 fTotalSampleNum, fTotalSNPNum;
-		Int32 fSampleNum, fSNPNum;
+		CoreArray::Int32 fTotalSampleNum, fTotalSNPNum;
+		CoreArray::Int32 fSampleNum, fSNPNum;
 		std::vector<CBOOL> fSampleSelection, fSNPSelection;
 	private:
-		std::vector<Int32> vSampleIndex, vSNPIndex;
+		std::vector<CoreArray::Int32> vSampleIndex, vSNPIndex;
 		std::auto_ptr<UInt8> vBuf;
 		size_t vBufSize;
 

@@ -58,6 +58,7 @@ SL <- snpgdsPCASampLoading(SnpLoad, genofile, sample.id=sample.id[1:100])
 
 diff <- PCARV$eigenvect[1:100,] - SL$eigenvect
 summary(c(diff))
+# ~ ZERO
 
 # close the genotype file
 closefn.gds(genofile)

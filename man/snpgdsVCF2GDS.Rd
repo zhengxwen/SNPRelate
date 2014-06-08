@@ -5,8 +5,10 @@
 	Reformat a Variant Call Format (VCF) file
 }
 \usage{
-snpgdsVCF2GDS(vcf.fn, outfn.gds, nblock=1024, method = c("biallelic.only", "copy.num.of.ref"),
-	compress.annotation="ZIP.max", option = NULL, verbose=TRUE)
+snpgdsVCF2GDS(vcf.fn, outfn.gds, nblock=1024,
+	method = c("biallelic.only", "copy.num.of.ref"),
+	compress.annotation="ZIP.max", snpfirstdim=FALSE, option = NULL,
+	verbose=TRUE)
 }
 \arguments{
 	\item{vcf.fn}{the file name of VCF format, \code{vcf.fn} can be a vector, see details}
@@ -15,6 +17,9 @@ snpgdsVCF2GDS(vcf.fn, outfn.gds, nblock=1024, method = c("biallelic.only", "copy
 	\item{method}{either "biallelic.only" by default or "copy.num.of.ref", see details}
 	\item{compress.annotation}{the compression flag of the nodes stored, except
 		"genotype"; the string value is defined in the function of \code{add.gdsn}}
+	\item{snpfirstdim}{if TRUE, genotypes are stored in the individual-major mode,
+		(i.e, list all SNPs for the first individual, and then list all SNPs for
+		the second individual, etc)}
 	\item{option}{\code{NULL} or an object from \code{\link{snpgdsOption}}, see details}
 	\item{verbose}{if TRUE, show information}
 }
@@ -69,8 +74,14 @@ cat(readLines(vcf.fn), sep="\n")
 snpgdsVCF2GDS(vcf.fn, "test1.gds", method="biallelic.only")
 snpgdsSummary("test1.gds")
 
-snpgdsVCF2GDS(vcf.fn, "test2.gds", method="copy.num.of.ref")
+snpgdsVCF2GDS(vcf.fn, "test2.gds", method="biallelic.only", snpfirstdim=TRUE)
 snpgdsSummary("test2.gds")
+
+snpgdsVCF2GDS(vcf.fn, "test3.gds", method="copy.num.of.ref")
+snpgdsSummary("test3.gds")
+
+snpgdsVCF2GDS(vcf.fn, "test4.gds", method="copy.num.of.ref", snpfirstdim=TRUE)
+snpgdsSummary("test4.gds")
 
 
 # open "test1.gds"
@@ -86,6 +97,28 @@ closefn.gds(genofile)
 
 # open "test2.gds"
 (genofile <- openfn.gds("test2.gds"))
+
+read.gdsn(index.gdsn(genofile, "sample.id"))
+read.gdsn(index.gdsn(genofile, "snp.rs.id"))
+read.gdsn(index.gdsn(genofile, "genotype"))
+
+# close the genotype file
+closefn.gds(genofile)
+
+
+# open "test3.gds"
+(genofile <- openfn.gds("test3.gds"))
+
+read.gdsn(index.gdsn(genofile, "sample.id"))
+read.gdsn(index.gdsn(genofile, "snp.rs.id"))
+read.gdsn(index.gdsn(genofile, "genotype"))
+
+# close the genotype file
+closefn.gds(genofile)
+
+
+# open "test4.gds"
+(genofile <- openfn.gds("test4.gds"))
 
 read.gdsn(index.gdsn(genofile, "sample.id"))
 read.gdsn(index.gdsn(genofile, "snp.rs.id"))

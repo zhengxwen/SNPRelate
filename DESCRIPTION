@@ -2,9 +2,9 @@ Package: SNPRelate
 Type: Package
 Title: Parallel Computing Toolset for Genome-Wide Association Studies
         (GWAS)
-Version: 0.9.11
-Date: 2013-01-30
-Depends: R (>= 2.10), gdsfmt (>= 0.9.11)
+Version: 0.9.12
+Date: 2013-02-27
+Depends: R (>= 2.10), gdsfmt (>= 0.9.12)
 Suggests: lattice, RUnit
 Author: Xiuwen Zheng
 Maintainer: Xiuwen Zheng <zhengx@u.washington.edu>
@@ -13,6 +13,7 @@ Description: A High-performance computing toolset for relatedness and
 License: GPL-3
 URL: http://corearray.sourceforge.net/
 Forums: http://sourceforge.net/projects/corearray/forums
-Packaged: 2013-01-30 23:04:31 UTC; foxsts
+Packaged: 2013-02-19 12:21:24 UTC; foxsts
+NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2013-01-31 08:11:44
+Date/Publication: 2013-02-19 15:25:20

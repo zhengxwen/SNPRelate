@@ -53,7 +53,7 @@ snpgdsCutTree(hc, z.threshold=15, outlier.n=5, n.perm = 5000, samp.group=NULL,
 # open an example dataset (HapMap)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
-pop.group <- as.factor(read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group"))))
+pop.group <- as.factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group")))
 pop.level <- levels(pop.group)
 
 diss <- snpgdsDiss(genofile, num.thread=2)

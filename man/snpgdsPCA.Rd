@@ -59,7 +59,7 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 
 # get population information
 #   or pop_code <- scan("pop.txt", what=character()), if it is stored in a text file "pop.txt"
-pop_code <- read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))
+pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 
 RV <- snpgdsPCA(genofile, num.thread=2)
 plot(RV$eigenvect[,2], RV$eigenvect[,1], col=as.integer(factor(pop_code)),

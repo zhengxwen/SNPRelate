@@ -129,14 +129,14 @@ void CdGenoWorkSpace::InitSelection()
 	{
 		CBOOL *s = &fSampleSelection[0];
 		fSampleNum = 0;
-		for (Int32 L=fTotalSampleNum; L > 0; L--)
+		for (int L=fTotalSampleNum; L > 0; L--)
 			if (*s++) fSampleNum++;
 		if (fSampleNum > 0)
 		{
 			vSampleIndex.resize(fSampleNum);
-			Int32 *p = &vSampleIndex[0];
+			CoreArray::Int32 *p = &vSampleIndex[0];
 			s = &fSampleSelection[0];
-			for (Int32 i=0; i < fTotalSampleNum; i++)
+			for (int i=0; i < fTotalSampleNum; i++)
 				if (*s++) *p++ = i;
 		} else {
 			fSampleNum = 0;
@@ -152,14 +152,14 @@ void CdGenoWorkSpace::InitSelection()
 	{
 		CBOOL *s = &fSNPSelection[0];
 		fSNPNum = 0;
-		for (Int32 L=fTotalSNPNum; L > 0; L--)
+		for (int L=fTotalSNPNum; L > 0; L--)
 			if (*s++) fSNPNum++;
 		if (fSNPNum > 0)
 		{
 			vSNPIndex.resize(fSNPNum);
-			Int32 *p = &vSNPIndex[0];
+			CoreArray::Int32 *p = &vSNPIndex[0];
 			s = &fSNPSelection[0];
-			for (Int32 i=0; i < fTotalSNPNum; i++)
+			for (int i=0; i < fTotalSNPNum; i++)
 				if (*s++) *p++ = i;
 		} else {
 			fSNPNum = 0;
@@ -180,27 +180,27 @@ Int64 CdGenoWorkSpace::GenoSum()
 	if (fSNPOrder)
 	{
 		auto_ptr<UInt8> buf(new UInt8[fSNPNum]);
-		for (Int32 i=0; i < fSampleNum; i++)
+		for (int i=0; i < fSampleNum; i++)
 		{
 			sampleRead(i, 1, buf.get(), true);
 			UInt8 *p = buf.get();
-			for (Int32 j=fSNPNum; j > 0; j--, p++)
+			for (int j=fSNPNum; j > 0; j--, p++)
 				if (*p <= 2) rv+= *p;
 		}
 	} else {
 		auto_ptr<UInt8> buf(new UInt8[fSampleNum]);
-		for (Int32 i=0; i < fSNPNum; i++)
+		for (int i=0; i < fSNPNum; i++)
 		{
 			snpRead(i, 1, buf.get(), false);
 			UInt8 *p = buf.get();
-			for (Int32 j=fSampleNum; j > 0; j--, p++)
+			for (int j=fSampleNum; j > 0; j--, p++)
 				if (*p <= 2) rv+= *p;
 		}
 	}
 	return rv;
 }
 
-void CdGenoWorkSpace::snpRead(Int32 SnpStart, Int32 SnpCount,
+void CdGenoWorkSpace::snpRead(CoreArray::Int32 SnpStart, CoreArray::Int32 SnpCount,
 	UInt8 *OutBuf, bool SnpOrder)
 {
 	if ((SnpStart < 0) || (SnpStart >= fSNPNum) || (SnpCount < 0) ||
@@ -210,13 +210,13 @@ void CdGenoWorkSpace::snpRead(Int32 SnpStart, Int32 SnpCount,
 	{
 		if (fSNPOrder)
 		{
-			Int32 st[2] =
+			CoreArray::Int32 st[2] =
 				{ vSampleIndex[0], vSNPIndex[SnpStart] };
-			Int32 cnt[2] =
+			CoreArray::Int32 cnt[2] =
 				{ vSampleIndex[fSampleNum-1] - st[0] + 1,
 					vSNPIndex[SnpStart+SnpCount-1] - st[1] + 1 };
 			CBOOL *Sel[2] =
-				{ &fSampleSelection[st[0]], &fSNPSelection[st[1]] };
+				{ &fSampleSelection[st[0]], &fSNPSelection[ st[1] ] };
 			if (SnpOrder || (SnpCount==1))
 			{
 				gds_rDataEx(fGeno, st, cnt, Sel, (void*)OutBuf, svUInt8);
@@ -224,28 +224,28 @@ void CdGenoWorkSpace::snpRead(Int32 SnpStart, Int32 SnpCount,
 				_NeedBuffer(fSampleNum*SnpCount);
 				gds_rDataEx(fGeno, st, cnt, Sel, vBuf.get(), svUInt8);
 				// transpose
-				for (Int32 i1=0; i1 < SnpCount; i1++)
+				for (int i1=0; i1 < SnpCount; i1++)
 				{
-					for (Int32 i0=0; i0 < fSampleNum; i0++)
-						*OutBuf++ = vBuf.get()[i0*SnpCount+i1];
+					for (int i0=0; i0 < fSampleNum; i0++)
+						*OutBuf++ = vBuf.get()[i0*SnpCount + i1];
                 }
 			}
 		} else {
-			Int32 st[2] =
+			CoreArray::Int32 st[2] =
 				{ vSNPIndex[SnpStart], vSampleIndex[0] };
-			Int32 cnt[2] =
+			CoreArray::Int32 cnt[2] =
 				{ vSNPIndex[SnpStart+SnpCount-1]-st[0]+1,
 					vSampleIndex[fSampleNum-1]-st[1]+1 };
 			CBOOL *Sel[2] =
-				{ &fSNPSelection[st[0]], &fSampleSelection[st[1]] };
+				{ &fSNPSelection[st[0]], &fSampleSelection[ st[1] ] };
 			if (SnpOrder && (SnpCount>1))
 			{
 				_NeedBuffer(fSampleNum*SnpCount);
 				gds_rDataEx(fGeno, st, cnt, Sel, vBuf.get(), svUInt8);
 				// transpose
-				for (Int32 i1=0; i1 < fSampleNum; i1++)
+				for (int i1=0; i1 < fSampleNum; i1++)
 				{
-					for (Int32 i0=0; i0 < SnpCount; i0++)
+					for (int i0=0; i0 < SnpCount; i0++)
 						*OutBuf++ = vBuf.get()[i0*fSampleNum+i1];
                 }
 			} else {
@@ -255,7 +255,7 @@ void CdGenoWorkSpace::snpRead(Int32 SnpStart, Int32 SnpCount,
 	}
 }
 
-void CdGenoWorkSpace::sampleRead(Int32 SampStart, Int32 SampCount,
+void CdGenoWorkSpace::sampleRead(CoreArray::Int32 SampStart, CoreArray::Int32 SampCount,
 	UInt8 *OutBuf, bool SnpOrder)
 {
 	if ((SampStart < 0) || (SampStart >= fSampleNum) || (SampCount < 0) ||
@@ -265,9 +265,9 @@ void CdGenoWorkSpace::sampleRead(Int32 SampStart, Int32 SampCount,
 	{
 		if (fSNPOrder)
 		{
-			Int32 st[2] =
+			CoreArray::Int32 st[2] =
 				{ vSampleIndex[SampStart], vSNPIndex[0] };
-			Int32 cnt[2] =
+			CoreArray::Int32 cnt[2] =
 				{ vSampleIndex[SampStart+SampCount-1] - st[0] + 1,
 					vSNPIndex[fSNPNum-1] - st[1] + 1 };
 			CBOOL *Sel[2] =
@@ -278,14 +278,14 @@ void CdGenoWorkSpace::sampleRead(Int32 SampStart, Int32 SampCount,
                 _NeedBuffer(SampCount*fSNPNum);
 				gds_rDataEx(fGeno, st, cnt, Sel, vBuf.get(), svUInt8);
 				// transpose
-				for (Int32 i1=0; i1 < fSNPNum; i1++)
-					for (Int32 i0=0; i0 < SampCount; i0++)
-						*OutBuf++ = vBuf.get()[i0*fSNPNum+i1];
+				for (int i1=0; i1 < fSNPNum; i1++)
+					for (int i0=0; i0 < SampCount; i0++)
+						*OutBuf++ = vBuf.get()[i0*fSNPNum + i1];
 			}
 		} else {
-			Int32 st[2] =
+			CoreArray::Int32 st[2] =
 				{ vSNPIndex[0], vSampleIndex[SampStart] };
-			Int32 cnt[2] =
+			CoreArray::Int32 cnt[2] =
 				{ vSNPIndex[fSNPNum-1]-st[0]+1,
 					vSampleIndex[SampStart+SampCount-1]-st[1]+1 };
 			CBOOL *Sel[2] =
@@ -295,9 +295,9 @@ void CdGenoWorkSpace::sampleRead(Int32 SampStart, Int32 SampCount,
 				_NeedBuffer(SampCount*fSNPNum);
 				gds_rDataEx(fGeno, st, cnt, Sel, vBuf.get(), svUInt8);
 				// transpose
-				for (Int32 i1=0; i1 < SampCount; i1++)
-					for (Int32 i0=0; i0 < fSNPNum; i0++)
-						*OutBuf++ = vBuf.get()[i0*SampCount+i1];
+				for (int i1=0; i1 < SampCount; i1++)
+					for (int i0=0; i0 < fSNPNum; i0++)
+						*OutBuf++ = vBuf.get()[i0*SampCount + i1];
 			} else
 				gds_rDataEx(fGeno, st, cnt, Sel, OutBuf, svUInt8);
 		}

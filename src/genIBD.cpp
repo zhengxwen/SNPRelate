@@ -28,10 +28,10 @@
 
 // CoreArray library header
 #include <dType.h>
+#include <dGWASMath.h>
 #include <dVect.h>
 #include <CoreGDSLink.h>
 #include <dGenGWAS.h>
-#include <dGWASMath.h>
 
 // Standard library header
 #include <vector>

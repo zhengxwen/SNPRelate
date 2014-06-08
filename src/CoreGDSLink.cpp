@@ -67,47 +67,66 @@ PdGDSObj GDSInterface::gds_NodePath(PdGDSObj Obj, const char *Path)
 
 
 /// get the degree of dimension
-typedef int (*TSeqDimCnt)(PdSequenceX obj);
+typedef int (*TSeqDimCnt)(PdSequenceX);
 static TSeqDimCnt _SeqDimCnt = NULL;
 int GDSInterface::gds_SeqDimCnt(PdSequenceX obj)
 	{ return (*_SeqDimCnt)(obj); }
 
-
 /// get the dimensions
-typedef int (*TSeqGetDim)(PdSequenceX obj, int *OutBuf);
+typedef int (*TSeqGetDim)(PdSequenceX, int *);
 static TSeqGetDim _SeqGetDim = NULL;
 bool GDSInterface::gds_SeqGetDim(PdSequenceX obj, int *OutBuf)
 	{ return (*_SeqGetDim)(obj, OutBuf); }
 
+/// get the total count of elements
+typedef Int64 (*TSeqGetCount)(PdSequenceX);
+static TSeqGetCount _SeqGetCount = NULL;
+Int64 GDSInterface::gds_SeqGetCount(PdSequenceX obj)
+	{ (*_SeqGetCount)(obj); }
+
+/// get SVType
+typedef int (*TSeqSVType)(PdSequenceX);
+static TSeqSVType _SeqSVType = NULL;
+int GDSInterface::gds_SeqSVType(PdSequenceX obj)
+	{ (*_SeqSVType)(obj); }
+
 
 /// read the data
-typedef bool (*TSeqRData)(PdSequenceX obj, Int32 const* Start,
-		Int32 const* Length, void *OutBuf, TSVType OutSV);
+typedef bool (*TSeqRData)(PdSequenceX, CoreArray::Int32 const*,
+		CoreArray::Int32 const*, void *, TSVType);
 static TSeqRData _SeqrData = NULL;
-bool GDSInterface::gds_rData(PdSequenceX obj, Int32 const* Start,
-		Int32 const* Length, void *OutBuf, TSVType OutSV)
+bool GDSInterface::gds_rData(PdSequenceX obj, CoreArray::Int32 const* Start,
+		CoreArray::Int32 const* Length, void *OutBuf, TSVType OutSV)
 	{ return (*_SeqrData)(obj, Start, Length, OutBuf, OutSV); }
 
 /// read the data
-typedef bool (*TSeqRDataEx)(PdSequenceX obj, Int32 const* Start,
-		Int32 const* Length, CBOOL *Selection[], void *OutBuf, TSVType OutSV);
+typedef bool (*TSeqRDataEx)(PdSequenceX, CoreArray::Int32 const*,
+		CoreArray::Int32 const*, const CBOOL *const[], void *, TSVType);
 static TSeqRDataEx _SeqrDataEx = NULL;
-bool GDSInterface::gds_rDataEx(PdSequenceX obj, Int32 const* Start,
-		Int32 const* Length, CBOOL *Selection[], void *OutBuf, TSVType OutSV)
+bool GDSInterface::gds_rDataEx(PdSequenceX obj, CoreArray::Int32 const* Start,
+		CoreArray::Int32 const* Length, const CBOOL *const Selection[], void *OutBuf,
+		TSVType OutSV)
 	{ return (*_SeqrDataEx)(obj, Start, Length, Selection, OutBuf, OutSV); }
 
+typedef SEXP (*T_Read_SEXP)(PdSequenceX, CoreArray::Int32 const*,
+		CoreArray::Int32 const*, const CBOOL *const []);
+static T_Read_SEXP _Read_SEXP = NULL;
+SEXP GDSInterface::gds_Read_SEXP(PdSequenceX Obj, CoreArray::Int32 const* Start,
+		CoreArray::Int32 const* Length, const CBOOL *const Selection[])
+	{ return (*_Read_SEXP)(Obj, Start, Length, Selection); }
+
+
 /// write the data
-typedef bool (*TSeqWData)(PdSequenceX obj, Int32 const* Start,
-		Int32 const* Length, const void *InBuf, TSVType InSV);
+typedef bool (*TSeqWData)(PdSequenceX, CoreArray::Int32 const*,
+		CoreArray::Int32 const*, const void *, TSVType);
 static TSeqWData _SeqwData = NULL;
-bool GDSInterface::gds_wData(PdSequenceX obj, Int32 const* Start,
-		Int32 const* Length, const void *InBuf, TSVType InSV)
+bool GDSInterface::gds_wData(PdSequenceX obj, CoreArray::Int32 const* Start,
+		CoreArray::Int32 const* Length, const void *InBuf, TSVType InSV)
 	{ return (*_SeqwData)(obj, Start, Length, InBuf, InSV); }
 
 
 /// append the data
-typedef bool (*TSeqAppendData)(PdSequenceX obj, int Cnt, const void *InBuf,
-	TSVType InSV);
+typedef bool (*TSeqAppendData)(PdSequenceX, int, const void *, TSVType);
 static TSeqAppendData _SeqAppendData = NULL;
 bool GDSInterface::gds_AppendData(PdSequenceX obj, int Cnt, const void *InBuf, TSVType InSV)
 	{ return (*_SeqAppendData)(obj, Cnt, InBuf, InSV); }
@@ -120,6 +139,12 @@ bool GDSInterface::gds_AppendString(PdSequenceX obj, int Cnt, const char *buffer
 
 bool GDSInterface::gds_AppendString(PdSequenceX obj, const char *text)
 	{ return gds_AppendString(obj, 1, &text); }
+
+
+typedef bool (*TSeqAssign)(PdSequenceX, PdSequenceX, bool);
+static TSeqAssign _SeqAssign = NULL;
+bool GDSInterface::gds_Assign(PdSequenceX dest_obj, PdSequenceX src_obj, bool append)
+	{ return (*_SeqAssign)(dest_obj, src_obj, append); }
 
 
 
@@ -215,6 +240,46 @@ bool GDSInterface::plc_WakeUp(TdThreadsSuspending obj) { return (*_WakeUp)(obj);
 
 
 // ******************************************************************
+// ****	 the functions for block read
+//
+
+/// read an array-oriented object margin by margin
+typedef PdArrayRead (*T_ArrayRead_Init)(PdSequenceX, int, TSVType,
+	const CBOOL *const [], bool);
+static T_ArrayRead_Init _ArrayRead_Init = NULL;
+PdArrayRead GDSInterface::gds_ArrayRead_Init(PdSequenceX Obj,
+		int Margin, TSVType SVType, const CBOOL *const Selection[],
+		bool buf_if_need)
+	{ return (*_ArrayRead_Init)(Obj, Margin, SVType, Selection, buf_if_need); }
+
+/// free a 'CdArrayRead' object
+typedef bool (*T_ArrayRead_Free)(PdArrayRead);
+static T_ArrayRead_Free _ArrayRead_Free = NULL;
+bool GDSInterface::gds_ArrayRead_Free(PdArrayRead Obj)
+	{ return (*_ArrayRead_Free)(Obj); }
+
+/// read data
+typedef bool (*T_ArrayRead_Read)(PdArrayRead, void *);
+static T_ArrayRead_Read _ArrayRead_Read = NULL;
+bool GDSInterface::gds_ArrayRead_Read(PdArrayRead Obj, void *Buffer)
+	{ return (*_ArrayRead_Read)(Obj, Buffer); }
+
+/// return true, if it is of the end
+typedef bool (*T_ArrayRead_Eof)(PdArrayRead);
+static T_ArrayRead_Eof _ArrayRead_Eof = NULL;
+bool GDSInterface::gds_ArrayRead_Eof(PdArrayRead Obj)
+	{ return (*_ArrayRead_Eof)(Obj); }
+
+/// reallocate the buffer with specified size with respect to array
+typedef bool (*T_Balance_ArrayRead_Buffer)(PdArrayRead [], int, Int64);
+static T_Balance_ArrayRead_Buffer _Balance_ArrayRead_Buffer = NULL;
+bool GDSInterface::gds_Balance_ArrayRead_Buffer(PdArrayRead array[],
+		int n, Int64 buffer_size)
+	{ return (*_Balance_ArrayRead_Buffer)(array, n, buffer_size); }
+
+
+
+// ******************************************************************
 // ****  the functions for error messages  ****
 //
 
@@ -222,6 +287,22 @@ typedef std::string &(*TLastError)();
 static TLastError _LastError = NULL;
 std::string & GDSInterface::gds_LastError()
 	{ return (*_LastError)(); }
+
+
+
+// ******************************************************************
+// ****  the functions for R
+//
+
+typedef bool (*T_Is_R_Logical)(PdGDSObj Obj);
+static T_Is_R_Logical _Is_R_Logical = NULL;
+bool GDSInterface::gds_Is_R_Logical(PdGDSObj Obj)
+	{ (*_Is_R_Logical)(Obj); }
+
+typedef int (*T_Set_If_R_Factor)(PdGDSObj, SEXP);
+static T_Set_If_R_Factor _Set_If_R_Factor = NULL;
+int GDSInterface::gds_Set_If_R_Factor(PdGDSObj Obj, SEXP val)
+	{ (*_Set_If_R_Factor)(Obj, val); }
 
 
 
@@ -293,11 +374,23 @@ void GDSInterface::InitGDSInterface(const char *lib_fn)
 
 	LOAD(_SeqDimCnt, TSeqDimCnt, "gds_SeqDimCnt");
 	LOAD(_SeqGetDim, TSeqGetDim, "gds_SeqGetDim");
+	LOAD(_SeqGetCount, TSeqGetCount, "gds_SeqGetCount");
+	LOAD(_SeqSVType, TSeqSVType, "gds_SeqSVType");
+
 	LOAD(_SeqrData, TSeqRData, "gds_rData");
 	LOAD(_SeqrDataEx, TSeqRDataEx, "gds_rDataEx");
+	LOAD(_Read_SEXP, T_Read_SEXP, "gds_Read_SEXP");
 	LOAD(_SeqwData, TSeqWData, "gds_wData");
 	LOAD(_SeqAppendData, TSeqAppendData, "gds_AppendData");
-	// LOAD(_SeqAppendString, TSeqAppendString, "gds_AppendString");
+	LOAD(_SeqAppendString, TSeqAppendString, "gds_AppendString");
+	LOAD(_SeqAssign, TSeqAssign, "gds_Assign");
+
+	// ****	 the functions for block read
+	LOAD(_ArrayRead_Init, T_ArrayRead_Init, "gds_ArrayRead_Init");
+	LOAD(_ArrayRead_Free, T_ArrayRead_Free, "gds_ArrayRead_Free");
+	LOAD(_ArrayRead_Read, T_ArrayRead_Read, "gds_ArrayRead_Read");
+	LOAD(_ArrayRead_Eof, T_ArrayRead_Eof, "gds_ArrayRead_Eof");
+	LOAD(_Balance_ArrayRead_Buffer, T_Balance_ArrayRead_Buffer, "gds_Balance_ArrayRead_Buffer");
 
 	// ****  the functions for parellel computing  ****
 	LOAD(_InitMutex, TInitMutex, "plc_InitMutex");
@@ -325,6 +418,10 @@ void GDSInterface::InitGDSInterface(const char *lib_fn)
 	LOAD(_GetNumberOfCPU, TSingleFunc, "conf_GetNumberOfCPU");
 	LOAD(_GetL1CacheMemory, TSingleFunc, "conf_GetL1CacheMemory");
 	LOAD(_GetL2CacheMemory, TSingleFunc, "conf_GetL2CacheMemory");
+
+	// **** the R functions
+	LOAD(_Is_R_Logical, T_Is_R_Logical, "gds_Is_R_Logical");
+	LOAD(_Set_If_R_Factor, T_Set_If_R_Factor, "gds_Set_If_R_Factor");
 }
 
 void GDSInterface::DoneGDSInterface()

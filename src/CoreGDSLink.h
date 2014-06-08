@@ -39,6 +39,8 @@
 #define _CoreGDSLink_H_
 
 #include <dType.h>
+#include <R.h>
+#include <Rdefines.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -113,13 +115,22 @@ namespace GDSInterface
 	/// get the total count of elements
 	Int64 gds_SeqGetCount(PdSequenceX obj);
 
+	/// get SVType
+	int gds_SeqSVType(PdSequenceX obj);
+
+
 	/// read the data
 	bool gds_rData(PdSequenceX obj, CoreArray::Int32 const* Start,
 		CoreArray::Int32 const* Length, void *OutBuf, TSVType OutSV);
 
 	/// read the data
 	bool gds_rDataEx(PdSequenceX obj, CoreArray::Int32 const* Start,
-		CoreArray::Int32 const* Length, CBOOL *Selection[], void *OutBuf, TSVType OutSV);
+		CoreArray::Int32 const* Length, const CBOOL *const Selection[],
+		void *OutBuf, TSVType OutSV);
+
+	SEXP gds_Read_SEXP(PdSequenceX Obj, CoreArray::Int32 const* Start,
+		CoreArray::Int32 const* Length, const CBOOL *const Selection[]);
+
 
 	/// write the data
 	bool gds_wData(PdSequenceX obj, CoreArray::Int32 const* Start,
@@ -130,6 +141,8 @@ namespace GDSInterface
 	bool gds_AppendString(PdSequenceX obj, int Cnt, const char *buffer[]);
 	bool gds_AppendString(PdSequenceX obj, const char *text);
 
+	/// assign
+	bool gds_Assign(PdSequenceX dest_obj, PdSequenceX src_obj, bool append);
 
 
 
@@ -212,12 +225,83 @@ namespace GDSInterface
 
 
 	// ******************************************************************
+	// ****	 the functions for block read
+	//
+
+	typedef void* PdArrayRead;
+
+	/// read an array-oriented object margin by margin
+	PdArrayRead gds_ArrayRead_Init(PdSequenceX Obj,
+		int Margin, TSVType SVType, const CBOOL *const Selection[],
+		bool buf_if_need=true);
+
+	/// free a 'CdArrayRead' object
+	bool gds_ArrayRead_Free(PdArrayRead Obj);
+
+	/// read data
+	bool gds_ArrayRead_Read(PdArrayRead Obj, void *Buffer);
+
+	/// return true, if it is of the end
+	bool gds_ArrayRead_Eof(PdArrayRead Obj);
+
+	/// reallocate the buffer with specified size with respect to array
+	bool gds_Balance_ArrayRead_Buffer(PdArrayRead array[],
+		int n, Int64 buffer_size=-1);
+
+
+	/// the class of read array
+	class CArrayRead
+	{
+	public:
+		CArrayRead(PdSequenceX Obj, int Margin, TSVType SVType,
+			const CBOOL *const Selection[], bool buf_if_need=true)
+		{
+			_Obj = gds_ArrayRead_Init(Obj, Margin, SVType, Selection, buf_if_need);
+			if (!_Obj)
+				throw ErrCoreArray("Error 'initialize CArrayRead'.");
+		}
+		~CArrayRead() { gds_ArrayRead_Free(_Obj); }
+
+		/// read data
+		bool Read(void *Buffer)
+		{
+			return gds_ArrayRead_Read(_Obj, Buffer);
+		}
+
+		/// return true, if it is of the end
+		bool Eof()
+		{
+			return gds_ArrayRead_Eof(_Obj);
+		}
+
+	protected:
+		PdArrayRead _Obj;
+	};
+
+
+
+	// ******************************************************************
+	// ****  the functions for R
+	//
+
+	bool gds_Is_R_Logical(PdGDSObj Obj);
+	int gds_Set_If_R_Factor(PdGDSObj Obj, SEXP val);
+
+
+	// ******************************************************************
 	// ****  the functions for error messages
 	//
 
 	/// get the last error message
 	std::string & gds_LastError();
+
+
+
+	// ******************************************************************
+	// ****  the R function
+	//
+
+
 }
 
 #endif /* _CoreGDSLink_H_ */
-

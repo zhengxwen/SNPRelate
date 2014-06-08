@@ -121,7 +121,7 @@ There are two additional variables:
 The information of sample annotation can be obtained by the same function \fn{read.gdsn}. For example, population information. ``FStr8'' indicates a character-type variable.
 <<>>=
 # Read population information
-pop <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"))
+pop <- read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))
 table(pop)
 
 # close the GDS file
@@ -302,7 +302,7 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 <<>>=
 # get population information
 #   or pop_code <- scan("pop.txt", what=character()), if it is stored in a text file "pop.txt"
-pop_code <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"))
+pop_code <- read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))
 
 # display the first six values
 head(pop_code)

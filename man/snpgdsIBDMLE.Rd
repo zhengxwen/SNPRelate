@@ -86,7 +86,7 @@ than MoM, and might not be feasible to estimate pairwise relatedness for a large
 genofile <- openfn.gds(snpgdsExampleFileName())
 
 YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
-	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="YRI"]
+	read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="YRI"]
 YRI.id <- YRI.id[1:30]
 
 # SNP pruning

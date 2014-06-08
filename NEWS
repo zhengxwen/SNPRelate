@@ -1,7 +1,14 @@
+0.9.12	27-Feb-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+
+	* add 'GetRNGstate' and 'PutRNGstate' to the C function 'gnrDistPerm'
+	* avoid the upper limit of 200 chromosomes in 'snpgdsVCF2GDS' according to scaffolds/contigs from a de novo assembly not chromosomes
+	* improves 'snpgdsSummary'
+
+
 0.9.11	30-Jan-2013	Xiuwen Zheng <zhengx@u.washington.edu>
 
 	* bug fix in 'snpgdsVCF2GDS': to use "\t" as the field separator character
-	* bug fixes in the documents according to gdsfmt v0.9.11
+	* bug fixes according to gdsfmt v0.9.11
 	* improve the vignette
 
 

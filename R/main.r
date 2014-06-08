@@ -2215,8 +2215,7 @@ snpgdsHCluster <- function(dist, sample.id=NULL, need.mat=TRUE, hang=0.25)
 #
 
 snpgdsCutTree <- function(hc, z.threshold=15, outlier.n=5, n.perm = 5000,
-	samp.group=NULL,
-	col.outlier="red", col.list=NULL, pch.outlier=4, pch.list=NULL,
+	samp.group=NULL, col.outlier="red", col.list=NULL, pch.outlier=4, pch.list=NULL,
 	label.H=FALSE, label.Z=TRUE, verbose=TRUE)
 {
 	# check
@@ -2789,7 +2788,7 @@ snpgdsSummary <- function(gds, show=TRUE)
 		if (any(!flag))
 		{
 			s <- as.character((snp.allele[!flag])[1])
-			warning(sprintf("Some of snp.allele are invalid! E.g., %s", s))
+			warning(sprintf("Some of snp.allele are not standard! E.g., %s", s))
 			warn.flag <- TRUE
 			snp.flag <- snp.flag & flag
 		}
@@ -2868,12 +2867,12 @@ snpgdsSummary <- function(gds, show=TRUE)
 	}
 
 	# check -- sample annotation
-	if (!is.null(index.gdsn(gds.tmp, "sample.annot", TRUE)))
+	if (!is.null(index.gdsn(gds.tmp, "sample.annot", silent=TRUE)))
 	{
 		# sample.id
-		if (!is.null(index.gdsn(gds.tmp, c("sample.annot", "sample.id"), TRUE)))
+		if (!is.null(index.gdsn(gds.tmp, "sample.annot/sample.id", silent=TRUE)))
 		{
-			s <- read.gdsn(index.gdsn(gds.tmp, c("sample.annot", "sample.id")))
+			s <- read.gdsn(index.gdsn(gds.tmp, "sample.annot/sample.id"))
 			if (length(s) != length(samp.id))
 				warning("Invalid length of `sample.annot/sample.id'.")
 			if (any(s != samp.id))
@@ -2884,7 +2883,7 @@ snpgdsSummary <- function(gds, show=TRUE)
 		lst <- ls.gdsn(index.gdsn(gds.tmp, "sample.annot"))
 		for (n in lst)
 		{
-			dm <- objdesp.gdsn(index.gdsn(gds.tmp, c("sample.annot", n)))$dim
+			dm <- objdesp.gdsn(index.gdsn(gds.tmp, index=c("sample.annot", n)))$dim
 			if (!is.null(dm))
 			{
 				if (dm[1] != length(samp.id))
@@ -2894,11 +2893,11 @@ snpgdsSummary <- function(gds, show=TRUE)
 	}
 
 	# check -- snp annotation
-	if (!is.null(index.gdsn(gds.tmp, "snp.annot", TRUE)))
+	if (!is.null(index.gdsn(gds.tmp, "snp.annot", silent=TRUE)))
 	{
-		if (!is.null(index.gdsn(gds.tmp, c("snp.annot", "snp.id"), TRUE)))
+		if (!is.null(index.gdsn(gds.tmp, "snp.annot/snp.id", silent=TRUE)))
 		{
-			s <- read.gdsn(index.gdsn(gds.tmp, c("snp.annot", "snp.id")))
+			s <- read.gdsn(index.gdsn(gds.tmp, "snp.annot/snp.id"))
 			if (length(s) != length(snp.id))
 				warning("Invalid length of `snp.annot/snp.id'.")
 			if (any(s != snp.id))
@@ -2909,7 +2908,7 @@ snpgdsSummary <- function(gds, show=TRUE)
 		lst <- ls.gdsn(index.gdsn(gds.tmp, "snp.annot"))
 		for (n in lst)
 		{
-			dm <- objdesp.gdsn(index.gdsn(gds.tmp, c("snp.annot", n)))$dim
+			dm <- objdesp.gdsn(index.gdsn(gds.tmp, index=c("snp.annot", n)))$dim
 			if (!is.null(dm))
 			{
 				if (dm[1] != length(snp.id))
@@ -3205,7 +3204,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 	add.gdsn(destobj, "snp.id", snp.ids, compress=compress.annotation, closezip=TRUE)
 	if (verbose) cat("\twrite snp.id\n");
 	# snp.rs.id
-	if (!is.null(index.gdsn(srcobj, "snp.rs.id", TRUE)))
+	if (!is.null(index.gdsn(srcobj, "snp.rs.id", silent=TRUE)))
 	{
 		rs.id <- read.gdsn(index.gdsn(srcobj, "snp.rs.id"))
 		if (!is.null(snp.id)) rs.id <- rs.id[snp.id]
@@ -3223,7 +3222,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 	add.gdsn(destobj, "snp.chromosome", chr, compress=compress.annotation, closezip=TRUE)
 	if (verbose) cat("\twrite snp.chromosome\n");
 	# snp.allele
-	if (!is.null(index.gdsn(srcobj, "snp.allele", TRUE)))
+	if (!is.null(index.gdsn(srcobj, "snp.allele", silent=TRUE)))
 	{
 		allele <- read.gdsn(index.gdsn(srcobj, "snp.allele"))
 		if (!is.null(snp.id)) allele <- allele[snp.id]
@@ -3590,7 +3589,7 @@ snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
 
 	# output a MAP file
 	snp.idx <- match(snp.ids, total.snp.ids)
-	if (!is.null(index.gdsn(gdsobj, "snp.rs.id", TRUE)))
+	if (!is.null(index.gdsn(gdsobj, "snp.rs.id", silent=TRUE)))
 		tmp.snp.id <- read.gdsn(index.gdsn(gdsobj, "snp.rs.id"))[snp.idx]
 	else
 		tmp.snp.id <- snp.ids
@@ -3704,7 +3703,7 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, verbose=T
 		xchr[xchr=="M"] <- "26"; xchr[xchr=="MT"] <- "26"
 	}
 
-	if (!is.null(index.gdsn(gdsobj, "snp.allele", TRUE)))
+	if (!is.null(index.gdsn(gdsobj, "snp.allele", silent=TRUE)))
 	{
 		allele <- read.gdsn(index.gdsn(gdsobj, "snp.allele"))
 		s <- unlist(strsplit(allele, "/"))
@@ -3984,7 +3983,7 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbo
 		cat("\tsave to *.snp:", dim(tmpD)[1], "snps\n")
 
 	# making the "*.ind" file ...
-	sex <- try(read.gdsn(index.gdsn(gdsobj, c("sample.annot", "sex"))), TRUE)
+	sex <- try(read.gdsn(index.gdsn(gdsobj, "sample.annot/sex")), TRUE)
 	if (class(sex) == "try-error")
 	{
 		sex <- rep("U", sum(sample.id))
@@ -4038,15 +4037,15 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbo
 
 snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 	method = c("biallelic.only", "copy.num.of.ref"),
-	compress.annotation="ZIP.max", option = NULL,
+	compress.annotation="ZIP.max", snpfirstdim=FALSE, option = NULL,
 	verbose=TRUE)
 {
 	# check
 	stopifnot(is.character(vcf.fn))
 	stopifnot(is.character(outfn.gds))
-	stopifnot(all(method %in% c("biallelic.only", "copy.num.of.ref")))
+	stopifnot(is.logical(snpfirstdim) & (length(snpfirstdim)==1))
 
-	method <- method[1]
+	method <- match.arg(method)
 	if (is.null(option)) option <- snpgdsOption()
 
 
@@ -4113,11 +4112,8 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 				break
 		}
 
-		# scan, max chr index = 200
-		xchr.str <- c(1:200, names(option$chromosome.code))
-		xchr <- as.integer(c(1:200, unlist(option$chromosome.code)))
-
-		chr <- integer(line.cnt); position <- integer(line.cnt)
+		# init ...
+		chr <- character(line.cnt); position <- integer(line.cnt)
 		snpidx <- integer(line.cnt); snp.rs <- character(line.cnt)
 		snp.allele <- character(line.cnt)
 		snp.cnt <- 0; var.cnt <- 0
@@ -4133,7 +4129,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 					if (all(ss[c(4,5)] %in% c("A", "G", "C", "T", "a", "g", "c", "t")))
 					{
 						snp.cnt <- snp.cnt + 1
-						chr[snp.cnt] <- xchr[match(ss[1], xchr.str)]
+						chr[snp.cnt] <- ss[1]
 						position[snp.cnt] <- as.integer(ss[2])
 						snpidx[snp.cnt] <- var.cnt
 						snp.rs[snp.cnt] <- ss[3]
@@ -4149,7 +4145,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 					var.cnt <- var.cnt + 1
 					ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE, n=5)
 					snp.cnt <- snp.cnt + 1
-					chr[snp.cnt] <- xchr[match(ss[1], xchr.str)]
+					chr[snp.cnt] <- ss[1]
 					position[snp.cnt] <- as.integer(ss[2])
 					snpidx[snp.cnt] <- var.cnt
 					snp.rs[snp.cnt] <- ss[3]
@@ -4161,7 +4157,14 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 		# close the file
 		close(opfile)
 
-		chr <- chr[1:snp.cnt]; chr[is.na(chr)] <- 0
+
+		# chromosomes
+		chr <- chr[1:snp.cnt]
+		flag <- match(chr, names(option$chromosome.code))
+		chr[!is.na(flag)] <- unlist(option$chromosome.code)[ flag[!is.na(flag)] ]
+		chr <- suppressWarnings(as.integer(chr))
+		chr[is.na(chr)] <- -1
+
 		snp.allele <- gsub(".", "/", snp.allele[1:snp.cnt], fixed=TRUE)
 		list(chr = chr, position = position[1:snp.cnt],
 			snpidx = snpidx[1:snp.cnt], snp.rs = snp.rs[1:snp.cnt],
@@ -4184,7 +4187,6 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 			1, 0,
 			2, 1, 1, 1, 1, 1, 1, 0, 
 			2, 1, 1, 1, 1, 1, 1, 0))
-		start <- start - 1
 
 		# open the vcf file
 		opfile <- file(fn, open="r")
@@ -4197,11 +4199,13 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 		}
 
 		# scan
+		snp.cnt <- start
+
 		if (method == "biallelic.only")
 		{
-			snp.cnt <- 0
 			while (length(s <- readLines(opfile, n=nblock)) > 0)
 			{
+				gx <- NULL
 				for (i in 1:length(s))
 				{
 					ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE, n=5)
@@ -4212,15 +4216,24 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 						x <- match(ss, geno.str)
 						x <- geno.code[x]
 						x[is.na(x)] <- as.integer(3)
-						snp.cnt <- snp.cnt + 1
-						write.gdsn(gGeno, x, start=c(1,snp.cnt+start), count=c(-1,1))
+						gx <- cbind(gx, x)
 					}
+				}
+				if (!is.null(gx))
+				{
+					if (snpfirstdim)
+						write.gdsn(gGeno, t(gx), start=c(snp.cnt,1), count=c(ncol(gx),-1))
+					else {
+						print(snp.cnt)
+						write.gdsn(gGeno, gx, start=c(1,snp.cnt), count=c(-1,ncol(gx)))
+					}
+					snp.cnt <- snp.cnt + ncol(gx)
 				}
 			}
 		} else {
-			snp.cnt <- 0
 			while (length(s <- readLines(opfile, n=nblock)) > 0)
 			{
+				gx <- NULL
 				for (i in 1:length(s))
 				{
 					ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE)[-c(1:9)]
@@ -4233,8 +4246,15 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 					})
 					x[x > 2] <- 2
 					x[is.na(x)] <- as.integer(3)
-					snp.cnt <- snp.cnt + 1
-					write.gdsn(gGeno, x, start=c(1,snp.cnt+start), count=c(-1,1))
+					gx <- cbind(gx, x)
+				}
+				if (!is.null(gx))
+				{
+					if (snpfirstdim)
+						write.gdsn(gGeno, t(gx), start=c(snp.cnt,1), count=c(ncol(gx),-1))
+					else
+						write.gdsn(gGeno, gx, start=c(1,snp.cnt), count=c(-1,ncol(gx)))
+					snp.cnt <- snp.cnt + ncol(gx)
 				}
 			}
 		}
@@ -4242,7 +4262,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 		# close the file
 		close(opfile)
 		
-		snp.cnt
+		snp.cnt - start
 	}
 
 
@@ -4329,7 +4349,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 	# add "snp.position"
 	add.gdsn(gfile, "snp.position", all.position, compress=compress.annotation, closezip=TRUE)
 	# add "snp.chromosome"
-	v.chr <- add.gdsn(gfile, "snp.chromosome", all.chr, storage="uint8", compress=compress.annotation, closezip=TRUE)
+	v.chr <- add.gdsn(gfile, "snp.chromosome", all.chr, storage="int32", compress=compress.annotation, closezip=TRUE)
 	# add "snp.allele"
 	add.gdsn(gfile, "snp.allele", all.snp.allele, compress=compress.annotation, closezip=TRUE)
 
@@ -4346,8 +4366,14 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 	sync.gds(gfile)
 
 	# add "gonetype", 2 bits to store one genotype
-	gGeno <- add.gdsn(gfile, "genotype", storage="bit2", valdim=c(nSamp, nSNP))
-	put.attr.gdsn(gGeno, "sample.order")
+	if (snpfirstdim)
+	{
+		gGeno <- add.gdsn(gfile, "genotype", storage="bit2", valdim=c(nSNP, nSamp))
+		put.attr.gdsn(gGeno, "snp.order")
+	} else {
+		gGeno <- add.gdsn(gfile, "genotype", storage="bit2", valdim=c(nSamp, nSNP))
+		put.attr.gdsn(gGeno, "sample.order")
+	}
 	# sync file
 	sync.gds(gfile)
 
@@ -4475,12 +4501,9 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1, autosome.end=22, ...)
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.11")
+	packageStartupMessage("SNPRelate: 0.9.12")
 	if (rv$sse != 0)
 		packageStartupMessage("Streaming SIMD Extensions 2 (SSE2) supported.\n")
-
-	# set random number generator
-	RNGkind("L'Ecuyer-CMRG")
 
 	TRUE
 }

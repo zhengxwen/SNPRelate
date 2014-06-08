@@ -74,7 +74,7 @@ the final point will be replaced by the best one.
 genofile <- openfn.gds(snpgdsExampleFileName())
 
 YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
-	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="YRI"]
+	read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="YRI"]
 
 # SNP pruning
 set.seed(10)

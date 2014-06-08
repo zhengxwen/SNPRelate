@@ -6,6 +6,4 @@ useDynLib(SNPRelate)
 exportPattern(".")
 
 # Import all packages listed as Imports or Depends
-import(
-  gdsfmt
-)
+import(gdsfmt)

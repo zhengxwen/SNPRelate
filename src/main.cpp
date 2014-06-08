@@ -26,10 +26,11 @@
 // If not, see <http://www.gnu.org/licenses/>.
 
 
-#include <dGenGWAS.h>
-#include <dVect.h>
+#include <dType.h>
 #include <fstream>
 #include <map>
+#include <dGenGWAS.h>
+#include <dVect.h>
 #include <R.h>
 #include <R_ext/Lapack.h>
 
@@ -1287,6 +1288,8 @@ DLLEXPORT void gnrDistPerm(int *n_dist, double *dist, int *merge,
 	double Out_Merge_Z[], int Out_Merge_N1[], int Out_Merge_N2[],
 	int Out_Ind_Grp[], int *out_err)
 {
+	GetRNGstate();
+
 	CORETRY
 		//
 		vector< vector<int> > Array(*n_dist - 1);
@@ -1385,6 +1388,8 @@ DLLEXPORT void gnrDistPerm(int *n_dist, double *dist, int *merge,
 		// output
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
+
+	PutRNGstate();
 }
 
 
