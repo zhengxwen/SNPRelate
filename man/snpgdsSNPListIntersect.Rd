@@ -21,7 +21,7 @@ snpgdsSNPListIntersect(snplist1, snplist2)
 	\item{allele}{reference / non-ref alleles from the first SNP list object}
 	\item{afreq}{allele frequency from the first SNP list object}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsSNPList}}, \code{\link{snpgdsSNPListStrand}}
 }

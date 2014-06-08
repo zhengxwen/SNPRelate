@@ -33,7 +33,7 @@ calculated over all the samples in \code{sample.id}.
 	\item{snp.id}{the SNP ids used in the analysis}
 	\item{diss}{a matrix of individual dissimilarity}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsHCluster}}
 }

@@ -42,7 +42,7 @@ analysis conducted in \code{snpgdsPCA}.
 		approach for family and unrelated samples correcting for stratification.
 		Am J Hum Genet, 82(2), 352-365.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsPCA}}, \code{\link{snpgdsPCASampLoading}}, \code{\link{snpgdsPCACorr}}
 }

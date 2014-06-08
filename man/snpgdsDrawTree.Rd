@@ -42,7 +42,7 @@ snpgdsDrawTree(obj, clust.count=NULL, dend.idx=NULL,
 \value{
 	None.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsCutTree}}
 }

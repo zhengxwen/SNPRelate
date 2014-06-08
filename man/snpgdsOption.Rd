@@ -15,7 +15,7 @@ snpgdsOption(gdsobj=NULL, autosome.start=1, autosome.end=22, ...)
 	\item{autosome.end}{the ending index of autosome}
 	\item{...}{optional arguments for new chromosome coding}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 
 \examples{
 

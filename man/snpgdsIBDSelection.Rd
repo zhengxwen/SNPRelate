@@ -7,24 +7,27 @@
 	Return a data frame with IBD coefficients.
 }
 \usage{
-snpgdsIBDSelection(ibdobj, kinship.cutoff=-1, samp.sel=NULL)
+snpgdsIBDSelection(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 }
 \arguments{
-	\item{ibdobj}{an object of \code{snpgdsIBDClass} returned by \code{\link{snpgdsIBDMLE}} or \code{\link{snpgdsIBDMoM}}}
-	\item{kinship.cutoff}{select the individual pairs with kinship coefficients >= kinship.cutoff}
-	\item{samp.sel}{a logical vector or integer vector to specify selection of samples}
+	\item{ibdobj}{an object of \code{snpgdsIBDClass} returned by
+		\code{\link{snpgdsIBDMLE}} or \code{\link{snpgdsIBDMoM}}}
+	\item{kinship.cutoff}{select the individual pairs with kinship coefficients
+		>= kinship.cutoff; no filter if \code{kinship.cutoff = NaN}}
+	\item{samp.sel}{a logical vector or integer vector to specify selection
+		of samples}
 }
 \value{
 	Return a data.frame:
-	\item{sample1}{the id of the first sample}
-	\item{sample2}{the id of the second sample}
+	\item{ID1}{the id of the first individual}
+	\item{ID2}{the id of the second individual}
 	\item{k0}{the probability of sharing ZERO alleles}
 	\item{k1}{the probability of sharing ONE alleles}
-	\item{kinshipcoeff}{kinship coefficient}
+	\item{kinship}{kinship coefficient}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
-	\code{\link{snpgdsIBDMLE}}, \code{\link{snpgdsIBDMoM}}
+	\code{\link{snpgdsIBDMLE}}, \code{\link{snpgdsIBDMoM}}, \code{\link{snpgdsIBDKING}}
 }
 
 \examples{
@@ -43,15 +46,16 @@ points(pibd$k0[flag], pibd$k1[flag])
 # close the genotype file
 closefn.gds(genofile)
 
-# IBD coefficient list
+# IBD coefficients
 dat <- snpgdsIBDSelection(pibd, 1/32)
-#        sample1     sample2          k0          k1 kinshipcoeff
-# 1      NA19152     NA19154 0.010796493 0.981324805   0.24927055
-# 2      NA19139     NA19138 0.000000000 1.000000000   0.25000000
-# 3      NA19139     NA19137 0.008646155 0.989673572   0.24825853
-# 4      NA18912     NA18914 0.006489406 0.993510594   0.24837765
-# 5      NA19160     NA19161 0.006033827 0.977803758   0.25253215
-# ......
+head(dat)
+#       ID1     ID2          k0        k1    kinship
+# 1 NA19152 NA19154 0.010749154 0.9892508 0.24731271
+# 2 NA19152 NA19093 0.848207777 0.1517922 0.03794806
+# 3 NA19139 NA19138 0.010788047 0.9770181 0.25035144
+# 4 NA19139 NA19137 0.012900661 0.9870993 0.24677483
+# 5 NA18912 NA18914 0.008633077 0.9913669 0.24784173
+# 6 NA19160 NA19161 0.008635754 0.9847777 0.24948770
 }
 
 \keyword{gds}

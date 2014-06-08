@@ -14,7 +14,7 @@
 	\item{afreq}{allele frequency}
 }
 
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{\code{\link{snpgdsSNPList}}, \code{\link{snpgdsSNPListIntersect}}}
 
 \keyword{gds}

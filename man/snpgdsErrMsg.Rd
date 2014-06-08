@@ -9,7 +9,7 @@
 \usage{
 snpgdsErrMsg()
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 
 \keyword{gds}
 \keyword{GWAS}

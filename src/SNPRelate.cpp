@@ -104,11 +104,11 @@ namespace IBS
 	struct TKINGRobustFlag
 	{
 		UInt32 IBS0;       //< the number of loci sharing no allele
+		UInt32 nLoci;      //< the total number of loci
 		UInt32 SumSq;      //< \sum_m (X_m^{(i)} - X_m^{(j)})^2
 		UInt32 N1_Aa;      //< the number of hetet loci for the first individual
 		UInt32 N2_Aa;      //< the number of hetet loci for the second individual
-		double SumAFreq2;  //< \sum_m p_m^2 (1 - p_m)^2
-		TKINGRobustFlag() { IBS0 = SumSq = N1_Aa = N2_Aa = 0; SumAFreq2 = 0; }
+		TKINGRobustFlag() { IBS0 = nLoci = SumSq = N1_Aa = N2_Aa = 0; }
 	};
 
 	/// Calculate KING IBD estimators
@@ -1129,9 +1129,9 @@ DLLEXPORT void gnrPairIBDLogLik(int *n, int *geno1, int *geno2, double *AlleleFr
 }
 
 
-/// to compute the IBD coefficients by KING method of moment
-DLLEXPORT void gnrIBD_KING(LongBool *Verbose, LongBool *DataCache, int *NumThread,
-	int *method_idx, double *out_k0, double *out_k1, LongBool *out_err)
+/// to compute the IBD coefficients by KING method of moment (KING-homo)
+DLLEXPORT void gnrIBD_KING_Homo(LongBool *Verbose, LongBool *DataCache, int *NumThread,
+	double *out_k0, double *out_k1, LongBool *out_err)
 {
 	CORETRY
 		// ******** To cache the genotype data ********
@@ -1150,83 +1150,75 @@ DLLEXPORT void gnrIBD_KING(LongBool *Verbose, LongBool *DataCache, int *NumThrea
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 
-		// method
-		switch (*method_idx)
+		// the upper-triangle IBD matrix
+		CdMatTri<IBS::TKINGHomoFlag> IBD(n);
+		// Calculate the IBD matrix
+		IBS::DoKINGCalculate(IBD, *NumThread, "KING IBD:", *Verbose);
+		// output
+		IBS::TKINGHomoFlag *p = IBD.get();
+		for (int i=0; i < n; i++)
 		{
-		case 1: // IBD KING homo IBD estimator
+			out_k0[i*n + i] = out_k1[i*n + i] = 0;
+			p ++;
+			for (int j=i+1; j < n; j++, p++)
 			{
-				// the upper-triangle IBD matrix
-				CdMatTri<IBS::TKINGHomoFlag> IBD(n);
-				// Calculate the IBD matrix
-				IBS::DoKINGCalculate(IBD, *NumThread, "KING IBD:", *Verbose);
-				// output
-				IBS::TKINGHomoFlag *p = IBD.get();
-				for (int i=0; i < n; i++)
-				{
-					out_k0[i*n + i] = out_k1[i*n + i] = 0;
-					p ++;
-					for (int j=i+1; j < n; j++, p++)
-					{
-						double theta = 0.5 - p->SumSq / (8 * p->SumAFreq);
-						double k0 = p->IBS0 / (2 * p->SumAFreq2);
-						double k1 = 2 - 2*k0 - 4*theta;
-						out_k0[i*n + j] = out_k0[j*n + i] = k0;
-						out_k1[i*n + j] = out_k1[j*n + i] = k1;
-					}
-				}
+				double theta = 0.5 - p->SumSq / (8 * p->SumAFreq);
+				double k0 = p->IBS0 / (2 * p->SumAFreq2);
+				double k1 = 2 - 2*k0 - 4*theta;
+				out_k0[i*n + j] = out_k0[j*n + i] = k0;
+				out_k1[i*n + j] = out_k1[j*n + i] = k1;
 			}
-			break;
+		}
 
-		case 2: // IBD KING robust IBD estimator across family
+		// output
+		*out_err = 0;
+	CORECATCH(*out_err = 1)
+}
+
+/// to compute the IBD coefficients by KING method of moment (KING-robust)
+DLLEXPORT void gnrIBD_KING_Robust(LongBool *Verbose, LongBool *DataCache, int *NumThread,
+	int *FamilyID, double *IBS0, double *out_kinship, LongBool *out_err)
+{
+	CORETRY
+		// ******** To cache the genotype data ********
+		if (*DataCache)
+		{
+			double GenoSum=0;
+			gnrCacheGeno(&GenoSum, NULL);
+			if (*Verbose)
+				Rprintf("KING IBD:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
+		}
+
+		// ******** The calculation of genetic covariance matrix ********
+
+		// the number of samples
+		const int n = MCWorkingGeno.Space.SampleNum();
+		// to detect the block size
+		IBS::AutoDetectSNPBlockSize(n);
+
+		// IBD KING robust IBD estimator across family
+		// the upper-triangle IBD matrix
+		CdMatTri<IBS::TKINGRobustFlag> IBD(n);
+		// Calculate the IBD matrix
+		IBS::DoKINGCalculate(IBD, *NumThread, "KING IBD:", *Verbose);
+
+		// output
+		IBS::TKINGRobustFlag *p = IBD.get();
+		for (int i=0; i < n; i++)
+		{
+			IBS0[i*n + i] = 0; out_kinship[i*n + i] = 0.5;
+			p ++;
+			for (int j=i+1; j < n; j++, p++)
 			{
-				// the upper-triangle IBD matrix
-				CdMatTri<IBS::TKINGRobustFlag> IBD(n);
-				// Calculate the IBD matrix
-				IBS::DoKINGCalculate(IBD, *NumThread, "KING IBD:", *Verbose);
-				// output
-				IBS::TKINGRobustFlag *p = IBD.get();
-				for (int i=0; i < n; i++)
-				{
-					out_k0[i*n + i] = out_k1[i*n + i] = 0;
-					p ++;
-					for (int j=i+1; j < n; j++, p++)
-					{
-						double theta = 0.5 - p->SumSq / (4.0 * min(p->N1_Aa, p->N2_Aa));
-						double k0 = p->IBS0 / (2 * p->SumAFreq2);
-						double k1 = 2 - 2*k0 - 4*theta;
-						out_k0[i*n + j] = out_k0[j*n + i] = k0;
-						out_k1[i*n + j] = out_k1[j*n + i] = k1;
-					}
-				}
-			}
-			break;
+				IBS0[i*n + j] = IBS0[j*n + i] = double(p->IBS0) / p->nLoci;
 
-		case 3: // IBD KING robust IBD estimator within family
-			{
-				// the upper-triangle IBD matrix
-				CdMatTri<IBS::TKINGRobustFlag> IBD(n);
-				// Calculate the IBD matrix
-				IBS::DoKINGCalculate(IBD, *NumThread, "KING IBD:", *Verbose);
-				// output
-				IBS::TKINGRobustFlag *p = IBD.get();
-				for (int i=0; i < n; i++)
-				{
-					out_k0[i*n + i] = out_k1[i*n + i] = 0;
-					p ++;
-					for (int j=i+1; j < n; j++, p++)
-					{
-						double theta = 0.5 - p->SumSq / (2.0 *(p->N1_Aa + p->N2_Aa));
-						double k0 = p->IBS0 / (2 * p->SumAFreq2);
-						double k1 = 2 - 2*k0 - 4*theta;
-						out_k0[i*n + j] = out_k0[j*n + i] = k0;
-						out_k1[i*n + j] = out_k1[j*n + i] = k1;
-					}
-				}
+				int f1 = FamilyID[i];
+				int f2 = FamilyID[j];
+				out_kinship[i*n + j] = out_kinship[j*n + i] =
+						((f1 == f2) && (f1 != NA_INTEGER)) ?
+					(0.5 - p->SumSq / (2.0 *(p->N1_Aa + p->N2_Aa))) :
+					(0.5 - p->SumSq / (4.0 * min(p->N1_Aa, p->N2_Aa)));
 			}
-			break;
-
-		default:
-			throw "Internal error in 'gnrIBD_KING'.";
 		}
 
 		// output

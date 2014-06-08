@@ -18,7 +18,7 @@ snpgdsSummary(gds, show=TRUE)
 	\item{sample.id}{the IDs of valid samples}
 	\item{snp.id}{the IDs of valid SNPs}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 
 \examples{
 snpgdsSummary(snpgdsExampleFileName())

@@ -40,7 +40,7 @@ values for a specific IBD coefficient (k0, k1). \\
 		Case-control association testing in the presence of unknown relationships.
 		Genet Epidemiol 33(8):668-78.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsIBDMLE}}, \code{\link{snpgdsIBDMoM}}
 }

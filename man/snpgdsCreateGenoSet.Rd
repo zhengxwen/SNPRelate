@@ -25,7 +25,7 @@ snpgdsCreateGenoSet(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 \value{
 	None.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsCreateGeno}}, \code{\link{snpgdsCombineGeno}}
 }

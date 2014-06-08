@@ -23,7 +23,7 @@ snpgdsSelectSNP(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 \value{
 	Return a list of snp ids.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsSampMissrate}}, \code{\link{snpgdsSNPRateFreq}},
 	\code{\link{snpgdsLDpruning}}

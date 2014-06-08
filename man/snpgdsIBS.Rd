@@ -34,7 +34,7 @@ over all the samples in \code{sample.id}.
 	\item{snp.id}{the SNP ids used in the analysis}
 	\item{ibs}{a matrix of IBS proportion, "# of samples" x "# of samples"}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsIBSNum}}
 }

@@ -33,7 +33,7 @@ which are data.frame objects.
 \value{
 	None.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsCreateGeno}}, \code{\link{snpgdsCreateGenoSet}}
 }

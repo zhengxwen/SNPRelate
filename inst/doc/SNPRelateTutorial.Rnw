@@ -9,6 +9,7 @@
 \usepackage{amsmath}  
 \usepackage{graphicx}
 \usepackage[pdftex,plainpages=false, letterpaper, bookmarks, bookmarksnumbered, colorlinks, linkcolor=blue, citecolor=blue, filecolor=blue, urlcolor=blue]{hyperref}
+\usepackage{hyperref}
 \usepackage{url}
 \usepackage{Sweave}
 
@@ -22,10 +23,11 @@
 \begin{document}
 
 \title{A Tutorial for the R Package SNPRelate}
-\author{Xiuwen Zheng\\
-	Department of Biostatistics\\
-	University of Washington}
-\date{Mar 15, 2013}
+\author{Xiuwen Zheng \\
+	Department of Biostatistics \\
+	University of Washington
+}
+\date{June 8, 2013}
 
 
 \maketitle
@@ -332,20 +334,30 @@ snpset.id <- unlist(snpset)
 The functions in \hn{SNPRelate} for PCA include calculating the genetic covariance matrix from genotypes, computing the correlation coefficients between sample loadings and genotypes for each SNP, calculating SNP eigenvectors (loadings), and estimating the sample loadings of a new dataset from specified SNP eigenvectors.
 
 <<>>=
-# uses different colors with respect to ethnicities
-race <- as.factor(pop_code)
+# get sample id
+sample.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
+
+# get population information
+#   or pop_code <- scan("pop.txt", what=character()), if it is stored in a text file "pop.txt"
+pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 @
 
 <<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
 # run PCA
-pca <- snpgdsPCA(genofile, maf=0.05, missing.rate=0.05,
-	snp.id=snpset.id, num.thread=2)
-plot(pca$eigenvect[,2], pca$eigenvect[,1], xlab="Principal Component 2",
-	ylab="Principal Component 1", type="n")
+pca <- snpgdsPCA(genofile)
 
-# draw points
-points(pca$eigenvect[,2], pca$eigenvect[,1], col=race)
-legend("topleft", legend=levels(race), text.col=1:nlevels(race))
+# make a data.frame
+tab <- data.frame(sample.id = pca$sample.id,
+	pop = factor(pop_code)[match(pca$sample.id, sample.id)],
+	EV1 = pca$eigenvect[,1],    # the first eigenvector
+	EV2 = pca$eigenvect[,2],    # the second eigenvector
+	stringsAsFactors = FALSE)
+head(tab)
+
+# draw
+plot(tab$EV2, tab$EV1, col=as.integer(tab$pop),
+	xlab="eigenvector 2", ylab="eigenvector 1")
+legend("topleft", legend=levels(tab$pop), pch="o", col=1:nlevels(tab$pop))
 @
 
 The code below shows how to calculate the percent of variation is accounted for by the principal component for the first 16 PCs. It is clear to see the first two eigenvectors hold the largest percentage of variance among the population, although the total variance accounted for is still less the one-quarter of the total.
@@ -357,7 +369,7 @@ pc.percent
 Plot the principal component pairs for the first four PCs:
 <<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
 lbls <- paste("PC", 1:4, "\n", format(pc.percent[1:4], digits=2), "%", sep="")
-pairs(pca$eigenvect[,1:4], col=race, labels=lbls)
+pairs(pca$eigenvect[,1:4], col=tab$pop, labels=lbls)
 @
 
 To calculate the SNP correlations between eigenvactors and SNP genotypes:
@@ -426,6 +438,29 @@ plot(ibd.coeff$k0, ibd.coeff$k1, xlim=c(0,1), ylim=c(0,1),
 lines(c(0,1), c(1,0), col="red", lty=2)
 @
 \includegraphics{SNPRelateTutorial-IBDMLE.png}
+
+
+\subsubsection{Relationship inference Using KING method of moments}
+
+Within- and between-family relationship could be inferred by \href{http://people.virginia.edu/~wc9c/KING/}{the KING-robust method} in the presence of population stratification.
+<<>>=
+# incorporate with pedigree information
+family.id <- read.gdsn(index.gdsn(genofile, "sample.annot/family.id"))
+family.id <- family.id[match(YRI.id, sample.id)]
+table(family.id)
+
+ibd.robust <- snpgdsIBDKING(genofile, sample.id=YRI.id, family.id=family.id)
+names(ibd.robust)
+
+# pairs of individuals
+dat <- snpgdsIBDSelection(ibd.robust)
+head(dat)
+@
+
+<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
+	ylab="Estimated Kinship Coefficient (KING-robust)")
+@
 
 
 

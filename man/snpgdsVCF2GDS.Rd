@@ -61,7 +61,7 @@ It also allow define new chromosome coding, e.g., \code{option = snpgdsOption(Z=
 
 	\url{http://corearray.sourceforge.net/}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsOption}}, \code{\link{snpgdsBED2GDS}}
 }

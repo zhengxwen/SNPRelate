@@ -20,7 +20,7 @@ snpgdsSNPRateFreq(gdsobj, sample.id=NULL, snp.id=NULL)
 	\item{MinorFreq}{the minor allele frequencies}
 	\item{MissingRate}{the missing rates}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsSampMissrate}}
 }

@@ -49,7 +49,7 @@ calculated over all the samples in \code{sample.id}.
 	de Bakker PIW, Daly MJ & Sham PC. 2007. PLINK: a toolset for whole-genome association and
 	population-based linkage analysis. American Journal of Human Genetics, 81.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsIBDMLE}}, \code{\link{snpgdsIBDMLELogLik}}
 }
@@ -58,10 +58,12 @@ calculated over all the samples in \code{sample.id}.
 # open an example dataset (HapMap)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
+#########################################################
 # CEU population
+
 CEU.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="CEU"]
-pibd <- snpgdsIBDMoM(genofile, sample.id=CEU.id, kinship=TRUE)
+pibd <- snpgdsIBDMoM(genofile, sample.id=CEU.id)
 names(pibd)
 
 flag <- lower.tri(pibd$k0)
@@ -69,7 +71,14 @@ plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
 lines(c(0,1), c(1,0), col="red", lty=3)
 points(pibd$k0[flag], pibd$k1[flag])
 
+# select a set of pairs of individuals
+d <- snpgdsIBDSelection(pibd, kinship.cutoff=1/8)
+head(d)
+
+
+#########################################################
 # YRI population
+
 YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="YRI"]
 pibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id)

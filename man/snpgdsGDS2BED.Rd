@@ -30,7 +30,7 @@ snpgdsGDS2BED(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, verbose=TRUE)
 
 	\url{http://corearray.sourceforge.net/}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsBED2GDS}}, \code{\link{snpgdsGDS2PED}}
 }

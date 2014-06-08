@@ -40,7 +40,7 @@ The method "corr" is equivalent to "composite", when SNP genotypes are coded as:
 		in Feldman MW (ed): Mathematical Evolutionary Theory.
 		Princeton, NJ: Princeton University Press, 1989.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsLDMat}}, \code{\link{snpgdsLDpruning}}
 }

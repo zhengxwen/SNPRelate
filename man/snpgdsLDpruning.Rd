@@ -70,7 +70,7 @@ then skip j; otherwise, let S be S + \{ j \};
 	Weir BS, Cockerham CC: Complete characterization of disequilibrium at two loci; in Feldman MW
 		(ed): Mathematical Evolutionary Theory. Princeton, NJ: Princeton University Press, 1989.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsLDMat}}, \code{\link{snpgdsLDpair}}
 }

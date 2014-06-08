@@ -63,7 +63,7 @@ the final point will be replaced by the best one.
 		de Bakker PIW, Daly MJ & Sham PC. 2007. PLINK: a toolset for whole-genome association
 		and population-based linkage analysis. American Journal of Human Genetics, 81.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsPairIBDMLELogLik}}, \code{\link{snpgdsIBDMLE}},
 	\code{\link{snpgdsIBDMLELogLik}}, \code{\link{snpgdsIBDMoM}}

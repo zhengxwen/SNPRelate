@@ -21,7 +21,7 @@ snpgdsGetGeno(gdsobj, sample.id=NULL, snp.id=NULL, snpfirstdim=NULL, verbose=TRU
 \value{
 	Return an integer matrix.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsCreateGeno}}, \code{\link{snpgdsCreateGenoSet}},
 	\code{\link{snpgdsCombineGeno}}

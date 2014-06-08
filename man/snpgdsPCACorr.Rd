@@ -26,7 +26,7 @@ snpgdsPCACorr(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL, num.thread=1, verbose
 \references{
 	Patterson N, Price AL, Reich D (2006) Population structure and eigenanalysis. PLoS Genetics 2:e190.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsPCA}}, \code{\link{snpgdsPCASampLoading}}, \code{\link{snpgdsPCASNPLoading}}
 }

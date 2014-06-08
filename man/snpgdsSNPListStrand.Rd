@@ -18,7 +18,7 @@ snpgdsSNPListStrand(snplist1, snplist2)
 	a logical vector, where TRUE indiciates the allele references need to be switched, and NA
 indiciates that locus is not in the common snp list.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsSNPList}}, \code{\link{snpgdsSNPListStrand}}
 }

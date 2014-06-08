@@ -2167,10 +2167,14 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 	compress.annotation="ZIP.max", option=NULL, verbose=TRUE)
 {
 	# check
-	stopifnot(is.character(bed.fn))
-	stopifnot(is.character(fam.fn))
-	stopifnot(is.character(bim.fn))
+	stopifnot(is.character(bed.fn) & (length(bed.fn)==1))
+	stopifnot(is.character(fam.fn) & (length(fam.fn)==1))
+	stopifnot(is.character(bim.fn) & (length(bim.fn)==1))
 	stopifnot(is.logical(verbose))
+
+	bed.fn <- normalizePath(bed.fn, mustWork=FALSE)
+	fam.fn <- normalizePath(fam.fn, mustWork=FALSE)
+	bim.fn <- normalizePath(bim.fn, mustWork=FALSE)
 
 	if (verbose)
 		cat("Start snpgdsBED2GDS ...\n")
@@ -2891,7 +2895,7 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1, autosome.end=22, ...)
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.14")
+	packageStartupMessage("SNPRelate: 0.9.15")
 	if (rv$sse != 0)
 		packageStartupMessage("Streaming SIMD Extensions 2 (SSE2) supported.\n")
 

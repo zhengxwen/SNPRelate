@@ -9,8 +9,8 @@
 \usage{
 snpgdsIBDKING(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 	remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-	method = c("robust.across.family", "robust.within.family", "homo"),
-	kinship=TRUE, num.thread=1, verbose=TRUE)
+	type=c("KING-robust", "KING-homo"), family.id=NULL,
+	num.thread=1, verbose=TRUE)
 }
 \arguments{
 	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
@@ -22,25 +22,28 @@ snpgdsIBDKING(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 	\item{maf}{to use the SNPs with ">= maf" only; if NaN, no MAF threshold}
 	\item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN, no
 		missing threshold}
-	\item{method}{should be "robust.across.family" (default),
-		"robust.within.family" or "homo", see details}
-	\item{kinship}{if \code{TRUE}, output the estimated kinship coefficients}
+	\item{type}{\code{"KING-robust"} -- relationship inference in the presence of
+		population stratification; \code{"KING-homo"} -- relationship inference in
+		a homogeneous population}
+	\item{family.id}{if \code{NULL}, all individuals are treated as singletons;
+		if family id is given, within- and between-family relationship are
+		estimated differently. If \code{sample.id=NULL}, \code{family.id} should have
+		the same length as "sample.id" in the GDS file, otherwise \code{family.id} should
+		have the same length and order as the argument \code{sample.id}}
 	\item{num.thread}{the number of CPU cores used}
 	\item{verbose}{if TRUE, show information}
 }
 \details{
 	KING IBD estimator is a moment estimator, and it is computationally efficient
-relative to MLE method. The method includes \code{"robust.across.family"} -- robust
-relationship inference across family in the presence of population substructure
-(according to Equation 11 in Manichaikul et al. 2010); \code{"robust.within.family"} --
-robust relationship inference within family in the presence of population substructure
-(according to Equation 9 in Manichaikul et al. 2010); \code{"homo"} -- relationship
-inference in a homogeneous population (according to Equation 5 in Manichaikul
-et al. 2010). The method of \code{"robust.across.family"} always returns lower or equal
-kinship coefficients than what \code{"robust.within.family"} does. The probability of
-no sharing IBD (k0) is calculated using Equation 2 in Manichaikul et al. 2010.
-\code{\link{snpgdsIBSNum}} could be used to calculate the proportions of SNPs sharing
-zero IBS.
+relative to MLE method. The approaches include \code{"KING-robust"} -- robust
+relationship inference within or across families in the presence of population
+substructure, and \code{"KING-homo"} -- relationship inference in a homogeneous
+population.
+
+	With \code{"KING-robust"}, the function would return the proportion of SNPs
+with zero IBS (\code{IBS0}) and kinship coefficient (\code{kinship}). With
+\code{"KING-homo"} it would return the probability of sharing one IBD (\code{k1})
+and the probability of sharing zero IBD (\code{k0}).
 
 	The minor allele frequency and missing rate for each SNP passed in \code{snp.id}
 are calculated over all the samples in \code{sample.id}.
@@ -49,8 +52,9 @@ are calculated over all the samples in \code{sample.id}.
 	Return a list:
 	\item{sample.id}{the sample ids used in the analysis}
 	\item{snp.id}{the SNP ids used in the analysis}
-	\item{k0}{IBD coefficient, the probability of sharing ZERO IBD}
-	\item{k1}{IBD coefficient, the probability of sharing ONE IBD}
+	\item{k0}{IBD coefficient, the probability of sharing zero IBD}
+	\item{k1}{IBD coefficient, the probability of sharing one IBD}
+	\item{IBS0}{proportion of SNPs with zero IBS}
 	\item{kinship}{the estimated kinship coefficients, if the parameter \code{kinship=TRUE}}
 }
 \references{
@@ -59,7 +63,7 @@ are calculated over all the samples in \code{sample.id}.
 	Bioinformatics. 2010 Nov 15;26(22):2867-73. doi: 10.1093/bioinformatics/btq559.
 	Epub 2010 Oct 5.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsIBDMLE}}, \code{\link{snpgdsIBDMoM}}
 }
@@ -73,31 +77,54 @@ samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
 CEU.id <- samp.id[read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="CEU"]
 
 
-####  KING-homo: relationship inference in a homogeneous population
-
-ibd.homo <- snpgdsIBDKING(genofile, sample.id=CEU.id, method="homo")
-names(ibd.homo)
-# "sample.id" "snp.id"    "afreq"     "k0"        "k1"        "kinship"
-
-flag <- lower.tri(ibd.homo$k0)
-plot(ibd.homo$k0[flag], ibd.homo$kinship[flag],
-	xlab="Pr(IBD=0)", ylab="Estimated Kinship Coefficient (KING-homo)")
-
 
 ####  KING-robust: relationship inference in the presence of population stratification
 ####               robust relationship inference across family
 
-ibd.robust <- snpgdsIBDKING(genofile, sample.id=CEU.id)
+ibd.robust <- snpgdsIBDKING(genofile, sample.id=CEU.id, family.id=NULL)
 names(ibd.robust)
-# "sample.id" "snp.id"    "afreq"     "k0"        "k1"        "kinship"
+# [1] "sample.id" "snp.id"    "afreq"     "IBS0"      "kinship"
 
-ibs <- snpgdsIBSNum(genofile, sample.id=CEU.id)
-# proportion of SNPs with zero IBS
-ibs0 <- ibs$ibs0 / (ibs$ibs0 + ibs$ibs1 + ibs$ibs2)
+# select a set of pairs of individuals
+dat <- snpgdsIBDSelection(ibd.robust, 1/32)
+head(dat)
 
-flag <- lower.tri(ibd.robust$kinship)
-plot(ibs0[flag], ibd.robust$kinship[flag],
-	xlab="Proportion of Zero IBS", ylab="Estimated Kinship Coefficient (KING-robust)")
+plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
+	ylab="Estimated Kinship Coefficient (KING-robust)")
+
+
+
+####  KING-robust: relationship inference in the presence of population stratification
+####               within- and between-family relationship inference
+
+# incorporate with pedigree information
+family.id <- read.gdsn(index.gdsn(genofile, "sample.annot/family.id"))
+family.id <- family.id[match(CEU.id, samp.id)]
+
+ibd.robust2 <- snpgdsIBDKING(genofile, sample.id=CEU.id, family.id=family.id)
+names(ibd.robust2)
+
+# select a set of pairs of individuals
+dat <- snpgdsIBDSelection(ibd.robust2, 1/32)
+head(dat)
+
+plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
+	ylab="Estimated Kinship Coefficient (KING-robust)")
+
+
+
+####  KING-homo: relationship inference in a homogeneous population
+
+ibd.homo <- snpgdsIBDKING(genofile, sample.id=CEU.id, type="KING-homo")
+names(ibd.homo)
+# "sample.id" "snp.id"    "afreq"     "k0"        "k1"
+
+# select a subset of pairs of individuals
+dat <- snpgdsIBDSelection(ibd.homo, 1/32)
+head(dat)
+
+plot(dat$k0, dat$kinship, xlab="Pr(IBD=0)",
+	ylab="Estimated Kinship Coefficient (KING-homo)")
 
 
 # close the genotype file

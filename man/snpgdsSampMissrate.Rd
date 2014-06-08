@@ -17,7 +17,7 @@ snpgdsSampMissrate(gdsobj, sample.id=NULL, snp.id=NULL)
 \value{
 	a vector of numeric values
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsSNPRateFreq}}
 }

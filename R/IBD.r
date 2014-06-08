@@ -609,63 +609,6 @@ snpgdsPairIBDMLELogLik <- function(geno1, geno2, allele.freq, k0=NaN, k1=NaN,
 
 
 #######################################################################
-# Return a data.frame of pairs of individuals with IBD coefficients
-#
-# INPUT:
-#   ibdobj -- an object of snpgdsIBDClass
-#   kinship.cutoff --
-#   samp.sel -- a logical vector, or integer vector
-#
-# OUTPUT:
-#   a data.frame of "sample1", "sample2", "k0", "k1", "kinshipcoeff"
-#
-
-snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=-1, samp.sel=NULL)
-{
-	# check
-	stopifnot(inherits(ibdobj, "snpgdsIBDClass"))
-	stopifnot(is.null(samp.sel) | is.logical(samp.sel) | is.numeric(samp.sel))
-	if (is.logical(samp.sel))
-		stopifnot(length(samp.sel) == length(ibdobj$sample.id))
-
-	# variable
-	if (is.null(samp.sel))
-	{
-		n <- length(ibdobj$sample.id)
-		KC <- with(ibdobj, (1 - k0 - k1)*0.5 + k1*0.25)
-		if (is.finite(kinship.cutoff))
-			flag <- lower.tri(KC) & (KC >= kinship.cutoff)
-		else
-			flag <- lower.tri(KC)
-
-		data.frame(
-			sample1 = matrix(ibdobj$sample.id, nrow=n, ncol=n, byrow=TRUE)[flag],
-			sample2 = matrix(ibdobj$sample.id, nrow=n, ncol=n)[flag],
-			k0 = ibdobj$k0[flag], k1 = ibdobj$k1[flag],
-			kinshipcoeff = KC[flag], stringsAsFactors=FALSE)
-	} else {
-		samp.id <- ibdobj$sample.id[samp.sel]
-		n <- length(samp.id)
-		k0 <- ibdobj$k0[samp.sel, samp.sel]
-		k1 <- ibdobj$k1[samp.sel, samp.sel]
-
-		KC <- (1 - k0 - k1)*0.5 + k1*0.25
-		if (is.finite(kinship.cutoff))
-			flag <- lower.tri(KC) & (KC >= kinship.cutoff)
-		else
-			flag <- lower.tri(KC)
-
-		data.frame(
-			sample1 = matrix(samp.id, nrow=n, ncol=n, byrow=TRUE)[flag],
-			sample2 = matrix(samp.id, nrow=n, ncol=n)[flag],
-			k0 = k0[flag], k1 = k1[flag],
-			kinshipcoeff = KC[flag], stringsAsFactors=FALSE)
-	}
-}
-
-
-
-#######################################################################
 # Identity-by-Descent (IBD) analysis using KING robust estimat
 #######################################################################
 
@@ -679,34 +622,33 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=-1, samp.sel=NULL)
 #   autosome.only -- whether only use autosomal SNPs
 #   remove.monosnp -- whether remove monomorphic snps or not
 #   maf -- the threshold of minor allele frequencies, keeping ">= maf"
-#   missing.rate -- the threshold of missing rates, keeping "<= missing.rate"#
-#   allele.freq -- specify the allele frequencies
-#   kinship -- if TRUE, output estimated kinship coefficients
+#   missing.rate -- the threshold of missing rates, keeping "<= missing.rate"
+#   type -- "KING-home" or "KING-robust"
+#   family.id -- NULL or a list of family id
 #   num.thread -- the number of threads to be used
 #   verbose -- show information
 #
 
 snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 	remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-	method = c("robust.across.family", "robust.within.family", "homo"),
-	kinship=TRUE, num.thread=1, verbose=TRUE)
+	type=c("KING-robust", "KING-homo"), family.id=NULL,
+	num.thread=1, verbose=TRUE)
 {
 	# check
 	stopifnot(inherits(gdsobj, "gds.class"))
+	stopifnot(is.logical(autosome.only))
+	stopifnot(is.logical(remove.monosnp))
+	type <- match.arg(type)
+	stopifnot(is.null(family.id) | is.vector(family.id))
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.logical(verbose))
-	method <- match.arg(method)
-	met_idx <- switch(method,
-		"homo" = 1,
-		"robust.across.family" = 2,
-		"robust.within.family" = 3
-	)
 	allele.freq <- NULL
 
 	# samples
 	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
 	if (!is.null(sample.id))
 	{
+		tmp <- sample.id
 		n.tmp <- length(sample.id)
 		sample.id <- sample.ids %in% sample.id
 		n.samp <- sum(sample.id);
@@ -715,10 +657,44 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRU
 		if (n.samp <= 0)
 			stop("No sample in the working dataset.")
 		sample.ids <- sample.ids[sample.id]
+
+		# family id
+		if (is.vector(family.id))
+		{
+			if (length(tmp) != length(family.id))
+				stop("'family.id' should have the same length and order as 'sample.id'.")
+			family.id <- family.id[match(sample.ids, tmp)]
+		}
+	} else {
+		if (is.vector(family.id))
+		{
+			if (length(sample.ids) != length(family.id))
+				stop("'family.id' should have the same length as 'sample.id' in the GDS file")
+		}
 	}
 
 	if (verbose)
 		cat("Identity-By-Descent analysis (KING method of moment) on SNP genotypes:\n");
+
+	# family id
+	if (is.vector(family.id))
+	{
+		if (is.character(family.id))
+			family.id[family.id == ""] <- NA
+		family.id <- as.factor(family.id)
+		if (verbose & (type=="KING-robust"))
+		{
+			cat("# of families: ", nlevels(family.id),
+				", and within- and between-family relationship are estimated differently.\n",
+				sep="")
+		}
+	} else {
+		if (verbose & (type=="KING-robust"))
+		{
+			cat("No family is specified, and all individuals are treated as singletons.\n")
+		}
+		family.id <- rep(NA, length(sample.ids))
+	}
 
 	# SNPs
 	snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
@@ -829,19 +805,102 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRU
 			cat("\tUsing", num.thread, "CPU cores.\n")
 	}
 
-	# call parallel IBD
-	rv <- .C("gnrIBD_KING", as.logical(verbose), TRUE,
-		as.integer(num.thread), as.integer(met_idx),
-		k0 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
-		k1 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
-		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (rv$err != 0) stop(snpgdsErrMsg())
+	if (type == "KING-homo")
+	{
+		if (verbose)
+			cat("Relationship inference in a homogeneous population.\n")
+
+		# call parallel IBD
+		rv <- .C("gnrIBD_KING_Homo", as.logical(verbose), TRUE, as.integer(num.thread),
+			k0 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
+			k1 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
+			err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		if (rv$err != 0) stop(snpgdsErrMsg())
+
+		rv <- list(sample.id=sample.ids, snp.id=snp.ids, afreq=NULL,
+			k0=rv$k0, k1=rv$k1)
+
+	} else if (type == "KING-robust")
+	{
+		if (verbose)
+			cat("Relationship inference in the presence of population stratification.\n")
+
+		# call parallel IBD
+		rv <- .C("gnrIBD_KING_Robust", as.logical(verbose), TRUE,
+			as.integer(num.thread), as.integer(family.id),
+			IBS0 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
+			kinship = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
+			err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		if (rv$err != 0) stop(snpgdsErrMsg())
+
+		rv <- list(sample.id=sample.ids, snp.id=snp.ids, afreq=NULL,
+			IBS0=rv$IBS0, kinship=rv$kinship)
+	} else
+		stop("Invalid 'type'.")
 
 	# return
-	rv <- list(sample.id=sample.ids, snp.id=snp.ids, afreq=NULL, k0=rv$k0, k1=rv$k1)
-	if (kinship)
-		rv$kinship <- 0.5*(1 - rv$k0 - rv$k1) + 0.25*rv$k1
 	rv$afreq[rv$afreq < 0] <- NaN
 	class(rv) <- "snpgdsIBDClass"
 	return(rv)
+}
+
+
+
+
+#######################################################################
+#
+#######################################################################
+
+#######################################################################
+# Return a data.frame of pairs of individuals with IBD coefficients
+#
+# INPUT:
+#   ibdobj -- an object of snpgdsIBDClass
+#   kinship.cutoff -- a threshold of kinship coefficient
+#   samp.sel -- a logical vector, or integer vector
+#
+# OUTPUT:
+#   a data.frame of "ID1", "ID2", "k0", "k1", "kinship"
+#
+
+snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
+{
+	# check
+	stopifnot(inherits(ibdobj, "snpgdsIBDClass"))
+	stopifnot(is.numeric(kinship.cutoff))
+	stopifnot(is.null(samp.sel) | is.logical(samp.sel) | is.numeric(samp.sel))
+	if (is.logical(samp.sel))
+		stopifnot(length(samp.sel) == length(ibdobj$sample.id))
+
+	# the variables in the output
+	ns <- setdiff(names(ibdobj), c("sample.id", "snp.id", "afreq"))
+
+	# subset
+	if (!is.null(samp.sel))
+	{
+		ibdobj$sample.id <- ibdobj$sample.id[samp.sel]
+		for (i in ns)
+			ibdobj[[i]] <- ibdobj[[i]][samp.sel, samp.sel]
+	}
+
+	if (is.null(ibdobj$kinship))
+	{
+		ibdobj$kinship <- (1 - ibdobj$k0 - ibdobj$k1)*0.5 + ibdobj$k1*0.25
+		ns <- c(ns, "kinship")
+	}
+	if (is.finite(kinship.cutoff))
+		flag <- lower.tri(ibdobj$kinship) & (ibdobj$kinship >= kinship.cutoff)
+	else
+		flag <- lower.tri(ibdobj$kinship)
+
+	# output
+	n <- length(ibdobj$sample.id)
+	ans <- data.frame(
+		ID1 = matrix(ibdobj$sample.id, nrow=n, ncol=n, byrow=TRUE)[flag],
+		ID2 = matrix(ibdobj$sample.id, nrow=n, ncol=n)[flag],
+		stringsAsFactors=FALSE)
+	for (i in ns)
+		ans[[i]] <- ibdobj[[i]][flag]
+
+	ans
 }

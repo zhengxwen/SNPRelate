@@ -30,7 +30,7 @@ snpgdsIndInbCoef(x, p, method = c("mom.weir", "mom.visscher", "mle"),
 	Martin NG, Montgomery GW, Goddard ME, Visscher PM. 2010. Common SNPs explain a large
 	proportion of the heritability for human height. Nat Genet. 42(7):565-9. Epub 2010 Jun 20.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 
 \examples{
 # open an example dataset (HapMap)

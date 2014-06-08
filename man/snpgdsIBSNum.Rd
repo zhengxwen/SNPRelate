@@ -34,7 +34,7 @@ calculated over all the samples in \code{sample.id}.
 	\item{ibs1}{a n-by-n matrix, the number of SNPs sharing 1 IBS}
 	\item{ibs2}{a n-by-n matrix, the number of SNPs sharing 2 IBS}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsIBS}}
 }

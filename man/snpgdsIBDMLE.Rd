@@ -76,7 +76,7 @@ than MoM, and might not be feasible to estimate pairwise relatedness for a large
 		Case-control association testing in the presence of unknown relationships.
 		Genet Epidemiol 33(8):668-78.
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsIBDMLELogLik}}, \code{\link{snpgdsIBDMoM}}
 }
@@ -93,8 +93,15 @@ YRI.id <- YRI.id[1:30]
 set.seed(10)
 snpset <- snpgdsLDpruning(genofile, sample.id=YRI.id, maf=0.05, missing.rate=0.05)
 snpset <- sample(unlist(snpset), 250)
-mibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snpset, kinship=TRUE)
+mibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snpset)
 names(mibd)
+
+# select a set of pairs of individuals
+d <- snpgdsIBDSelection(mibd, kinship.cutoff=1/8)
+head(d)
+
+
+# log likelihood
 
 loglik <- snpgdsIBDMLELogLik(genofile, mibd)
 loglik0 <- snpgdsIBDMLELogLik(genofile, mibd, relatedness="unrelated")

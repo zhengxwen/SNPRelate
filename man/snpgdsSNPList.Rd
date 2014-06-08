@@ -21,7 +21,7 @@ snpgdsSNPList(gdsobj, sample.id=NULL)
 	\item{allele}{reference / non-ref alleles}
 	\item{afreq}{allele frequency}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsSNPListIntersect}}, \code{\link{snpgdsSNPListStrand}}
 }

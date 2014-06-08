@@ -43,7 +43,7 @@ snpgdsCutTree(hc, z.threshold=15, outlier.n=5, n.perm = 5000, samp.group=NULL,
 		\code{z}, the Z score; \code{n1}, the size of the first cluster; \code{n2}, the size of the second cluster}
 	\item{clust.count}{the counts for clusters}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsHCluster}}, \code{\link{snpgdsDrawTree}},
 	\code{\link{snpgdsIBS}}, \code{\link{snpgdsDiss}}

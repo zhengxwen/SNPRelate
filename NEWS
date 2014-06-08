@@ -1,3 +1,10 @@
+0.9.15	08-Jun-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+
+	* improve 'snpgdsIBDKING' to avoid misleading arguments and examples
+	* improve 'snpgdsIBDSelection'
+	* the names of column 'sample1', 'sample2' and 'kinshipcoeff' are changed to 'ID1', 'ID2' and 'kinship' in the output of 'snpgdsIBDSelection'
+
+
 0.9.14	22-May-2013	Xiuwen Zheng <zhengx@u.washington.edu>
 
 	* 'snpgdsGDS2BED' gives a warning if the allele information is missing

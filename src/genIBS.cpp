@@ -83,6 +83,8 @@ namespace IBS
 	UInt8 Gen_KING_N1_Aa[_SIZE_];
 	/// N2_Aa requiring both genotypes are available
 	UInt8 Gen_KING_N2_Aa[_SIZE_];
+	/// the number of valid loci
+	UInt8 Gen_KING_Num_Loci[_SIZE_];
 
 
 	/// The packed genotype buffer
@@ -128,11 +130,11 @@ namespace IBS
 	struct TKINGRobustFlag
 	{
 		UInt32 IBS0;       //< the number of loci sharing no allele
+		UInt32 nLoci;      //< the total number of loci
 		UInt32 SumSq;      //< \sum_m (X_m^{(i)} - X_m^{(j)})^2
 		UInt32 N1_Aa;      //< the number of hetet loci for the first individual
 		UInt32 N2_Aa;      //< the number of hetet loci for the second individual
-		double SumAFreq2;  //< \sum_m p_m^2 (1 - p_m)^2
-		TKINGRobustFlag() { IBS0 = SumSq = N1_Aa = N2_Aa = 0; SumAFreq2 = 0; }
+		TKINGRobustFlag() { IBS0 = nLoci = SumSq = N1_Aa = N2_Aa = 0; }
 	};
 
 
@@ -182,6 +184,7 @@ namespace IBS
 			PACKED_COND((b1 < 3) && (b2 < 3), Gen_KING_SqDiff, sum += (b1-b2)*(b1-b2));
 			PACKED_COND((b1 < 3) && (b2 < 3), Gen_KING_N1_Aa, sum += (b1==1) ? 1:0);
 			PACKED_COND((b1 < 3) && (b2 < 3), Gen_KING_N2_Aa, sum += (b2==1) ? 1:0);
+			PACKED_COND((b1 < 3) && (b2 < 3), Gen_KING_Num_Loci, sum ++);
 		}
 	} InitObj;
 
@@ -326,7 +329,7 @@ namespace IBS
 		}
 	}
 
-	/// Compute IBD estimator in Homo
+	/// Compute IBD estimator in KING-homo
 	static void _Do_KING_Homo_Compute(int ThreadIndex, long Start, long SNP_Cnt, void* Param)
 	{
 		long Cnt = IBS_Thread_MatCnt[ThreadIndex];
@@ -370,7 +373,7 @@ namespace IBS
 		}
 	}
 
-	/// Compute IBD estimator in Homo
+	/// Compute IBD estimator in KING-robust
 	static void _Do_KING_Robust_Compute(int ThreadIndex, long Start, long SNP_Cnt, void* Param)
 	{
 		long Cnt = IBS_Thread_MatCnt[ThreadIndex];
@@ -385,33 +388,11 @@ namespace IBS
 			for (long k=0; k < _PackSNPLen; k++, p1++, p2++)
 			{
 				size_t t = (size_t(*p1) << 8) | (*p2);
-
 				p->IBS0 += IBS0_Num_SNP[t];
+				p->nLoci += Gen_KING_Num_Loci[t];
 				p->SumSq += Gen_KING_SqDiff[t];
 				p->N1_Aa += Gen_KING_N1_Aa[t];
 				p->N2_Aa += Gen_KING_N2_Aa[t];
-
-				UInt8 flag = Gen_Both_Valid[t];
-				if (flag & 0x01)
-				{
-					double f = GenoAlleleFreq.get()[4*k + 0];
-					p->SumAFreq2 += f*f;
-				}
-				if (flag & 0x02)
-				{
-					double f = GenoAlleleFreq.get()[4*k + 1];
-					p->SumAFreq2 += f*f;
-				}
-				if (flag & 0x04)
-				{
-					double f = GenoAlleleFreq.get()[4*k + 2];
-					p->SumAFreq2 += f*f;
-				}
-				if (flag & 0x08)
-				{
-					double f = GenoAlleleFreq.get()[4*k + 3];
-					p->SumAFreq2 += f*f;
-				}
 			}
 		}
 	}

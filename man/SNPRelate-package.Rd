@@ -4,17 +4,17 @@
 \docType{package}
 \title{Parallel Computing Toolset for genome-wide association studies}
 \description{
-	A high-performance computing toolset for relatedness and principal component analysis
-in Genome-wide Association Studies
+	A high-performance computing toolset for relatedness and principal component
+analysis in Genome-wide Association Studies
 }
 \details{
 	\tabular{ll}{
-		Package: \tab SNPRelate\cr
-		Type: \tab Package\cr
-		Version: \tab 0.9.14\cr
-		Date: \tab 2013-05-22\cr
-		License: \tab GPL version 3\cr
-		Depends: \tab gdsfmt (>= 0.9.7)\cr
+		Package: \tab SNPRelate \cr
+		Type: \tab Package \cr
+		Version: \tab 0.9.14 \cr
+		Date: \tab 2013-06-08 \cr
+		License: \tab GPL version 3 \cr
+		Depends: \tab gdsfmt (>= 0.9.7) \cr
 	}
 	The genotypes stored in GDS format can be analyzed by the R functions in SNPRelate,
 	which utilize the multi-core feature of machine for a single computer.
@@ -27,7 +27,8 @@ in Genome-wide Association Studies
 }
 \references{
 	Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS.
-	A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data.
+	A High-performance Computing Toolset for Relatedness and Principal Component
+	Analysis of SNP Data.
 	Bioinformatics (2012); doi: 10.1093/bioinformatics/bts610
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}

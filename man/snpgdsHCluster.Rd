@@ -29,7 +29,7 @@ using \code{method = "complete"}.
 	\item{dendrogram}{}
 	\item{dist}{the dissimilarity matrix, if \code{need.mat = TRUE}}
 }
-\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\author{Xiuwen Zheng}
 \seealso{
 	\code{\link{snpgdsIBS}}, \code{\link{snpgdsDiss}}, \code{\link{snpgdsCutTree}}
 }
