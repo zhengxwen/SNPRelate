@@ -1,4 +1,11 @@
-0.9.10	27-Jan-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+0.9.11	30-Jan-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+
+	* bug fix in 'snpgdsVCF2GDS': to use "\t" as the field separator character
+	* bug fixes in the documents according to gdsfmt v0.9.11
+	* improve the vignette
+
+
+0.9.10	22-Jan-2013	Xiuwen Zheng <zhengx@u.washington.edu>
 
 	* bug fixes in 'snpgdsPairIBD'
 

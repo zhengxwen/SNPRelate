@@ -13,7 +13,7 @@ snpgdsIndInb(gdsobj, sample.id=NULL, snp.id=NULL,
 	allele.freq=NULL, out.num.iter=TRUE, reltol=.Machine$double.eps^0.75, verbose=TRUE)
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gdsclass}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
 	\item{autosome.only}{if TRUE, use autosomal SNPs only}

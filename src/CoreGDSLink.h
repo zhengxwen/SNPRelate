@@ -8,7 +8,7 @@
 //
 // CoreGDSLink.h: Link C interface from the CoreArray's dynamic library "CoreGDS"
 //
-// Copyright (C) 2012	Xiuwen Zheng
+// Copyright (C) 2013	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -29,7 +29,7 @@
  *	\file     CoreGDSLink.h
  *	\author   Xiuwen Zheng
  *	\version  1.0
- *	\date     2007 - 2012
+ *	\date     2007 - 2013
  *	\brief    Link C interface from the CoreArray's dynamic library "CoreGDS"
  *	\details
 **/
@@ -87,39 +87,48 @@ namespace GDSInterface
 
 	/// the interface for CoreArray library
 
+	/// the pointer to a GDS file
+	typedef void* PdGDSFile;
 	/// the pionter to a GDS node
-	typedef void* TdGDSObj;
-
-	/// get the degree of dimension
-	int gds_AttrNameIndex(TdGDSObj obj, const char *Name);
-
-
-
+	typedef void* PdGDSObj;
 	/// the pointer to a sequence object
-	typedef void* TdSequenceX;
+	typedef void* PdSequenceX;
+
+
 
 	/// get the degree of dimension
-	int gds_SeqDimCnt(TdSequenceX obj);
+	int gds_AttrNameIndex(PdGDSObj obj, const char *Name);
+
+
+
+	PdGDSObj gds_NodePath(PdGDSObj Obj, const char *Path);
+
+
+
+	/// get the degree of dimension
+	int gds_SeqDimCnt(PdSequenceX obj);
 	/// get the dimensions
-	bool gds_SeqGetDim(TdSequenceX obj, int *OutBuf);
+	bool gds_SeqGetDim(PdSequenceX obj, int *OutBuf);
 
 	/// get the total count of elements
-	Int64 gds_SeqGetCount(TdSequenceX obj);
+	Int64 gds_SeqGetCount(PdSequenceX obj);
 
 	/// read the data
-	bool gds_rData(TdSequenceX obj, CoreArray::Int32 const* Start,
+	bool gds_rData(PdSequenceX obj, CoreArray::Int32 const* Start,
 		CoreArray::Int32 const* Length, void *OutBuf, TSVType OutSV);
 
 	/// read the data
-	bool gds_rDataEx(TdSequenceX obj, CoreArray::Int32 const* Start,
+	bool gds_rDataEx(PdSequenceX obj, CoreArray::Int32 const* Start,
 		CoreArray::Int32 const* Length, CBOOL *Selection[], void *OutBuf, TSVType OutSV);
 
 	/// write the data
-	bool gds_wData(TdSequenceX obj, CoreArray::Int32 const* Start,
-		CoreArray::Int32 const* Length, const void *InBuf, TSVType OutSV);
+	bool gds_wData(PdSequenceX obj, CoreArray::Int32 const* Start,
+		CoreArray::Int32 const* Length, const void *InBuf, TSVType InSV);
 
 	/// append the data
-	bool gds_AppendData(TdSequenceX obj, int Cnt, const void *InBuf, TSVType OutSV);
+	bool gds_AppendData(PdSequenceX obj, int Cnt, const void *InBuf, TSVType InSV);
+	bool gds_AppendString(PdSequenceX obj, int Cnt, const char *buffer[]);
+	bool gds_AppendString(PdSequenceX obj, const char *text);
 
 
 

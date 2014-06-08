@@ -8,22 +8,23 @@
 //
 // main.cpp: Relatedness, Linkage Disequilibrium and Principal Component Analysis
 //
-// Copyright (C) 2011	Xiuwen Zheng
+// Copyright (C) 2013	Xiuwen Zheng
 //
-// This file is part of CoreArray.
+// This file is part of SNPRelate.
 //
-// CoreArray is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License Version 3 as
-// published by the Free Software Foundation.
+// SNPRelate is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License Version 3 as published
+// by the Free Software Foundation.
 //
-// CoreArray is distributed in the hope that it will be useful, but
+// SNPRelate is distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
+// GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with CoreArray.
+// You should have received a copy of the GNU General Public License along
+// with SNPRelate.
 // If not, see <http://www.gnu.org/licenses/>.
+
 
 #include <dGenGWAS.h>
 #include <dVect.h>
@@ -333,7 +334,7 @@ DLLEXPORT void gnrDone()
 // the functions for the SNP genotype working space
 
 /// set the genotype node
-DLLEXPORT void gnrSetGenoSpace(TdSequenceX *Node,
+DLLEXPORT void gnrSetGenoSpace(PdSequenceX *Node,
 	LongBool *SelSamp, LongBool *SelSampFlag, LongBool *SelSNP, LongBool *SelSNPFlag,
 	int *out_nsnp, int *out_nsamp,
 	LongBool *out_err)
@@ -493,7 +494,7 @@ DLLEXPORT void gnrGetGenoBuffer(int *buf_obj, int *idx, int *out_buf, LongBool *
 }
 
 /// copy genotypes
-DLLEXPORT void gnrCopyGeno(TdSequenceX *Node, LongBool *snpfirstorder, LongBool *out_err)
+DLLEXPORT void gnrCopyGeno(PdSequenceX *Node, LongBool *snpfirstorder, LongBool *out_err)
 {
 	CORETRY
 		*out_err = 1;
@@ -551,7 +552,7 @@ DLLEXPORT void gnrCopyGenoMem(int *membuf, LongBool *snpfirstorder, LongBool *ou
 }
 
 /// Append genotypes
-DLLEXPORT void gnrAppendGenoSpace(TdSequenceX *Node, LongBool *snpfirstorder, LongBool *out_err)
+DLLEXPORT void gnrAppendGenoSpace(PdSequenceX *Node, LongBool *snpfirstorder, LongBool *out_err)
 {
 	CORETRY
 		*out_err = 1;
@@ -578,7 +579,7 @@ DLLEXPORT void gnrAppendGenoSpace(TdSequenceX *Node, LongBool *snpfirstorder, Lo
 }
 
 /// Append genotypes with switch strand
-DLLEXPORT void gnrAppendGenoSpaceStrand(TdSequenceX *Node, LongBool *snpfirstorder,
+DLLEXPORT void gnrAppendGenoSpaceStrand(PdSequenceX *Node, LongBool *snpfirstorder,
 	LongBool StrandFlag[], LongBool *out_err)
 {
 	CORETRY
@@ -1512,11 +1513,11 @@ DLLEXPORT void gnrBEDFlag(char **bedfn, int *SNPOrder, LongBool *out_err)
 }
 
 /// to convert from PLINK BED to GDS
-DLLEXPORT void gnrConvBED2GDS(char **bedfn, TdSequenceX *Node, LongBool *verbose,
+DLLEXPORT void gnrConvBED2GDS(char **bedfn, PdSequenceX *Node, LongBool *verbose,
 	LongBool *out_err)
 {
 	CORETRY
-		TdSequenceX Seq = *Node;
+		PdSequenceX Seq = *Node;
 		int DLen[2];
 		gds_SeqGetDim(Seq, DLen);
 

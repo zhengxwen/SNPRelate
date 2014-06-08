@@ -7,13 +7,13 @@
 	To get a genotype matrix from a specified GDS file
 }
 \usage{
-snpgdsGetGeno(gdsobj, sample.id=NULL, snp.id=NULL, snpfirstorder=NULL, verbose=TRUE)
+snpgdsGetGeno(gdsobj, sample.id=NULL, snp.id=NULL, snpfirstdim=NULL, verbose=TRUE)
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gdsclass}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
-	\item{snpfirstorder}{if TRUE, genotypes are stored in the individual-major mode,
+	\item{snpfirstdim}{if TRUE, genotypes are stored in the individual-major mode,
 		(i.e, list all SNPs for the first individual, and then list all SNPs for
 		the second individual, etc); if NULL, determine automatically}
 	\item{verbose}{if TRUE, show information}

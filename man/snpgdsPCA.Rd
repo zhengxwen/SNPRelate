@@ -13,7 +13,7 @@ snpgdsPCA(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 	verbose = TRUE)
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gdsclass}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
 	\item{autosome.only}{if TRUE, use autosomal SNPs only}
@@ -57,15 +57,14 @@ calculated over all the samples in \code{sample.id}.
 # open an example dataset (HapMap)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
-RV <- snpgdsPCA(genofile, num.thread=2)
-pop <- read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))
-plot(RV$eigenvect[,2], RV$eigenvect[,1], col=as.integer(factor(pop)),
-	xlab="PC 2", ylab="PC 1")
-legend("topleft", legend=levels(factor(pop)), pch="o", col=1:4)
+# get population information
+#   or pop_code <- scan("pop.txt", what=character()), if it is stored in a text file "pop.txt"
+pop_code <- read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))
 
-RV <- snpgdsPCA(genofile, need.genmat=TRUE)
-names(RV)
-# [1] "sample.id" "snp.id"    "eigenval"  "eigenvect" "TraceXTX"  "Bayesian"  "genmat"
+RV <- snpgdsPCA(genofile, num.thread=2)
+plot(RV$eigenvect[,2], RV$eigenvect[,1], col=as.integer(factor(pop_code)),
+	xlab="PC 2", ylab="PC 1")
+legend("topleft", legend=levels(factor(pop_code)), pch="o", col=1:4)
 
 # close the genotype file
 closefn.gds(genofile)

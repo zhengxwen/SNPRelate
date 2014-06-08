@@ -8,7 +8,7 @@
 //
 // dType.h: Basic template classes for elementary types
 //
-// Copyright (C) 2012	Xiuwen Zheng
+// Copyright (C) 2013	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -29,8 +29,8 @@
  *	\file     dType.h
  *	\author   Xiuwen Zheng
  *	\version  1.0
- *	\date     2007 - 2012
- *	\brief    Basic template classes for elementary types
+ *	\date     2007 - 2013
+ *	\brief    Basic template classes for atomic types
  *	\details
 **/
 
@@ -61,10 +61,122 @@
 
 namespace CoreArray
 {
+	// ******************************************************************** //
+	// ******************************************************************** //
+
+	// define little-endian atomic type
+
+	/// little-endian int8_t
+	#define COREARRAY_LE_INT8_TRAIT_ID            0
+	/// little-endian uint8_t
+	#define COREARRAY_LE_UINT8_TRAIT_ID           1
+	/// little-endian int16_t
+	#define COREARRAY_LE_INT16_TRAIT_ID           2
+	/// little-endian uint16_t
+	#define COREARRAY_LE_UINT16_TRAIT_ID          3
+	/// little-endian int32_t
+	#define COREARRAY_LE_INT32_TRAIT_ID           4
+	/// little-endian uint32_t
+	#define COREARRAY_LE_UINT32_TRAIT_ID          5
+	/// little-endian int64_t
+	#define COREARRAY_LE_INT64_TRAIT_ID           6
+	/// little-endian uint64_t
+	#define COREARRAY_LE_UINT64_TRAIT_ID          7
+
+	/// IEEE 32-bit floating point
+	#define COREARRAY_IEEE_LE_FLOAT32_TRAIT_ID    10
+	/// IEEE 64-bit floating point
+	#define COREARRAY_IEEE_LE_FLOAT64_TRAIT_ID    11
+
+
+	// define big-endian atomic type
+
+	/// big-endian int8_t
+	#define COREARRAY_BE_INT8_TRAIT_ID            20
+	/// big-endian uint8_t
+	#define COREARRAY_BE_UINT8_TRAIT_ID           21
+	/// big-endian int16_t
+	#define COREARRAY_BE_INT16_TRAIT_ID           22
+	/// big-endian uint16_t
+	#define COREARRAY_BE_UINT16_TRAIT_ID          23
+	/// big-endian int32_t
+	#define COREARRAY_BE_INT32_TRAIT_ID           24
+	/// big-endian uint32_t
+	#define COREARRAY_BE_UINT32_TRAIT_ID          25
+	/// big-endian int64_t
+	#define COREARRAY_BE_INT64_TRAIT_ID           26
+	/// big-endian uint64_t
+	#define COREARRAY_BE_UINT64_TRAIT_ID          27
+
+	/// IEEE 32-bit floating point
+	#define COREARRAY_IEEE_BE_FLOAT32_TRAIT_ID    30
+	/// IEEE 64-bit floating point
+	#define COREARRAY_IEEE_BE_FLOAT64_TRAIT_ID    31
+
+
+
+	// define native atomic type
+
+	#if defined(COREARRAY_LITTLE_ENDIAN)
+
+		/// native int8_t
+		#define COREARRAY_NATIVE_INT8_TRAIT_ID      COREARRAY_LE_INT8_TRAIT_ID
+		/// native uint8_t
+		#define COREARRAY_NATIVE_UINT8_TRAIT_ID     COREARRAY_LE_UINT8_TRAIT_ID
+		/// native int16_t
+		#define COREARRAY_NATIVE_INT16_TRAIT_ID     COREARRAY_LE_INT16_TRAIT_ID
+		/// native uint16_t
+		#define COREARRAY_NATIVE_UINT16_TRAIT_ID    COREARRAY_LE_UINT16_TRAIT_ID
+		/// native int32_t
+		#define COREARRAY_NATIVE_INT32_TRAIT_ID     COREARRAY_LE_INT32_TRAIT_ID
+		/// native uint32_t
+		#define COREARRAY_NATIVE_UINT32_TRAIT_ID    COREARRAY_LE_UINT32_TRAIT_ID
+		/// native int64_t
+		#define COREARRAY_NATIVE_INT64_TRAIT_ID     COREARRAY_LE_INT64_TRAIT_ID
+		/// native uint64_t
+		#define COREARRAY_NATIVE_UINT64_TRAIT_ID    COREARRAY_LE_UINT64_TRAIT_ID
+
+		/// native 32-bit floating point
+		#define COREARRAY_IEEE_NATIVE_FLOAT32_TRAIT_ID    COREARRAY_IEEE_LE_FLOAT32_TRAIT_ID
+		/// native 64-bit floating point
+		#define COREARRAY_IEEE_NATIVE_FLOAT64_TRAIT_ID    COREARRAY_IEEE_LE_FLOAT64_TRAIT_ID
+
+	#elif defined(COREARRAY_BIG_ENDIAN)
+
+		/// native int8_t
+		#define COREARRAY_NATIVE_INT8_TRAIT_ID      COREARRAY_BE_INT8_TRAIT_ID
+		/// native uint8_t
+		#define COREARRAY_NATIVE_UINT8_TRAIT_ID     COREARRAY_BE_UINT8_TRAIT_ID
+		/// native int16_t
+		#define COREARRAY_NATIVE_INT16_TRAIT_ID     COREARRAY_BE_INT16_TRAIT_ID
+		/// native uint16_t
+		#define COREARRAY_NATIVE_UINT16_TRAIT_ID    COREARRAY_BE_UINT16_TRAIT_ID
+		/// native int32_t
+		#define COREARRAY_NATIVE_INT32_TRAIT_ID     COREARRAY_BE_INT32_TRAIT_ID
+		/// native uint32_t
+		#define COREARRAY_NATIVE_UINT32_TRAIT_ID    COREARRAY_BE_UINT32_TRAIT_ID
+		/// native int64_t
+		#define COREARRAY_NATIVE_INT64_TRAIT_ID     COREARRAY_BE_INT64_TRAIT_ID
+		/// native uint64_t
+		#define COREARRAY_NATIVE_UINT64_TRAIT_ID    COREARRAY_BE_UINT64_TRAIT_ID
+
+		/// native 32-bit floating point
+		#define COREARRAY_IEEE_NATIVE_FLOAT32_TRAIT_ID    COREARRAY_IEEE_BE_FLOAT32_TRAIT_ID
+		/// native 64-bit floating point
+		#define COREARRAY_IEEE_NATIVE_FLOAT64_TRAIT_ID    COREARRAY_IEEE_BE_FLOAT64_TRAIT_ID
+
+	#else
+	#  error "Unknown endianness"
+    #endif
+
+
+
+
 	/// Memory data type id
 	enum TSVType {
 		svCustom = 0,   ///< Unknown or customized type
-		svCustomInt,    ///< Customized integer
+		svCustomInt,    ///< Customized signed integer
+		svCustomUInt,   ///< Customized unsigned integer
 		svCustomFloat,  ///< Customized float number
 		svCustomStr,    ///< Customized string type
 		svInt8,         ///< Signed integer of 8 bits
@@ -78,22 +190,29 @@ namespace CoreArray
 		svFloat32,      ///< Float number of single precision (32 bits)
 		svFloat64,      ///< Float number of double precision (64 bits)
 		svStrUTF8,      ///< UTF-8 string
-		svStrUTF16,     ///< UTF-16 string
-		svStrUTF32	///< UTF-32 string
+		svStrUTF16      ///< UTF-16 string
 	};
 
 
 	/// Whether x (TSVType) is an integer or not
-	#define COREARRAY_SVINT(x) \
-		((svInt8<=(x) && (x)<=svUInt64) || (x)==svCustomInt)
+	#define COREARRAY_SV_INTEGER(x) \
+		((svInt8<=(x) && (x)<=svUInt64) || (x)==svCustomInt || (x)==svCustomUInt)
+
+	/// Whether x (TSVType) is a signed integer or not
+	#define COREARRAY_SV_SINT(x) \
+		((x)==svInt8 || (x)==svInt16 || (x)==svInt32 || (x)==svInt64 || (x)==svCustomInt)
+
+	/// Whether x (TSVType) is an unsigned integer or not
+	#define COREARRAY_SV_UINT(x) \
+		((x)==svUInt8 || (x)==svUInt16 || (x)==svUInt32 || (x)==svUInt64 || (x)==svCustomUInt)
 
 	/// Whether x (TSVType) is a float number or not
-	#define COREARRAY_SVFLOAT(x) \
+	#define COREARRAY_SV_FLOAT(x) \
 		((x)==svFloat32 || (x)==svFloat64 || (x)==svCustomFloat)
 
 	/// Whether x (TSVType) is a string or not
-	#define COREARRAY_SVSTR(x) \
-		((x)==svStrUTF8 || (x)==svStrUTF16)
+	#define COREARRAY_SV_STRING(x) \
+		((x)==svStrUTF8 || (x)==svStrUTF16 || (x)==svCustomStr)
 
 
 	#define COREARRAY_TR_UNKNOWN    -1
@@ -104,33 +223,57 @@ namespace CoreArray
 	#define COREARRAY_TR_FIXEDSTR   4
 
 
+
+	// ******************************************************************** //
+	// ******************************************************************** //
+
 	// Integers
 
 	/// Signed integer of 8 bits
 	typedef int8_t      Int8;
+	typedef Int8*       PInt8;		
+
 	/// Unsigned integer of 8 bits
 	typedef uint8_t     UInt8;
+	typedef UInt8*      PUInt8;
+
 	/// Signed integer of 16 bits
 	typedef int16_t     Int16;
+	typedef Int16*      PInt16;
+
 	/// Unsigned integer of 16 bits
 	typedef uint16_t    UInt16;
+	typedef UInt16*     PUInt16;
+
 	/// Signed integer of 32 bits
 	typedef int32_t     Int32;
+	typedef Int32*      PInt32;
+
 	/// Unsigned integer of 32 bits
 	typedef uint32_t    UInt32;
+	typedef UInt32*     PUInt32;
+
 	/// Signed integer of 64 bits
 	typedef int64_t     Int64;
+	typedef Int64*      PInt64;
+
 	/// Unsigned integer of 64 bits
 	typedef uint64_t    UInt64;
+	typedef UInt64*     PUInt64;
 
 
 	/// CoreArray Boolean
 	typedef int8_t      CBOOL;
+	typedef CBOOL*      PCBOOL;
 
 
 	#if defined(COREARRAY_MSC) && !defined(ssize_t)
 	typedef ptrdiff_t	ssize_t;
 	#endif
+
+
+	// ******************************************************************** //
+	// ******************************************************************** //
 
 	// Integer Traits
 
@@ -544,7 +687,7 @@ namespace CoreArray
 		static const bool isClass = true;
 		static const TSVType SVType = svStrUTF8;
 
-		static const char * TraitName() { return "UTF8"; }
+		static const char * TraitName() { return "Str8"; }
 	};
 
 	template<> struct TdTraits<UTF8*>
@@ -569,7 +712,7 @@ namespace CoreArray
 		static const bool isClass = true;
 		static const TSVType SVType = svStrUTF16;
 
-		static const char * TraitName() { return "UTF16"; }
+		static const char * TraitName() { return "Str16"; }
 	};
 
 	template<> struct TdTraits<UTF16*>
@@ -594,7 +737,7 @@ namespace CoreArray
 		static const bool isClass = true;
 		static const TSVType SVType = svCustomStr;
 
-		static const char * TraitName() { return "UTF32"; }
+		static const char * TraitName() { return "Str32"; }
 	};
 
 	template<> struct TdTraits<UTF32*>

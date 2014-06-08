@@ -8,7 +8,7 @@
 // Name        : dGenGWAS
 // Author      : Xiuwen Zheng
 // Version     : 1.0.0.0
-// Copyright   : Xiuwen Zheng (LGPL v3.0)
+// Copyright   : Xiuwen Zheng (GPL v3.0)
 // Created     : 04/22/2012
 // Description :
 // ===========================================================
@@ -67,7 +67,7 @@ CdGenoWorkSpace::CdGenoWorkSpace()
 
 CdGenoWorkSpace::~CdGenoWorkSpace() {}
 
-void CdGenoWorkSpace::SetGeno(TdSequenceX vGeno, bool _InitSelection)
+void CdGenoWorkSpace::SetGeno(PdSequenceX vGeno, bool _InitSelection)
 {
 	if (vGeno)
 	{

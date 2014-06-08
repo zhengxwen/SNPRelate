@@ -8,7 +8,7 @@
 //
 // dVect.h: Classess and functions for vectorization
 //
-// Copyright (C) 2012	Xiuwen Zheng
+// Copyright (C) 2013	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -29,7 +29,7 @@
  *	\file     dVect.h
  *	\author   Xiuwen Zheng
  *	\version  1.0
- *	\date     2007 - 2012
+ *	\date     2007 - 2013
  *	\brief    Classess and functions for vectorization
  *	\details
 **/

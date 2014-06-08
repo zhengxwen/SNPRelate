@@ -8,14 +8,14 @@
 }
 \usage{
 snpgdsCreateGenoSet(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
-	snpfirstorder=NULL, compress.annotation="ZIP.max", compress.geno="", verbose=TRUE)
+	snpfirstdim=NULL, compress.annotation="ZIP.max", compress.geno="", verbose=TRUE)
 }
 \arguments{
 	\item{src.fn}{the file name of a specified GDS file}
 	\item{dest.fn}{the file name of output GDS file}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
-	\item{snpfirstorder}{if TRUE, genotypes are stored in the individual-major mode,
+	\item{snpfirstdim}{if TRUE, genotypes are stored in the individual-major mode,
 		(i.e, list all SNPs for the first individual, and then list all SNPs for
 		the second individual, etc)}
 	\item{compress.annotation}{the compression method for the variables except \code{genotype}}

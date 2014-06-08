@@ -8,7 +8,7 @@
 // Name        : dGenGWAS
 // Author      : Xiuwen Zheng
 // Version     : 1.0.0.0
-// Copyright   : Xiuwen Zheng (LGPL v3.0)
+// Copyright   : Xiuwen Zheng (GPL v3.0)
 // Created     : 04/22/2012
 // Description :
 // ===========================================================
@@ -74,7 +74,7 @@ namespace GWAS
 		virtual ~CdGenoWorkSpace();
 
 		/// set the pointer to snp genotypes
-		void SetGeno(TdSequenceX vGeno, bool _InitSelection=true);
+		void SetGeno(PdSequenceX vGeno, bool _InitSelection=true);
 		void InitSelection();
 
 		Int64 GenoSum();
@@ -112,7 +112,7 @@ namespace GWAS
 		void Set_SNPSelection(CBOOL flag[]);
 		void Set_SampSelection(CBOOL flag[]);
 
-		inline TdSequenceX Geno() { return fGeno; };
+		inline PdSequenceX Geno() { return fGeno; };
 		inline bool SNPOrder() const { return fSNPOrder; };
 		inline Int32 TotalSampleNum() const { return fTotalSampleNum; };
 		inline Int32 TotalSNPNum() const { return fTotalSNPNum; };
@@ -122,7 +122,7 @@ namespace GWAS
 		inline CBOOL *SNPSelection() { return &fSNPSelection[0]; };
 
 	protected:
-		TdSequenceX fGeno;
+		PdSequenceX fGeno;
 		bool fSNPOrder;
 		Int32 fTotalSampleNum, fTotalSNPNum;
 		Int32 fSampleNum, fSNPNum;

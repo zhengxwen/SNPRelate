@@ -8,21 +8,21 @@
 //
 // genIBD.cpp: Identity by descent (IBD) analysis on genome-wide association studies
 //
-// Copyright (C) 2012	Xiuwen Zheng
+// Copyright (C) 2013	Xiuwen Zheng
 //
-// This file is part of CoreArray.
+// This file is part of SNPRelate.
 //
-// CoreArray is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License Version 3 as
-// published by the Free Software Foundation.
+// SNPRelate is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License Version 3 as published
+// by the Free Software Foundation.
 //
-// CoreArray is distributed in the hope that it will be useful, but
+// SNPRelate is distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
+// GNU General Public License for more details.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with CoreArray.
+// You should have received a copy of the GNU General Public License along
+// with SNPRelate.
 // If not, see <http://www.gnu.org/licenses/>.
 
 

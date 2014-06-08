@@ -39,7 +39,7 @@
 snpgdsSNPRateFreq <- function(gdsobj, sample.id=NULL, snp.id=NULL)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	# samples
 	if (!is.null(sample.id))
 	{
@@ -92,7 +92,7 @@ snpgdsSNPRateFreq <- function(gdsobj, sample.id=NULL, snp.id=NULL)
 snpgdsSampMissrate <- function(gdsobj, sample.id=NULL, snp.id=NULL)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	# samples
 	if (!is.null(sample.id))
 	{
@@ -148,7 +148,7 @@ snpgdsSelectSNP <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 
 	# samples
 	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
@@ -260,7 +260,7 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.numeric(eigen.cnt))
 	stopifnot(is.logical(bayesian))
@@ -398,7 +398,7 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
 {
 	# check
 	stopifnot(class(pcaobj)=="snpgdsPCAClass")
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.logical(verbose))
 
@@ -472,7 +472,7 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1, verbose=TRUE)
 {
 	# check
 	stopifnot(class(pcaobj)=="snpgdsPCAClass")
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.logical(verbose))
 
@@ -539,7 +539,7 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 {
 	# check
 	stopifnot(class(loadobj)=="snpgdsPCASNPLoadingClass")
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.logical(verbose))
 
@@ -622,7 +622,7 @@ snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	num.thread=1, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.logical(verbose))
 
@@ -749,7 +749,7 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	num.thread=1, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.logical(verbose))
 
@@ -889,7 +889,7 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE
 	kinship=FALSE, kinship.constraint=FALSE, num.thread=1, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.logical(verbose))
 	stopifnot(is.null(allele.freq) | is.numeric(allele.freq))
@@ -1064,7 +1064,7 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE
 	out.num.iter=TRUE, num.thread=1, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.logical(out.num.iter))
 	stopifnot(is.logical(verbose))
@@ -1245,7 +1245,7 @@ snpgdsIBDMLELogLik <- function(gdsobj, ibdobj, k0=NaN, k1=NaN,
 	relatedness=c("", "self", "fullsib", "offspring", "halfsib", "cousin", "unrelated"))
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(class(ibdobj)=="snpgdsIBDClass")
 	stopifnot(is.numeric(k0) & length(k0)==1)
 	stopifnot(is.numeric(k1) & length(k1)==1)
@@ -1577,7 +1577,7 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	num.thread=1, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.logical(verbose))
 
@@ -1680,7 +1680,7 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	num.thread=1, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.na(slide.max.bp) | is.numeric(slide.max.bp))
 	stopifnot(is.na(slide.max.n) | is.numeric(slide.max.n))
 	stopifnot(is.numeric(ld.threshold) & is.finite(ld.threshold))
@@ -1905,7 +1905,7 @@ snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	allele.freq=NULL, out.num.iter=TRUE, reltol=.Machine$double.eps^0.75, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(method[1] %in% c("mom.weir", "mom.visscher", "mle"))
 	stopifnot(is.logical(verbose))
 
@@ -2048,7 +2048,7 @@ snpgdsDiss <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 	remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.logical(verbose))
 
@@ -2573,7 +2573,7 @@ snpgdsDrawTree <- function(obj, clust.count=NULL, dend.idx=NULL,
 snpgdsSNPList <- function(gdsobj, sample.id=NULL)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 
 	# rs id
 	if (is.null(index.gdsn(gdsobj, "snp.rs.id", silent=TRUE)))
@@ -2675,7 +2675,7 @@ snpgdsSNPListStrand <- function(snplist1, snplist2)
 snpgdsSummary <- function(gds, show=TRUE)
 {
 	# check
-	stopifnot(class(gds) %in% c("gdsclass", "character"))
+	stopifnot(class(gds) %in% c("gds.class", "character"))
 
 	# open ...
 	if (is.character(gds))
@@ -2824,7 +2824,7 @@ snpgdsSummary <- function(gds, show=TRUE)
 	# print
 	if (show)
 	{
-		if (inherits(gds, "gdsclass"))
+		if (inherits(gds, "gds.class"))
 			cat("The file name:", gds$filename, "\n")
 		else
 			cat("The file name:", gds, "\n")
@@ -2932,15 +2932,15 @@ snpgdsSummary <- function(gds, show=TRUE)
 #   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
-#   snpfirstorder -- if TRUE, indicate store in individual-major order; NULL, by default
+#   snpfirstdim -- if TRUE, indicate store in individual-major order; NULL, by default
 #   verbose -- show information
 #
 
 snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-	snpfirstorder=NULL, verbose=TRUE)
+	snpfirstdim=NULL, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.logical(verbose))
 
 	# samples
@@ -2985,14 +2985,14 @@ snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		NAOK=TRUE, PACKAGE="SNPRelate")
 
 	# snp order
-	if (is.null(snpfirstorder))
+	if (is.null(snpfirstdim))
 	{
-		snpfirstorder <- TRUE
+		snpfirstdim <- TRUE
 		rd <- names(get.attr.gdsn(index.gdsn(gdsobj, "genotype")))
-		if ("snp.order" %in% rd) snpfirstorder <- TRUE
-		if ("sample.order" %in% rd) snpfirstorder <- FALSE
+		if ("snp.order" %in% rd) snpfirstdim <- TRUE
+		if ("sample.order" %in% rd) snpfirstdim <- FALSE
 	}
-	if (snpfirstorder)
+	if (snpfirstdim)
 	{
 		n1 <- node$n.snp; n2 <- node$n.samp
 	} else {
@@ -3002,13 +3002,13 @@ snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	if (verbose)
 	{
 		cat("genotype matrix:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		cat("Whether the SNP is the first dimension: ", snpfirstorder, "\n", sep="");
+		cat("Whether the SNP is the first dimension: ", snpfirstdim, "\n", sep="");
 	}
 
 	# get the dimension of SNP genotypes
 	rv <- .C("gnrCopyGenoMem",
 		geno = matrix(as.integer(0), nrow=n1, ncol=n2),
-		snpfirstorder, err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		snpfirstdim, err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (rv$err != 0) stop(snpgdsErrMsg())
 
 	rv$geno
@@ -3027,7 +3027,7 @@ snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #   snp.chromosome -- the chromosome indeces (1..22)
 #   snp.position -- the positions in basepair
 #   snp.allele -- the reference/non-reference alleles
-#   snpfirstorder -- if TRUE, indicate store in individual-major order;
+#   snpfirstdim -- if TRUE, indicate store in individual-major order;
 #   compress.annotation -- the compression method for sample and snp annotations
 #   compress.geno -- the compression method for genotypes
 #   other.vars -- a list of variables
@@ -3035,13 +3035,13 @@ snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
 snpgdsCreateGeno <- function(gds.fn, genmat,
 	sample.id=NULL, snp.id=NULL, snp.rs.id=NULL, snp.chromosome=NULL, snp.position=NULL,
-	snp.allele=NULL, snpfirstorder=TRUE, compress.annotation="ZIP.max", compress.geno="",
+	snp.allele=NULL, snpfirstdim=TRUE, compress.annotation="ZIP.max", compress.geno="",
 	other.vars=NULL)
 {
 	# check
 	stopifnot(is.matrix(genmat))
 	stopifnot(is.numeric(genmat))
-	if (snpfirstorder)
+	if (snpfirstdim)
 	{
 		n.snp <- dim(genmat)[1]; n.samp <- dim(genmat)[2]
 	} else {
@@ -3092,7 +3092,7 @@ snpgdsCreateGeno <- function(gds.fn, genmat,
 	genmat[!(genmat %in% c(0,1,2))] <- 3
 	node.geno <- add.gdsn(gfile, "genotype", genmat, storage="bit2",
 		compress=compress.geno)
-	if (snpfirstorder)
+	if (snpfirstdim)
 		put.attr.gdsn(node.geno, "snp.order")
 	else
 		put.attr.gdsn(node.geno, "sample.order")
@@ -3123,19 +3123,19 @@ snpgdsCreateGeno <- function(gds.fn, genmat,
 #   dest.fn -- the file name of destination gds file
 #   sample.id -- a vector of sample id (should be unique)
 #   snp.id -- a vector of snp id (should be unique)
-#   snpfirstorder -- if TRUE, indicate store in individual-major order; NULL, by default
+#   snpfirstdim -- if TRUE, indicate store in individual-major order; NULL, by default
 #   compress.annotation -- the compression method for sample and snp annotations
 #   compress.geno -- the compression method for genotypes
 #   verbose -- show information
 #
 
 snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
-	snpfirstorder=NULL, compress.annotation="ZIP.max", compress.geno="", verbose=TRUE)
+	snpfirstdim=NULL, compress.annotation="ZIP.max", compress.geno="", verbose=TRUE)
 {
 	# check
 	stopifnot(is.character(src.fn))
 	stopifnot(is.character(dest.fn))
-	stopifnot(is.logical(snpfirstorder) | is.null(snpfirstorder))
+	stopifnot(is.logical(snpfirstdim) | is.null(snpfirstdim))
 
 	if (verbose)
 		cat("Create a GDS genotype file:\n");
@@ -3232,16 +3232,16 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 	}
 
 	# snp order
-	if (is.null(snpfirstorder))
+	if (is.null(snpfirstdim))
 	{
-		snpfirstorder <- TRUE
+		snpfirstdim <- TRUE
 		rd <- names(get.attr.gdsn(index.gdsn(srcobj, "genotype")))
-		if ("snp.order" %in% rd) snpfirstorder <- TRUE
-		if ("sample.order" %in% rd) snpfirstorder <- FALSE
+		if ("snp.order" %in% rd) snpfirstdim <- TRUE
+		if ("sample.order" %in% rd) snpfirstdim <- FALSE
 	}
 	if (verbose)
 	{
-		if (snpfirstorder)
+		if (snpfirstdim)
 		{
 			cat("SNP genotypes are stored in individual-major mode.\n")
 		} else {
@@ -3258,7 +3258,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (node$err != 0) stop(snpgdsErrMsg())
 
-	if (snpfirstorder)
+	if (snpfirstdim)
 	{
 		gGeno <- add.gdsn(destobj, "genotype", storage="bit2",
 			valdim=c(node$n.snp, node$n.samp), compress="")
@@ -3270,7 +3270,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 	}
 
 	rv <- .C("gnrCopyGeno", as.integer(gGeno),
-		snpfirstorder, err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		snpfirstdim, err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (rv$err != 0) stop(snpgdsErrMsg())
 
 
@@ -3292,7 +3292,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 #   sample.id -- a list of sample id (should be unique)
 #   snpobj --
 #   name.prefix --
-#   snpfirstorder -- if TRUE, indicate store in individual-major order;
+#   snpfirstdim -- if TRUE, indicate store in individual-major order;
 #   compress.annotation -- the compression method for annotations
 #   compress.geno -- the compression method for genotypes
 #   other.vars --
@@ -3300,7 +3300,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 
 snpgdsCombineGeno <- function(gds.fn, out.fn,
 	sample.id=NULL, snpobj=NULL, name.prefix=NULL,
-	snpfirstorder=TRUE, compress.annotation="ZIP.MAX", compress.geno="",
+	snpfirstdim=TRUE, compress.annotation="ZIP.MAX", compress.geno="",
 	other.vars=NULL, verbose=TRUE)
 {
 	# check
@@ -3316,7 +3316,7 @@ snpgdsCombineGeno <- function(gds.fn, out.fn,
 		stopifnot(length(gds.fn) == length(name.prefix))
 	}
 	stopifnot(is.null(snpobj) | class(snpobj)=="snpgdsSNPListClass")
-	stopifnot(is.logical(snpfirstorder))
+	stopifnot(is.logical(snpfirstdim))
 
 	# samples
 	total.sampid <- NULL
@@ -3359,7 +3359,7 @@ snpgdsCombineGeno <- function(gds.fn, out.fn,
 		snpgdsCombineGeno(gds.fn=gds.fn, out.fn=out.fn,
 			sample.id=sample.id, snpobj=snpobj,
 			name.prefix = sprintf("p%02d", 1:length(gds.fn)),
-			snpfirstorder=snpfirstorder,
+			snpfirstdim=snpfirstdim,
 			compress.annotation=compress.annotation, compress.geno=compress.geno,
 			other.vars=other.vars, verbose=verbose)
 
@@ -3419,7 +3419,7 @@ snpgdsCombineGeno <- function(gds.fn, out.fn,
 		closezip=TRUE)
 
 	# add genotype
-	if (snpfirstorder)
+	if (snpfirstdim)
 	{
 		node.geno <- add.gdsn(gfile, "genotype", valdim=c(length(snpobj$rs.id), 0),
 			storage="bit2", compress=compress.geno)
@@ -3462,7 +3462,7 @@ snpgdsCombineGeno <- function(gds.fn, out.fn,
 			stop("Invalid snp alleles.")
 
 		# write genotypes
-		rv <- .C("gnrAppendGenoSpaceStrand", as.integer(node.geno), snpfirstorder,
+		rv <- .C("gnrAppendGenoSpaceStrand", as.integer(node.geno), snpfirstdim,
 			L[!is.na(L)], err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 		if (rv$err != 0) stop(snpgdsErrMsg())
 
@@ -3553,7 +3553,7 @@ snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
 	use.snp.rsid=TRUE, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.character(ped.fn))
 
 	# samples
@@ -3642,7 +3642,7 @@ snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
 snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.character(bed.fn))
 	stopifnot(is.logical(verbose))
 
@@ -3747,13 +3747,13 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, verbose=T
 	if (node$err != 0) stop(snpgdsErrMsg())
 
 	# Whether SNP major order or not
-	snpfirstorder <- TRUE
+	snpfirstdim <- TRUE
 	rd <- names(get.attr.gdsn(index.gdsn(gdsobj, "genotype")))
-	if ("snp.order" %in% rd) snpfirstorder <- TRUE
-	if ("sample.order" %in% rd) snpfirstorder <- FALSE
+	if ("snp.order" %in% rd) snpfirstdim <- TRUE
+	if ("sample.order" %in% rd) snpfirstdim <- FALSE
 
 	rv <- .C("gnrConvGDS2BED", paste(bed.fn, ".bed", sep=""),
-		snpfirstorder, verbose, err=integer(1),
+		snpfirstdim, verbose, err=integer(1),
 		NAOK=TRUE, PACKAGE="SNPRelate")
 	if (rv$err != 0) stop(snpgdsErrMsg())
 
@@ -3933,7 +3933,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbose=TRUE)
 {
 	# check
-	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(class(gdsobj)=="gds.class")
 	stopifnot(is.character(eigen.fn))
 
 	# samples
@@ -4066,7 +4066,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 		{
 			if (substr(s, 1, 6) == "#CHROM")
 			{
-				samp.id <- scan(text=s, what=character(0), quiet=TRUE)[-c(1:9)]
+				samp.id <- scan(text=s, what=character(0), sep="\t", quiet=TRUE)[-c(1:9)]
 				break
 			}
 		}
@@ -4092,7 +4092,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 			cat(sprintf("\tfile: %s\n", fn))
 
 		# total number of rows and columns
-		Cnt <- count.fields(fn)
+		Cnt <- count.fields(fn, sep="\t")
 		# check
 		if (any(Cnt != Cnt[1]))
 			stop(sprintf("The file (%s) has different numbers of columns.", fn))
@@ -4129,7 +4129,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 				for (i in 1:length(s))
 				{
 					var.cnt <- var.cnt + 1
-					ss <- scan(text=s[i], what=character(0), quiet=TRUE, n=5)
+					ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE, n=5)
 					if (all(ss[c(4,5)] %in% c("A", "G", "C", "T", "a", "g", "c", "t")))
 					{
 						snp.cnt <- snp.cnt + 1
@@ -4147,7 +4147,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 				for (i in 1:length(s))
 				{
 					var.cnt <- var.cnt + 1
-					ss <- scan(text=s[i], what=character(0), quiet=TRUE, n=5)
+					ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE, n=5)
 					snp.cnt <- snp.cnt + 1
 					chr[snp.cnt] <- xchr[match(ss[1], xchr.str)]
 					position[snp.cnt] <- as.integer(ss[2])
@@ -4204,10 +4204,10 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 			{
 				for (i in 1:length(s))
 				{
-					ss <- scan(text=s[i], what=character(0), quiet=TRUE, n=5)
+					ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE, n=5)
 					if (all(ss[c(4,5)] %in% c("A", "G", "C", "T", "a", "g", "c", "t")))
 					{
-						ss <- scan(text=s[i], what=character(0), quiet=TRUE)[-c(1:9)]
+						ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE)[-c(1:9)]
 						ss <- sapply(strsplit(ss, ":"), FUN = function(x) x[1])
 						x <- match(ss, geno.str)
 						x <- geno.code[x]
@@ -4223,7 +4223,7 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 			{
 				for (i in 1:length(s))
 				{
-					ss <- scan(text=s[i], what=character(0), quiet=TRUE)[-c(1:9)]
+					ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE)[-c(1:9)]
 					x <- sapply(strsplit(ss, ":"), FUN = function(x) {
 						a <- unlist(strsplit(x[1], ""))
 						if (any(a == "."))
@@ -4467,13 +4467,15 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1, autosome.end=22, ...)
 {
 	# get the filename of the dynamic-link library
 	lib.fn <- as.character(getLoadedDLLs()$gdsfmt[[2]])
+	if (length(lib.fn) != 1)
+		stop("The package 'gdsfmt' was not installed correctly.")
 
 	# init SNPRelate
 	rv <- .C("gnrInit", lib.fn, err=character(1), sse=integer(1), PACKAGE="SNPRelate")
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.10")
+	packageStartupMessage("SNPRelate: 0.9.11")
 	if (rv$sse != 0)
 		packageStartupMessage("Streaming SIMD Extensions 2 (SSE2) supported.\n")
 

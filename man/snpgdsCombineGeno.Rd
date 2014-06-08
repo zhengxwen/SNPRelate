@@ -8,7 +8,7 @@
 }
 \usage{
 snpgdsCombineGeno(gds.fn, out.fn, sample.id=NULL, snpobj=NULL, name.prefix=NULL,
-	snpfirstorder=TRUE, compress.annotation="ZIP.MAX", compress.geno="",
+	snpfirstdim=TRUE, compress.annotation="ZIP.MAX", compress.geno="",
 	other.vars=NULL, verbose=TRUE)
 }
 \arguments{
@@ -18,7 +18,7 @@ snpgdsCombineGeno(gds.fn, out.fn, sample.id=NULL, snpobj=NULL, name.prefix=NULL,
 	\item{snpobj}{specify a \code{\link{snpgdsSNPListClass}} object, used for strand switch;
 		if NULL, the strand information of the first SNP GDS file is used}
 	\item{name.prefix}{NULL, a character vector (added to sample ids for each GDS file)}
-	\item{snpfirstorder}{if TRUE, genotypes are stored in the individual-major mode,
+	\item{snpfirstdim}{if TRUE, genotypes are stored in the individual-major mode,
 		(i.e, list all SNPs for the first individual, and then list all SNPs for
 		the second individual, etc)}
 	\item{compress.annotation}{the compression method for the variables except \code{genotype}}

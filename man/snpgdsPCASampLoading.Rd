@@ -11,7 +11,7 @@ snpgdsPCASampLoading(loadobj, gdsobj, sample.id = NULL, num.thread = 1, verbose 
 }
 \arguments{
 	\item{loadobj}{the \code{snpgdsPCASNPLoadingClass} object, returned from \link{snpgdsPCASNPLoading}}
-	\item{gdsobj}{the \code{\link[gdsfmt]{gdsclass}} object in the \link{gdsfmt} package}
+	\item{gdsobj}{the \code{\link[gdsfmt]{gds.class}} object in the \link{gdsfmt} package}
 	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
 	\item{num.thread}{the number of CPU cores used}
 	\item{verbose}{if TRUE, show information}

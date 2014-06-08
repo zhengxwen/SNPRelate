@@ -8,7 +8,7 @@
 //
 // CoreDEF.h: CoreArray global macro
 //
-// Copyright (C) 2012	Xiuwen Zheng
+// Copyright (C) 2013	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -29,7 +29,7 @@
  *	\file     CoreDEF.h
  *	\author   Xiuwen Zheng
  *	\version  1.0
- *	\date     2007 - 2012
+ *	\date     2007 - 2013
  *	\brief    CoreArray global macro
  *	\details
 **/
