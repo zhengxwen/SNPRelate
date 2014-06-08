@@ -1,16 +1,22 @@
-0.9.16	16-Aug-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.17:
+
+	* avoid compiler issues when the version of R < v3.0
+	* minor fixes in 'snpgdsIBDSelection': allow non-character-type sample IDs
+
+
+Changes in 0.9.16:
 
 	* support long vectors
 
 
-0.9.15	08-Jun-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.15:
 
 	* improve 'snpgdsIBDKING' to avoid misleading arguments and examples
 	* improve 'snpgdsIBDSelection'
 	* the names of column 'sample1', 'sample2' and 'kinshipcoeff' are changed to 'ID1', 'ID2' and 'kinship' in the output of 'snpgdsIBDSelection'
 
 
-0.9.14	22-May-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.14:
 
 	* 'snpgdsGDS2BED' gives a warning if the allele information is missing
 	* add 'snpgdsIBDKING' (KING robust relationship inference in genome-wide association studies)
@@ -20,32 +26,32 @@
 	* improve hint information in 'snpgdsGDS2BED'
 
 
-0.9.13	25-Feb-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.13:
 
 	* disable parallel functions in the Windows version of SNPRelate, until the internal multi-thread funcitons are replaced by the functions in win-pthreads
 	* fix compiling issues in the Windows version of SNPRelate
 
 
-0.9.12	27-Feb-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.12:
 
 	* add 'GetRNGstate' and 'PutRNGstate' to the C function 'gnrDistPerm'
 	* remove the upper limit of 200 chromosomes in 'snpgdsVCF2GDS' according to scaffolds/contigs from a de novo assembly not chromosomes
 	* improve 'snpgdsSummary'
 
 
-0.9.11	30-Jan-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.11:
 
 	* bug fix in 'snpgdsVCF2GDS': to use "\t" as the field separator character
 	* bug fixes according to gdsfmt v0.9.11
 	* improve the vignette
 
 
-0.9.10	22-Jan-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.10:
 
 	* bug fixes in 'snpgdsPairIBD'
 
 
-0.9.9	04-Jan-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.9:
 
 	* adds a new argument 'family' to 'snpgdsBED2GDS'
 	* improves 'snpgdsCutTree'
@@ -54,7 +60,7 @@
 	* outputs chromosome codes according to 'snpgdsOption' in 'snpgdsGDS2BED'
 
 
-0.9.8	28-Sep-2012	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.8:
 
 	* add an alternative method extracting variants from a VCF file in 'snpgdsVCF2GDS'
 	* supports multiple files in 'snpgdsVCF2GDS'
@@ -64,7 +70,7 @@
 	* add 'snpgdsDiss'
 
 
-0.9.7	30-Aug-2012	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.7:
 
 	* bug fix: an important bug of missing genotypes in 'snpgdsVCF2GDS'
 	* bug fix: a bug in 'snpgdsGDS2BED' (output 23, 24, ..., instead of X, Y, XY)
@@ -75,13 +81,13 @@
 	* add a vignette
 
 
-0.9.6	22-Jul-2012	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.6:
 
 	* add functions to 'snpgdsIBDMLE' and 'snpgdsIBDMoM'
 	* add a new function 'snpgdsVCF2GDS'
 
 
-0.9.1-0.9.5	25-Apr-2012	Xiuwen Zheng <zhengx@u.washington.edu>
+Changes in 0.9.1-0.9.5:
 
 	* bug fixes
 

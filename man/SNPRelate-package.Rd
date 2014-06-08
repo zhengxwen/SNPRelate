@@ -12,7 +12,7 @@ analysis in Genome-wide Association Studies
 		Package: \tab SNPRelate \cr
 		Type: \tab Package \cr
 		Version: \tab 0.9.14 \cr
-		Date: \tab 2013-06-08 \cr
+		Date: \tab 2013-09-04 \cr
 		License: \tab GPL version 3 \cr
 		Depends: \tab gdsfmt (>= 0.9.7) \cr
 	}

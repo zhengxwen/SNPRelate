@@ -1,6 +1,6 @@
-0b541664fd7d07c45c4f961343aca851 *DESCRIPTION
+6295a95c58357aae1a17de79c9138e81 *DESCRIPTION
 86d1ff8b7633c437f24bd5810e680549 *NAMESPACE
-cd0df929b5dcfa34bd85b53de89d6c8b *NEWS
+038c7a732146c26baaa193596e1d462a *NEWS
 e2a7974b28b45b8d4aaa2fc7f8a99d29 *R/IBD.r
 e0e43c7e12fc986793e4a8d5c4a407a5 *R/IBS.r
 3a60690d16fd207a4c814b9b725edbe5 *R/LD.r
@@ -10,7 +10,7 @@ f2e8d3be8899229f29c37c26a393c18b *R/PCA.r
 195259fc6e2cec74aa0f05627acec6b2 *inst/CITATION
 783bb74b054f5720f75b2284c8d0ce47 *inst/doc/SNPRelateTutorial.R
 4657876555eda08cf430b6fb92e1025a *inst/doc/SNPRelateTutorial.Rnw
-3cfacb8ac3aad3d1ab20d7442292350f *inst/doc/SNPRelateTutorial.pdf
+86ef7c7c2b51997958c3922399f69d46 *inst/doc/SNPRelateTutorial.pdf
 64cf754f97586b65ef62f7d8cb21633f *inst/extdata/hapmap_geno.gds
 3dfba33557d832612dcc0e64d942e089 *inst/extdata/plinkhapmap.bed
 eb7e83a868607c6a2a7b9d23cc3ea946 *inst/extdata/plinkhapmap.bim
@@ -23,7 +23,7 @@ f0e4d0f322ce8686aa92e33b4c9fad5d *inst/unitTests/runit.PCA.r
 361bb9248ae790dc7c25b3e50678988f *inst/unitTests/valid/Validate.IBS.RData
 e9d6c067c0d637933aa7f3ab3bd31fd7 *inst/unitTests/valid/Validate.MoM.RData
 3f7d403802db8ccabc2c486a65582862 *inst/unitTests/valid/Validate.PCA.RData
-199077c2442948fa831ebfff44d718e4 *man/SNPRelate-package.Rd
+ce36a913ed9cf8c6bf0e86530922b916 *man/SNPRelate-package.Rd
 6bd7f9d1c82ce845a76ff905da592581 *man/hapmap_geno.Rd
 d857ebb4d2a96ca55f5e250e30f23d0f *man/snpgdsBED2GDS.Rd
 cf41676322bd993ad8122422c9da94dd *man/snpgdsCombineGeno.Rd
@@ -72,7 +72,7 @@ dd14744cef01314da019ca18f7a9420f *src/CoreGDSLink.cpp
 73502c7e54ea05519ac1cb88fdd061ea *src/CoreGDSLink.h
 869c3c72b7e4e3f97c32167521a4299b *src/Makevars
 c71d2262009989cca88a258a04f59524 *src/Makevars.win
-693d598bef28c2fa4a05c220505ae11f *src/SNPRelate.cpp
+ec7d065dfc9b69c5e9204855e6dc9d84 *src/SNPRelate.cpp
 0ed37db150304cc049e176b0f64c4198 *src/dGWASMath.h
 3f504c586425f74eb04bfaa5d5500498 *src/dGenGWAS.cpp
 62473e989b4596e6f3374986958b2db2 *src/dGenGWAS.h

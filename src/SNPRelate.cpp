@@ -37,6 +37,13 @@
 #include <R_ext/Lapack.h>
 
 
+// R_XLEN_T_MAX is defined, R >= v3.0
+#ifndef R_XLEN_T_MAX
+#  define R_xlen_t	R_len_t
+#  define XLENGTH	Rf_length
+#endif
+
+
 using namespace std;
 using namespace CoreArray;
 using namespace CoreArray::Vectorization;
@@ -1360,25 +1367,51 @@ DLLEXPORT SEXP gnrIBDSelSampID_List1(SEXP SampID, SEXP Flag)
 		p_flag ++;
 	}
 
+	if (isFactor(SampID))
+		SampID = Rf_asCharacterFactor(SampID);
+
 	// output
-	SEXP ans = NEW_STRING(flag_cnt);
-	PROTECT(ans);
 	p_flag = LOGICAL(Flag);
 	R_xlen_t idx = 0;
-	for (R_xlen_t i=0; i < n; i++)
-	{
-		for (R_xlen_t j=0; j < n; j++)
-		{
-			if (*p_flag == TRUE)
-			{
-				SET_STRING_ELT(ans, idx, STRING_ELT(SampID, i));
-				idx ++;
-			}
-			p_flag ++;
-		}
-	}
-	UNPROTECT(1);
+	SEXP ans;
 
+	if (IS_CHARACTER(SampID))
+	{
+		PROTECT(ans = NEW_STRING(flag_cnt));
+		for (R_xlen_t i=0; i < n; i++)
+		{
+			for (R_xlen_t j=0; j < n; j++, p_flag++)
+			{
+				if (*p_flag == TRUE)
+					SET_STRING_ELT(ans, idx++, STRING_ELT(SampID, i));
+			}
+		}
+	} else if (IS_NUMERIC(SampID))
+	{
+		PROTECT(ans = NEW_NUMERIC(flag_cnt));
+		for (R_xlen_t i=0; i < n; i++)
+		{
+			for (R_xlen_t j=0; j < n; j++, p_flag++)
+			{
+				if (*p_flag == TRUE)
+					REAL(ans)[idx++] = REAL(SampID)[i];
+			}
+		}
+	} else if (IS_INTEGER(SampID))
+	{
+		PROTECT(ans = NEW_INTEGER(flag_cnt));
+		for (R_xlen_t i=0; i < n; i++)
+		{
+			for (R_xlen_t j=0; j < n; j++, p_flag++)
+			{
+				if (*p_flag == TRUE)
+					INTEGER(ans)[idx++] = INTEGER(SampID)[i];
+			}
+		}
+	} else
+		error("'sample.id' should be numeric- or character- type.");
+
+	UNPROTECT(1);
 	return ans;
 }
 
@@ -1398,25 +1431,51 @@ DLLEXPORT SEXP gnrIBDSelSampID_List2(SEXP SampID, SEXP Flag)
 		p_flag ++;
 	}
 
+	if (isFactor(SampID))
+		SampID = Rf_asCharacterFactor(SampID);
+
 	// output
-	SEXP ans = NEW_STRING(flag_cnt);
-	PROTECT(ans);
 	p_flag = LOGICAL(Flag);
 	R_xlen_t idx = 0;
-	for (R_xlen_t i=0; i < n; i++)
-	{
-		for (R_xlen_t j=0; j < n; j++)
-		{
-			if (*p_flag == TRUE)
-			{
-				SET_STRING_ELT(ans, idx, STRING_ELT(SampID, j));
-				idx ++;
-			}
-			p_flag ++;
-		}
-	}
-	UNPROTECT(1);
+	SEXP ans;
 
+	if (IS_CHARACTER(SampID))
+	{
+		PROTECT(ans = NEW_STRING(flag_cnt));
+		for (R_xlen_t i=0; i < n; i++)
+		{
+			for (R_xlen_t j=0; j < n; j++, p_flag++)
+			{
+				if (*p_flag == TRUE)
+					SET_STRING_ELT(ans, idx++, STRING_ELT(SampID, j));
+			}
+		}
+	} else if (IS_NUMERIC(SampID))
+	{
+		PROTECT(ans = NEW_NUMERIC(flag_cnt));
+		for (R_xlen_t i=0; i < n; i++)
+		{
+			for (R_xlen_t j=0; j < n; j++, p_flag++)
+			{
+				if (*p_flag == TRUE)
+					REAL(ans)[idx++] = REAL(SampID)[j];
+			}
+		}
+	} else if (IS_INTEGER(SampID))
+	{
+		PROTECT(ans = NEW_INTEGER(flag_cnt));
+		for (R_xlen_t i=0; i < n; i++)
+		{
+			for (R_xlen_t j=0; j < n; j++, p_flag++)
+			{
+				if (*p_flag == TRUE)
+					INTEGER(ans)[idx++] = INTEGER(SampID)[j];
+			}
+		}
+	} else
+		error("'sample.id' should be numeric- or character- type.");
+
+	UNPROTECT(1);
 	return ans;
 }
 
