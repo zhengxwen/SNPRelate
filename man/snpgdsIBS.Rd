@@ -28,7 +28,7 @@ over all the samples in \code{sample.id}.
 	The values of the IBS matrix range from ZERO to ONE.
 }
 \value{
-	Return a list:
+	Return a list (class "snpgdsIBSClass"):
 	\item{sample.id}{the sample ids used in the analysis}
 	\item{snp.id}{the SNP ids used in the analysis}
 	\item{ibs}{a matrix of IBS proportion, "# of samples" x "# of samples"}

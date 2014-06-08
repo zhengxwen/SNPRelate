@@ -11,8 +11,8 @@ in Genome-wide Association Studies
 	\tabular{ll}{
 		Package: \tab SNPRelate\cr
 		Type: \tab Package\cr
-		Version: \tab 0.9.7\cr
-		Date: \tab 2012-08-30\cr
+		Version: \tab 0.9.8\cr
+		Date: \tab 2012-09-30\cr
 		License: \tab LGPL version 3\cr
 		Depends: \tab gdsfmt (>= 0.9.7)\cr
 	}
@@ -26,9 +26,9 @@ in Genome-wide Association Studies
 	Forums:	\url{http://sourceforge.net/projects/corearray/forums}
 }
 \references{
-	Xiuwen Zheng, David Levine, Jess Shen, Stephanie M. Gogarten, Cathy Laurie,
-and Bruce S. Weir. A High-performance Computing Toolset for Relatedness and Principal
-Component Analysis in GWAS. (submitted).
+	Xiuwen Zheng, David Levine, Jess Shen, Stephanie M. Gogarten, Cathy Laurie, Bruce S. Weir.
+A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data.
+Accepted by Bioinformatics.
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 
@@ -103,7 +103,7 @@ closefn.gds(genofile)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
 snpset <- read.gdsn(index.gdsn(genofile, "snp.id"))[1:200]
-L1 <- snpgdsLDMat(genofile, snp.id=snpset, method="composite")
+L1 <- snpgdsLDMat(genofile, snp.id=snpset, method="composite", slide=-1)
 
 # plot
 image(abs(L1$LD), col=terrain.colors(64))

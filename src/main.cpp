@@ -626,7 +626,7 @@ DLLEXPORT void gnrPCA(int *EigenCnt, int *NumThread, LongBool *_BayesianNormal,
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
 			if (*Verbose)
-				Rprintf("PCA:\tthe sum of all working genotypes = %.0f\n", GenoSum);
+				Rprintf("PCA:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// ******** The calculation of genetic covariance matrix ********
@@ -697,7 +697,7 @@ DLLEXPORT void gnrPCACorr(int *DimCnt, double *EigenVect, int *NumThread,
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
 			if (*Verbose)
-				Rprintf("SNP Correlations:\tthe sum of all working genotypes = %.0f\n", GenoSum);
+				Rprintf("SNP Correlations:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// ******** To compute the snp correlation ********
@@ -723,7 +723,7 @@ DLLEXPORT void gnrPCASNPLoading(double *EigenVal, int *DimCnt, double *EigenVect
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
 			if (*Verbose)
-				Rprintf("SNP Loadings:\tthe sum of all working genotypes = %.0f\n", GenoSum);
+				Rprintf("SNP Loadings:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// ******** To compute the snp correlation ********
@@ -751,7 +751,7 @@ DLLEXPORT void gnrPCASampLoading(int *Num, double *EigenVal, int *EigenCnt,
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
 			if (*Verbose)
-				Rprintf("Sample Loadings:\tthe sum of all working genotypes = %.0f\n", GenoSum);
+				Rprintf("Sample Loadings:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// ******** To compute the snp correlation ********
@@ -779,7 +779,7 @@ DLLEXPORT void gnrIBSAve(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
 			if (*Verbose)
-				Rprintf("IBS:\tthe sum of all working genotypes = %.0f\n", GenoSum);
+				Rprintf("IBS:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// ******** The calculation of genetic covariance matrix ********
@@ -821,7 +821,7 @@ DLLEXPORT void gnrIBSNum(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
 			if (*Verbose)
-				Rprintf("IBS:\tthe sum of all working genotypes = %.0f\n", GenoSum);
+				Rprintf("IBS:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// ******** The calculation of genetic covariance matrix ********
@@ -857,50 +857,6 @@ DLLEXPORT void gnrIBSNum(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 }
 
 
-// the functions for genetic distances
-
-/// to compute the average genetic distance
-DLLEXPORT void gnrDist(LongBool *Verbose, LongBool *DataCache, int *NumThread,
-	double *out_Dist, LongBool *out_err)
-{
-	CORETRY
-		// ******** To cache the genotype data ********
-		if (*DataCache)
-		{
-			double GenoSum=0;
-			gnrCacheGeno(&GenoSum, NULL);
-			if (*Verbose)
-				Rprintf("Genetic Distance:\tthe sum of all working genotypes = %.0f\n", GenoSum);
-		}
-
-		// ******** The calculation of genetic covariance matrix ********
-
-		// the number of samples
-		const int n = MCWorkingGeno.Space.SampleNum();
-		// to detect the block size
-		IBS::AutoDetectSNPBlockSize(n);
-		// the upper-triangle genetic covariance matrix
-		CdMatTri<IBS::TDistflag> Dist(n);
-
-		// Calculate the genetic distance matrix
-		IBS::DoDistCalculate(Dist, *NumThread, "Genetic Distance:", *Verbose);
-
-		// output
-		IBS::TDistflag *p = Dist.get();
-		for (int i=0; i < n; i++)
-		{
-			out_Dist[i*n + i] = 2 * (p->SumGeno / p->SumAFreq);
-			p ++;
-			for (int j=i+1; j < n; j++, p++)
-				out_Dist[i*n + j] = out_Dist[j*n + i] = (p->SumGeno / p->SumAFreq);
-		}
-
-		// output
-		*out_err = 0;
-	CORECATCH(*out_err = 1)
-}
-
-
 // the functions for identity-by-descent (IBD)
 
 /// to compute the IBD coefficients by PLINK method of moment
@@ -915,7 +871,7 @@ DLLEXPORT void gnrIBD_PLINK(LongBool *Verbose, LongBool *DataCache, int *NumThre
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
 			if (*Verbose)
-				Rprintf("PLINK IBD:\tthe sum of all working genotypes = %.0f\n", GenoSum);
+				Rprintf("PLINK IBD:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// the number of samples
@@ -981,7 +937,7 @@ DLLEXPORT void gnrIBD_MLE(double *AlleleFreq, LongBool *UseSpecificAFreq,
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
 			if (*Verbose)
-				Rprintf("MLE IBD:\tthe sum of all working genotypes = %.0f\n", GenoSum);
+				Rprintf("MLE IBD:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// ******** MLE IBD ********
@@ -1156,7 +1112,7 @@ DLLEXPORT void gnrLDMat(int *method, LongBool *Verbose, LongBool *DataCache,
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
 			if (*Verbose)
-				Rprintf("LD matrix:\tthe sum of all working genotypes = %.0f\n", GenoSum);
+				Rprintf("LD matrix:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// initialize the packed genotypes
@@ -1226,6 +1182,155 @@ DLLEXPORT void gnrIndInb(double *allele_freq, int *method, double *reltol, doubl
 	CORECATCH(*out_err = 1)
 }
 
+
+// the functions for individual dissimilarity
+
+/// to compute the individual dissimilarity
+DLLEXPORT void gnrDiss(LongBool *Verbose, LongBool *DataCache, int *NumThread,
+	double *out_Diss, LongBool *out_err)
+{
+	CORETRY
+		// ******** To cache the genotype data ********
+		if (*DataCache)
+		{
+			double GenoSum=0;
+			gnrCacheGeno(&GenoSum, NULL);
+			if (*Verbose)
+				Rprintf("Dissimilarity:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
+		}
+
+		// ******** The calculation of genetic covariance matrix ********
+
+		// the number of samples
+		const int n = MCWorkingGeno.Space.SampleNum();
+		// to detect the block size
+		IBS::AutoDetectSNPBlockSize(n);
+		// the upper-triangle genetic covariance matrix
+		CdMatTri<IBS::TDistflag> Dist(n);
+
+		// Calculate the genetic distance matrix
+		IBS::DoDistCalculate(Dist, *NumThread, "Individual dissimilarity:", *Verbose);
+
+		// output
+		IBS::TDistflag *p = Dist.get();
+		for (int i=0; i < n; i++)
+		{
+			out_Diss[i*n + i] = 2 * (p->SumGeno / p->SumAFreq);
+			p ++;
+			for (int j=i+1; j < n; j++, p++)
+				out_Diss[i*n + j] = out_Diss[j*n + i] = (p->SumGeno / p->SumAFreq);
+		}
+
+		// output
+		*out_err = 0;
+	CORECATCH(*out_err = 1)
+}
+
+
+/// to compute mean and standard deviation of individual dissimilarity
+DLLEXPORT void gnrDistSD(int *n_dist, double *dist, int I[], int *n_I,
+	double *mean, double *sd, int *out_err)
+{
+	CORETRY
+		const int N1 = n_I[0];
+		const int N2 = n_I[1];
+		const int N = n_I[0] + n_I[1];
+
+		// mean
+		double _Mean = 0;
+		for (int _i=0; _i < N; _i++)
+		{
+			for (int _j=0; _j < N; _j++)
+			{
+				if (_i != _j)
+					_Mean += dist[I[_i] * n_dist[0] + I[_j]];
+			}	
+		}
+		*mean = _Mean / (N * (N - 1));
+
+		// standard deviation
+		const double E1 = double(N1) * (N1-1) * N2 * (N2-1) / (N * (N-1) * (N-2) * (N-3));
+		const double E2 = double(N1) * N2 * (N2-1) / (N * (N-1) * (N-2));
+		const double E3 = double(N1) * N2 / (N * (N-1));
+		const double E4 = double(N1) * (N-1) * N2 / (N * (N-1) * (N-2));
+		double _E_X2 = 0;
+
+		for (int _i=0; _i < N; _i++)
+		{
+			for (int _j=0; _j < N; _j++)
+			{
+				for (int _ii=0; _ii < N; _ii++)
+				{
+					for (int _jj=0; _jj < N; _jj++)
+					{
+						if ((_i != _j) && (_ii != _jj))
+						{
+							double d = dist[I[_i] * n_dist[0] + I[_j]] *
+								dist[I[_ii] * n_dist[0] + I[_jj]];
+							if (_i == _ii)
+								_E_X2 += d * ((_j == _jj) ? E3 : E2);
+							else if (_j == _jj)
+								_E_X2 += d * E4;
+							else if ((_i != _jj) && (_j != _ii))
+								_E_X2 += d * E1;
+						}
+					}
+				}
+			}
+		}
+		*sd = (_E_X2 / (N*N*(N-1)*(N-1)) - (*mean) * (*mean));
+
+		// output
+		*out_err = 0;
+	CORECATCH(*out_err = 1)
+}
+
+
+// return 0 .. (Range-1)
+static inline int RandomNum(int Range)
+{
+	int rv = (int)(unif_rand()*(Range-1) + 0.5);
+	if (rv >= Range) rv = Range -1;
+	return rv;
+}
+
+/// to compute mean and standard deviation of individual dissimilarity by permutation
+DLLEXPORT void gnrDistPerm(int *n_dist, double *dist, int I[], int *n_I, int *n_sub,
+	int *count, double *d, int *out_err)
+{
+	CORETRY
+		const int N1 = n_I[0];
+		const int N2 = n_I[1];
+		const int N  = n_I[0] + n_I[1];
+		const int NSub = (*n_sub < (N - *n_sub)) ? (*n_sub) : (N - *n_sub);
+
+		vector<int> I_Idx(N);
+		for (int i=0; i < N; i++) I_Idx[i] = I[i];
+
+		for (int cnt=0; cnt < *count; cnt++)
+		{
+			// random subset
+			for (int i=0; i < NSub; i++)
+			{
+				int k = RandomNum(N - i);
+				swap(I_Idx[i], I_Idx[k+i]);
+			}
+
+			double _Mean = 0;
+			for (int i=0; i < NSub; i++)
+			{
+				for (int j=NSub; j < N; j++)
+				{
+					_Mean += dist[I_Idx[i] * n_dist[0] + I_Idx[j]];
+				}
+			}
+			d[cnt] = _Mean / (NSub * (N - NSub));
+		}
+
+		// output
+		*out_err = 0;
+	CORECATCH(*out_err = 1)
+}
 
 
 

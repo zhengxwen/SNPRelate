@@ -104,7 +104,7 @@ namespace IBD
 			nSNP = MCWorkingGeno.Space.SNPNum();
 
 		// clear EPrIBS_IBD
-		std::memset((void*)EPrIBS_IBD, 0, sizeof(EPrIBS_IBD));
+		memset((void*)EPrIBS_IBD, 0, sizeof(EPrIBS_IBD));
 		auto_ptr<int> AA(new int[nSNP]), AB(new int[nSNP]), BB(new int[nSNP]);
 
 		if (!in_afreq)

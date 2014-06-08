@@ -1,10 +1,19 @@
-0.9.7	24-Aug-2012	Xiuwen Zheng <zhengx@u.washington.edu>
+0.9.8	28-Sep-2012	Xiuwen zheng <zhengx@u.washington.edu>
 
-	* fix a bug of missing genotypes in 'snpgdsVCF2GDS'
+	* add an alternative method extracting variants from a VCF file in 'snpgdsVCF2GDS'
+	* support multiple files in 'snpgdsVCF2GDS'
+	* add 'snpgdsOption'
+
+
+0.9.7	30-Aug-2012	Xiuwen Zheng <zhengx@u.washington.edu>
+
+	* fix an important bug of missing genotypes in 'snpgdsVCF2GDS'
 	* fix a bug in 'snpgdsGDS2BED' (output 23, 24, ..., instead of X, Y, XY)
 	* fix a bug in 'snpgdsCombineGeno' (due to duplicate SNPs)
 	* 'snpgdsLDpair' provides haplotype frequency estimates
 	* 'snpgdsLDMat' allows specifying sliding window size
+	* add RUnit tests
+	* add a vignette
 
 
 0.9.6	22-Jul-2012	Xiuwen Zheng <zhengx@u.washington.edu>

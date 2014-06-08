@@ -39,12 +39,13 @@
 #define _CoreGDSLink_H_
 
 #include <dType.h>
-#include <cstdio>
-#include <cstdlib>
-#include <climits>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <limits.h>
+
 #include <limits>
-#include <cstring>
-#include <cstdarg>
 #include <string>
 
 

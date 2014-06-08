@@ -14,8 +14,8 @@
 #######################################################################
 #          autosome                        -> 1 .. 22
 #     X    X chromosome                    -> 23
-#     Y    Y chromosome                    -> 24
-#     XY   Pseudo-autosomal region of X    -> 25
+#     XY   Pseudo-autosomal region of X    -> 24
+#     Y    Y chromosome                    -> 25
 #     MT   Mitochondrial                   -> 26
 #######################################################################
 
@@ -178,7 +178,8 @@ snpgdsSelectSNP <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- snp.id & (chr %in% 1:22)
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- snp.id & (chr %in% c(opt$autosome.start : opt$autosome.end))
 			if (verbose)
 			{
 				tmp <- n.snp - sum(snp.id)
@@ -190,7 +191,8 @@ snpgdsSelectSNP <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- chr %in% 1:22
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- chr %in% c(opt$autosome.start : opt$autosome.end)
 			snp.ids <- snp.ids[snp.id]
 			if (verbose)
 				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs\n")
@@ -298,7 +300,8 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- snp.id & (chr %in% 1:22)
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- snp.id & (chr %in% c(opt$autosome.start : opt$autosome.end))
 			if (verbose)
 			{
 				tmp <- n.snp - sum(snp.id)
@@ -310,7 +313,8 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- chr %in% 1:22
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- chr %in% c(opt$autosome.start : opt$autosome.end)
 			snp.ids <- snp.ids[snp.id]
 			if (verbose)
 				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs.\n")
@@ -653,7 +657,8 @@ snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- snp.id & (chr %in% 1:22)
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- snp.id & (chr %in% c(opt$autosome.start : opt$autosome.end))
 			if (verbose)
 			{
 				tmp <- n.snp - sum(snp.id)
@@ -665,7 +670,8 @@ snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- chr %in% 1:22
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- chr %in% c(opt$autosome.start : opt$autosome.end)
 			snp.ids <- snp.ids[snp.id]
 			if (verbose)
 				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs\n")
@@ -719,6 +725,7 @@ snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
 	# return
 	rv <- list(sample.id = sample.ids, snp.id = snp.ids, ibs = rv$ibs)
+	class(rv) <- "snpgdsIBSClass"
 	return(rv)
 }
 
@@ -777,7 +784,8 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- snp.id & (chr %in% 1:22)
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- snp.id & (chr %in% c(opt$autosome.start : opt$autosome.end))
 			if (verbose)
 			{
 				tmp <- n.snp - sum(snp.id)
@@ -789,7 +797,8 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- chr %in% 1:22
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- chr %in% c(opt$autosome.start : opt$autosome.end)
 			snp.ids <- snp.ids[snp.id]
 			if (verbose)
 				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs\n")
@@ -921,8 +930,9 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
+			opt <- snpgdsOption(gdsobj)
 			chridx <- chr[snp.id]
-			snp.id <- snp.id & (chr %in% 1:22)
+			snp.id <- snp.id & (chr %in% c(opt$autosome.start : opt$autosome.end))
 			if (!is.null(allele.freq))
 				allele.freq <- allele.freq[chridx %in% 1:22]
 			if (verbose)
@@ -941,7 +951,8 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- chr %in% 1:22
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- chr %in% c(opt$autosome.start : opt$autosome.end)
 			snp.ids <- snp.ids[snp.id]
 			if (!is.null(allele.freq))
 				allele.freq <- allele.freq[snp.id]
@@ -1096,8 +1107,9 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
+			opt <- snpgdsOption(gdsobj)
 			chridx <- chr[snp.id]
-			snp.id <- snp.id & (chr %in% 1:22)
+			snp.id <- snp.id & (chr %in% c(opt$autosome.start : opt$autosome.end))
 			if (!is.null(allele.freq))
 				allele.freq <- allele.freq[chridx %in% 1:22]
 			if (verbose)
@@ -1116,7 +1128,8 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- chr %in% 1:22
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- chr %in% c(opt$autosome.start : opt$autosome.end)
 			snp.ids <- snp.ids[snp.id]
 			if (!is.null(allele.freq))
 				allele.freq <- allele.freq[snp.id]
@@ -1722,7 +1735,8 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 			stop("No SNP in the working dataset.")
 		if (autosome.only)
 		{
-			snp.id <- snp.id & (chr %in% 1:22)
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- snp.id & (chr %in% c(opt$autosome.start : opt$autosome.end))
 			if (verbose)
 			{
 				tmp <- n.snp - sum(snp.id)
@@ -1733,7 +1747,8 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	} else {
 		if (autosome.only)
 		{
-			snp.id <- chr %in% 1:22
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- chr %in% c(opt$autosome.start : opt$autosome.end)
 			snp.ids <- snp.ids[snp.id]
 			if (verbose)
 				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs\n")
@@ -1924,7 +1939,8 @@ snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- snp.id & (chr %in% 1:22)
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- snp.id & (chr %in% c(opt$autosome.start : opt$autosome.end))
 			if (verbose)
 			{
 				tmp <- n.snp - sum(snp.id)
@@ -1936,7 +1952,8 @@ snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			snp.id <- chr %in% 1:22
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- chr %in% c(opt$autosome.start : opt$autosome.end)
 			snp.ids <- snp.ids[snp.id]
 			if (verbose)
 				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs\n")
@@ -2003,6 +2020,347 @@ snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		rv$out.num.iter <- r$iternum
 	return(rv)
 }
+
+
+
+
+#######################################################################
+# Genetic Distance analysis
+#######################################################################
+
+#######################################################################
+# To calculate the genetic dissimilarity matrix for SNP genotypes
+#
+# INPUT:
+#   gdsobj -- a object of gds file
+#   sample.id -- a vector of sample.id; if NULL, to use all samples
+#   snp.id -- a vector of snp.id; if NULL, to use all SNPs
+#   autosome.only -- whether only use autosomal SNPs
+#   remove.monosnp -- whether remove monomorphic snps or not
+#   maf -- the threshold of minor allele frequencies, keeping ">= maf"
+#   missing.rate -- the threshold of missing rates, keeping "<= missing.rate"
+#   num.thread -- the number of threads to be used
+#   verbose -- show information
+#
+
+snpgdsDiss <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+	remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1, verbose=TRUE)
+{
+	# check
+	stopifnot(class(gdsobj)=="gdsclass")
+	stopifnot(is.numeric(num.thread) & (num.thread>0))
+	stopifnot(is.logical(verbose))
+
+	# samples
+	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
+	if (!is.null(sample.id))
+	{
+		n.tmp <- length(sample.id)
+		sample.id <- sample.ids %in% sample.id
+		n.samp <- sum(sample.id);
+		if (n.samp != n.tmp)
+			stop("Some of sample.id do not exist!")
+		if (n.samp <= 0)
+			stop("No sample in the working dataset.")
+		sample.ids <- sample.ids[sample.id]
+	}
+
+	if (verbose)
+		cat("Individual dissimilarity analysis on SNP genotypes:\n");
+
+	# SNPs
+	snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+	if (!is.null(snp.id))
+	{
+		n.tmp <- length(snp.id)
+		snp.id <- snp.ids %in% snp.id
+		n.snp <- sum(snp.id)
+		if (n.snp != n.tmp)
+			stop("Some of snp.id do not exist!")
+		if (n.snp <= 0)
+			stop("No SNP in the working dataset.")
+		if (autosome.only)
+		{
+			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- snp.id & (chr %in% c(opt$autosome.start : opt$autosome.end))
+			if (verbose)
+			{
+				tmp <- n.snp - sum(snp.id)
+				if (tmp > 0) cat("Removing", tmp, "non-autosomal SNPs\n")
+			}
+		}
+		snp.ids <- snp.ids[snp.id]
+	} else {
+		if (autosome.only)
+		{
+			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
+			opt <- snpgdsOption(gdsobj)
+			snp.id <- chr %in% c(opt$autosome.start : opt$autosome.end)
+			snp.ids <- snp.ids[snp.id]
+			if (verbose)
+				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs\n")
+		}
+	}
+
+	# call C codes
+	# set genotype working space
+	node <- .C("gnrSetGenoSpace", as.integer(index.gdsn(gdsobj, "genotype")),
+		as.logical(sample.id), as.logical(!is.null(sample.id)),
+		as.logical(snp.id), as.logical(!is.null(snp.id)),
+		n.snp=integer(1), n.samp=integer(1),
+		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+	if (node$err != 0) stop(snpgdsErrMsg())
+
+	# call allele freq. and missing rates
+	if (remove.monosnp || is.finite(maf) || is.finite(missing.rate))
+	{
+		if (!is.finite(maf)) maf <- -1;
+		if (!is.finite(missing.rate)) missing.rate <- 2;
+		# call
+		rv <- .C("gnrSelSNP_Base", as.logical(remove.monosnp),
+			as.double(maf), as.double(missing.rate),
+			out.num=integer(1), out.snpflag = logical(node$n.snp),
+			err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		if (rv$err != 0) stop(snpgdsErrMsg())
+		snp.ids <- snp.ids[rv$out.snpflag]
+		# show
+		if (verbose)
+			cat("Removing", rv$out.num, "SNPs (monomorphic, < MAF, or > missing rate)\n")
+	}
+
+	# get the dimension of SNP genotypes
+	node <- .C("gnrGetGenoDim", n.snp=integer(1), n.samp=integer(1),
+		NAOK=TRUE, PACKAGE="SNPRelate")
+
+	if (verbose)
+	{
+		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
+		cat("\tUse", num.thread, "CPU cores.\n")
+	}
+
+	# call C function
+	rv <- .C("gnrDiss", as.logical(verbose), TRUE, as.integer(num.thread),
+		diss = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
+		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+	if (rv$err != 0) stop(snpgdsErrMsg())
+
+	# return
+	rv <- list(sample.id = sample.ids, snp.id = snp.ids, diss = rv$diss)
+	class(rv) <- "snpgdsDissClass"
+	return(rv)
+}
+
+
+
+#######################################################################
+# To perform hierarchical cluster analysis
+#
+# INPUT:
+#   dist -- the dissimilarity matrix
+#   sample.id -- only work if dist is a matrix, to specify sample id
+#   need.mat -- if TRUE, store the dissimilarity matrix in the result
+#   hang -- see plot.hclust
+#
+
+snpgdsHCluster <- function(dist, sample.id=NULL, need.mat=TRUE, hang=0.25)
+{
+	# check
+	stopifnot(is.matrix(dist) | inherits(dist, "snpgdsDissClass") |
+		inherits(dist, "snpgdsIBSClass"))
+
+	if (inherits(dist, "snpgdsDissClass"))
+	{
+		sample.id <- dist$sample.id
+		dist <- dist$diss
+	}
+	if (inherits(dist, "snpgdsIBSClass"))
+	{
+		sample.id <- dist$sample.id
+		dist <- 1 - dist$ibs
+	}
+
+	if (is.null(sample.id))
+	{
+		stopifnot(nrow(dist) == ncol(dist))
+		if (is.null(colnames(dist)) | is.null(rownames(dist)))
+			stop("Please specify 'sample.id'.")
+		sample.id <- colnames(dist)
+	} else {
+		stopifnot(nrow(dist) == length(sample.id))
+		stopifnot(ncol(dist) == length(sample.id))
+		colnames(dist) <- sample.id
+		rownames(dist) <- sample.id
+	}
+
+	# run
+	hc <- hclust(as.dist(dist), method="average")
+	obj <- as.dendrogram(hc, hang=hang)
+
+	rv <- list(sample.id = sample.id, hclust = hc, dendrogram = obj)
+	if (need.mat) rv$dist <- dist
+	class(rv) <- "snpgdsHCClass"
+	rv
+}
+
+
+
+#######################################################################
+# To determine sub groups of individuals
+#
+# INPUT:
+#   hc -- a "snpgdsHCClass" object
+#   verbose -- show information
+#
+
+snpgdsCutTree <- function(hc, z.threshold=10, method=c("permutation", "exact"),
+	n.perm = 1000, samp.group=NULL, verbose=TRUE)
+{
+	# check
+	stopifnot(inherits(hc, "snpgdsHCClass"))
+	stopifnot(is.finite(z.threshold))
+	stopifnot(method %in% c("permutation", "exact"))
+	stopifnot(is.numeric(n.perm))
+	stopifnot(is.logical(verbose))
+
+	if (method[1] == "exact")
+		stop("`method=\"exact\" is not supported currently.")
+	if (is.null(hc$dist))
+		stop("`hc' should have a dissimilarity matrix.")
+
+	if (verbose)
+	{
+		if (is.null(samp.group))
+			cat(sprintf("Determine groups (Z threshold: %g):\n", z.threshold))
+	}
+
+	# result
+	ans <- list(sample.id = hc$sample.id)
+
+	if (!is.null(samp.group))
+	{
+		stopifnot(is.factor(samp.group))
+		stopifnot(length(samp.group) == length(hc$sample.id))
+	} else {
+		# determine the number of groups
+
+		stopifnot(!is.null(hc$dist))
+
+		# initialize ...
+		method <- method[1]
+
+		# get sample.id from a single tree
+		get.id <- function(n)
+		{
+			if (is.leaf(n))
+				attr(n, "label")
+			else
+				unlist(lapply(n, get.id))
+        }
+
+		# get groups
+		grouping <- function(n)
+		{
+			if (!is.leaf(n))
+			{
+				nl <- get.id(n[[1]]); nr <- get.id(n[[2]])
+				ii <- match(c(nl, nr), hc$sample.id) - as.integer(1)
+
+				# call C function
+				if (method == "permutation")
+				{
+					rv <- .C("gnrDistPerm", dim(hc$dist), as.double(hc$dist),
+						ii, c(length(nl), length(nr)), length(nl), as.integer(n.perm),
+						d=double(n.perm), err=integer(1),
+						NAOK=TRUE, PACKAGE="SNPRelate")
+					if (rv$err != 0) stop(snpgdsErrMsg())
+					rv <- list(mean = mean(rv$d), sd = sd(rv$d))
+				} else {
+					rv <- .C("gnrDistSD", dim(hc$dist), as.double(hc$dist),
+						ii, c(length(nl), length(nr)),
+						mean=double(1), sd=double(1), err=integer(1),
+						NAOK=TRUE, PACKAGE="SNPRelate")
+					if (rv$err != 0) stop(snpgdsErrMsg())
+				}
+
+				h <- attr(n, "height")
+				z <- (h - rv$mean) / rv$sd
+				if (verbose)
+				{
+					cat(sprintf("Left: %d, Right: %d, distance: %g, perm (%g +- %g), Z: %g\n",
+						length(nl), length(nr), h, rv$mean, rv$sd, z))
+				}
+
+				if (is.finite(z) && (z > z.threshold))
+				{
+					r1 <- grouping(n[[1]])
+					r2 <- grouping(n[[2]])
+					r2$group <- r2$group + max(r1$group)
+					rbind(r1, r2)
+				} else {
+					data.frame(sample.id = c(nl, nr),
+						group = rep(as.integer(1), length(nl)+length(nr)),
+						stringsAsFactors = FALSE)		
+				}
+			} else {
+				data.frame(sample.id=attr(n, "label"), group=as.integer(1),
+					stringsAsFactors=FALSE)
+			}
+		}
+		
+		d <- grouping(hc$dendrogram)
+		samp.group <- as.factor(sprintf("G%03d", d$group[match(hc$sample.id, d$sample.id)]))
+	}
+
+
+	# create a new dendrogram
+	add.point <- function(n, sample.id, subgroup)
+	{
+		if(is.leaf(n))
+		{
+			idx <- match(attr(n, "label"), sample.id)
+			attr(n, "nodePar") <- list(pch=20, col=as.integer(subgroup[idx]))
+		}
+		n
+	}
+
+	ans$samp.group <- samp.group
+
+	n <- nlevels(samp.group); grps <- levels(samp.group)
+	dmat <- matrix(0.0, nrow=n, ncol=n)
+	for (i in 1:n)
+	{
+		m <- hc$dist[grps[i] == samp.group, grps[i] == samp.group]
+		ms <- sum(grps[i] == samp.group)
+		mflag <- matrix(TRUE, nrow=ms, ncol=ms)
+		diag(mflag) <- FALSE
+		dmat[i, i] <- mean(m[mflag], na.rm=TRUE)
+		
+		if (i < n)
+		{
+			for (j in (i+1):n)
+			{
+				dmat[i, j] <- dmat[j, i] <-
+					mean(hc$dist[grps[i] == samp.group, grps[j] == samp.group], na.rm=TRUE)
+			}
+		}
+	}
+	ans$group.dist <- dmat
+
+	ans$dendrogram <- dendrapply(hc$dendrogram, add.point, sample.id=hc$sample.id,
+		subgroup=samp.group)
+
+	if (verbose)
+		cat(sprintf("Create %d groups.\n", n))
+
+	ans
+}
+
+
+
+
+
+
 
 
 
@@ -2290,7 +2648,7 @@ snpgdsSummary <- function(gds, show=TRUE)
 	}
 	if (warn.flag)
 	{
-		warning("Call `snpgdsCreateGenoSet' to create a valid set of genotypes, using the returned sample.id and snp.id.")
+		# warning("Call `snpgdsCreateGenoSet' to create a valid set of genotypes, using the returned sample.id and snp.id.")
 	}
 
 	warn.flag <- FALSE
@@ -2979,8 +3337,8 @@ snpgdsExampleFileName <- function()
 # Conversion
 #######################################################################
 #     X    X chromosome                    -> 23
-#     Y    Y chromosome                    -> 24
-#     XY   Pseudo-autosomal region of X    -> 25
+#     XY   Pseudo-autosomal region of X    -> 24
+#     Y    Y chromosome                    -> 25
 #     MT   Mitochondrial                   -> 26
 
 #######################################################################
@@ -3041,8 +3399,8 @@ snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
 	else
 		tmp.snp.id <- snp.ids
 	xchr <- as.character(read.gdsn(index.gdsn(gdsobj, "snp.chromosome")))[snp.idx]
-	xchr[xchr=="23"] <- "X"; xchr[xchr=="24"] <- "Y"
-	xchr[xchr=="25"] <- "XY"; xchr[xchr=="26"] <- "MT"
+	xchr[xchr=="23"] <- "X"; xchr[xchr=="25"] <- "Y"
+	xchr[xchr=="24"] <- "XY"; xchr[xchr=="26"] <- "MT"
 	D <- data.frame(chr = xchr, rs = tmp.snp.id,
 		gen = rep(0, length(snp.idx)),
 		base = read.gdsn(index.gdsn(gdsobj, "snp.position"))[snp.idx],
@@ -3434,86 +3792,288 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbo
 #   vcf.fn -- the file name of VCF format
 #   outfn.gds -- the output gds file
 #   nblock -- the number of lines in buffer
+#   method -- biallelic SNPs, or copy number of variants
 #   compress.annotation -- the compression method for sample and snp annotations
 #   verbose -- show information
 #
 
-snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024, compress.annotation="ZIP.max",
+snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
+	method = c("biallelic.only", "copy.num.of.ref"),
+	compress.annotation="ZIP.max", option = NULL,
 	verbose=TRUE)
 {
 	# check
 	stopifnot(is.character(vcf.fn))
 	stopifnot(is.character(outfn.gds))
+	stopifnot(all(method %in% c("biallelic.only", "copy.num.of.ref")))
 
-	# total number of rows and columns
-	Cnt <- count.fields(vcf.fn)
-	# check
-	if (any(Cnt != Cnt[1])) stop("The file has different numbers of columns.")
+	method <- method[1]
+	if (is.null(option)) option <- snpgdsOption()
 
-	line.cnt <- length(Cnt)
-	col.cnt <- max(Cnt)
-	if (verbose)
+
+
+	######################################################################
+	# Scan VCF file -- get sample id
+
+	scan.vcf.sampid <- function(fn)
 	{
-		cat("Start snpgdsVCF2GDS ...\n")
-		cat("\tOpen", vcf.fn, "\n")
-		cat("\tScanning ...\n")
+		# open the vcf file
+		opfile <- file(fn, open="r")
+
+		# read header
+		fmtstr <- substring(readLines(opfile, n=1), 3)
+		samp.id <- NULL
+		while (length(s <- readLines(opfile, n=1)) > 0)
+		{
+			if (substr(s, 1, 6) == "#CHROM")
+			{
+				samp.id <- scan(text=s, what=character(0), quiet=TRUE)[-c(1:9)]
+				break
+			}
+		}
+		if (is.null(samp.id))
+		{
+			close(opfile)
+			stop("Error VCF format: invalid sample id!")
+		}
+
+		# close the file
+		close(opfile)
+
+		return(samp.id)
 	}
 
 
 	######################################################################
-	# Scan VCF file
-	#
+	# Scan VCF file -- get marker information
 
-	# open the vcf file
-	opfile <- file(vcf.fn, open="r")
-
-	# read header
-	fmtstr <- substring(readLines(opfile, n=1), 3)
-	samp.id <- NULL
-	while (length(s <- readLines(opfile, n=1)) > 0)
+	scan.vcf.marker <- function(fn, method)
 	{
-		if (substr(s, 1, 6) == "#CHROM")
+		if (verbose)
+			cat(sprintf("\tfile: %s\n", fn))
+
+		# total number of rows and columns
+		Cnt <- count.fields(fn)
+		# check
+		if (any(Cnt != Cnt[1]))
+			stop(sprintf("The file (%s) has different numbers of columns.", fn))
+
+		line.cnt <- length(Cnt)
+		col.cnt <- max(Cnt)
+		if (verbose)
+			cat(sprintf("\tcontent: %d rows x %d columns\n", line.cnt, col.cnt))
+
+		# open the vcf file
+		opfile <- file(fn, open="r")
+
+		# read header
+		fmtstr <- substring(readLines(opfile, n=1), 3)
+		while (length(s <- readLines(opfile, n=1)) > 0)
 		{
-			samp.id <- scan(text=s, what=character(0), quiet=TRUE)[-c(1:9)]
-			break
+			if (substr(s, 1, 6) == "#CHROM")
+				break
 		}
-	}
-	if (is.null(samp.id))
-		stop("Error VCF format: invalid sample id!")
 
-	# scan
-	xchr.str <- c(1:22, "X", "Y", "XY", "MT", 23, 24, 25, 26)
-	xchr <- as.integer(c(1:22, 23, 24, 25, 26, 23, 24, 25, 26))
-	chr <- integer(line.cnt); position <- integer(line.cnt)
-	snp.rs <- character(line.cnt)
-	snp.allele <- character(line.cnt)
-	snp.cnt <- 0
+		# scan, max chr index = 200
+		xchr.str <- c(1:200, names(option$chromosome.code))
+		xchr <- as.integer(c(1:200, unlist(option$chromosome.code)))
 
-	while (length(s <- readLines(opfile, n=nblock)) > 0)
-	{
-		for (i in 1:length(s))
+		chr <- integer(line.cnt); position <- integer(line.cnt)
+		snpidx <- integer(line.cnt); snp.rs <- character(line.cnt)
+		snp.allele <- character(line.cnt)
+		snp.cnt <- 0; var.cnt <- 0
+
+		if (method == "biallelic.only")
 		{
-			ss <- scan(text=s[i], what=character(0), quiet=TRUE, n=5)
-			if (all(ss[c(4,5)] %in% c("A", "G", "C", "T")))
+			while (length(s <- readLines(opfile, n=nblock)) > 0)
 			{
-				snp.cnt <- snp.cnt + 1
-				chr[snp.cnt] <- xchr[match(ss[1], xchr.str)]
-				position[snp.cnt] <- as.integer(ss[2])
-				snp.rs[snp.cnt] <- ss[3]
-				snp.allele[snp.cnt] <- paste(ss[4], ss[5], sep="/")
+				for (i in 1:length(s))
+				{
+					var.cnt <- var.cnt + 1
+					ss <- scan(text=s[i], what=character(0), quiet=TRUE, n=5)
+					if (all(ss[c(4,5)] %in% c("A", "G", "C", "T", "a", "g", "c", "t")))
+					{
+						snp.cnt <- snp.cnt + 1
+						chr[snp.cnt] <- xchr[match(ss[1], xchr.str)]
+						position[snp.cnt] <- as.integer(ss[2])
+						snpidx[snp.cnt] <- var.cnt
+						snp.rs[snp.cnt] <- ss[3]
+						snp.allele[snp.cnt] <- paste(ss[4], ss[5], sep="/")
+					}
+				}
+			}
+		} else {
+			while (length(s <- readLines(opfile, n=nblock)) > 0)
+			{
+				for (i in 1:length(s))
+				{
+					var.cnt <- var.cnt + 1
+					ss <- scan(text=s[i], what=character(0), quiet=TRUE, n=5)
+					snp.cnt <- snp.cnt + 1
+					chr[snp.cnt] <- xchr[match(ss[1], xchr.str)]
+					position[snp.cnt] <- as.integer(ss[2])
+					snpidx[snp.cnt] <- var.cnt
+					snp.rs[snp.cnt] <- ss[3]
+					snp.allele[snp.cnt] <- paste(ss[4], ss[5], sep="/")
+				}
 			}
 		}
+
+		# close the file
+		close(opfile)
+
+		chr <- chr[1:snp.cnt]; chr[is.na(chr)] <- 0
+		snp.allele <- gsub(".", "/", snp.allele[1:snp.cnt], fixed=TRUE)
+		list(chr = chr, position = position[1:snp.cnt],
+			snpidx = snpidx[1:snp.cnt], snp.rs = snp.rs[1:snp.cnt],
+			snp.allele = snp.allele
+		)
 	}
 
-	# close the file
-	close(opfile)
 
-	# trim
-	chr <- chr[1:snp.cnt]; position <- position[1:snp.cnt]
-	snp.rs <- snp.rs[1:snp.cnt]; snp.allele <- snp.allele[1:snp.cnt]
-	nSamp <- length(samp.id); nSNP <- length(chr)
-	geno.str <- c("0|0", "0|1", "1|0", "1|1", "0/0", "0/1", "1/0", "1/1")
-	geno.code <- as.integer(c(2, 1, 1, 0, 2, 1, 1, 0))
+	######################################################################
+	# Scan VCF file -- get marker information
+
+	scan.vcf.geno <- function(fn, gGeno, method, start)
+	{
+		# matching codes
+		geno.str <- c("0|0", "0|1", "1|0", "1|1", "0/0", "0/1", "1/0", "1/1",
+			"0", "1",
+			"0|0|0", "0|0|1", "0|1|0", "0|1|1", "1|0|0", "1|0|1", "1|1|0", "1|1|1",
+			"0/0/0", "0/0/1", "0/1/0", "0/1/1", "1/0/0", "1/0/1", "1/1/0", "1/1/1")
+		geno.code <- as.integer(c(2, 1, 1, 0, 2, 1, 1, 0,
+			1, 0,
+			2, 1, 1, 1, 1, 1, 1, 0, 
+			2, 1, 1, 1, 1, 1, 1, 0))
+		start <- start - 1
+
+		# open the vcf file
+		opfile <- file(fn, open="r")
+		# read header
+		fmtstr <- substring(readLines(opfile, n=1), 3)
+		while (length(s <- readLines(opfile, n=1)) > 0)
+		{
+			if (substr(s, 1, 6) == "#CHROM")
+				break
+		}
+
+		# scan
+		if (method == "biallelic.only")
+		{
+			snp.cnt <- 0
+			while (length(s <- readLines(opfile, n=nblock)) > 0)
+			{
+				for (i in 1:length(s))
+				{
+					ss <- scan(text=s[i], what=character(0), quiet=TRUE, n=5)
+					if (all(ss[c(4,5)] %in% c("A", "G", "C", "T", "a", "g", "c", "t")))
+					{
+						ss <- scan(text=s[i], what=character(0), quiet=TRUE)[-c(1:9)]
+						ss <- sapply(strsplit(ss, ":"), FUN = function(x) x[1])
+						x <- match(ss, geno.str)
+						x <- geno.code[x]
+						x[is.na(x)] <- as.integer(3)
+						snp.cnt <- snp.cnt + 1
+						write.gdsn(gGeno, x, start=c(1,snp.cnt+start), count=c(-1,1))
+					}
+				}
+			}
+		} else {
+			snp.cnt <- 0
+			while (length(s <- readLines(opfile, n=nblock)) > 0)
+			{
+				for (i in 1:length(s))
+				{
+					ss <- scan(text=s[i], what=character(0), quiet=TRUE)[-c(1:9)]
+					x <- sapply(strsplit(ss, ":"), FUN = function(x) {
+						a <- unlist(strsplit(x[1], ""))
+						if (any(a == "."))
+							NA
+						else
+							sum(a == "0")
+					})
+					x[x > 2] <- 2
+					x[is.na(x)] <- as.integer(3)
+					snp.cnt <- snp.cnt + 1
+					write.gdsn(gGeno, x, start=c(1,snp.cnt+start), count=c(-1,1))
+				}
+			}
+		}
+
+		# close the file
+		close(opfile)
+		
+		snp.cnt
+	}
+
+
+
+	######################################################################
+	######################################################################
+	# Starting ...
+	######################################################################
+	######################################################################
+
+	if (verbose)
+	{
+		cat("Start snpgdsVCF2GDS ...\n")
+		if (method == "biallelic.only")
+			cat("\tExtracting bi-allelic and polymorhpic SNPs.\n")
+		else
+			cat("\tStoring dosage of the reference allele for all variant sites, including bi-allelic SNPs, multi-allelic SNPs, indels and structural variants.\n")
+		cat("\tScanning ...\n")
+	}
+
+
+	####################################
+	# sample.id
+
+	sample.id <- NULL
+	for (fn in vcf.fn)
+	{
+		s <- scan.vcf.sampid(fn)
+		if (!is.null(sample.id))
+		{
+			if (length(sample.id) != length(s))
+				stop("All VCF files should have the same sample id.")
+			if (any(sample.id != s))
+				stop("All VCF files should have the same sample id.")
+		} else
+			sample.id <- s
+	}
+
+
+	####################################
+	# genetic markers
+
+	all.chr <- integer()
+	all.position <- integer()
+	all.snpidx <- integer()
+	all.snp.rs <- character()
+	all.snp.allele <- character()
+
+	for (fn in vcf.fn)
+	{
+		v <- scan.vcf.marker(fn, method)
+		
+		all.chr <- c(all.chr, v$chr)
+		all.position <- c(all.position, v$position)
+		all.snpidx <- c(all.snpidx, v$snpidx)
+		all.snp.rs <- c(all.snp.rs, v$snp.rs)
+		all.snp.allele <- c(all.snp.allele, v$snp.allele)
+	}
+
+
+	####################################
+	# genetic variants
+
+	nSamp <- length(sample.id)
+	nSNP <- length(all.chr)
+	if (verbose)
+	{
+		cat(date(), "\tstore sample id, snp id, position, and chromosome.\n")
+		cat(sprintf("\tstart writing: %d samples, %d SNPs ...\n", nSamp, nSNP))
+	}
 
 
 	######################################################################
@@ -3522,26 +4082,27 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024, compress.annotation="Z
 	gfile <- createfn.gds(outfn.gds)
 
 	# add "sample.id"
-	add.gdsn(gfile, "sample.id", samp.id, compress=compress.annotation, closezip=TRUE)
+	add.gdsn(gfile, "sample.id", sample.id, compress=compress.annotation, closezip=TRUE)
 	# add "snp.id"
-	add.gdsn(gfile, "snp.id", seq.int(1, length(chr)), compress=compress.annotation, closezip=TRUE)
+	add.gdsn(gfile, "snp.id", as.integer(all.snpidx), compress=compress.annotation, closezip=TRUE)
 	# add "snp.rs.id"
-	add.gdsn(gfile, "snp.rs.id", snp.rs, compress=compress.annotation, closezip=TRUE)
+	add.gdsn(gfile, "snp.rs.id", all.snp.rs, compress=compress.annotation, closezip=TRUE)
 	# add "snp.position"
-	add.gdsn(gfile, "snp.position", position, compress=compress.annotation, closezip=TRUE)
+	add.gdsn(gfile, "snp.position", all.position, compress=compress.annotation, closezip=TRUE)
 	# add "snp.chromosome"
-	add.gdsn(gfile, "snp.chromosome", chr, storage="uint8", compress=compress.annotation, closezip=TRUE)
+	v.chr <- add.gdsn(gfile, "snp.chromosome", all.chr, storage="uint8", compress=compress.annotation, closezip=TRUE)
 	# add "snp.allele"
-	add.gdsn(gfile, "snp.allele", snp.allele, compress=compress.annotation, closezip=TRUE)
+	add.gdsn(gfile, "snp.allele", all.snp.allele, compress=compress.annotation, closezip=TRUE)
+
+	# snp.chromosome
+	for (i in 1:length(option$chromosome.code))
+	{
+		put.attr.gdsn(v.chr, names(option$chromosome.code)[i],
+			option$chromosome.code[[i]])
+	}
 
 	# sync file
 	sync.gds(gfile)
-
-	if (verbose)
-	{
-		cat(date(), "\tstore sample id, snp id, position, and chromosome.\n")
-		cat(sprintf("\tstart writing: %d samples, %d SNPs ...\n", nSamp, nSNP))
-	}
 
 	# add "gonetype", 2 bits to store one genotype
 	gGeno <- add.gdsn(gfile, "genotype", storage="bit2", valdim=c(nSamp, nSNP))
@@ -3550,36 +4111,20 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024, compress.annotation="Z
 	sync.gds(gfile)
 
 
-	# open the vcf file
-	opfile <- file(vcf.fn, open="r")
-	# read header
-	fmtstr <- substring(readLines(opfile, n=1), 3)
-	while (length(s <- readLines(opfile, n=1)) > 0)
+	####################################
+	# genetic genotypes
+
+	snp.start <- 1
+	for (fn in vcf.fn)
 	{
-		if (substr(s, 1, 6) == "#CHROM")
-			break
-	}
-	# scan
-	snp.cnt <- 0
-	while (length(s <- readLines(opfile, n=nblock)) > 0)
-	{
-		for (i in 1:length(s))
-		{
-			ss <- scan(text=s[i], what=character(0), quiet=TRUE, n=5)
-			if (all(ss[c(4,5)] %in% c("A", "G", "C", "T")))
-			{
-				ss <- scan(text=s[i], what=character(0), quiet=TRUE)[-c(1:9)]
-				x <- match(substr(ss, 1, 3), geno.str)
-				x <- geno.code[x]
-				x[is.na(x)] <- as.integer(3)
-				snp.cnt <- snp.cnt + 1
-				write.gdsn(gGeno, x, start=c(1,snp.cnt), count=c(-1,1))
-			}
-		}
+		if (verbose)
+			cat(sprintf("\tfile: %s\n", fn))
+		s <- scan.vcf.geno(fn, gGeno, method, start=snp.start)
+		snp.start <- snp.start + s		
+		sync.gds(gfile)  # sync file
 	}
 
-	# close the file
-	close(opfile)
+
 	# close files
 	closefn.gds(gfile)
 
@@ -3587,6 +4132,55 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024, compress.annotation="Z
 
 	return(invisible(NULL))
 }
+
+
+
+
+#######################################################################
+# SNPRelate Option
+#
+
+snpgdsOption <- function(gdsobj=NULL, autosome.start=1, autosome.end=22)
+{
+	ans <- list(
+		autosome.start = as.integer(autosome.start),  # the starting index of autosome
+		autosome.end   = as.integer(autosome.end),    # the ending idex of autosome
+		chromosome.code = list(
+			X  = as.integer(autosome.end + 1),    # X chromosome
+			XY = as.integer(autosome.end + 2),    # Pseudo-autosomal region of X
+			Y  = as.integer(autosome.end + 3),    # Y chromosome
+			M  = as.integer(autosome.end + 4),    # Mitochondrial
+			MT = as.integer(autosome.end + 4)     # Mitochondrial
+	))
+
+	if (!is.null(gdsobj))
+	{
+		# chromosome
+		n <- index.gdsn(gdsobj, "snp.chromosome")
+		lst <- get.attr.gdsn(n)
+		if (!is.null(lst$autosome.start))
+			ans$autosome.start <- lst$autosome.start
+		if (!is.null(lst$autosome.end))
+			ans$autosome.end <- lst$autosome.end
+		if (!is.null(lst$X)) ans$chromosome.code$X <- lst$X[1]
+		if (!is.null(lst$Y)) ans$chromosome.code$Y <- lst$Y[1]
+		if (!is.null(lst$XY)) ans$chromosome.code$XY <- lst$XY[1]
+		if (!is.null(lst$M)) ans$chromosome.code$M <- lst$M[1]
+		if (!is.null(lst$MT)) ans$chromosome.code$MT <- lst$MT[1]
+
+		# SNP genotype
+		n <- index.gdsn(gdsobj, "genotype")
+		lst <- get.attr.gdsn(n)
+		if ("sample.order" %in% names(lst))
+			ans$file$geno.dim <- "sample-by-snp"
+		else
+			ans$file$geno.dim <- "snp-by-sample"
+	}
+
+	ans
+}
+
+
 
 
 
@@ -3607,9 +4201,13 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024, compress.annotation="Z
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.7")
+	packageStartupMessage("SNPRelate: 0.9.8")
 	if (rv$sse != 0)
 		packageStartupMessage("Streaming SIMD Extensions 2 (SSE2) supported.\n")
+
+	# set random number generator
+	RNGkind("L'Ecuyer-CMRG")
+
 	TRUE
 }
 

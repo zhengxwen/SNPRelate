@@ -1,31 +1,51 @@
 \name{snpgdsVCF2GDS}
 \alias{snpgdsVCF2GDS}
-\title{Conversion from VCF to GDS}
+\title{Reformat a VCF file}
 \description{
-	Extract SNP data from a VCF sequence file
+	Reformat a Variant Call Format (VCF) file
 }
 \usage{
-snpgdsVCF2GDS(vcf.fn, outfn.gds, nblock=1024, compress.annotation="ZIP.max",
-	verbose=TRUE)
+snpgdsVCF2GDS(vcf.fn, outfn.gds, nblock=1024, method = c("biallelic.only", "copy.num.of.ref"),
+	compress.annotation="ZIP.max", option = NULL, verbose=TRUE)
 }
 \arguments{
-	\item{vcf.fn}{the file name of VCF format}
+	\item{vcf.fn}{the file name of VCF format, \code{vcf.fn} can be a vector, see details}
 	\item{outfn.gds}{the output gds file}
 	\item{nblock}{the buffer lines}
+	\item{method}{either "biallelic.only" by default or "copy.num.of.ref", see details}
 	\item{compress.annotation}{the compression flag of the nodes stored, except
 		"genotype"; the string value is defined in the function of \code{add.gdsn}}
+	\item{option}{\code{NULL} or an object from \code{\link{snpgdsVCF2GDS}}, see details}
 	\item{verbose}{if TRUE, show information}
 }
 \value{
 	None.
 }
 \details{
-	GDS -- Genomic Data Structures, the extended file name used for storing genetic data,
+	GDS -- Genomic Data Structures used for storing genetic array-oriented data,
 		and the file format used in the \link{gdsfmt} package.
 
 	VCF -- The Variant Call Format (VCF), which is a generic format for storing DNA
 		polymorphism data such as SNPs, insertions, deletions and structural variants,
 		together with rich annotations.
+
+	If there are more than one file name in \code{vcf.fn}, \code{snpgdsVCF2GDS} will
+merge all dataset together once they all contain the same samples. It is useful to
+combine genetic data if VCF data are divided by chromosomes.
+
+	\code{method = "biallelic.only"}: to exact bi-allelic and polymorhpic SNP data;
+	\code{method = "copy.num.of.ref"}: to extract and store dosage (0, 1, 2) of the
+reference allele for all variant sites, including bi-allelic SNPs, multi-allelic SNPs,
+indels and structural variants.
+
+	Haploid and triploid calls are allowed in the transfer, the variable
+\code{snp.id} stores the original the row index of variants, and the variable
+\code{snp.rs.id} stores the rs id.
+
+	The user could use \code{option} to specify the range of code for autosomes.
+For humans there are 22 autosomes (from 1 to 22), but for dogs there are 38 autosomes.
+Note that the default settings are used for humans. The user could call
+\code{option = snpgdsOption(autosome.end=38)} for importing the VCF file of dog.
 }
 \references{
 	The variant call format and VCFtools.
@@ -37,20 +57,35 @@ snpgdsVCF2GDS(vcf.fn, outfn.gds, nblock=1024, compress.annotation="ZIP.max",
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 \seealso{
+	\code{\link{snpgdsVCF2GDS}},
 	\code{\link{snpgdsBED2GDS}}, \code{\link{snpgdsGDS2PED}}
 }
 
 \examples{
 # The VCF file
 vcf.fn <- system.file("extdata", "sequence.vcf", package="SNPRelate")
-readLines(vcf.fn)
+cat(readLines(vcf.fn), sep="\n")
 
-snpgdsVCF2GDS(vcf.fn, "test.gds", verbose=TRUE)
-snpgdsSummary("test.gds")
+snpgdsVCF2GDS(vcf.fn, "test1.gds", method="biallelic.only")
+snpgdsSummary("test1.gds")
+
+snpgdsVCF2GDS(vcf.fn, "test2.gds", method="copy.num.of.ref")
+snpgdsSummary("test2.gds")
 
 
-# open "test.gds"
-(genofile <- openfn.gds("test.gds"))
+# open "test1.gds"
+(genofile <- openfn.gds("test1.gds"))
+
+read.gdsn(index.gdsn(genofile, "sample.id"))
+read.gdsn(index.gdsn(genofile, "snp.rs.id"))
+read.gdsn(index.gdsn(genofile, "genotype"))
+
+# close the genotype file
+closefn.gds(genofile)
+
+
+# open "test2.gds"
+(genofile <- openfn.gds("test2.gds"))
 
 read.gdsn(index.gdsn(genofile, "sample.id"))
 read.gdsn(index.gdsn(genofile, "snp.rs.id"))

@@ -12,18 +12,20 @@
 
 
 # load R packages
-library(RUnit)
-library(SNPRelate)
+if (require(RUnit))
+{
+	library(SNPRelate)
 
-# define a test suite
-myTestSuite <- defineTestSuite("SNPRelate examples",
-	system.file("unitTests", package = "SNPRelate"))
+	# define a test suite
+	myTestSuite <- defineTestSuite("SNPRelate examples",
+		system.file("unitTests", package = "SNPRelate"))
 
-# run the test suite
-testResult <- runTestSuite(myTestSuite)
+	# run the test suite
+	testResult <- runTestSuite(myTestSuite)
 
-# print detailed text protocol to standard out
-printTextProtocol(testResult)
+	# print detailed text protocol to standard out
+	printTextProtocol(testResult)
+}
 
 # quit
 q("no")

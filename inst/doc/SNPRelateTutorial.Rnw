@@ -26,7 +26,7 @@
 	GENEVA Coordinating Center\\
 	Department of Biostatistics\\
 	University of Washington}
-\date{Aug 11, 2012}
+\date{Sep 23, 2012}
 
 
 \maketitle
@@ -37,7 +37,10 @@
 % ---- Overview ----
 \section{Overview}
 
-Genome-wide association studies (GWAS) are widely used to help determine the genetic basis of diseases and traits, but they pose many computational challenges. We developed \hn{gdsfmt} and \hn{SNPRelate} (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures. The kernels of our algorithms are written in C/C++ and have been highly optimized. The calculations of the genetic covariance matrix in PCA and pairwise IBD coefficients are split into non-overlapping parts and assigned to multiple cores for performance acceleration, as shown in Figure~1. Benchmarks show the uniprocessor implementations of PCA and IBD are $\sim$10 to 45 times faster than the implementations provided in the popular \hn{EIGENSTRAT} (v3.0) and \hn{PLINK} (v1.07) programs respectively, and can be sped up to 70$\sim$250 folds by utilizing multiple cores.
+Genome-wide association studies (GWAS) are widely used to help determine the genetic basis of diseases and traits, but they pose many computational challenges. We developed \hn{gdsfmt} and \hn{SNPRelate} (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures. The kernels of our algorithms are written in C/C++ and have been highly optimized. The calculations of the genetic covariance matrix in PCA and pairwise IBD coefficients are split into non-overlapping parts and assigned to multiple cores for performance acceleration, as shown in Figure~1. Benchmarks show the uniprocessor implementations of PCA and IBD are $\sim$8 to 50 times faster than the implementations provided in the popular \hn{EIGENSTRAT} (v3.0) and \hn{PLINK} (v1.07) programs respectively, and can be sped up to 30$\sim$300 folds by utilizing multiple cores.
+
+GDS is also used by an R/Bioconductor package \hn{GWASTools} as one of its data storage formats (Gogarten et al., 2012) \footnote{Stephanie M. Gogarten., {\it et al}. GWASTools: an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies. {\it Accepted}.}. \hn{GWASTools} provides many functions for quality control and analysis of GWAS, including statistics by SNP or scan, batch quality, chromosome anomalies, association tests, etc.
+
 
 % -------- BEGIN FIGURE --------
 \begin{figure}[!tpb]
@@ -49,7 +52,7 @@ Genome-wide association studies (GWAS) are widely used to help determine the gen
 
 R is the most popular statistical programming environment, but one not typically optimized for high performance or parallel computing which would ease the burden of large-scale GWAS calculations. To overcome these limitations we have developed a project named CoreArray (\url{http://corearray.sourceforge.net/}) that includes two R packages: \hn{gdsfmt} to provide efficient, platform independent memory and file management for genome-wide numerical data, and \hn{SNPRelate} to solve large-scale, numerically intensive GWAS calculations (i.e., PCA and IBD) on multi-core symmetric multiprocessing (SMP) computer architectures.
 
-This vignette takes the user through the relatedness and principal component analysis used for genome wide association data. The methods in these vignettes have been introduced in the paper of Zheng {\it et al.} (2012).\footnote{Zheng, Xiuwen., {\it et al}. A High-performance Computing Toolset for Relatedness and Principal Component Analysis in GWAS. {\it Submitted}.} For replication purposes the data used here are taken from the HapMap Phase II project. These data were kindly provided by the Center for Inherited Disease Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard University (Broad). The data supplied here should not be used for any purpose other than this tutorial.
+This vignette takes the user through the relatedness and principal component analysis used for genome wide association data. The methods in these vignettes have been introduced in the paper of Zheng {\it et al.} (2012) \footnote{Zheng, Xiuwen., {\it et al}. A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. {\it Accepted}.}. For replication purposes the data used here are taken from the HapMap Phase II project. These data were kindly provided by the Center for Inherited Disease Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard University (Broad). The data supplied here should not be used for any purpose other than this tutorial.
 
 
 
@@ -82,6 +85,7 @@ The output lists all variables stored in the GDS file. At the first level, it sa
 	\item{\vr{snp.chromosome}, an integer mapping for each chromosome, with values 1-26, mapped in order from 1-22, 23=X,24=XY (the pseudoautosomal region), 25=Y, 26=M (the mitochondrial probes), and 0 for probes with unknown positions; it does not allow NA.}
 	\item{\vr{snp.position}, the base position of each SNP on the chromosome, and 0 for unknown position; it does not allow NA.}
 \end{itemize}
+
 <<>>=
 # Take out snp.id
 head(read.gdsn(index.gdsn(genofile, "snp.id")))
@@ -93,7 +97,7 @@ There are two additional variables:
 	\item{\vr{snp.rs.id}, a character string identifier for the SNP that may not be unique.}
 	\item{\vr{snp.allele}, it is not necessary for the analysis, but it is necessary when merging genotypes from different platforms. The format of \vr{snp.allele} is ``A allele/B allele'', like ``T/G'' where T is A allele and G is B allele.}
 \end{itemize}
-There are four possible values stored in the variable \vr{genotype}: 0, 1, 2 and 3. ``0'' indicates two B alleles, ``1'' indicates one A allele and one B allele, ``2'' indicates two A alleles, and ``3'' is a missing genotype. ``Bit2'' indicates that each byte encodes up to four SNP genotypes since one byte consists of eight bits.
+There are four possible values stored in the variable \vr{genotype}: 0, 1, 2 and 3. For bi-allelic SNP sites, ``0'' indicates two B alleles, ``1'' indicates one A allele and one B allele, ``2'' indicates two A alleles, and ``3'' is a missing genotype. For multi-allelic sites, it is a count of the reference allele (3 meaning no call). ``Bit2'' indicates that each byte encodes up to four SNP genotypes since one byte consists of eight bits.
 <<>>=
 # Take out genotype data for the first 3 samples and the first 5 SNPs
 (g <- read.gdsn(index.gdsn(genofile, "genotype"), start=c(1,1), count=c(5,3)))
@@ -150,10 +154,10 @@ snpgdsSummary("test.gds")
 @
 
 
-% -------- Format conversion from Sequence VCF files --------
-\subsection{Format conversion from Sequence VCF files}
+% -------- Format conversion from VCF files --------
+\subsection{Format conversion from VCF files}
 
-The \hn{SNPRelate} package provides a function \fn{snpgdsVCF2GDS} for converting a VCF file to a GDS file:
+The \hn{SNPRelate} package provides a function \fn{snpgdsVCF2GDS} to extract bi-allelic and polymorhpic SNPs from a VCF file:
 
 <<>>=
 # the VCF file
@@ -310,22 +314,20 @@ plot(x, y, col=race, xlab = "", ylab = "",
 legend("topleft", legend=levels(race), text.col=1:nlevels(race))
 @
 
-To perform cluster analysis on the $n \times n$ matrix of genome-wide IBS pairwise distances:
-<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
-d <- 1 - ibs$ibs
-colnames(d) <- rownames(d) <- pop
-hc <- hclust(as.dist(d))
-obj <- as.dendrogram(hc, hang=0.2)
-add.point <- function(n, group) {
-  if (is.leaf(n))
-  {
-    attr(n, "nodePar") <- list(pch=20, col=match(attr(n, "label"), group))
-  }
-  n
-}
-obj <- dendrapply(obj, add.point, group=levels(race))
+To perform cluster analysis on the $n \times n$ matrix of genome-wide IBS pairwise distances, and determine the groups by a permutation score:
 
-plot(obj, leaflab="none", main="Hierarchical Clustering based on IBS")
+<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+set.seed(100)
+ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, num.thread=2))
+rv <- snpgdsCutTree(ibs.hc)
+plot(rv$dendrogram, leaflab="none", main="HapMap Phase II")
+table(rv$samp.group)
+@
+
+Here is the population information we known:
+<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+rv2 <- snpgdsCutTree(ibs.hc, samp.group=as.factor(pop))
+plot(rv2$dendrogram, leaflab="none", main="HapMap Phase II")
 legend("topright", legend=levels(race), col=1:nlevels(race), pch=19, ncol=4)
 @
 
@@ -336,7 +338,6 @@ closefn.gds(genofile)
 
 
 
-
 % ---- Resources ----
 \section{Resources}
 
@@ -344,9 +345,9 @@ closefn.gds(genofile)
 	\item \hn{CoreArray} project: \url{http://corearray.sourceforge.net/}
 	\item \hn{gdsfmt} R package: \url{http://cran.r-project.org/web/packages/gdsfmt/index.html}
 	\item \hn{SNPRelate} R package: \url{http://cran.r-project.org/web/packages/SNPRelate/index.html}
+	\item \hn{GENEVA} R package: \url{https://www.genevastudy.org/Accomplishments/software}
+	\item \hn{GWASTools}: an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies \url{http://www.bioconductor.org/packages/2.11/bioc/html/GWASTools.html}
 \end{enumerate}
-
-
 
 
 
