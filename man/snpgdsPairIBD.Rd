@@ -77,9 +77,9 @@ YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="YRI"]
 
 # SNP pruning
-set.seed(1000)
+set.seed(10)
 snpset <- snpgdsLDpruning(genofile, sample.id=YRI.id, maf=0.05, missing.rate=0.05)
-snpset <- sample(unlist(snpset), 1000)
+snpset <- sample(unlist(snpset), 250)
 
 # the number of samples
 n <- 25

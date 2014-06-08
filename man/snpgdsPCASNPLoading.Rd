@@ -33,6 +33,14 @@ analysis conducted in \code{snpgdsPCA}.
 
 \references{
 	Patterson N, Price AL, Reich D (2006) Population structure and eigenanalysis. PLoS Genetics 2:e190.
+
+	Price AL, Patterson NJ, Plenge RM, Weinblatt ME, Shadick NA, Reich D (2006)
+		Principal components analysis corrects for stratification in genome-wide association studies.
+		Nat Genet. 38, 904-909.
+
+	Zhu, X., Li, S., Cooper, R. S., and Elston, R. C. (2008). A unified association analysis
+		approach for family and unrelated samples correcting for stratification.
+		Am J Hum Genet, 82(2), 352-365.
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 \seealso{

@@ -15,7 +15,7 @@ snpgdsVCF2GDS(vcf.fn, outfn.gds, nblock=1024, method = c("biallelic.only", "copy
 	\item{method}{either "biallelic.only" by default or "copy.num.of.ref", see details}
 	\item{compress.annotation}{the compression flag of the nodes stored, except
 		"genotype"; the string value is defined in the function of \code{add.gdsn}}
-	\item{option}{\code{NULL} or an object from \code{\link{snpgdsVCF2GDS}}, see details}
+	\item{option}{\code{NULL} or an object from \code{\link{snpgdsOption}}, see details}
 	\item{verbose}{if TRUE, show information}
 }
 \value{
@@ -43,9 +43,10 @@ indels and structural variants.
 \code{snp.rs.id} stores the rs id.
 
 	The user could use \code{option} to specify the range of code for autosomes.
-For humans there are 22 autosomes (from 1 to 22), but for dogs there are 38 autosomes.
+For humans there are 22 autosomes (from 1 to 22), but dogs have 38 autosomes.
 Note that the default settings are used for humans. The user could call
 \code{option = snpgdsOption(autosome.end=38)} for importing the VCF file of dog.
+It also allow define new chromosome coding, e.g., \code{option = snpgdsOption(Z=27)}.
 }
 \references{
 	The variant call format and VCFtools.
@@ -57,8 +58,7 @@ Note that the default settings are used for humans. The user could call
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 \seealso{
-	\code{\link{snpgdsVCF2GDS}},
-	\code{\link{snpgdsBED2GDS}}, \code{\link{snpgdsGDS2PED}}
+	\code{\link{snpgdsOption}}, \code{\link{snpgdsBED2GDS}}
 }
 
 \examples{

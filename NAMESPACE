@@ -2,6 +2,7 @@
 # Remove the previous line if you edit this file
 
 # Export all names
+useDynLib(SNPRelate)
 exportPattern(".")
 
 # Import all packages listed as Imports or Depends

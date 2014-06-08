@@ -90,10 +90,10 @@ YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 YRI.id <- YRI.id[1:30]
 
 # SNP pruning
-set.seed(1000)
+set.seed(10)
 snpset <- snpgdsLDpruning(genofile, sample.id=YRI.id, maf=0.05, missing.rate=0.05)
-snpset <- sample(unlist(snpset), 500)
-mibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snpset, num.thread=2, kinship=TRUE)
+snpset <- sample(unlist(snpset), 250)
+mibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snpset, kinship=TRUE)
 names(mibd)
 
 loglik <- snpgdsIBDMLELogLik(genofile, mibd)
@@ -110,8 +110,7 @@ points(mibd$k0[flag], mibd$k1[flag])
 
 # specify the allele frequencies
 afreq <- snpgdsSNPRateFreq(genofile, sample.id=YRI.id, snp.id=snpset)$AlleleFreq
-subibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id[1:25], snp.id=snpset,
-	num.thread=2, allele.freq=afreq)
+subibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id[1:25], snp.id=snpset, allele.freq=afreq)
 summary(c(subibd$k0 - mibd$k0[1:25, 1:25]))
 # ZERO
 summary(c(subibd$k1 - mibd$k1[1:25, 1:25]))

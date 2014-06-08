@@ -1,6 +1,6 @@
 \name{snpgdsGDS2BED}
 \alias{snpgdsGDS2BED}
-\title{Conversion from GDS to BED}
+\title{Conversion from GDS to PLINK BED}
 \description{
 	Convert a GDS file to a PLINK binary ped file.
 }

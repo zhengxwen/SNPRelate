@@ -26,33 +26,34 @@
 	GENEVA Coordinating Center\\
 	Department of Biostatistics\\
 	University of Washington}
-\date{Sep 23, 2012}
+\date{Oct 13, 2012}
 
 
 \maketitle
 \tableofcontents
 
-\SweaveOpts{keep.source=TRUE, eps=FALSE} 
+\SweaveOpts{keep.source=TRUE, eps=FALSE}
 
 % ---- Overview ----
 \section{Overview}
 
-Genome-wide association studies (GWAS) are widely used to help determine the genetic basis of diseases and traits, but they pose many computational challenges. We developed \hn{gdsfmt} and \hn{SNPRelate} (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures. The kernels of our algorithms are written in C/C++ and have been highly optimized. The calculations of the genetic covariance matrix in PCA and pairwise IBD coefficients are split into non-overlapping parts and assigned to multiple cores for performance acceleration, as shown in Figure~1. Benchmarks show the uniprocessor implementations of PCA and IBD are $\sim$8 to 50 times faster than the implementations provided in the popular \hn{EIGENSTRAT} (v3.0) and \hn{PLINK} (v1.07) programs respectively, and can be sped up to 30$\sim$300 folds by utilizing multiple cores.
+Genome-wide association studies (GWAS) are widely used to help determine the genetic basis of diseases and traits, but they pose many computational challenges. We developed \hn{gdsfmt} and \hn{SNPRelate} (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures \footnote{{\bf A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data.} 
+Xiuwen Zheng; David Levine; Jess Shen; Stephanie M. Gogarten; Cathy Laurie; Bruce S. Weir. Bioinformatics 2012; doi: 10.1093/bioinformatics/bts606}. The kernels of our algorithms are written in C/C++ and have been highly optimized. The calculations of the genetic covariance matrix in PCA and pairwise IBD coefficients are split into non-overlapping parts and assigned to multiple cores for performance acceleration, as shown in Figure~1. Benchmarks show the uniprocessor implementations of PCA and IBD are $\sim$8 to 50 times faster than the implementations provided in the popular \hn{EIGENSTRAT} (v3.0) and \hn{PLINK} (v1.07) programs respectively, and can be sped up to 30$\sim$300 folds by utilizing multiple cores.
 
-GDS is also used by an R/Bioconductor package \hn{GWASTools} as one of its data storage formats (Gogarten et al., 2012) \footnote{Stephanie M. Gogarten., {\it et al}. GWASTools: an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies. {\it Accepted}.}. \hn{GWASTools} provides many functions for quality control and analysis of GWAS, including statistics by SNP or scan, batch quality, chromosome anomalies, association tests, etc.
+GDS is also used by an R/Bioconductor package \hn{GWASTools} as one of its data storage formats $^{2,3}$. \hn{GWASTools} provides many functions for quality control and analysis of GWAS, including statistics by SNP or scan, batch quality, chromosome anomalies, association tests, etc.
 
 
 % -------- BEGIN FIGURE --------
 \begin{figure}[!tpb]
 	\centering
-	\includegraphics[width=0.9\columnwidth]{flowchart.png}
+	\includegraphics[width=0.9\columnwidth]{SNPRelate-Flowchart.png}
 \caption{Flowchart of parallel computing for principal component analysis and identity-by-descent analysis.}
 \end{figure}
 % -------- END FIGURE --------
 
 R is the most popular statistical programming environment, but one not typically optimized for high performance or parallel computing which would ease the burden of large-scale GWAS calculations. To overcome these limitations we have developed a project named CoreArray (\url{http://corearray.sourceforge.net/}) that includes two R packages: \hn{gdsfmt} to provide efficient, platform independent memory and file management for genome-wide numerical data, and \hn{SNPRelate} to solve large-scale, numerically intensive GWAS calculations (i.e., PCA and IBD) on multi-core symmetric multiprocessing (SMP) computer architectures.
 
-This vignette takes the user through the relatedness and principal component analysis used for genome wide association data. The methods in these vignettes have been introduced in the paper of Zheng {\it et al.} (2012) \footnote{Zheng, Xiuwen., {\it et al}. A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. {\it Accepted}.}. For replication purposes the data used here are taken from the HapMap Phase II project. These data were kindly provided by the Center for Inherited Disease Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard University (Broad). The data supplied here should not be used for any purpose other than this tutorial.
+This vignette takes the user through the relatedness and principal component analysis used for genome wide association data. The methods in these vignettes have been introduced in the paper of Zheng {\it et al.} (2012)$^1$. For replication purposes the data used here are taken from the HapMap Phase II project. These data were kindly provided by the Center for Inherited Disease Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard University (Broad). The data supplied here should not be used for any purpose other than this tutorial.
 
 
 
@@ -81,7 +82,7 @@ snpgdsSummary(snpgdsExampleFileName())
 @
 The output lists all variables stored in the GDS file. At the first level, it saves variables \vr{sample.id}, \vr{snp.id}, etc. The second-level variables \vr{sex} and \vr{pop.group} are both stored in the directory of \vr{sample.annot}. All of the functions in \hn{SNPRelate} require a minimum set of variables in the SNP annotation data.  The minimum required variables are
 \begin{itemize}
-	\item{\vr{snp.id}, a unique identifier for each SNP;}
+	\item{\vr{snp.id}, a unique identifier for each SNP.}
 	\item{\vr{snp.chromosome}, an integer mapping for each chromosome, with values 1-26, mapped in order from 1-22, 23=X,24=XY (the pseudoautosomal region), 25=Y, 26=M (the mitochondrial probes), and 0 for probes with unknown positions; it does not allow NA.}
 	\item{\vr{snp.position}, the base position of each SNP on the chromosome, and 0 for unknown position; it does not allow NA.}
 \end{itemize}
@@ -94,7 +95,7 @@ head(read.gdsn(index.gdsn(genofile, "snp.rs.id")))
 @
 There are two additional variables:
 \begin{itemize}
-	\item{\vr{snp.rs.id}, a character string identifier for the SNP that may not be unique.}
+	\item{\vr{snp.rs.id}, a character string for reference SNP ID that may not be unique.}
 	\item{\vr{snp.allele}, it is not necessary for the analysis, but it is necessary when merging genotypes from different platforms. The format of \vr{snp.allele} is ``A allele/B allele'', like ``T/G'' where T is A allele and G is B allele.}
 \end{itemize}
 There are four possible values stored in the variable \vr{genotype}: 0, 1, 2 and 3. For bi-allelic SNP sites, ``0'' indicates two B alleles, ``1'' indicates one A allele and one B allele, ``2'' indicates two A alleles, and ``3'' is a missing genotype. For multi-allelic sites, it is a count of the reference allele (3 meaning no call). ``Bit2'' indicates that each byte encodes up to four SNP genotypes since one byte consists of eight bits.
@@ -157,14 +158,14 @@ snpgdsSummary("test.gds")
 % -------- Format conversion from VCF files --------
 \subsection{Format conversion from VCF files}
 
-The \hn{SNPRelate} package provides a function \fn{snpgdsVCF2GDS} to extract bi-allelic and polymorhpic SNPs from a VCF file:
+The \hn{SNPRelate} package provides a function \fn{snpgdsVCF2GDS} to reformat a VCF file. There are two options for extracting markers from a VCF file for downstream analyses:  (1) to extract and store dosage of the reference allele only for biallelic SNPs and (2) to extract and store dosage of the reference allele for all variant sites, including bi-allelic SNPs, multi-allelic SNPs, indels and structural variants.
 
 <<>>=
 # the VCF file
 vcf.fn <- system.file("extdata", "sequence.vcf", package="SNPRelate")
 
-# convert
-snpgdsVCF2GDS(vcf.fn, "test.gds")
+# reformat
+snpgdsVCF2GDS(vcf.fn, "test.gds", method="biallelic.only")
 
 # summary
 snpgdsSummary("test.gds")
@@ -324,7 +325,7 @@ plot(rv$dendrogram, leaflab="none", main="HapMap Phase II")
 table(rv$samp.group)
 @
 
-Here is the population information we known:
+Here is the population information we have known:
 <<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
 rv2 <- snpgdsCutTree(ibs.hc, samp.group=as.factor(pop))
 plot(rv2$dendrogram, leaflab="none", main="HapMap Phase II")
@@ -347,6 +348,18 @@ closefn.gds(genofile)
 	\item \hn{SNPRelate} R package: \url{http://cran.r-project.org/web/packages/SNPRelate/index.html}
 	\item \hn{GENEVA} R package: \url{https://www.genevastudy.org/Accomplishments/software}
 	\item \hn{GWASTools}: an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies \url{http://www.bioconductor.org/packages/2.11/bioc/html/GWASTools.html}
+\end{enumerate}
+
+
+
+% ---- References ----
+\section{References}
+
+\begin{enumerate}
+	\item {\bf A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data.} 
+Xiuwen Zheng; David Levine; Jess Shen; Stephanie M. Gogarten; Cathy Laurie; Bruce S. Weir. Bioinformatics 2012; doi: 10.1093/bioinformatics/bts606.
+	\item {\bf GWASTools: an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies.} Stephanie M. Gogarten, Tushar Bhangale, Matthew P. Conomos, Cecelia A. Laurie, Caitlin P. McHugh, Ian Painter, Xiuwen Zheng, David R. Crosslin, David Levine, Thomas Lumley, Sarah C. Nelson, Kenneth Rice, Jess Shen, Rohit Swarnkar, Bruce S. Weir, and Cathy C. Laurie. Bioinformatics 2012; doi:10.1093/bioinformatics/bts610.
+	\item {\bf Quality control and quality assurance in genotypic data for genome-wide association studies.} Laurie CC, Doheny KF, Mirel DB, Pugh EW, Bierut LJ, Bhangale T, Boehm F, Caporaso NE, Cornelis MC, Edenberg HJ, Gabriel SB, Harris EL, Hu FB, Jacobs KB, Kraft P, Landi MT, Lumley T, Manolio TA, McHugh C, Painter I, Paschall J, Rice JP, Rice KM, Zheng X, Weir BS; GENEVA Investigators. Genet Epidemiol. 2010 Sep;34(6):591-602.
 \end{enumerate}
 
 

@@ -1,19 +1,22 @@
 \name{snpgdsBED2GDS}
 \alias{snpgdsBED2GDS}
-\title{Conversion from BED to GDS}
+\title{Conversion from PLINK BED to GDS}
 \description{
 	Convert a PLINK binary ped file to a GDS file.
 }
 \usage{
-snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, compress.annotation="ZIP.max", verbose=TRUE)
+snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
+	compress.annotation="ZIP.max", option=NULL, verbose=TRUE)
 }
 \arguments{
 	\item{bed.fn}{the file name of binary file, genotype information}
 	\item{fam.fn}{the file name of first six columns of *.ped}
 	\item{bim.fn}{the file name of extended MAP file: two extra cols = allele names}
 	\item{out.gdsfn}{the output gds file}
+	\item{family}{if \code{TRUE}, to include family information in the sample annotation}
 	\item{compress.annotation}{the compression flag of the nodes stored, except
 		"genotype"; the string value is defined in the function of \code{add.gdsn}}
+	\item{option}{\code{NULL} or an object from \code{\link{snpgdsOption}}, see details}
 	\item{verbose}{if TRUE, show information}
 }
 \value{
@@ -21,9 +24,15 @@ snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, compress.annotation="ZIP.max", 
 }
 \details{
 	GDS -- Genomic Data Structures, the extended file name used for storing genetic data,
-		and the file format used in the \link{gdsfmt} package.
+		and the file format is used in the \link{gdsfmt} package.
 
 	BED -- the PLINK binary ped format.
+
+	The user could use \code{option} to specify the range of code for autosomes.
+For humans there are 22 autosomes (from 1 to 22), but dogs have 38 autosomes.
+Note that the default settings are used for humans. The user could call
+\code{option = snpgdsOption(autosome.end=38)} for importing the BED file of dog.
+It also allow define new chromosome coding, e.g., \code{option = snpgdsOption(Z=27)}.
 }
 \references{
 	Purcell S, Neale B, Todd-Brown K, Thomas L, Ferreira MAR, Bender D, Maller J, Sklar P,
@@ -34,7 +43,8 @@ snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, compress.annotation="ZIP.max", 
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 \seealso{
-	\code{\link{snpgdsBED2GDS}}, \code{\link{snpgdsGDS2PED}}
+	\code{\link{snpgdsOption}}, \code{\link{snpgdsBED2GDS}},
+	\code{\link{snpgdsGDS2PED}}
 }
 
 \examples{

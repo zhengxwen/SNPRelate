@@ -355,8 +355,14 @@ DLLEXPORT void gnrSetGenoSpace(TdSequenceX *Node,
 			}
 		}
 		MCWorkingGeno.Space.InitSelection();
+
 		*out_nsnp = MCWorkingGeno.Space.SNPNum();
+		if (*out_nsnp <= 0)
+			throw ErrCoreArray("There is no SNP!");
 		*out_nsamp = MCWorkingGeno.Space.SampleNum();
+		if (*out_nsamp <= 0)
+			throw ErrCoreArray("There is no sample!");
+
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
 }
@@ -1209,7 +1215,7 @@ DLLEXPORT void gnrDiss(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 		CdMatTri<IBS::TDistflag> Dist(n);
 
 		// Calculate the genetic distance matrix
-		IBS::DoDistCalculate(Dist, *NumThread, "Individual dissimilarity:", *Verbose);
+		IBS::DoDistCalculate(Dist, *NumThread, "", *Verbose);
 
 		// output
 		IBS::TDistflag *p = Dist.get();
@@ -1227,111 +1233,158 @@ DLLEXPORT void gnrDiss(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 }
 
 
-/// to compute mean and standard deviation of individual dissimilarity
-DLLEXPORT void gnrDistSD(int *n_dist, double *dist, int I[], int *n_I,
-	double *mean, double *sd, int *out_err)
+
+// calculate the dissimilarity between two individuals
+static double _distance(double *dist, int n_dist, int I[], int N1, int N2)
 {
-	CORETRY
-		const int N1 = n_I[0];
-		const int N2 = n_I[1];
-		const int N = n_I[0] + n_I[1];
-
-		// mean
-		double _Mean = 0;
-		for (int _i=0; _i < N; _i++)
+	const int N = N1 + N2;
+	double _mean = 0;
+	for (int i=0; i < N1; i++)
+	{
+		for (int j=N1; j < N; j++)
 		{
-			for (int _j=0; _j < N; _j++)
-			{
-				if (_i != _j)
-					_Mean += dist[I[_i] * n_dist[0] + I[_j]];
-			}	
+			_mean += dist[ I[i] * n_dist + I[j] ];
 		}
-		*mean = _Mean / (N * (N - 1));
-
-		// standard deviation
-		const double E1 = double(N1) * (N1-1) * N2 * (N2-1) / (N * (N-1) * (N-2) * (N-3));
-		const double E2 = double(N1) * N2 * (N2-1) / (N * (N-1) * (N-2));
-		const double E3 = double(N1) * N2 / (N * (N-1));
-		const double E4 = double(N1) * (N-1) * N2 / (N * (N-1) * (N-2));
-		double _E_X2 = 0;
-
-		for (int _i=0; _i < N; _i++)
-		{
-			for (int _j=0; _j < N; _j++)
-			{
-				for (int _ii=0; _ii < N; _ii++)
-				{
-					for (int _jj=0; _jj < N; _jj++)
-					{
-						if ((_i != _j) && (_ii != _jj))
-						{
-							double d = dist[I[_i] * n_dist[0] + I[_j]] *
-								dist[I[_ii] * n_dist[0] + I[_jj]];
-							if (_i == _ii)
-								_E_X2 += d * ((_j == _jj) ? E3 : E2);
-							else if (_j == _jj)
-								_E_X2 += d * E4;
-							else if ((_i != _jj) && (_j != _ii))
-								_E_X2 += d * E1;
-						}
-					}
-				}
-			}
-		}
-		*sd = (_E_X2 / (N*N*(N-1)*(N-1)) - (*mean) * (*mean));
-
-		// output
-		*out_err = 0;
-	CORECATCH(*out_err = 1)
+	}
+	return _mean / (N1*N2);
 }
 
-
 // return 0 .. (Range-1)
-static inline int RandomNum(int Range)
+static inline int _RandomNum(int Range)
 {
 	int rv = (int)(unif_rand()*(Range-1) + 0.5);
 	if (rv >= Range) rv = Range -1;
 	return rv;
 }
 
-/// to compute mean and standard deviation of individual dissimilarity by permutation
-DLLEXPORT void gnrDistPerm(int *n_dist, double *dist, int I[], int *n_I, int *n_sub,
-	int *count, double *d, int *out_err)
+// to compute mean and standard deviation of individual dissimilarity by permutation
+static void _RunDissZ(double *dist, int n_dist, int I[], int N1, int N2,
+	double OutD[], int nOut)
+{
+	const int N  = N1 + N2;
+	const int NSub1 = (N1 < N2) ? N1 : N2;
+	const int NSub2 = N - NSub1;
+	vector<int> I_Idx(&I[0], &I[N]);
+
+	for (int cnt=0; cnt < nOut; cnt++)
+	{
+		// random subset
+		for (int i=0; i < NSub1; i++)
+		{
+			int k = _RandomNum(N - i);
+			swap(I_Idx[i], I_Idx[k+i]);
+		}
+		// calculate distance
+		OutD[cnt] = _distance(dist, n_dist, &(I_Idx[0]), NSub1, NSub2);
+	}
+}
+
+
+// to compute mean and standard deviation of individual dissimilarity by permutation
+DLLEXPORT void gnrDistPerm(int *n_dist, double *dist, int *merge,
+	int *n_perm, double *z_threshold,
+	double Out_Merge_Z[], int Out_Merge_N1[], int Out_Merge_N2[],
+	int Out_Ind_Grp[], int *out_err)
 {
 	CORETRY
-		const int N1 = n_I[0];
-		const int N2 = n_I[1];
-		const int N  = n_I[0] + n_I[1];
-		const int NSub = (*n_sub < (N - *n_sub)) ? (*n_sub) : (N - *n_sub);
+		//
+		vector< vector<int> > Array(*n_dist - 1);
+		vector<double> d_buffer(*n_perm);
 
-		vector<int> I_Idx(N);
-		for (int i=0; i < N; i++) I_Idx[i] = I[i];
-
-		for (int cnt=0; cnt < *count; cnt++)
+		for (int i_merge=0; i_merge < (*n_dist - 1); i_merge++)
 		{
-			// random subset
-			for (int i=0; i < NSub; i++)
+			// individual index
+			int i1 = merge[i_merge];
+			int i2 = merge[i_merge + (*n_dist - 1)];
+			int n1, n2;
+			vector<int> &A = Array[i_merge];
+
+			if (i1 < 0)
 			{
-				int k = RandomNum(N - i);
-				swap(I_Idx[i], I_Idx[k+i]);
+				A.push_back((-i1) - 1);
+				n1 = 1;
+			} else {
+				A.insert(A.end(), Array[i1-1].begin(), Array[i1-1].end());
+				n1 = Array[i1-1].size();
+			}
+			if (i2 < 0)
+			{
+				A.push_back((-i2) - 1);
+				n2 = 1;
+			} else {
+				A.insert(A.end(), Array[i2-1].begin(), Array[i2-1].end());
+				n2 = Array[i2-1].size();
 			}
 
-			double _Mean = 0;
-			for (int i=0; i < NSub; i++)
+			Out_Merge_N1[i_merge] = n1;
+			Out_Merge_N2[i_merge] = n2;
+
+			if ((n1<=1) && (n2<=1))
 			{
-				for (int j=NSub; j < N; j++)
+				Out_Merge_Z[i_merge] = 0;
+			} else {
+
+				double L = _distance(dist, *n_dist, &(A[0]), n1, n2);
+				_RunDissZ(dist, *n_dist, &(A[0]), n1, n2, &(d_buffer[0]), *n_perm);
+
+				// calculate mean
+				double _mean = 0;
+				for (int i=0; i < *n_perm; i++)
+					_mean += d_buffer[i];
+				_mean /= *n_perm;
+
+				// standard deviation
+				double _sd = 0;
+				for (int i=0; i < *n_perm; i++)
+					_sd += (d_buffer[i] - _mean)*(d_buffer[i] - _mean);
+				_sd /= (*n_perm - 1);
+
+				Out_Merge_Z[i_merge] = (_sd > 0) ? ((L - _mean)/sqrt(_sd)) : 0;
+			}
+		}
+
+		// determine groups
+		vector<int> grp_flag(*n_dist - 1, 0);
+		for (int i=0; i < *n_dist; i++) Out_Ind_Grp[i] = 1;
+
+		for (int i_merge=0; i_merge < (*n_dist - 1); i_merge++)
+		{
+			bool b = (Out_Merge_Z[i_merge] >= *z_threshold);
+			if (!b)
+			{
+				// individual index
+				int i1 = merge[i_merge];
+				int i2 = merge[i_merge + (*n_dist - 1)];
+				if ((i1 > 0) && (grp_flag[i1-1] != 0))
+					b = true;
+				if ((i2 > 0) && (grp_flag[i2-1] != 0))
+					b = true;
+			}
+			if (b)
+			{
+				grp_flag[i_merge] = 1;
+
+				const int N1 = Out_Merge_N1[i_merge];
+				const int N2 = Out_Merge_N2[i_merge];
+				const vector<int> &A = Array[i_merge];
+
+				int max = 0;
+				for (int i=0; i < N1; i++)
 				{
-					_Mean += dist[I_Idx[i] * n_dist[0] + I_Idx[j]];
+					if (Out_Ind_Grp[A[i]] > max)
+						max = Out_Ind_Grp[ A[i] ];
+				}
+				for (int i=N1; i < N1+N2; i++)
+				{
+					Out_Ind_Grp[A[i]] += max;
 				}
 			}
-			d[cnt] = _Mean / (NSub * (N - NSub));
 		}
 
 		// output
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
 }
-
 
 
 
@@ -1349,7 +1402,7 @@ DLLEXPORT void gnrConvGDS2PED(char **pedfn, char **SampID, int *Sex,
 
 		ofstream file(*pedfn);
 		if (!file.good())
-			throw ErrCoreArray("Fail to create the file %s.", *pedfn);
+			throw ErrCoreArray("Fail to create the file '%s'.", *pedfn);
 		CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 		for (long i=0; i < buf.IdxCnt(); i++)
 		{
@@ -1378,7 +1431,7 @@ DLLEXPORT void gnrConvGDS2BED(char **bedfn, LongBool *SNPOrder,
 
 		ofstream file(*bedfn, ios::binary);
 		if (!file.good())
-			throw ErrCoreArray("Fail to create the file %s.", *bedfn);
+			throw ErrCoreArray("Fail to create the file '%s'.", *bedfn);
 		// output prefix
 		{
 			char prefix[3];
@@ -1425,7 +1478,7 @@ DLLEXPORT void gnrConvGDS2EIGEN(char **pedfn, LongBool *verbose, LongBool *out_e
 
 		ofstream file(*pedfn);
 		if (!file.good())
-			throw ErrCoreArray("Fail to create the file %s.", *pedfn);
+			throw ErrCoreArray("Fail to create the file '%s'.", *pedfn);
 		CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
 		for (long i=0; i < buf.IdxCnt(); i++)
 		{
@@ -1448,7 +1501,7 @@ DLLEXPORT void gnrBEDFlag(char **bedfn, int *SNPOrder, LongBool *out_err)
 	CORETRY
 		ifstream file(*bedfn, ios::binary);
 		if (!file.good())
-			throw ErrCoreArray("Cannot open the file %s.", *bedfn);
+			throw ErrCoreArray("Cannot open the file '%s'.", *bedfn);
 		char prefix[3];
 		file.read(prefix, 3);
 		if ((prefix[0] != 0x6C) || (prefix[1] != 0x1B))
@@ -1473,7 +1526,7 @@ DLLEXPORT void gnrConvBED2GDS(char **bedfn, TdSequenceX *Node, LongBool *verbose
 
 		ifstream file(*bedfn, ios::binary);
 		if (!file.good())
-			throw ErrCoreArray("Fail to open the file %s.", *bedfn);
+			throw ErrCoreArray("Fail to open the file '%s'.", *bedfn);
 		// read prefix
 		char prefix[3];
 		file.read(prefix, 3);

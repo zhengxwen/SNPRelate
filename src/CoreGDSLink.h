@@ -107,16 +107,16 @@ namespace GDSInterface
 	Int64 gds_SeqGetCount(TdSequenceX obj);
 
 	/// read the data
-	bool gds_rData(TdSequenceX obj, Int32 const* Start,
-		Int32 const* Length, void *OutBuf, TSVType OutSV);
+	bool gds_rData(TdSequenceX obj, CoreArray::Int32 const* Start,
+		CoreArray::Int32 const* Length, void *OutBuf, TSVType OutSV);
 
 	/// read the data
-	bool gds_rDataEx(TdSequenceX obj, Int32 const* Start,
-		Int32 const* Length, CBOOL *Selection[], void *OutBuf, TSVType OutSV);
+	bool gds_rDataEx(TdSequenceX obj, CoreArray::Int32 const* Start,
+		CoreArray::Int32 const* Length, CBOOL *Selection[], void *OutBuf, TSVType OutSV);
 
 	/// write the data
-	bool gds_wData(TdSequenceX obj, Int32 const* Start,
-		Int32 const* Length, const void *InBuf, TSVType OutSV);
+	bool gds_wData(TdSequenceX obj, CoreArray::Int32 const* Start,
+		CoreArray::Int32 const* Length, const void *InBuf, TSVType OutSV);
 
 	/// append the data
 	bool gds_AppendData(TdSequenceX obj, int Cnt, const void *InBuf, TSVType OutSV);

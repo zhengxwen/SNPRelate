@@ -11,8 +11,8 @@ in Genome-wide Association Studies
 	\tabular{ll}{
 		Package: \tab SNPRelate\cr
 		Type: \tab Package\cr
-		Version: \tab 0.9.8\cr
-		Date: \tab 2012-09-30\cr
+		Version: \tab 0.9.9\cr
+		Date: \tab 2013-01-04\cr
 		License: \tab LGPL version 3\cr
 		Depends: \tab gdsfmt (>= 0.9.7)\cr
 	}
@@ -26,9 +26,9 @@ in Genome-wide Association Studies
 	Forums:	\url{http://sourceforge.net/projects/corearray/forums}
 }
 \references{
-	Xiuwen Zheng, David Levine, Jess Shen, Stephanie M. Gogarten, Cathy Laurie, Bruce S. Weir.
-A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data.
-Accepted by Bioinformatics.
+	Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS.
+	A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data.
+	Bioinformatics (2012); doi: 10.1093/bioinformatics/bts610
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 

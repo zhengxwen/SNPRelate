@@ -46,12 +46,6 @@ fn <- snpgdsExampleFileName()
 snpgdsCombineGeno(c(fn, fn), "test.gds")
 
 snpgdsSummary("test.gds")
-
-# check
-gfile <- openfn.gds("test.gds")
-pca <- snpgdsPCA(gfile)
-plot(pca$eigenvect[,1], pca$eigenvect[,2], pch="*")
-closefn.gds(gfile)
 }
 
 \keyword{gds}

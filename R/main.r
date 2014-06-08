@@ -31,7 +31,7 @@
 # To calculate the missing rate and allele frequency for each SNP
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #
@@ -84,7 +84,7 @@ snpgdsSNPRateFreq <- function(gdsobj, sample.id=NULL, snp.id=NULL)
 # To calculate the missing rate for each sample
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #
@@ -135,7 +135,7 @@ snpgdsSampMissrate <- function(gdsobj, sample.id=NULL, snp.id=NULL)
 # Return a list of candidate SNPs
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   autosome.only -- whether only use autosomal SNPs
@@ -240,7 +240,7 @@ snpgdsSelectSNP <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 # To conduct principal component analysis
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   autosome.only -- whether only use autosomal SNPs
@@ -386,7 +386,7 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #
 # INPUT:
 #   pcaobj -- a "snpgdsPCAClass" object from the function "snpgds.pca"
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   eig.which -- specify which eigenvectors to be used
 #   num.thread -- the number of threads
@@ -463,7 +463,7 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
 #
 # INPUT:
 #   pcaobj -- a "snpgdsPCAClass" object from the function "snpgds.pca"
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   num.thread -- the number of threads
 #   verbose -- show information
 #
@@ -528,7 +528,7 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1, verbose=TRUE)
 #
 # INPUT:
 #   loadobj -- a "snpgdsPCASNPLoading" object from the function "snpgds.pca"
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   num.thread -- the number of threads
 #   verbose -- show information
@@ -607,7 +607,7 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 # To calculate the identity-by-state (IBS) matrix for SNP genotypes
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   autosome.only -- whether only use autosomal SNPs
@@ -734,7 +734,7 @@ snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 # To calculate the identity-by-state (IBS) matrix for SNP genotypes
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   autosome.only -- whether only use autosomal SNPs
@@ -870,7 +870,7 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 # To calculate the identity-by-descent (IBD) matrix (PLINK Moment) for SNP genotypes
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   autosome.only -- whether only use autosomal SNPs
@@ -1043,7 +1043,7 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE
 # To calculate the identity-by-descent (IBD) matrix (MLE) for SNP genotypes
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   autosome.only -- whether only use autosomal SNPs
@@ -1558,7 +1558,7 @@ snpgdsLDpair <- function(snp1, snp2, method=c("composite", "r", "dprime", "corr"
 # To calculate LD for each pair of SNPs in the region
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   slide -- the size of sliding windows,
@@ -1658,7 +1658,7 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 # To prune SNPs based on LD
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   autosome.only -- whether only use autosomal SNPs
@@ -1796,7 +1796,8 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	# for-loop each chromosome
 	ntotal <- 0; res <- list()
 	snp.flag <- total.snp.ids %in% snp.ids
-	for (ch in 1:26)
+
+	for (ch in setdiff(unique(chr), c(0, NA)))
 	{
 		flag <- snp.flag & (chr == ch)
 		n.tmp <- sum(flag)
@@ -1888,7 +1889,7 @@ snpgdsIndInbCoef <- function(x, p, method=c("mom.weir", "mom.visscher", "mle"),
 # To calculate individual inbreeding coefficients
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   autosome.only -- whether only use autosomal SNPs
@@ -2032,7 +2033,7 @@ snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 # To calculate the genetic dissimilarity matrix for SNP genotypes
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   autosome.only -- whether only use autosomal SNPs
@@ -2213,103 +2214,88 @@ snpgdsHCluster <- function(dist, sample.id=NULL, need.mat=TRUE, hang=0.25)
 #   verbose -- show information
 #
 
-snpgdsCutTree <- function(hc, z.threshold=10, method=c("permutation", "exact"),
-	n.perm = 1000, samp.group=NULL, verbose=TRUE)
+snpgdsCutTree <- function(hc, z.threshold=15, outlier.n=5, n.perm = 5000,
+	samp.group=NULL,
+	col.outlier="red", col.list=NULL, pch.outlier=4, pch.list=NULL,
+	label.H=FALSE, label.Z=TRUE, verbose=TRUE)
 {
 	# check
 	stopifnot(inherits(hc, "snpgdsHCClass"))
 	stopifnot(is.finite(z.threshold))
-	stopifnot(method %in% c("permutation", "exact"))
 	stopifnot(is.numeric(n.perm))
+	stopifnot(is.logical(label.H))
+	stopifnot(is.logical(label.Z))
 	stopifnot(is.logical(verbose))
+	stopifnot(n.perm >= 50)
 
-	if (method[1] == "exact")
-		stop("`method=\"exact\" is not supported currently.")
 	if (is.null(hc$dist))
-		stop("`hc' should have a dissimilarity matrix.")
+		stop("`hc' should have a matrix of dissimilarity.")
 
+	auto.cluster <- is.null(samp.group)
 	if (verbose)
 	{
-		if (is.null(samp.group))
-			cat(sprintf("Determine groups (Z threshold: %g):\n", z.threshold))
+		if (auto.cluster)
+		{
+			cat(sprintf("Determine groups by permutation (Z threshold: %g, outlier threshold: %d):\n",
+				z.threshold, outlier.n))
+		}
 	}
+
 
 	# result
 	ans <- list(sample.id = hc$sample.id)
+	ans$z.threshold <- z.threshold
+	ans$outlier.n <- outlier.n
+	ans$samp.order <- hc$hclust$order
 
-	if (!is.null(samp.group))
+	if (!auto.cluster)
 	{
 		stopifnot(is.factor(samp.group))
 		stopifnot(length(samp.group) == length(hc$sample.id))
+		merge <- NULL
+
 	} else {
 		# determine the number of groups
 
+		# check
 		stopifnot(!is.null(hc$dist))
+		stopifnot(!is.null(hc$hclust$merge))
 
-		# initialize ...
-		method <- method[1]
+		n <- dim(hc$dist)[1]
+		rv <- .C("gnrDistPerm", n, as.double(hc$dist),
+			as.integer(hc$hclust$merge), as.integer(n.perm), as.double(z.threshold),
+			OutZ = double(n-1), OutN1 = integer(n-1), OutN2 = integer(n-1),
+			OutGrp = integer(n), err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		if (rv$err != 0) stop(snpgdsErrMsg())
 
-		# get sample.id from a single tree
-		get.id <- function(n)
+		merge <- data.frame(z=rv$OutZ, n1=rv$OutN1, n2=rv$OutN2)
+
+		if (is.finite(outlier.n))
 		{
-			if (is.leaf(n))
-				attr(n, "label")
-			else
-				unlist(lapply(n, get.id))
-        }
+			tab <- table(rv$OutGrp)
+			x <- as.integer(names(tab)[tab <= outlier.n])
+			flag <- rv$OutGrp %in% x
 
-		# get groups
-		grouping <- function(n)
-		{
-			if (!is.leaf(n))
-			{
-				nl <- get.id(n[[1]]); nr <- get.id(n[[2]])
-				ii <- match(c(nl, nr), hc$sample.id) - as.integer(1)
+			samp.group <- sprintf("G%03d", rv$OutGrp)
+			samp.group[flag] <- sprintf("Outlier%03d", rv$OutGrp[flag])
+			samp.group <- as.factor(samp.group)
 
-				# call C function
-				if (method == "permutation")
-				{
-					rv <- .C("gnrDistPerm", dim(hc$dist), as.double(hc$dist),
-						ii, c(length(nl), length(nr)), length(nl), as.integer(n.perm),
-						d=double(n.perm), err=integer(1),
-						NAOK=TRUE, PACKAGE="SNPRelate")
-					if (rv$err != 0) stop(snpgdsErrMsg())
-					rv <- list(mean = mean(rv$d), sd = sd(rv$d))
-				} else {
-					rv <- .C("gnrDistSD", dim(hc$dist), as.double(hc$dist),
-						ii, c(length(nl), length(nr)),
-						mean=double(1), sd=double(1), err=integer(1),
-						NAOK=TRUE, PACKAGE="SNPRelate")
-					if (rv$err != 0) stop(snpgdsErrMsg())
-				}
+			n.g <- length(tab) - length(x)
+			n.o <- length(x)
+			nm <- character()
 
-				h <- attr(n, "height")
-				z <- (h - rv$mean) / rv$sd
-				if (verbose)
-				{
-					cat(sprintf("Left: %d, Right: %d, distance: %g, perm (%g +- %g), Z: %g\n",
-						length(nl), length(nr), h, rv$mean, rv$sd, z))
-				}
+			if (n.g > 0) nm <- c(nm, sprintf("G%03d", 1:n.g))
+			if (n.o > 0) nm <- c(nm, sprintf("Outlier%03d", 1:n.o))
+			levels(samp.group) <- nm
 
-				if (is.finite(z) && (z > z.threshold))
-				{
-					r1 <- grouping(n[[1]])
-					r2 <- grouping(n[[2]])
-					r2$group <- r2$group + max(r1$group)
-					rbind(r1, r2)
-				} else {
-					data.frame(sample.id = c(nl, nr),
-						group = rep(as.integer(1), length(nl)+length(nr)),
-						stringsAsFactors = FALSE)		
-				}
-			} else {
-				data.frame(sample.id=attr(n, "label"), group=as.integer(1),
-					stringsAsFactors=FALSE)
-			}
+		} else {
+			# not detect outliers
+
+			samp.group <- as.factor(sprintf("G%03d", rv$OutGrp))
+			n <- levels(samp.group)
+			n <- sprintf("G%03d", 1:length(n))
+			levels(samp.group) <- n		
 		}
-		
-		d <- grouping(hc$dendrogram)
-		samp.group <- as.factor(sprintf("G%03d", d$group[match(hc$sample.id, d$sample.id)]))
 	}
 
 
@@ -2319,7 +2305,47 @@ snpgdsCutTree <- function(hc, z.threshold=10, method=c("permutation", "exact"),
 		if(is.leaf(n))
 		{
 			idx <- match(attr(n, "label"), sample.id)
-			attr(n, "nodePar") <- list(pch=20, col=as.integer(subgroup[idx]))
+			if (as.character(subgroup[idx]) == "outlier")
+			{
+				attr(n, "nodePar") <- list(pch=pch.outlier, col=col.outlier)
+			} else {
+				idx <- as.integer(subgroup[idx])
+				attr(n, "nodePar") <- list(pch=pch.list[idx], col=col.list[idx])
+			}
+		} else 
+		{
+			if (!is.null(merge))
+			{
+				if (label.H | label.Z)
+				{
+					x1 <- attr(n[[1]], "members"); x2 <- attr(n[[2]], "members")
+					w1 <- (x1 == merge$n1) & (x2 == merge$n2)
+					w2 <- (x2 == merge$n1) & (x1 == merge$n2)
+					w <- which(w1 | w2)
+					if (length(w) > 0)
+					{
+						if (merge$z[w[1]] >= z.threshold)
+						{
+							if (label.H)
+							{
+								if (label.Z)
+								{
+									attr(n, "edgetext") <- sprintf("H: %0.2f, Z: %0.1f",
+										attr(n, "height"), merge$z[w[1]])
+								} else {
+									attr(n, "edgetext") <- sprintf("H: %0.2f",
+										attr(n, "height"))
+								}
+							} else {
+								if (label.Z)
+								{
+									attr(n, "edgetext") <- sprintf("Z: %0.1f", merge$z[w[1]])
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 		n
 	}
@@ -2345,10 +2371,33 @@ snpgdsCutTree <- function(hc, z.threshold=10, method=c("permutation", "exact"),
 			}
 		}
 	}
-	ans$group.dist <- dmat
+	colnames(dmat) <- rownames(dmat) <- grps
+	ans$dmat <- dmat
+
+	if (is.null(pch.list))
+	{
+		pch.list <- rep(20, n)
+	} else {
+		pch.list <- rep(pch.list, (n %/% length(pch.list))+1)
+	}
+	if (is.null(col.list))
+	{
+		col.list <- 1:n
+	} else {
+		col.list <- rep(col.list, (n %/% length(col.list))+1)
+	}
 
 	ans$dendrogram <- dendrapply(hc$dendrogram, add.point, sample.id=hc$sample.id,
 		subgroup=samp.group)
+	ans$merge <- merge
+
+	if (!is.null(merge))
+	{
+		cluster <- samp.group[hc$hclust$order]
+		ans$clust.count <- table(cluster)[unique(cluster)]
+	} else {
+		ans$clust.count <- NULL
+	}
 
 	if (verbose)
 		cat(sprintf("Create %d groups.\n", n))
@@ -2357,7 +2406,71 @@ snpgdsCutTree <- function(hc, z.threshold=10, method=c("permutation", "exact"),
 }
 
 
+#######################################################################
+# Draw a dendrogram
+#
+# INPUT:
+#   hc -- a "snpgdsHCClass" object
+#   verbose -- show information
+#
 
+snpgdsDrawTree <- function(obj, clust.count=NULL, type=c("dendrogram", "z-score"),
+	outlier.n=NULL, shadow.col = c(rgb(0.5, 0.5, 0.5, 0.25), rgb(0.5, 0.5, 0.5, 0.05)),
+	outlier.col = rgb(1, 0.50, 0.50, 0.5), leaflab="none", labels=NULL, y.label=0.2,
+	...)
+{
+	# check
+	type <- match.arg(type)
+
+	if (type == "dendrogram")
+	{
+		stopifnot(!is.null(obj$dendrogram))
+		stopifnot(is.null(outlier.n) | is.numeric(outlier.n))
+
+		# initialize ...
+		if (is.null(clust.count))
+			clust.count <- obj$clust.count
+		if (is.null(outlier.n))
+			outlier.n <- obj$outlier.n
+
+		# draw
+		plot(obj$dendrogram, leaflab=leaflab, ...)
+
+		if (!is.null(clust.count))
+		{
+			m <- c(0, cumsum(clust.count))
+			jj <- 1; k <- 1
+			for (i in 1:length(clust.count))
+			{
+				if (clust.count[i] > outlier.n)
+				{
+					rect(m[i] + 0.5, par("usr")[3L], m[i+1] + 0.5, par("usr")[4L],
+						col = shadow.col[jj], border = NA)
+					jj <- 3 - jj
+					if (!is.null(labels[k]))
+						text((m[i]+m[i+1])/2, y.label, labels[k])
+					k <- k + 1
+				} else {
+					rect(m[i] + 0.5, par("usr")[3L], m[i+1] + 0.5, par("usr")[4L],
+						col = outlier.col, border = NA)
+				}
+			}
+		}
+	} else if (type == "z-score")
+	{
+		# the distribution of Z scores
+		if (is.null(obj$merge))
+			stop("There is no Z score in this object.")
+
+		y <- obj$merge[,1]
+		y <- y[order(y, decreasing=TRUE)]
+
+		plot(y, xlab="the order of Z score", ylab="Z score", type="b", pch="+", log="x", ...)
+		abline(h=15, col="gray", lty=2)
+	}
+
+	invisible()
+}
 
 
 
@@ -2374,7 +2487,7 @@ snpgdsCutTree <- function(hc, z.threshold=10, method=c("permutation", "exact"),
 #   and allele frequency
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a set of sample used in calculating the allele frequencies
 #
 
@@ -2476,7 +2589,7 @@ snpgdsSNPListStrand <- function(snplist1, snplist2)
 # To summarize the gds file
 #
 # INPUT:
-#   gds -- a object of gds file, or a file names
+#   gds -- an object of gds file, or a file names
 #   show -- print information on screen
 #
 
@@ -2632,6 +2745,10 @@ snpgdsSummary <- function(gds, show=TRUE)
 	# print
 	if (show)
 	{
+		if (inherits(gds, "gdsclass"))
+			cat("The file name:", gds$filename, "\n")
+		else
+			cat("The file name:", gds, "\n")
 		cat("The total number of samples:", n.samp, "\n")
 		cat("The total number of SNPs:", n.snp, "\n")
 		if ("sample.order" %in% names(lv))
@@ -2733,7 +2850,7 @@ snpgdsSummary <- function(gds, show=TRUE)
 # To get a subset of genotypes from a gds file
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   snpfirstorder -- if TRUE, indicate store in individual-major order; NULL, by default
@@ -3345,7 +3462,7 @@ snpgdsExampleFileName <- function()
 # Convert a GDS file to a PLINK ped file
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   ped.fn -- the file name of ped format with the extended name
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
@@ -3436,7 +3553,7 @@ snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
 # Convert a GDS file to a PLINK binary ped file
 #
 # INPUT:
-#   gdsobj -- a object of gds file
+#   gdsobj -- an object of gds file
 #   bed.fn -- the file name of binary ped format with the extended name
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
@@ -3486,9 +3603,28 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, verbose=T
 	# output a bim file
 	snp.idx <- match(snp.ids, total.snp.ids)
 	xchr <- as.character(read.gdsn(index.gdsn(gdsobj, "snp.chromosome")))[snp.idx]
+
+	opt <- snpgdsOption(gdsobj)
+	for (i in 1:length(opt$chromosome.code))
+	{
+		xchr[ xchr == opt$chromosome.code[[i]] ] <- names(opt$chromosome.code)[i]
+	}
 	xchr[is.na(xchr)] <- "0"
-	xchr[xchr=="X"] <- "23"; xchr[xchr=="Y"] <- "24"
-	xchr[xchr=="XY"] <- "25"; xchr[xchr=="MT"] <- "26"
+
+	if ((opt$autosome.start==1) & (opt$autosome.end==22))
+	{
+		# PLINK: Chromosome codes
+		#   The autosomes should be coded 1 through 22.
+		#   The following other codes can be used to specify other chromosome types:
+		# X    X chromosome                    -> 23
+		# Y    Y chromosome                    -> 24
+		# XY   Pseudo-autosomal region of X    -> 25
+		# MT   Mitochondrial                   -> 26
+
+		xchr[xchr=="X"] <- "23"; xchr[xchr=="Y"] <- "24"; xchr[xchr=="XY"] <- "25"
+		xchr[xchr=="M"] <- "26"; xchr[xchr=="MT"] <- "26"
+	}
+
 	if (!is.null(index.gdsn(gdsobj, "snp.allele", TRUE)))
 	{
 		allele <- read.gdsn(index.gdsn(gdsobj, "snp.allele"))
@@ -3554,12 +3690,13 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, verbose=T
 #   fam.fn -- first six columns of mydata.ped
 #   bim.fn -- extended MAP file: two extra cols = allele names
 #   out.gdsn -- the output gds file
-#   compress.annotation="ZIP.max"
+#   compress.annotation -- "ZIP.max"
+#   option -- allows new chromosome coding
 #   verbose -- show information
 #
 
-snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn,
-	compress.annotation="ZIP.max", verbose=TRUE)
+snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
+	compress.annotation="ZIP.max", option=NULL, verbose=TRUE)
 {
 	# check
 	stopifnot(is.character(bed.fn))
@@ -3600,11 +3737,16 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn,
 	# read bim.fn
 	bimD <- read.table(bim.fn, header=FALSE, stringsAsFactors=FALSE)
 	names(bimD) <- c("chr", "snp.id", "map", "pos", "allele1", "allele2")
+
 	# chromosome
+	if (is.null(option)) option <- snpgdsOption()
+	chrcode <- option$chromosome.code
 	chr <- bimD$chr
-	chr[bimD$chr == "X"] <- 23; chr[bimD$chr == "Y"] <- 24; chr[bimD$chr == "XY"] <- 25;
-	chr[bimD$chr == "MT"] <- 26; chr[is.na(chr)] <- 0
+	for (i in names(chrcode))
+		chr[bimD$chr == i] <- chrcode[[i]]
 	chr <- as.integer(chr)
+	chr[is.na(chr)] <- 0
+
 	# snp.id
 	if (length(unique(bimD$snp.id)) == dim(bimD)[1])
 	{
@@ -3612,6 +3754,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn,
 	} else {
 		snp.id <- 1:dim(bimD)[1]; snp.rs.id <- bimD$snp.id
 	}
+
 	if (verbose)
 		cat("\topen", bim.fn, "DONE.\n")
 
@@ -3628,10 +3771,20 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn,
 	# add "snp.position"
 	add.gdsn(gfile, "snp.position", bimD$pos, compress=compress.annotation, closezip=TRUE)
 	# add "snp.chromosome"
-	add.gdsn(gfile, "snp.chromosome", chr, storage="uint8", compress=compress.annotation, closezip=TRUE)
+	v.chr <- add.gdsn(gfile, "snp.chromosome", chr, storage="uint8",
+		compress=compress.annotation, closezip=TRUE)
 	# add "snp.allele"
 	add.gdsn(gfile, "snp.allele", paste(bimD$allele1, bimD$allele2, sep="/"),
 		compress=compress.annotation, closezip=TRUE)
+
+	# snp.chromosome
+	put.attr.gdsn(v.chr, "autosome.start", option$autosome.start)
+	put.attr.gdsn(v.chr, "autosome.end", option$autosome.end)
+	for (i in 1:length(option$chromosome.code))
+	{
+		put.attr.gdsn(v.chr, names(option$chromosome.code)[i],
+			option$chromosome.code[[i]])
+	}
 
 	# sync file
 	sync.gds(gfile)
@@ -3663,7 +3816,14 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn,
 	# add "sample.annot"
 	sex <- rep("", length(sample.id))
 	sex[famD$Sex==1] <- "M"; sex[famD$Sex==2] <- "F"
-	samp.annot <- data.frame(sex=sex, phenotype=famD$Pheno, stringsAsFactors=FALSE)
+
+	if (family)
+	{
+		samp.annot <- data.frame(father=famD$PatID, mother=famD$MatID,
+			sex=sex, phenotype=famD$Pheno, stringsAsFactors=FALSE)
+	} else {
+		samp.annot <- data.frame(sex=sex, phenotype=famD$Pheno, stringsAsFactors=FALSE)
+	}
 	add.gdsn(gfile, "sample.annot", samp.annot, compress=compress.annotation, closezip=TRUE)
 
 	# close files
@@ -4095,6 +4255,8 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 	add.gdsn(gfile, "snp.allele", all.snp.allele, compress=compress.annotation, closezip=TRUE)
 
 	# snp.chromosome
+	put.attr.gdsn(v.chr, "autosome.start", option$autosome.start)
+	put.attr.gdsn(v.chr, "autosome.end", option$autosome.end)
 	for (i in 1:length(option$chromosome.code))
 	{
 		put.attr.gdsn(v.chr, names(option$chromosome.code)[i],
@@ -4140,41 +4302,74 @@ snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024,
 # SNPRelate Option
 #
 
-snpgdsOption <- function(gdsobj=NULL, autosome.start=1, autosome.end=22)
+snpgdsOption <- function(gdsobj=NULL, autosome.start=1, autosome.end=22, ...)
 {
 	ans <- list(
 		autosome.start = as.integer(autosome.start),  # the starting index of autosome
-		autosome.end   = as.integer(autosome.end),    # the ending idex of autosome
-		chromosome.code = list(
-			X  = as.integer(autosome.end + 1),    # X chromosome
-			XY = as.integer(autosome.end + 2),    # Pseudo-autosomal region of X
-			Y  = as.integer(autosome.end + 3),    # Y chromosome
-			M  = as.integer(autosome.end + 4),    # Mitochondrial
-			MT = as.integer(autosome.end + 4)     # Mitochondrial
-	))
+		autosome.end   = as.integer(autosome.end)     # the ending idex of autosome
+	)
 
 	if (!is.null(gdsobj))
 	{
+		# ignore the arguments "..."
+
 		# chromosome
 		n <- index.gdsn(gdsobj, "snp.chromosome")
 		lst <- get.attr.gdsn(n)
+
 		if (!is.null(lst$autosome.start))
+		{
 			ans$autosome.start <- lst$autosome.start
+			lst <- lst[-match("autosome.start", names(lst))]
+		}
 		if (!is.null(lst$autosome.end))
+		{
 			ans$autosome.end <- lst$autosome.end
-		if (!is.null(lst$X)) ans$chromosome.code$X <- lst$X[1]
-		if (!is.null(lst$Y)) ans$chromosome.code$Y <- lst$Y[1]
-		if (!is.null(lst$XY)) ans$chromosome.code$XY <- lst$XY[1]
-		if (!is.null(lst$M)) ans$chromosome.code$M <- lst$M[1]
-		if (!is.null(lst$MT)) ans$chromosome.code$MT <- lst$MT[1]
+			lst <- lst[-match("autosome.end", names(lst))]
+		}
+
+		ns <- names(lst)
+		if (!("X" %in% ns))       # X chromosome
+			lst$X <- as.integer(ans$autosome.end + 1)
+		if (!("XY" %in% ns))      # Pseudo-autosomal region of X
+			lst$XY <- as.integer(ans$autosome.end + 2)
+		if (!("Y" %in% ns))       # Y chromosome
+			lst$Y <- as.integer(ans$autosome.end + 3)
+		if (!("M" %in% ns))       # Mitochondrial
+			lst$M <- as.integer(ans$autosome.end + 4)
+		if (!("MT" %in% ns))      # Mitochondrial
+			lst$MT = as.integer(ans$autosome.end + 4)
+
+		ans$chromosome.code <- lst
 
 		# SNP genotype
+		ans$file$filename <- gdsobj$filename
+
 		n <- index.gdsn(gdsobj, "genotype")
 		lst <- get.attr.gdsn(n)
 		if ("sample.order" %in% names(lst))
 			ans$file$geno.dim <- "sample-by-snp"
 		else
 			ans$file$geno.dim <- "snp-by-sample"
+
+	} else {
+		# incorporate the arguments "..."
+
+		lst <- list(...)
+		lst <- lst[names(lst) != ""]
+
+		if (length(lst) <= 0)
+		{
+			ans$chromosome.code = list(
+				X  = as.integer(autosome.end + 1),    # X chromosome
+				XY = as.integer(autosome.end + 2),    # Pseudo-autosomal region of X
+				Y  = as.integer(autosome.end + 3),    # Y chromosome
+				M  = as.integer(autosome.end + 4),    # Mitochondrial
+				MT = as.integer(autosome.end + 4)     # Mitochondrial
+			)
+		} else {
+			ans$chromosome.code <- lst
+		}
 	}
 
 	ans
@@ -4194,14 +4389,12 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1, autosome.end=22)
 	# get the filename of the dynamic-link library
 	lib.fn <- as.character(getLoadedDLLs()$gdsfmt[[2]])
 
-	# load the dynamic-link library
-	library.dynam("SNPRelate", pkg, lib)
 	# init SNPRelate
 	rv <- .C("gnrInit", lib.fn, err=character(1), sse=integer(1), PACKAGE="SNPRelate")
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.8")
+	packageStartupMessage("SNPRelate: 0.9.9")
 	if (rv$sse != 0)
 		packageStartupMessage("Streaming SIMD Extensions 2 (SSE2) supported.\n")
 

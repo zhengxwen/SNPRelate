@@ -1,38 +1,51 @@
 \name{snpgdsCutTree}
 \alias{snpgdsCutTree}
 \title{
-	Determine sub groups of individuals
+	Determine clusters of individuals
 }
 \description{
-	To determine sub groups of individuals using a specified tree from hierarchical
+	To determine sub groups of individuals using a specified dendrogram from hierarchical
 cluster analysis
 }
 \usage{
-snpgdsCutTree(hc, z.threshold=10, method=c("permutation", "exact"),
-	n.perm = 1000, samp.group=NULL, verbose=TRUE)
+snpgdsCutTree(hc, z.threshold=15, outlier.n=5, n.perm = 5000, samp.group=NULL,
+	col.outlier="red", col.list=NULL, pch.outlier=4, pch.list=NULL,
+	label.H=FALSE, label.Z=TRUE, verbose=TRUE)
 }
 \arguments{
-	\item{hc}{an object of "snpgdsHCClass"}
+	\item{hc}{an object of \code{\link{snpgdsHCluster}}}
 	\item{z.threshold}{the threshold of Z score to determine whether split the node or not}
-	\item{method}{"permutation", "exact"}
+	\item{outlier.n}{the cluster with size less than or equal to \code{outlier.n} is considered as outliers}
 	\item{n.perm}{the times for permutation}
 	\item{samp.group}{if \code{NULL}, determine groups by Z score; if a vector of factor,
 		assign each individual in dendrogram with respect to \code{samp.group}}
+	\item{col.outlier}{the color of outlier}
+	\item{col.list}{the list of colors for different clusters}
+	\item{pch.outlier}{plotting 'character' for outliers}
+	\item{pch.list}{plotting 'character' for different clusters}
+	\item{label.H}{if TRUE, plotting heights in a dendrogram}
+	\item{label.Z}{if TRUE, plotting Z scores in a dendrogram}
 	\item{verbose}{if TRUE, show information}
 }
 \details{
 	The details will be described in future.
 }
 \value{
-	Return a list (class "snpgdsIBSClass"):
+	Return a list:
 	\item{sample.id}{the sample ids used in the analysis}
+	\item{z.threshold}{the threshold of Z score to determine whether split the node or not}
+	\item{outlier.n}{the cluster with size less than or equal to \code{outlier.n} is considered as outliers}
+	\item{samp.order}{the order of samples in the dendrogram}
 	\item{samp.group}{a vector of factor, indicating the group of each individual}
-	\item{group.dist}{a matrix of pairwise group dissimilarity}
-	\item{dendrogram}{the dendrogram of individuals of sub groups}
+	\item{dmat}{a matrix of pairwise group dissimilarity}
+	\item{dendrogram}{the dendrogram of individuals}
+	\item{merge}{a data.frame of \code{(z, n1, n2)} describing each combination:
+		\code{z}, the Z score; \code{n1}, the size of the first cluster; \code{n2}, the size of the second cluster}
+	\item{clust.count}{the counts for clusters}
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 \seealso{
-	\code{\link{snpgdsHCluster}},
+	\code{\link{snpgdsHCluster}}, \code{\link{snpgdsDrawTree}},
 	\code{\link{snpgdsIBS}}, \code{\link{snpgdsDiss}}
 }
 
@@ -45,11 +58,26 @@ pop.level <- levels(pop.group)
 
 diss <- snpgdsDiss(genofile, num.thread=2)
 hc <- snpgdsHCluster(diss)
-rv <- snpgdsCutTree(hc)
-plot(rv$dendrogram, leaflab="none", main="HapMap Phase II")
+
+set.seed(100)
+rv <- snpgdsCutTree(hc, label.H=TRUE, label.Z=TRUE)
+
+# the distribution of Z scores
+snpgdsDrawTree(rv, type="z-score", main="HapMap Phase II")
+
+# draw dendrogram
+snpgdsDrawTree(rv, main="HapMap Phase II",
+	edgePar=list(col=rgb(0.5,0.5,0.5, 0.75), t.col="black"))
+
+
+
+# or cluster individuals by ethnic information
 
 rv2 <- snpgdsCutTree(hc, samp.group=as.factor(pop.group))
-plot(rv2$dendrogram, leaflab="none", main="HapMap Phase II")
+# cluster individuals by Z score, specifying 'clust.count'
+snpgdsDrawTree(rv2, rv$clust.count, main="HapMap Phase II",
+	edgePar=list(col=rgb(0.5,0.5,0.5, 0.75), t.col="black"))
+
 
 # close the genotype file
 closefn.gds(genofile)

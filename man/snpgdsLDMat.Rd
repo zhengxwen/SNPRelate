@@ -57,9 +57,9 @@ library(lattice)
 # open an example dataset (HapMap)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
-# chromosome 1
+# chromosome 15
 snpset <- read.gdsn(index.gdsn(genofile, "snp.id"))[
-	read.gdsn(index.gdsn(genofile, "snp.chromosome")) == 1]
+	read.gdsn(index.gdsn(genofile, "snp.chromosome")) == 15]
 length(snpset)
 
 # LD matrix

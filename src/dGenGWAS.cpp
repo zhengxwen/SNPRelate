@@ -1369,6 +1369,7 @@ void CMultiCoreWorkingGeno::_DoThread_WorkingGeno(TdThread Thread, int ThreadInd
 	// if not main thread, suspend
 	if (ThreadIndex == 0)
 	{
+		// main thread, wait until the other threads are all suspended
 		int I;
 		do {
 			plc_LockMutex(_Mutex);
@@ -1444,7 +1445,8 @@ void CMultiCoreWorkingGeno::_DoThread_WorkingGeno(TdThread Thread, int ThreadInd
 	}
 
 	// end ...
-	if (ThreadIndex == 0) plc_WakeUp(_Suspend);
+	// if (ThreadIndex == 0)
+	plc_WakeUp(_Suspend);
 }
 
 void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[],
