@@ -11,10 +11,8 @@ analysis in Genome-wide Association Studies
 	\tabular{ll}{
 		Package: \tab SNPRelate \cr
 		Type: \tab Package \cr
-		Version: \tab 0.9.14 \cr
-		Date: \tab 2013-09-04 \cr
+		Version: \tab 0.9.20 \cr
 		License: \tab GPL version 3 \cr
-		Depends: \tab gdsfmt (>= 0.9.7) \cr
 	}
 	The genotypes stored in GDS format can be analyzed by the R functions in SNPRelate,
 	which utilize the multi-core feature of machine for a single computer.
