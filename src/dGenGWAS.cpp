@@ -1452,6 +1452,10 @@ void CMultiCoreWorkingGeno::_DoThread_WorkingGeno(TdThread Thread, int ThreadInd
 void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[],
 	Int64 outMatCnt[])
 {
+	#ifdef COREARRAY_NO_MULTICORE
+		nJob = 1; 
+	#endif
+
 	if (nJob <= 0) nJob = 1;
 	IdMatTri pt(MatSize);
 	double ratio = 0.5*(MatSize+1)*MatSize / nJob, st = 0;
@@ -1468,6 +1472,10 @@ void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[
 void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTriD outMatIdx[],
 	Int64 outMatCnt[])
 {
+	#ifdef COREARRAY_NO_MULTICORE
+		nJob = 1; 
+	#endif
+
 	if (nJob <= 0) nJob = 1;
 	IdMatTriD pt(MatSize);
 	double ratio = 0.5*(MatSize-1)*MatSize / nJob, st = 0;

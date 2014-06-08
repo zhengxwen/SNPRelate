@@ -1,7 +1,13 @@
+0.9.13	25-Feb-2013	Xiuwen Zheng <zhengx@u.washington.edu>
+
+	* Disable parallel functions in the Windows version of SNPRelate, until the internal multi-thread funcitons are replacted by the functions in win-pthreads
+	* Fix compiling issues in the Windows version of SNPRelate
+
+
 0.9.12	27-Feb-2013	Xiuwen Zheng <zhengx@u.washington.edu>
 
 	* add 'GetRNGstate' and 'PutRNGstate' to the C function 'gnrDistPerm'
-	* avoid the upper limit of 200 chromosomes in 'snpgdsVCF2GDS' according to scaffolds/contigs from a de novo assembly not chromosomes
+	* remove the upper limit of 200 chromosomes in 'snpgdsVCF2GDS' according to scaffolds/contigs from a de novo assembly not chromosomes
 	* improves 'snpgdsSummary'
 
 

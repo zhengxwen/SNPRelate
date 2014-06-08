@@ -39,8 +39,6 @@
 #define _CoreGDSLink_H_
 
 #include <dType.h>
-#include <R.h>
-#include <Rdefines.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -127,9 +125,6 @@ namespace GDSInterface
 	bool gds_rDataEx(PdSequenceX obj, CoreArray::Int32 const* Start,
 		CoreArray::Int32 const* Length, const CBOOL *const Selection[],
 		void *OutBuf, TSVType OutSV);
-
-	SEXP gds_Read_SEXP(PdSequenceX Obj, CoreArray::Int32 const* Start,
-		CoreArray::Int32 const* Length, const CBOOL *const Selection[]);
 
 
 	/// write the data
@@ -284,8 +279,13 @@ namespace GDSInterface
 	// ****  the functions for R
 	//
 
+	// define _SEXP to avoid include <R.h> and <Rdefineh.h>
+	typedef void* _SEXP_;
+
 	bool gds_Is_R_Logical(PdGDSObj Obj);
-	int gds_Set_If_R_Factor(PdGDSObj Obj, SEXP val);
+	int gds_Set_If_R_Factor(PdGDSObj Obj, _SEXP_ val);
+	_SEXP_ gds_Read_SEXP(PdSequenceX Obj, CoreArray::Int32 const* Start,
+		CoreArray::Int32 const* Length, const CBOOL *const Selection[]);
 
 
 	// ******************************************************************

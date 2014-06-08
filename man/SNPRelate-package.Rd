@@ -11,9 +11,9 @@ in Genome-wide Association Studies
 	\tabular{ll}{
 		Package: \tab SNPRelate\cr
 		Type: \tab Package\cr
-		Version: \tab 0.9.12\cr
+		Version: \tab 0.9.13\cr
 		Date: \tab 2013-02-27\cr
-		License: \tab LGPL version 3\cr
+		License: \tab GPL version 3\cr
 		Depends: \tab gdsfmt (>= 0.9.7)\cr
 	}
 	The genotypes stored in GDS format can be analyzed by the R functions in SNPRelate,

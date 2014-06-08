@@ -1,11 +1,11 @@
-d71d836d909d1e4998556a66d903de9f *DESCRIPTION
+3d9edecf40431ed2f9c2cc102a979fb0 *DESCRIPTION
 86d1ff8b7633c437f24bd5810e680549 *NAMESPACE
-c7014df727eab212d4be691e7601400d *NEWS
+aaef36bf08dbb19eab2f27aa59da66d6 *NEWS
 86b7f37c17237a70d8536277c7bc8558 *R/main.r
 7b13a50d91c1c5a57b62491e749441c6 *data/hapmap_geno.RData
 d3d0f8bd4037a0827d4cb1e050d03196 *inst/CITATION
-99623d66cb00462371d6f1f5deb657a8 *inst/doc/SNPRelateTutorial.Rnw
-d63a79eac32dda01d9e191c76982de66 *inst/doc/SNPRelateTutorial.pdf
+8b213216941219a04571691b31c280bd *inst/doc/SNPRelateTutorial.Rnw
+2b5dd568cd1d632ef708b9d7139a03f2 *inst/doc/SNPRelateTutorial.pdf
 64cf754f97586b65ef62f7d8cb21633f *inst/extdata/hapmap_geno.gds
 3dfba33557d832612dcc0e64d942e089 *inst/extdata/plinkhapmap.bed
 eb7e83a868607c6a2a7b9d23cc3ea946 *inst/extdata/plinkhapmap.bim
@@ -18,7 +18,7 @@ f0e4d0f322ce8686aa92e33b4c9fad5d *inst/unitTests/runit.PCA.r
 361bb9248ae790dc7c25b3e50678988f *inst/unitTests/valid/Validate.IBS.RData
 e9d6c067c0d637933aa7f3ab3bd31fd7 *inst/unitTests/valid/Validate.MoM.RData
 3f7d403802db8ccabc2c486a65582862 *inst/unitTests/valid/Validate.PCA.RData
-961d3a0d8643dcc83cfd82e211152d97 *man/SNPRelate-package.Rd
+ef6e6495a7bed97b13b1ac8612bf9614 *man/SNPRelate-package.Rd
 6bd7f9d1c82ce845a76ff905da592581 *man/hapmap_geno.Rd
 cddcd6acdae58de945630f0a7d7f7807 *man/snpgdsBED2GDS.Rd
 ca1ffbb5b40741d73219b8cf39f3418f *man/snpgdsCombineGeno.Rd
@@ -62,12 +62,12 @@ d8b626592424ce95bf287f815ca417a4 *man/snpgdsSampMissrate.Rd
 e1c9104c5ae8267b5655380ee27a0ecc *man/snpgdsSummary.Rd
 4452d1f5088c6b5f2dd82831a27b0bf0 *man/snpgdsVCF2GDS.Rd
 262024875c8ea231522f791bab5ffdf5 *src/CoreDEF.h
-525a8f3d9c7560d2e601f2af5d6c8a50 *src/CoreGDSLink.cpp
-fdc947549d3ed77d436aa90eff1cf6ee *src/CoreGDSLink.h
+d37664580378e87344012019d080c8bf *src/CoreGDSLink.cpp
+11f6592c354ea26db3c9bf02f31858af *src/CoreGDSLink.h
 869c3c72b7e4e3f97c32167521a4299b *src/Makevars
-bdfd9797524ab6027a1bcf06d34a9057 *src/Makevars.win
+c71d2262009989cca88a258a04f59524 *src/Makevars.win
 0ed37db150304cc049e176b0f64c4198 *src/dGWASMath.h
-9c428c17badeb4e01222909fee4e984e *src/dGenGWAS.cpp
+3f504c586425f74eb04bfaa5d5500498 *src/dGenGWAS.cpp
 62473e989b4596e6f3374986958b2db2 *src/dGenGWAS.h
 cffa6b30f0e4732fd3a3f686e67f54aa *src/dType.h
 ce62540277c3b25ea35e69f28c084b04 *src/dVect.cpp
@@ -80,4 +80,4 @@ f4319792f9bfd978f488d12bdba2cb8f *src/dVect.h
 b2a430f628ba19f9534311945243dbde *tests/runTests.R
 2e46d7b0cdea051f4e0c287a541b01cc *vignettes/SNPRelate-Flowchart.png
 d09d6bb49f8d52c65e39ba5d4eb6a1dc *vignettes/SNPRelateTutorial-IBDMLE.png
-99623d66cb00462371d6f1f5deb657a8 *vignettes/SNPRelateTutorial.Rnw
+8b213216941219a04571691b31c280bd *vignettes/SNPRelateTutorial.Rnw

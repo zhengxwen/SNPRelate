@@ -35,6 +35,7 @@
 #  error "not supported"
 #endif
 
+
 using namespace GDSInterface;
 
 // ErrCoreArray
@@ -82,13 +83,13 @@ bool GDSInterface::gds_SeqGetDim(PdSequenceX obj, int *OutBuf)
 typedef Int64 (*TSeqGetCount)(PdSequenceX);
 static TSeqGetCount _SeqGetCount = NULL;
 Int64 GDSInterface::gds_SeqGetCount(PdSequenceX obj)
-	{ (*_SeqGetCount)(obj); }
+	{ return (*_SeqGetCount)(obj); }
 
 /// get SVType
 typedef int (*TSeqSVType)(PdSequenceX);
 static TSeqSVType _SeqSVType = NULL;
 int GDSInterface::gds_SeqSVType(PdSequenceX obj)
-	{ (*_SeqSVType)(obj); }
+	{ return (*_SeqSVType)(obj); }
 
 
 /// read the data
@@ -107,13 +108,6 @@ bool GDSInterface::gds_rDataEx(PdSequenceX obj, CoreArray::Int32 const* Start,
 		CoreArray::Int32 const* Length, const CBOOL *const Selection[], void *OutBuf,
 		TSVType OutSV)
 	{ return (*_SeqrDataEx)(obj, Start, Length, Selection, OutBuf, OutSV); }
-
-typedef SEXP (*T_Read_SEXP)(PdSequenceX, CoreArray::Int32 const*,
-		CoreArray::Int32 const*, const CBOOL *const []);
-static T_Read_SEXP _Read_SEXP = NULL;
-SEXP GDSInterface::gds_Read_SEXP(PdSequenceX Obj, CoreArray::Int32 const* Start,
-		CoreArray::Int32 const* Length, const CBOOL *const Selection[])
-	{ return (*_Read_SEXP)(Obj, Start, Length, Selection); }
 
 
 /// write the data
@@ -297,12 +291,20 @@ std::string & GDSInterface::gds_LastError()
 typedef bool (*T_Is_R_Logical)(PdGDSObj Obj);
 static T_Is_R_Logical _Is_R_Logical = NULL;
 bool GDSInterface::gds_Is_R_Logical(PdGDSObj Obj)
-	{ (*_Is_R_Logical)(Obj); }
+	{ return (*_Is_R_Logical)(Obj); }
 
-typedef int (*T_Set_If_R_Factor)(PdGDSObj, SEXP);
+typedef int (*T_Set_If_R_Factor)(PdGDSObj, _SEXP_);
 static T_Set_If_R_Factor _Set_If_R_Factor = NULL;
-int GDSInterface::gds_Set_If_R_Factor(PdGDSObj Obj, SEXP val)
-	{ (*_Set_If_R_Factor)(Obj, val); }
+int GDSInterface::gds_Set_If_R_Factor(PdGDSObj Obj, _SEXP_ val)
+	{ return (*_Set_If_R_Factor)(Obj, val); }
+
+
+typedef _SEXP_ (*T_Read_SEXP)(PdSequenceX, CoreArray::Int32 const*,
+		CoreArray::Int32 const*, const CBOOL *const []);
+static T_Read_SEXP _Read_SEXP = NULL;
+_SEXP_ GDSInterface::gds_Read_SEXP(PdSequenceX Obj, CoreArray::Int32 const* Start,
+		CoreArray::Int32 const* Length, const CBOOL *const Selection[])
+	{ return (*_Read_SEXP)(Obj, Start, Length, Selection); }
 
 
 

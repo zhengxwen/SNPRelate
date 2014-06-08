@@ -80,7 +80,7 @@ snpgdsSummary(snpgdsExampleFileName())
 (genofile <- openfn.gds(snpgdsExampleFileName()))
 @
 
-The output lists all variables stored in the GDS file. At the first level, it stores variables \vr{sample.id}, \vr{snp.id}, etc. The additional information are displayed in the square brackets indicating data type, size, compressed or not + compression ratio. The second-level variables \vr{sex} and \vr{pop.group} are both stored in the folder of \vr{sample.annot}. All of the functions in \hn{SNPRelate} require a minimum set of variables in the SNP annotation data.  The minimum required variables are
+The output lists all variables stored in the GDS file. At the first level, it stores variables \vr{sample.id}, \vr{snp.id}, etc. The additional information are displayed in the square brackets indicating data type, size, compressed or not + compression ratio. The second-level variables \vr{sex} and \vr{pop.group} are both stored in the folder of \vr{sample.annot}. All of the functions in \hn{SNPRelate} require a minimum set of variables in the annotation data.  The minimum required variables are
 \begin{itemize}
 	\item{\vr{sample.id}, a unique identifier for each sample.}
 	\item{\vr{snp.id}, a unique identifier for each SNP.}
