@@ -6,14 +6,20 @@
 }
 \usage{
 snpgdsGDS2PED(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL, use.snp.rsid=TRUE,
-	verbose=TRUE)
+	format=c("A/G/C/T", "A/B", "1/2"), verbose=TRUE)
 }
 \arguments{
 	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
 	\item{ped.fn}{the file name of output}
-	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
-	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
-	\item{use.snp.rsid}{if TRUE, use "snp.rs.id" instead of "snp.id" if available}
+	\item{sample.id}{a vector of sample id specifying selected samples;
+		if NULL, all samples are used}
+	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all
+		SNPs are used}
+	\item{use.snp.rsid}{if \code{TRUE}, use "snp.rs.id" instead of "snp.id" if
+		available}
+	\item{format}{specify the coding: "A/G/C/T" -- allelic codes stored in
+		"snp.allele" of the GDS file; "A/B" -- A and B codes; "1/2" -- 1 and
+		2 codes}
 	\item{verbose}{if TRUE, show information}
 }
 \value{
@@ -34,7 +40,7 @@ snpgdsGDS2PED(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL, use.snp.rsid=TRUE,
 }
 \author{Xiuwen Zheng}
 \seealso{
-	\code{\link{snpgdsGDS2Eigen}}
+	\code{\link{snpgdsGDS2BED}}
 }
 
 \examples{

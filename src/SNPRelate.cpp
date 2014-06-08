@@ -1788,8 +1788,8 @@ DLLEXPORT void gnrDistPerm(int *n_dist, double *dist, int *merge,
 // conversion
 
 /// to convert from GDS to PLINK PED
-DLLEXPORT void gnrConvGDS2PED(char **pedfn, char **SampID, int *Sex,
-	LongBool *verbose, LongBool *out_err)
+DLLEXPORT void gnrConvGDS2PED(char **pedfn, char *SampID[], char *Allele[],
+	int *fmt_code, LongBool *verbose, LongBool *out_err)
 {
 	CORETRY
 		MCWorkingGeno.Progress.Info = "\t\tOutput: ";
@@ -1799,15 +1799,64 @@ DLLEXPORT void gnrConvGDS2PED(char **pedfn, char **SampID, int *Sex,
 		ofstream file(*pedfn);
 		if (!file.good())
 			throw ErrCoreArray("Fail to create the file '%s'.", *pedfn);
+
+		const char *s;
+		string s1, s2;
+		const int fmt = fmt_code[0];
 		CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
+
 		for (long i=0; i < buf.IdxCnt(); i++)
 		{
-			file << "0\t" << SampID[i] << "\t0\t0\t" << Sex[i] << "\t-9";
+			file << "0\t" << SampID[i] << "\t0\t0\t0\t-9";
 			UInt8 *g = buf.ReadGeno(i);
+
 			for (long j=0; j < MCWorkingGeno.Space.SNPNum(); j++, g++)
 			{
-				const char *s = (*g==0) ? "B B" : ((*g==1)?"A B": ((*g==2)?"A A":"0 0"));
-				file << "\t" << s;
+				switch (fmt)
+				{
+				case 1:
+					// SNP alleles: allelic codes
+					s1.clear(); s2.clear();
+					s = Allele[j];
+					while ((*s != 0) && (*s != '/'))
+					{
+						s1.push_back(*s);
+						s ++;
+					}
+					if (*s == '/') s++;
+					while ((*s != 0) && (*s != '/'))
+					{
+						s2.push_back(*s);
+						s ++;
+					}
+					if (s1.empty()) s1 = "0";
+					if (s2.empty()) s2 = "0";
+
+					switch (*g)
+					{
+						case 0:
+							file << "\t" << s2 << " " << s2; break;
+						case 1:
+							file << "\t" << s1 << " " << s2; break;
+						case 2:
+							file << "\t" << s1 << " " << s1; break;
+						default:
+							file << "\t0 0";
+					}
+					break;
+
+				case 2:
+					// A/B codes
+					s = (*g==0) ? "B B" : ((*g==1)?"A B": ((*g==2)?"A A":"0 0"));
+					file << "\t" << s;
+					break;
+
+				case 3:
+					// 1/2 codes
+					s = (*g==0) ? "2 2" : ((*g==1)?"1 2": ((*g==2)?"1 1":"0 0"));
+					file << "\t" << s;
+					break;
+				}
 			}
 			file << endl;
 			MCWorkingGeno.Progress.Forward(1);

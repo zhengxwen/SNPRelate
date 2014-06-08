@@ -1936,15 +1936,17 @@ snpgdsExampleFileName <- function()
 #   sample.id -- a vector of sample.id; if NULL, to use all samples
 #   snp.id -- a vector of snp.id; if NULL, to use all SNPs
 #   use.snp.rsid -- if TRUE, use "snp.rs.id" instead of "snp.id" if available
+#   format -- "A/G/C/T" -- allelic codes, "A/B" -- A or B, "1/2" -- 1 or 2
 #   verbose -- show information
 #
 
 snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
-	use.snp.rsid=TRUE, verbose=TRUE)
+	use.snp.rsid=TRUE, format=c("A/G/C/T", "A/B", "1/2"), verbose=TRUE)
 {
 	# check
 	stopifnot(inherits(gdsobj, "gds.class"))
 	stopifnot(is.character(ped.fn))
+	format <- match.arg(format)
 
 	# samples
 	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
@@ -1978,12 +1980,38 @@ snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
 		snp.ids <- snp.ids[snp.id]
 	}
 
-	# output a MAP file
+	# format code
 	snp.idx <- match(snp.ids, total.snp.ids)
-	if (!is.null(index.gdsn(gdsobj, "snp.rs.id", silent=TRUE)))
-		tmp.snp.id <- read.gdsn(index.gdsn(gdsobj, "snp.rs.id"))[snp.idx]
-	else
-		tmp.snp.id <- snp.ids
+	if (format == "A/G/C/T")
+	{
+		n <- index.gdsn(gdsobj, "snp.allele", silent=TRUE)
+		if (is.null(n))
+			stop("There is no 'snp.allele' variable in the GDS file.")
+		al <- read.gdsn(n)
+		if (length(al) != length(total.snp.ids))
+			stop("Invalid 'snp.allele' in the GDS file.")
+		al <- al[snp.idx]
+		fmt.code <- 1L
+	} else if (format == "A/B")
+	{
+		al <- character(0)
+		fmt.code <- 2L
+	} else if (format == "1/2")
+	{
+		al <- character(0)
+		fmt.code <- 3L
+	} else
+		stop("Invalid 'format'.")
+
+	# output a MAP file
+	tmp.snp.id <- snp.ids
+	if (use.snp.rsid)
+	{
+		if (!is.null(index.gdsn(gdsobj, "snp.rs.id", silent=TRUE)))
+		{
+			tmp.snp.id <- read.gdsn(index.gdsn(gdsobj, "snp.rs.id"))[snp.idx]
+		}
+	}
 	xchr <- as.character(read.gdsn(index.gdsn(gdsobj, "snp.chromosome")))[snp.idx]
 	xchr[xchr=="23"] <- "X"; xchr[xchr=="25"] <- "Y"
 	xchr[xchr=="24"] <- "XY"; xchr[xchr=="26"] <- "MT"
@@ -1995,7 +2023,6 @@ snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
 		quote=FALSE, row.names=FALSE, col.names=FALSE)
 	if (verbose)
 		cat("\tOutput a MAP file DONE.\n");
-
 
 	# output a PED file
 	if (verbose)
@@ -2009,9 +2036,10 @@ snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
 		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (node$err != 0) stop(snpgdsErrMsg())
 
-	rv <- .C("gnrConvGDS2PED", paste(ped.fn, ".ped", sep=""), as.character(sample.ids),
-		integer(node$n.samp), as.logical(verbose), err=integer(1),
-		NAOK=TRUE, PACKAGE="SNPRelate")
+	# run the C code
+	rv <- .C("gnrConvGDS2PED", paste(ped.fn, ".ped", sep=""),
+		as.character(sample.ids), al, fmt.code, as.logical(verbose),
+		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (rv$err != 0) stop(snpgdsErrMsg())
 
 	return(invisible(NULL))

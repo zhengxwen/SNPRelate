@@ -1,3 +1,9 @@
+Changes in 0.9.19:
+
+	* Update unit tests
+	* improve the function 'snpgdsGDS2PED' allowing allelic coding output
+
+
 Changes in 0.9.18:
 
 	* minor fixes in 'snpgdsIBDSelection': missing IBD coefficients
