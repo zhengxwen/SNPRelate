@@ -1183,28 +1183,53 @@ snpgdsIBDMLELogLik <- function(gdsobj, ibdobj, k0=NaN, k1=NaN,
 # INPUT:
 #   ibdobj -- an object of snpgdsIBDClass
 #   kinship.cutoff --
+#   samp.sel -- a logical vector, or integer vector
 #
 # OUTPUT:
 #   a data.frame of "sample1", "sample2", "k0", "k1", "kinshipcoeff"
 #
 
-snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=-1)
+snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=-1, samp.sel=NULL)
 {
 	# check
 	stopifnot(class(ibdobj)=="snpgdsIBDClass")
+	stopifnot(is.null(samp.sel) | is.logical(samp.sel) | is.numeric(samp.sel))
+	if (is.logical(samp.sel))
+		stopifnot(length(samp.sel) == length(ibdobj$sample.id))
 
-	n <- length(ibdobj$sample.id)
-	KC <- with(ibdobj, (1 - k0 - k1)*0.5 + k1*0.25)
-	if (is.finite(kinship.cutoff))
-		flag <- lower.tri(KC) & (KC >= kinship.cutoff)
-	else
-		flag <- lower.tri(KC)
+	# variable
+	if (is.null(samp.sel))
+	{
+		n <- length(ibdobj$sample.id)
+		KC <- with(ibdobj, (1 - k0 - k1)*0.5 + k1*0.25)
+		if (is.finite(kinship.cutoff))
+			flag <- lower.tri(KC) & (KC >= kinship.cutoff)
+		else
+			flag <- lower.tri(KC)
 
-	data.frame(
-		sample1 = matrix(ibdobj$sample.id, nrow=n, ncol=n, byrow=TRUE)[flag],
-		sample2 = matrix(ibdobj$sample.id, nrow=n, ncol=n)[flag],
-		k0 = ibdobj$k0[flag], k1 = ibdobj$k1[flag],
-		kinshipcoeff = KC[flag] )
+		data.frame(
+			sample1 = matrix(ibdobj$sample.id, nrow=n, ncol=n, byrow=TRUE)[flag],
+			sample2 = matrix(ibdobj$sample.id, nrow=n, ncol=n)[flag],
+			k0 = ibdobj$k0[flag], k1 = ibdobj$k1[flag],
+			kinshipcoeff = KC[flag], stringsAsFactors=FALSE)
+	} else {
+		samp.id <- ibdobj$sample.id[samp.sel]
+		n <- length(samp.id)
+		k0 <- ibdobj$k0[samp.sel, samp.sel]
+		k1 <- ibdobj$k1[samp.sel, samp.sel]
+
+		KC <- (1 - k0 - k1)*0.5 + k1*0.25
+		if (is.finite(kinship.cutoff))
+			flag <- lower.tri(KC) & (KC >= kinship.cutoff)
+		else
+			flag <- lower.tri(KC)
+
+		data.frame(
+			sample1 = matrix(samp.id, nrow=n, ncol=n, byrow=TRUE)[flag],
+			sample2 = matrix(samp.id, nrow=n, ncol=n)[flag],
+			k0 = k0[flag], k1 = k1[flag],
+			kinshipcoeff = KC[flag], stringsAsFactors=FALSE)
+	}
 }
 
 
@@ -2831,8 +2856,12 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbo
 	# load the dynamic-link library
 	library.dynam("SNPRelate", pkg, lib)
 	# init SNPRelate
-	rv <- .C("gnrInit", lib.fn, err=character(1), PACKAGE="SNPRelate")
+	rv <- .C("gnrInit", lib.fn, err=character(1), sse=integer(1), PACKAGE="SNPRelate")
 	if (rv$err != "") stop(rv$err)
+
+	# information
+	cat("SNPRelate: 0.9.1\n")
+	if (rv$sse != 0) cat("Streaming SIMD Extensions (SSE) supported.\n")
 }
 
 .Last.lib <- function(libpath)

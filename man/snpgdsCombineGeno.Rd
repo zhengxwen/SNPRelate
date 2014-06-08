@@ -15,7 +15,7 @@ snpgdsCombineGeno(gds.fn, out.fn, sample.id=NULL, snpobj=NULL, name.prefix=NULL,
 	\item{gds.fn}{a list of SNP GDS files to be merged}
 	\item{out.fn}{the name of output GDS file}
 	\item{sample.id}{NULL, or a list. If it is a list, specify sample ids for each SNP GDS file}
-	\item{snpobj}{specify a \code{snpgdsSNPListClass} object, used for strand switch;
+	\item{snpobj}{specify a \code{\link{snpgdsSNPListClass}} object, used for strand switch;
 		if NULL, the strand information of the first SNP GDS file is used}
 	\item{name.prefix}{NULL, a character vector (added to sample ids for each GDS file)}
 	\item{snpfirstorder}{if TRUE, genotypes are stored in the individual-major mode,

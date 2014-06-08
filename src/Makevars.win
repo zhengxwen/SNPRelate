@@ -11,8 +11,8 @@ PKG_LIBS = $(FLIBS) $(BLAS_LIBS) $(LAPACK_LIBS) -lCoreComputing -L.
 
 # flags for CoreArray library
 # COREFLAG = -O3 -I./CoreArray.src -I$(R_HOME)/include $(CXXPICFLAGS)
-#
-COREFLAG = -O3 -I./CoreArray.src -I$(R_HOME)/include $(CXXPICFLAGS)
+# to use SSE2 SIMD instructions
+COREFLAG = -O3 -mfpmath=sse -mmmx -msse2 -msse -I./CoreArray.src -I$(R_HOME)/include $(CXXPICFLAGS)
 
 
 .PHONY: all .ComputingBuild

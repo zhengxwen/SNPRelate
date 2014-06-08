@@ -7,11 +7,12 @@
 	Return a data frame with IBD coefficients.
 }
 \usage{
-snpgdsIBDSelection(ibdobj, kinship.cutoff=-1)
+snpgdsIBDSelection(ibdobj, kinship.cutoff=-1, samp.sel=NULL)
 }
 \arguments{
 	\item{ibdobj}{an object of \code{snpgdsIBDClass} returned by \code{\link{snpgdsIBDMLE}} or \code{\link{snpgdsIBDMoM}}}
 	\item{kinship.cutoff}{select the individual pairs with kinship coefficients >= kinship.cutoff}
+	\item{samp.sel}{a logical vector or integer vector to specify selection of samples}
 }
 \value{
 	Return a data.frame:

@@ -10,8 +10,8 @@
 snpgdsSNPListIntersect(snplist1, snplist2)
 }
 \arguments{
-	\item{snplist1}{the first SNP list object ``snpgdsSNPListClass''}
-	\item{snplist2}{the second SNP list object ``snpgdsSNPListClass''}
+	\item{snplist1}{the first SNP list object \code{\link{snpgdsSNPListClass}}}
+	\item{snplist2}{the second SNP list object \code{\link{snpgdsSNPListClass}}}
 }
 \value{
 	Return an object of ``snpgdsSNPListClass'' including the following components:

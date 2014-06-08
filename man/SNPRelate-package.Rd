@@ -5,16 +5,16 @@
 \title{Parallel Computing Toolset for genome-wide association studies}
 \description{
 	A High-performance Computing Package for Relatedness, Linkage Disequilibrium and
-	Principal Component Analysis in Genome-wide Association Studies
+Principal Component Analysis in Genome-wide Association Studies
 }
 \details{
 \tabular{ll}{
 Package: \tab SNPRelate\cr
 Type: \tab Package\cr
-Version: \tab 0.9.0\cr
-Date: \tab 2011-08-02\cr
+Version: \tab 0.9.1\cr
+Date: \tab 2011-08-11\cr
 License: \tab LGPL version 3\cr
-Depends: \tab gdsfmt (>= 0.9.4)\cr
+Depends: \tab gdsfmt (>= 0.9.5)\cr
 }
 	The genotypes stored in GDS format can be analyzed by the R functions in SNPRelate, which
 	utilize the multi-core feature of machine for a single computer.

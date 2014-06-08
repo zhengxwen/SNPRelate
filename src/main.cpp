@@ -202,7 +202,7 @@ namespace INBREEDING
 			int iter;
 			for (iter=1; iter <= n_iter_max; iter++)
 			{
-				double OldF = F, OldLogLik = LogLik, sum = 0;
+				double OldLogLik = LogLik, sum = 0;
 				int m = 0;
 				TYPE *ps = snp;
 				for (int i=0; i < n; i++)
@@ -280,11 +280,17 @@ inline static void RStrAgn(const char *Text, char **rstr)
 // ===========================================================
 
 /// initialize the package
-DLLEXPORT void gnrInit(char **lib_fn, char **rstr)
+DLLEXPORT void gnrInit(char **lib_fn, char **rstr, LongBool *sse)
 {
 	try {
 		GDSInterface::InitGDSInterface(*lib_fn);
 		RStrAgn("", rstr);
+
+		#ifdef COREARRAY_SIMD_SSE2
+		*sse = true;
+		#else
+		*sse = false;
+		#endif
 	}
 	catch (exception &E)
 	{
