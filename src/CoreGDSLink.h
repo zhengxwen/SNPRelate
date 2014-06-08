@@ -81,6 +81,7 @@ namespace GDSInterface
 	void DoneGDSInterface();
 
 
+
 	// ******************************************************************
 	// ****  the functions for a GDS file
 	//
@@ -91,8 +92,32 @@ namespace GDSInterface
 	typedef void* PdGDSFile;
 	/// the pionter to a GDS node
 	typedef void* PdGDSObj;
+	/// the pointer to a container object
+	typedef void* PdContainer;
 	/// the pointer to a sequence object
 	typedef void* PdSequenceX;
+
+	/// Iterator for CoreArray array-oriented container
+	/** sizeof(TdIterator) = 32 **/
+	struct TdIterator
+	{
+        /// the handler of this iterator
+		PdContainer* Handler;
+		unsigned char VByte[32 - sizeof(PdContainer)];
+	};
+
+
+	// Functions for CdContainer - TdIterator
+
+	bool gds_IterGetStart(PdContainer Node, TdIterator &Out);
+	bool gds_IterGetEnd(PdContainer Node, TdIterator &Out);
+	bool gds_IterAdv(TdIterator &Iter);
+	// TODO: offset
+	bool gds_IterAdvEx(TdIterator &Iter, const ssize_t offset);
+	bool gds_IterPrev(TdIterator &Iter);
+	bool gds_IterPrevEx(TdIterator &Iter, const ssize_t offset);
+	size_t gds_IterRData(TdIterator &Iter, void *OutBuf, size_t Cnt, TSVType OutSV);
+	size_t gds_IterWData(TdIterator &Iter, const void *InBuf, size_t Cnt, TSVType InSV);
 
 
 
@@ -100,9 +125,13 @@ namespace GDSInterface
 	int gds_AttrNameIndex(PdGDSObj obj, const char *Name);
 
 
-
 	PdGDSObj gds_NodePath(PdGDSObj Obj, const char *Path);
 
+	int gds_NodeClassName(PdGDSObj Obj, char *OutStr, int OutBufLen);
+
+
+	/// remove a GDS node
+	bool gds_NodeDelete(PdGDSObj Node);
 
 
 	/// get the degree of dimension

@@ -6,7 +6,8 @@
 // _/_/_/   _/_/_/  _/_/_/_/_/     _/     _/_/_/   _/_/
 // ===========================================================
 //
-// SNPRelate.cpp: Relatedness, Linkage Disequilibrium and Principal Component Analysis
+// SNPRelate.cpp: Relatedness, Linkage Disequilibrium and
+//                Principal Component Analysis
 //
 // Copyright (C) 2013	Xiuwen Zheng
 //
@@ -32,6 +33,7 @@
 #include <dGenGWAS.h>
 #include <dVect.h>
 #include <R.h>
+#include <Rdefines.h>
 #include <R_ext/Lapack.h>
 
 
@@ -305,6 +307,7 @@ namespace INBREEDING
 
 extern "C"
 {
+	// calling .C()
 	#define CORETRY			try {
 	#define CORECATCH(cmd)	} \
 		catch (exception &E) { \
@@ -315,6 +318,10 @@ extern "C"
 			gds_LastError() = E; \
 			cmd; \
 		}
+
+	// calling .Call()
+	#define CORETRY_CALL	CORETRY
+	#define CORECATCH_CALL	CORECATCH(error(gds_LastError().c_str()))
 
 
 // ===========================================================
@@ -427,7 +434,7 @@ DLLEXPORT void gnrSelSNP_Base(LongBool *remove_mono, double *maf, double *missra
 	int *out_num, LongBool *out_selection, LongBool *out_err)
 {
 	CORETRY
-		const int n = MCWorkingGeno.Space.SNPNum();
+		const R_xlen_t n = MCWorkingGeno.Space.SNPNum();
 		auto_ptr<CBOOL> sel(new CBOOL[n]);
 		*out_num = MCWorkingGeno.Space.Select_SNP_Base((*remove_mono) != 0,
 			*maf, *missrate, sel.get());
@@ -446,7 +453,7 @@ DLLEXPORT void gnrSelSNP_Base_Ex(double *afreq, LongBool *remove_mono, double *m
 	double *missrate, int *out_num, LongBool *out_selection, LongBool *out_err)
 {
 	CORETRY
-		const int n = MCWorkingGeno.Space.SNPNum();
+		const R_xlen_t n = MCWorkingGeno.Space.SNPNum();
 		auto_ptr<CBOOL> sel(new CBOOL[n]);
 		*out_num = MCWorkingGeno.Space.Select_SNP_Base_Ex(afreq, (*remove_mono) != 0,
 			*maf, *missrate, sel.get());
@@ -617,7 +624,7 @@ DLLEXPORT void gnrAppendGenoSpaceStrand(PdSequenceX *Node, LongBool *snpfirstord
 		*out_err = 1;
 		if (*snpfirstorder)
 		{
-			const int n = MCWorkingGeno.Space.SNPNum();
+			const R_xlen_t n = MCWorkingGeno.Space.SNPNum();
 			CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
@@ -628,7 +635,7 @@ DLLEXPORT void gnrAppendGenoSpaceStrand(PdSequenceX *Node, LongBool *snpfirstord
 					return;
 			}
 		} else {
-			const int n = MCWorkingGeno.Space.SampleNum();
+			const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
 			CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
@@ -670,7 +677,7 @@ DLLEXPORT void gnrPCA(int *EigenCnt, int *NumThread, LongBool *_BayesianNormal,
 		// ******** The calculation of genetic covariance matrix ********
 
 		// the number of samples
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
 		// set parameters
 		PCA::BayesianNormal = (_BayesianNormal!=0);
 		PCA::AutoDetectSNPBlockSize(n);
@@ -699,8 +706,9 @@ DLLEXPORT void gnrPCA(int *EigenCnt, int *NumThread, LongBool *_BayesianNormal,
 				Rprintf("PCA:\t%s\tBegin (eigenvalues and eigenvectors)\n", NowDateToStr().c_str());
 			{
 				int info = 0;
-				F77_NAME(dspev)("V", "L", &n, Cov.get(), out_Eigenvalues,
-					tmp_EigenVec.get(), &n, tmp_Work.get(), &info);
+				int _n = n;
+				F77_NAME(dspev)("V", "L", &_n, Cov.get(), out_Eigenvalues,
+					tmp_EigenVec.get(), &_n, tmp_Work.get(), &info);
 				if (info != 0)
 					Rprintf("LAPACK::SPEV error!");
 			}
@@ -721,6 +729,7 @@ DLLEXPORT void gnrPCA(int *EigenCnt, int *NumThread, LongBool *_BayesianNormal,
 
 		// output
 		*out_err = 0;
+
 	CORECATCH(*out_err = 1)
 }
 
@@ -810,30 +819,39 @@ DLLEXPORT void gnrPCASampLoading(int *Num, double *EigenVal, int *EigenCnt,
 // the functions for Identity by state (IBS)
 
 /// to compute the average IBS
-DLLEXPORT void gnrIBSAve(LongBool *Verbose, LongBool *DataCache, int *NumThread,
-	double *out_IBSMat, LongBool *out_err)
+DLLEXPORT SEXP gnrIBSAve(SEXP Verbose, SEXP DataCache, SEXP NumThread)
 {
-	CORETRY
+	CORETRY_CALL
+
 		// ******** To cache the genotype data ********
-		if (*DataCache)
+		if (LOGICAL(DataCache)[0] == TRUE)
 		{
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
-			if (*Verbose)
+			if (LOGICAL(Verbose)[0] == TRUE)
 				Rprintf("IBS:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// ******** The calculation of IBS matrix ********
 
 		// the number of samples
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 		// the upper-triangle genetic covariance matrix
 		CdMatTri<IBS::TIBS_Flag> IBS(n);
 
+		// initialize output variables
+		SEXP dim;
+		SEXP ibsmat = NEW_NUMERIC(n*n);  PROTECT(ibsmat);
+		PROTECT(dim = NEW_INTEGER(2));
+		INTEGER(dim)[0] = n; INTEGER(dim)[1] = n;
+		setAttrib(ibsmat, R_DimSymbol, dim);
+		double *out_IBSMat = REAL(ibsmat);
+
 		// Calculate the IBS matrix
-		IBS::DoIBSCalculate(IBS, *NumThread, "IBS:", *Verbose);
+		IBS::DoIBSCalculate(IBS, INTEGER(NumThread)[0], "IBS:",
+			LOGICAL(Verbose)[0] == TRUE);
 
 		// output
 		IBS::TIBS_Flag *p = IBS.get();
@@ -845,39 +863,56 @@ DLLEXPORT void gnrIBSAve(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 					double(0.5*p->IBS1 + p->IBS2) / (p->IBS0 + p->IBS1 + p->IBS2);
 			}
 		}
-		// output
-		*out_err = 0;
-	CORECATCH(*out_err = 1)
+
+		UNPROTECT(2);
+		return ibsmat;
+
+	CORECATCH_CALL
 }
 
 /// to compute the average IBS
-DLLEXPORT void gnrIBSNum(LongBool *Verbose, LongBool *DataCache, int *NumThread,
-	int *out_IBS0, int *out_IBS1, int *out_IBS2, LongBool *out_err)
+DLLEXPORT SEXP gnrIBSNum(SEXP Verbose, SEXP DataCache, SEXP NumThread)
 {
-	CORETRY
+	CORETRY_CALL
+
 		// ******** To cache the genotype data ********
-		if (*DataCache)
+		if (LOGICAL(DataCache)[0] == TRUE)
 		{
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
-			if (*Verbose)
+			if (LOGICAL(Verbose)[0] == TRUE)
 				Rprintf("IBS:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// ******** The calculation of IBS matrix ********
 
 		// the number of samples
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 
 		// the upper-triangle IBS matrix
 		CdMatTri<IBS::TIBS_Flag> IBS(n);
 
-		Rprintf("OK\n");
-
 		// Calculate the IBS matrix
-		IBS::DoIBSCalculate(IBS, *NumThread, "IBS:", *Verbose);
+		IBS::DoIBSCalculate(IBS, INTEGER(NumThread)[0], "IBS:",
+			LOGICAL(Verbose)[0] == TRUE);
+
+		// initialize output variables
+		SEXP dim;
+		PROTECT(dim = NEW_INTEGER(2));
+		INTEGER(dim)[0] = n; INTEGER(dim)[1] = n;
+
+		SEXP IBS0    = NEW_NUMERIC(n*n);  PROTECT(IBS0);
+		setAttrib(IBS0, R_DimSymbol, dim);
+		SEXP IBS1    = NEW_NUMERIC(n*n);  PROTECT(IBS1);
+		setAttrib(IBS1, R_DimSymbol, dim);
+		SEXP IBS2    = NEW_NUMERIC(n*n);  PROTECT(IBS2);
+		setAttrib(IBS2, R_DimSymbol, dim);
+
+		double *out_IBS0    = REAL(IBS0);
+		double *out_IBS1    = REAL(IBS1);
+		double *out_IBS2    = REAL(IBS2);
 
 		// output
 		IBS::TIBS_Flag *p = IBS.get();
@@ -890,9 +925,18 @@ DLLEXPORT void gnrIBSNum(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 				out_IBS2[i*n + j] = out_IBS2[j*n + i] = p->IBS2;
 			}
 		}
+
 		// output
-		*out_err = 0;
-	CORECATCH(*out_err = 1)
+		SEXP ans;
+		PROTECT(ans = NEW_LIST(3));
+		SET_ELEMENT(ans, 0, IBS0);
+		SET_ELEMENT(ans, 1, IBS1);
+		SET_ELEMENT(ans, 2, IBS2);
+		UNPROTECT(5);
+
+		return ans;
+
+	CORECATCH_CALL
 }
 
 
@@ -902,36 +946,56 @@ DLLEXPORT void gnrIBSNum(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 //
 
 /// to compute the IBD coefficients by PLINK method of moment
-DLLEXPORT void gnrIBD_PLINK(LongBool *Verbose, LongBool *DataCache, int *NumThread,
-	double *AlleleFreq, LongBool *UseSpecificAFreq, LongBool *KinshipConstrict,
-	double *out_k0, double *out_k1, double *out_afreq, LongBool *out_err)
+DLLEXPORT SEXP gnrIBD_PLINK(SEXP Verbose, SEXP DataCache, SEXP NumThread,
+	SEXP AlleleFreq, SEXP UseSpecificAFreq, SEXP KinshipConstrict)
 {
-	CORETRY
+	CORETRY_CALL
+
 		// ******** to cache the genotype data ********
-		if (*DataCache)
+		if (LOGICAL(DataCache)[0] == TRUE)
 		{
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
-			if (*Verbose)
+			if (LOGICAL(Verbose)[0] == TRUE)
 				Rprintf("PLINK IBD:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
-		// the number of samples
-		const int n = MCWorkingGeno.Space.SampleNum();
+		// the number of individuals
+		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		// the number of SNPs
+		const R_xlen_t m = MCWorkingGeno.Space.SNPNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 
 		// ******** PLINK method of moment ********
 
+		// initialize output variables
+		SEXP dim;
+		PROTECT(dim = NEW_INTEGER(2));
+		INTEGER(dim)[0] = n; INTEGER(dim)[1] = n;
+
+		SEXP k0    = NEW_NUMERIC(n*n);  PROTECT(k0);
+		setAttrib(k0, R_DimSymbol, dim);
+
+		SEXP k1    = NEW_NUMERIC(n*n);  PROTECT(k1);
+		setAttrib(k1, R_DimSymbol, dim);
+
+		SEXP afreq = NEW_NUMERIC(m);    PROTECT(afreq);
+		double *out_k0    = REAL(k0);
+		double *out_k1    = REAL(k1);
+		double *out_afreq = REAL(afreq);
+
 		// initialize the internal matrix
-		IBD::Init_EPrIBD_IBS(*UseSpecificAFreq ? AlleleFreq : NULL,
-			out_afreq, !(*UseSpecificAFreq));
+		IBD::Init_EPrIBD_IBS(LOGICAL(UseSpecificAFreq)[0] ? REAL(AlleleFreq) : NULL,
+			out_afreq, !(LOGICAL(UseSpecificAFreq)[0]));
 		// the upper-triangle genetic covariance matrix
 		CdMatTriDiag<IBS::TIBS_Flag> IBS(IBS::TIBS_Flag(), n);
 		// Calculate the IBS matrix
-		IBS::DoPLINKIBSCalculate(IBS, *NumThread, "PLINK IBD:", *Verbose);
+		IBS::DoPLINKIBSCalculate(IBS, INTEGER(NumThread)[0],
+			"PLINK IBD:", LOGICAL(Verbose)[0]==TRUE);
 
 		// output
+		bool kc = LOGICAL(KinshipConstrict)[0] == TRUE;
 		IBS::TIBS_Flag *p = IBS.get();
 		for (int i=0; i < n; i++)
 		{
@@ -939,16 +1003,23 @@ DLLEXPORT void gnrIBD_PLINK(LongBool *Verbose, LongBool *DataCache, int *NumThre
 			for (int j=i+1; j < n; j++, p++)
 			{
 				double k0, k1;
-				IBD::Est_PLINK_Kinship(p->IBS0, p->IBS1, p->IBS2, k0, k1,
-					(*KinshipConstrict != 0));
+				IBD::Est_PLINK_Kinship(p->IBS0, p->IBS1, p->IBS2, k0, k1, kc);
 				out_k0[i*n + j] = out_k0[j*n + i] = k0;
 				out_k1[i*n + j] = out_k1[j*n + i] = k1;
 			}
 		}
 
 		// output
-		*out_err = 0;
-	CORECATCH(*out_err = 1)
+		SEXP ans;
+		PROTECT(ans = NEW_LIST(3));
+		SET_ELEMENT(ans, 0, k0);
+		SET_ELEMENT(ans, 1, k1);
+		SET_ELEMENT(ans, 2, afreq);
+		UNPROTECT(5);
+
+		return ans;
+
+	CORECATCH_CALL
 }
 
 /// get an error message
@@ -994,7 +1065,7 @@ DLLEXPORT void gnrIBD_MLE(double *AlleleFreq, LongBool *UseSpecificAFreq,
 		IBD::KinshipConstraint = (*KinshipConstraint != 0);
 
 		// the upper-triangle genetic covariance matrix
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
 		CdMatTriDiag<IBD::TIBD> IBD(IBD::TIBD(), n);
 		CdMatTriDiag<int> niter;
 		if (*ifoutn) niter.Reset(n);
@@ -1130,30 +1201,45 @@ DLLEXPORT void gnrPairIBDLogLik(int *n, int *geno1, int *geno2, double *AlleleFr
 
 
 /// to compute the IBD coefficients by KING method of moment (KING-homo)
-DLLEXPORT void gnrIBD_KING_Homo(LongBool *Verbose, LongBool *DataCache, int *NumThread,
-	double *out_k0, double *out_k1, LongBool *out_err)
+DLLEXPORT SEXP gnrIBD_KING_Homo(SEXP Verbose, SEXP DataCache, SEXP NumThread)
 {
-	CORETRY
+	CORETRY_CALL
+
 		// ******** To cache the genotype data ********
-		if (*DataCache)
+		if (LOGICAL(DataCache)[0] == TRUE)
 		{
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
-			if (*Verbose)
+			if (LOGICAL(Verbose)[0] == TRUE)
 				Rprintf("KING IBD:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// ******** The calculation of genetic covariance matrix ********
 
 		// the number of samples
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 
 		// the upper-triangle IBD matrix
 		CdMatTri<IBS::TKINGHomoFlag> IBD(n);
 		// Calculate the IBD matrix
-		IBS::DoKINGCalculate(IBD, *NumThread, "KING IBD:", *Verbose);
+		IBS::DoKINGCalculate(IBD, INTEGER(NumThread)[0], "KING IBD:",
+			LOGICAL(Verbose)[0] == TRUE);
+
+		// initialize output variables
+		SEXP dim;
+		PROTECT(dim = NEW_INTEGER(2));
+		INTEGER(dim)[0] = n; INTEGER(dim)[1] = n;
+
+		SEXP k0    = NEW_NUMERIC(n*n);  PROTECT(k0);
+		setAttrib(k0, R_DimSymbol, dim);
+		double *out_k0 = REAL(k0);
+
+		SEXP k1    = NEW_NUMERIC(n*n);  PROTECT(k1);
+		setAttrib(k1, R_DimSymbol, dim);
+		double *out_k1 = REAL(k1);
+
 		// output
 		IBS::TKINGHomoFlag *p = IBD.get();
 		for (int i=0; i < n; i++)
@@ -1171,28 +1257,36 @@ DLLEXPORT void gnrIBD_KING_Homo(LongBool *Verbose, LongBool *DataCache, int *Num
 		}
 
 		// output
-		*out_err = 0;
-	CORECATCH(*out_err = 1)
+		SEXP ans;
+		PROTECT(ans = NEW_LIST(2));
+		SET_ELEMENT(ans, 0, k0);
+		SET_ELEMENT(ans, 1, k1);
+		UNPROTECT(4);
+
+		return ans;
+
+	CORECATCH_CALL
 }
 
 /// to compute the IBD coefficients by KING method of moment (KING-robust)
-DLLEXPORT void gnrIBD_KING_Robust(LongBool *Verbose, LongBool *DataCache, int *NumThread,
-	int *FamilyID, double *IBS0, double *out_kinship, LongBool *out_err)
+DLLEXPORT SEXP gnrIBD_KING_Robust(SEXP Verbose, SEXP DataCache,
+	SEXP NumThread, SEXP FamilyID)
 {
-	CORETRY
+	CORETRY_CALL
+
 		// ******** To cache the genotype data ********
-		if (*DataCache)
+		if (LOGICAL(DataCache)[0] == TRUE)
 		{
 			double GenoSum=0;
 			gnrCacheGeno(&GenoSum, NULL);
-			if (*Verbose)
+			if (LOGICAL(Verbose)[0] == TRUE)
 				Rprintf("KING IBD:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n", GenoSum);
 		}
 
 		// ******** The calculation of genetic covariance matrix ********
 
 		// the number of samples
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 
@@ -1200,20 +1294,37 @@ DLLEXPORT void gnrIBD_KING_Robust(LongBool *Verbose, LongBool *DataCache, int *N
 		// the upper-triangle IBD matrix
 		CdMatTri<IBS::TKINGRobustFlag> IBD(n);
 		// Calculate the IBD matrix
-		IBS::DoKINGCalculate(IBD, *NumThread, "KING IBD:", *Verbose);
+		IBS::DoKINGCalculate(IBD, INTEGER(NumThread)[0], "KING IBD:",
+			LOGICAL(Verbose)[0] == TRUE);
+
+
+		// initialize output variables
+		SEXP dim;
+		PROTECT(dim = NEW_INTEGER(2));
+		INTEGER(dim)[0] = n; INTEGER(dim)[1] = n;
+
+		SEXP IBS0    = NEW_NUMERIC(n*n);  PROTECT(IBS0);
+		setAttrib(IBS0, R_DimSymbol, dim);
+		double *out_IBS0 = REAL(IBS0);
+
+		SEXP Kinship = NEW_NUMERIC(n*n);  PROTECT(Kinship);
+		setAttrib(Kinship, R_DimSymbol, dim);
+		double *out_kinship = REAL(Kinship);
+
+		int *FamID_Ptr = INTEGER(FamilyID);
 
 		// output
 		IBS::TKINGRobustFlag *p = IBD.get();
 		for (int i=0; i < n; i++)
 		{
-			IBS0[i*n + i] = 0; out_kinship[i*n + i] = 0.5;
+			out_IBS0[i*n + i] = 0; out_kinship[i*n + i] = 0.5;
 			p ++;
 			for (int j=i+1; j < n; j++, p++)
 			{
-				IBS0[i*n + j] = IBS0[j*n + i] = double(p->IBS0) / p->nLoci;
+				out_IBS0[i*n + j] = out_IBS0[j*n + i] = double(p->IBS0) / p->nLoci;
 
-				int f1 = FamilyID[i];
-				int f2 = FamilyID[j];
+				int f1 = FamID_Ptr[i];
+				int f2 = FamID_Ptr[j];
 				out_kinship[i*n + j] = out_kinship[j*n + i] =
 						((f1 == f2) && (f1 != NA_INTEGER)) ?
 					(0.5 - p->SumSq / (2.0 *(p->N1_Aa + p->N2_Aa))) :
@@ -1222,8 +1333,91 @@ DLLEXPORT void gnrIBD_KING_Robust(LongBool *Verbose, LongBool *DataCache, int *N
 		}
 
 		// output
-		*out_err = 0;
-	CORECATCH(*out_err = 1)
+		SEXP ans;
+		PROTECT(ans = NEW_LIST(2));
+		SET_ELEMENT(ans, 0, IBS0);
+		SET_ELEMENT(ans, 1, Kinship);
+		UNPROTECT(4);
+
+		return ans;
+
+	CORECATCH_CALL
+}
+
+
+/// to create a list of sample id
+//  ID1 = matrix(sample.id, nrow=n, ncol=n, byrow=TRUE)
+DLLEXPORT SEXP gnrIBDSelSampID_List1(SEXP SampID, SEXP Flag)
+{
+	// the number of samples
+	const R_xlen_t n  = XLENGTH(SampID);
+	const R_xlen_t nF = XLENGTH(Flag);
+	R_xlen_t flag_cnt = 0;
+	int *p_flag = LOGICAL(Flag);
+	for (R_xlen_t i=0; i < nF; i++)
+	{
+		if (*p_flag == TRUE) flag_cnt ++;
+		p_flag ++;
+	}
+
+	// output
+	SEXP ans = NEW_STRING(flag_cnt);
+	PROTECT(ans);
+	p_flag = LOGICAL(Flag);
+	R_xlen_t idx = 0;
+	for (R_xlen_t i=0; i < n; i++)
+	{
+		for (R_xlen_t j=0; j < n; j++)
+		{
+			if (*p_flag == TRUE)
+			{
+				SET_STRING_ELT(ans, idx, STRING_ELT(SampID, i));
+				idx ++;
+			}
+			p_flag ++;
+		}
+	}
+	UNPROTECT(1);
+
+	return ans;
+}
+
+
+/// to create a list of sample id
+//  ID2 = matrix(sample.id, nrow=n, ncol=n)[flag]
+DLLEXPORT SEXP gnrIBDSelSampID_List2(SEXP SampID, SEXP Flag)
+{
+	// the number of samples
+	const R_xlen_t n  = XLENGTH(SampID);
+	const R_xlen_t nF = XLENGTH(Flag);
+	R_xlen_t flag_cnt = 0;
+	int *p_flag = LOGICAL(Flag);
+	for (R_xlen_t i=0; i < nF; i++)
+	{
+		if (*p_flag == TRUE) flag_cnt ++;
+		p_flag ++;
+	}
+
+	// output
+	SEXP ans = NEW_STRING(flag_cnt);
+	PROTECT(ans);
+	p_flag = LOGICAL(Flag);
+	R_xlen_t idx = 0;
+	for (R_xlen_t i=0; i < n; i++)
+	{
+		for (R_xlen_t j=0; j < n; j++)
+		{
+			if (*p_flag == TRUE)
+			{
+				SET_STRING_ELT(ans, idx, STRING_ELT(SampID, j));
+				idx ++;
+			}
+			p_flag ++;
+		}
+	}
+	UNPROTECT(1);
+
+	return ans;
 }
 
 
@@ -1308,7 +1502,7 @@ DLLEXPORT void gnrIndInb(double *allele_freq, int *method, double *reltol, doubl
 	int out_iternum[], LongBool *out_err)
 {
 	CORETRY
-		const int n = MCWorkingGeno.Space.SNPNum();
+		const R_xlen_t n = MCWorkingGeno.Space.SNPNum();
 		CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 		for (long i=0; i < buf.IdxCnt(); i++)
 		{
@@ -1347,7 +1541,7 @@ DLLEXPORT void gnrDiss(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 		// ******** The calculation of genetic covariance matrix ********
 
 		// the number of samples
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 		// the upper-triangle genetic covariance matrix
@@ -1716,65 +1910,145 @@ DLLEXPORT void gnrConvBED2GDS(char **bedfn, PdSequenceX *Node, LongBool *verbose
 
 /// SNP functions
 
-static inline bool ATGC(char ch)
-	{ return (ch=='A') || (ch=='T') || (ch=='G') || (ch=='C'); }
-static inline int ALLELE_MINOR(double freq)
-	{ return (freq <= 0.5) ? 0 : 1; }
+/// to detect and correct strand problem
 
-/// to detect strand problem
+static inline bool ATGC(const string &s)
+{
+	return (s=="A") || (s=="T") || (s=="G") || (s=="C");
+}
+static inline int ALLELE_MINOR(double freq)
+{
+	return (freq <= 0.5) ? 0 : 1;
+}
+static inline void split_allele(const char *txt, string &allele1, string &allele2)
+{
+	const char *p = strchr(txt, '/');
+	if (p != NULL)
+	{
+		// the first allele
+		allele1.assign(txt, p);
+		for (unsigned int i=0; i < allele1.size(); i++)
+			allele1[i] = toupper(allele1[i]);
+
+		// the second allele	
+		allele2 = p + 1;
+		for (unsigned int i=0; i < allele2.size(); i++)
+			allele2[i] = toupper(allele2[i]);
+	} else {
+		// no a second allele
+		allele1 = txt;
+		for (unsigned int i=0; i < allele1.size(); i++)
+			allele1[i] = toupper(allele1[i]);
+		allele2.clear();
+	}
+}
+
 DLLEXPORT void gnrAlleleStrand(char *allele1[], double afreq1[], int I1[],
-	char *allele2[], double afreq2[], int I2[], int *n,
-	LongBool out_flag[], LongBool *out_err)
+	char *allele2[], double afreq2[], int I2[],
+	int *if_same_strand, int *n,
+	LongBool out_flag[], int *out_n_stand_amb, int *out_n_mismatch,
+	LongBool *out_err)
 {
 	CORETRY
-		// init
-		map<char, char> MAP;
-		MAP['A'] = 'T'; MAP['C'] = 'G'; MAP['G'] = 'C'; MAP['T'] = 'A';
+		// initialize: A-T pair, C-G pair
+		map<string, string> MAP;
+		MAP["A"] = "T"; MAP["C"] = "G"; MAP["G"] = "C"; MAP["T"] = "A";
+
+		*out_n_stand_amb = 0;
+		*out_n_mismatch = 0;
+
+		const bool check_strand = (if_same_strand[0] == 0);
 
 		// loop for each SNP
 		for (int i=0; i < *n; i++)
 		{
-			bool switch_flag = false; // if true, need switch strand
+			// if true, need switch strand
+			bool switch_flag = false;
 
-			// ref / nonref alleles
-			char s1=allele1[I1[i]-1][0], s2=allele1[I1[i]-1][2];
-			char p1=allele2[I2[i]-1][0], p2=allele2[I2[i]-1][2];
-			double F1=afreq1[I1[i]-1], F2=afreq2[I2[i]-1];
+			// if true, need to compare the allele frequencies
+			//   0 -- no switch detect
+			//   1 -- detect whether switch or not for stand ambiguity
+			//   2 -- detect whether switch or not for mismatching alleles
+			int switch_freq_detect = 0;
+
+			// ``ref / nonref alleles''
+			string s1, s2;
+			string p1, p2;
+			split_allele(allele1[I1[i]-1], s1, s2);
+			split_allele(allele2[I2[i]-1], p1, p2);
+
+			// allele frequency
+			const double F1 = afreq1[I1[i]-1];
+			const double F2 = afreq2[I2[i]-1];
 
 			if (ATGC(s1) && ATGC(s2) && ATGC(p1) && ATGC(p2))
 			{
 				// check
 				if ( (s1 == p1) && (s2 == p2) )
 				{
-					// for example, + C/G <---> - C/G, strand ambi
-					if (s1 == MAP[p2])
-						switch_flag = (ALLELE_MINOR(F1) != ALLELE_MINOR(F2));
+					if (check_strand)
+					{
+						// for example, + C/G <---> - C/G, strand ambi
+						if (s1 == MAP[p2])
+							switch_freq_detect = 1;
+					}
 				} else if ( (s1 == p2) && (s2 == p1) )
 				{
-					// for example, + C/G <---> - G/C
-					if (s1 == MAP[p1])
-						switch_flag = (ALLELE_MINOR(F1) != ALLELE_MINOR(F2));
+					if (check_strand)
+					{
+						// for example, + C/G <---> - G/C, strand ambi
+						if (s1 == MAP[p1])
+							switch_freq_detect = 1;
+						else
+							switch_flag = true;
+					} else
+						switch_flag = true;
+				} else {
+					if (check_strand)
+					{
+						if ( (s1 == MAP[p1]) && (s2 == MAP[p2]) )
+						{
+							// for example, + C/G <---> - G/C, strand ambi
+							if (s1 == p2)
+								switch_freq_detect = 1;
+						} else if ( (s1 == MAP[p2]) && (s2 == MAP[p1]) )
+							switch_flag = true;
+						else
+							switch_freq_detect = 2;
+					} else
+						switch_freq_detect = 2;
+				}
+			} else {
+				if ((s1 == p1) && (s2 == p2))
+				{
+					if (s1 == s2)
+						switch_freq_detect = 1;  // ambiguous
+				} else if ((s1 == p2) && (s2 == p1))
+				{
+					if (s1 == s2)
+						switch_freq_detect = 1;  // ambiguous
 					else
 						switch_flag = true;
-				} else if ( (s1 == MAP[p1]) && (s2 == MAP[p2]) )
-				{
-					// for example, + C/G <---> - G/C
-					if (s1 == p2)
-						switch_flag = (ALLELE_MINOR(F1) != ALLELE_MINOR(F2));
-				} else if ( (s1 == MAP[p2]) && (s2 == MAP[p1]) )
-				{
-					switch_flag = true;
-				} else {
-					// throw ErrHLA("Invalid strand in SNP %s", s.rsid.c_str());
-				}
+				} else
+					switch_freq_detect = 2;
 			}
+
+			if (switch_freq_detect != 0)
+			{
+				switch_flag = (ALLELE_MINOR(F1) != ALLELE_MINOR(F2));
+				if (switch_freq_detect == 1)
+					(*out_n_stand_amb) ++;
+				else
+					(*out_n_mismatch) ++;
+			}
+
 			out_flag[i] = switch_flag;
 		}
+
 		*out_err = 0;
+
 	CORECATCH(*out_err = 1)
 }
-
-
 
 /// get an error message
 DLLEXPORT void gnrErrMsg(char **Msg)

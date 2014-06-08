@@ -170,16 +170,15 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE
 			cat("\tUsing", num.thread, "CPU cores.\n")
 	}
 
-	# call parallel IBD
-	rv <- .C("gnrIBD_PLINK", as.logical(verbose), TRUE, as.integer(num.thread),
-		as.double(allele.freq), !is.null(allele.freq), as.logical(kinship.constraint),
-		k0 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
-		k1 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
-		afreq = double(node$n.snp), err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (rv$err != 0) stop(snpgdsErrMsg())
+	# call the C function
+	rv <- .Call("gnrIBD_PLINK", verbose, TRUE, as.integer(num.thread),
+		as.double(allele.freq), !is.null(allele.freq),
+		as.logical(kinship.constraint), PACKAGE="SNPRelate")
+	names(rv) <- c("k0", "k1", "afreq")
 
 	# return
-	rv <- list(sample.id=sample.ids, snp.id=snp.ids, afreq=rv$afreq, k0=rv$k0, k1=rv$k1)
+	rv <- list(sample.id = sample.ids, snp.id = snp.ids,
+		afreq = rv$afreq, k0 = rv$k0, k1 = rv$k1)
 	if (kinship)
 		rv$kinship <- 0.5*(1 - rv$k0 - rv$k1) + 0.25*rv$k1
 	rv$afreq[rv$afreq < 0] <- NaN
@@ -354,10 +353,11 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE
 			cat("\tUsing", num.thread, "CPU cores.\n")
 	}
 
-	# call parallel IBD
+	# get internal info
 	sz <- .C("gnrIBD_SizeInt", size=integer(1), nsnp4 = integer(1),
 		NAOK=TRUE, PACKAGE="SNPRelate")
 
+	# call parallel IBD
 	rv <- .C("gnrIBD_MLE", as.double(allele.freq), !is.null(allele.freq),
 		as.logical(kinship.constraint),
 		as.integer(max.niter), as.double(reltol), as.logical(coeff.correct),
@@ -810,31 +810,24 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRU
 		if (verbose)
 			cat("Relationship inference in a homogeneous population.\n")
 
-		# call parallel IBD
-		rv <- .C("gnrIBD_KING_Homo", as.logical(verbose), TRUE, as.integer(num.thread),
-			k0 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
-			k1 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
-			err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-		if (rv$err != 0) stop(snpgdsErrMsg())
+		# call the C function
+		rv <- .Call("gnrIBD_KING_Homo", as.logical(verbose), TRUE,
+			as.integer(num.thread), PACKAGE="SNPRelate")
 
 		rv <- list(sample.id=sample.ids, snp.id=snp.ids, afreq=NULL,
-			k0=rv$k0, k1=rv$k1)
+			k0=rv[[1]], k1=rv[[2]])
 
 	} else if (type == "KING-robust")
 	{
 		if (verbose)
 			cat("Relationship inference in the presence of population stratification.\n")
 
-		# call parallel IBD
-		rv <- .C("gnrIBD_KING_Robust", as.logical(verbose), TRUE,
-			as.integer(num.thread), as.integer(family.id),
-			IBS0 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
-			kinship = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
-			err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-		if (rv$err != 0) stop(snpgdsErrMsg())
+		# call the C function
+		rv <- .Call("gnrIBD_KING_Robust", as.logical(verbose), TRUE,
+			as.integer(num.thread), as.integer(family.id), PACKAGE="SNPRelate")
 
 		rv <- list(sample.id=sample.ids, snp.id=snp.ids, afreq=NULL,
-			IBS0=rv$IBS0, kinship=rv$kinship)
+			IBS0=rv[[1]], kinship=rv[[2]])
 	} else
 		stop("Invalid 'type'.")
 
@@ -896,8 +889,10 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 	# output
 	n <- length(ibdobj$sample.id)
 	ans <- data.frame(
-		ID1 = matrix(ibdobj$sample.id, nrow=n, ncol=n, byrow=TRUE)[flag],
-		ID2 = matrix(ibdobj$sample.id, nrow=n, ncol=n)[flag],
+		ID1 = .Call("gnrIBDSelSampID_List1", ibdobj$sample.id, flag,
+			PACKAGE="SNPRelate"),
+		ID2 = .Call("gnrIBDSelSampID_List2", ibdobj$sample.id, flag,
+			PACKAGE="SNPRelate"),
 		stringsAsFactors=FALSE)
 	for (i in ns)
 		ans[[i]] <- ibdobj[[i]][flag]

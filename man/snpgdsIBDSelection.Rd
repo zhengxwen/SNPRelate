@@ -27,7 +27,8 @@ snpgdsIBDSelection(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 }
 \author{Xiuwen Zheng}
 \seealso{
-	\code{\link{snpgdsIBDMLE}}, \code{\link{snpgdsIBDMoM}}, \code{\link{snpgdsIBDKING}}
+	\code{\link{snpgdsIBDMLE}}, \code{\link{snpgdsIBDMoM}},
+	\code{\link{snpgdsIBDKING}}
 }
 
 \examples{

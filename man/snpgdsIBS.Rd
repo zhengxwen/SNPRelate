@@ -43,9 +43,10 @@ over all the samples in \code{sample.id}.
 # open an example dataset (HapMap)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
+# perform identity-by-state calculations
 ibs <- snpgdsIBS(genofile)
 
-# To perform multidimensional scaling analysis on the genome-wide IBS pairwise distances:
+# perform multidimensional scaling analysis on the genome-wide IBS pairwise distances:
 loc <- cmdscale(1 - ibs$ibs, k = 2)
 x <- loc[, 1]; y <- loc[, 2]
 race <- as.factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group")))

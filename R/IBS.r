@@ -129,15 +129,12 @@ snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 			cat("\tUsing", num.thread, "CPU cores.\n")
 	}
 
-	# call parallel PCA
-	rv <- .C("gnrIBSAve", as.logical(verbose), TRUE, as.integer(num.thread),
-		ibs = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
-		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (rv$err != 0) stop(snpgdsErrMsg())
-
-	# return
-	rv <- list(sample.id = sample.ids, snp.id = snp.ids, ibs = rv$ibs)
+	# call the C function
+	rv <- list(sample.id = sample.ids, snp.id = snp.ids,
+		ibs = .Call("gnrIBSAve", as.logical(verbose), TRUE,
+			as.integer(num.thread), PACKAGE="SNPRelate"))
 	class(rv) <- "snpgdsIBSClass"
+
 	return(rv)
 }
 
@@ -256,13 +253,10 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 			cat("\tUsing", num.thread, "CPU cores.\n")
 	}
 
-	# call parallel PCA
-	rv <- .C("gnrIBSNum", as.logical(verbose), TRUE, as.integer(num.thread),
-		ibs0 = matrix(as.integer(NA), ncol=node$n.samp, nrow=node$n.samp),
-		ibs1 = matrix(as.integer(NA), ncol=node$n.samp, nrow=node$n.samp),
-		ibs2 = matrix(as.integer(NA), ncol=node$n.samp, nrow=node$n.samp),
-		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (rv$err != 0) stop(snpgdsErrMsg())
+	# call the C function
+	rv <- .Call("gnrIBSNum", as.logical(verbose), TRUE,
+		as.integer(num.thread), PACKAGE="SNPRelate")
+	names(rv) <- c("ibs0", "ibs1", "ibs2")
 
 	# return
 	rv <- list(sample.id = sample.ids, snp.id = snp.ids,

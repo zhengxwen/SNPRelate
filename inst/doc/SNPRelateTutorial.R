@@ -179,15 +179,15 @@ pca <- snpgdsPCA(genofile)
 
 # make a data.frame
 tab <- data.frame(sample.id = pca$sample.id,
-	pop = factor(pop_code)[match(pca$sample.id, sample.id)],
-	EV1 = pca$eigenvect[,1],    # the first eigenvector
-	EV2 = pca$eigenvect[,2],    # the second eigenvector
-	stringsAsFactors = FALSE)
+    pop = factor(pop_code)[match(pca$sample.id, sample.id)],
+    EV1 = pca$eigenvect[,1],    # the first eigenvector
+    EV2 = pca$eigenvect[,2],    # the second eigenvector
+    stringsAsFactors = FALSE)
 head(tab)
 
 # draw
 plot(tab$EV2, tab$EV1, col=as.integer(tab$pop),
-	xlab="eigenvector 2", ylab="eigenvector 1")
+    xlab="eigenvector 2", ylab="eigenvector 1")
 legend("topleft", legend=levels(tab$pop), pch="o", col=1:nlevels(tab$pop))
 
 
@@ -215,8 +215,8 @@ CORR <- snpgdsPCACorr(pca, genofile, eig.which=1:4)
 par( mfrow=c(3,1))
 for (i in 1:3)
 {
-	plot(abs(CORR$snpcorr[i,]), ylim=c(0,1), xlab="SNP Index",
-		ylab=paste("PC", i), col=chr, pch="+")
+    plot(abs(CORR$snpcorr[i,]), ylim=c(0,1), xlab="SNP Index",
+        ylab=paste("PC", i), col=chr, pch="+")
 }
 
 
@@ -233,7 +233,7 @@ YRI.id <- sample.id[pop_code == "YRI"]
 ###################################################
 # estimate IBD coefficients
 ibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id, snp.id=snpset.id,
-	maf=0.05, missing.rate=0.05)
+    maf=0.05, missing.rate=0.05)
 
 # make a data.frame
 ibd.coeff <- snpgdsIBDSelection(ibd)
@@ -244,7 +244,7 @@ head(ibd.coeff)
 ### code chunk number 25: SNPRelateTutorial.Rnw:414-417
 ###################################################
 plot(ibd.coeff$k0, ibd.coeff$k1, xlim=c(0,1), ylim=c(0,1),
-	xlab="k0", ylab="k1", main="YRI samples (MoM)")
+    xlab="k0", ylab="k1", main="YRI samples (MoM)")
 lines(c(0,1), c(1,0), col="red", lty=2)
 
 
@@ -255,7 +255,7 @@ lines(c(0,1), c(1,0), col="red", lty=2)
 ## set.seed(1000)
 ## snp.id <- sample(snpset.id, 5000)  # random 5000 SNPs
 ## ibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snp.id,
-## 	maf=0.05, missing.rate=0.05)
+##     maf=0.05, missing.rate=0.05)
 
 
 ###################################################
@@ -269,7 +269,7 @@ lines(c(0,1), c(1,0), col="red", lty=2)
 ### code chunk number 28: SNPRelateTutorial.Rnw:435-438 (eval = FALSE)
 ###################################################
 ## plot(ibd.coeff$k0, ibd.coeff$k1, xlim=c(0,1), ylim=c(0,1),
-## 	xlab="k0", ylab="k1", main="YRI samples (MLE)")
+##     xlab="k0", ylab="k1", main="YRI samples (MLE)")
 ## lines(c(0,1), c(1,0), col="red", lty=2)
 
 
@@ -293,7 +293,7 @@ head(dat)
 ### code chunk number 30: SNPRelateTutorial.Rnw:460-462
 ###################################################
 plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
-	ylab="Estimated Kinship Coefficient (KING-robust)")
+    ylab="Estimated Kinship Coefficient (KING-robust)")
 
 
 ###################################################

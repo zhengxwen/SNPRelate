@@ -142,10 +142,11 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	}
 
 	# call parallel PCA
-	rv <- .C("gnrPCA", as.integer(eigen.cnt), as.integer(num.thread), as.logical(bayesian),
-		as.logical(need.genmat), as.logical(genmat.only),
+	rv <- .C("gnrPCA", as.integer(eigen.cnt), as.integer(num.thread),
+		as.logical(bayesian), as.logical(need.genmat), as.logical(genmat.only),
 		as.logical(verbose), TRUE, eigenval = double(node$n.samp),
-		eigenvect = matrix(NaN, nrow=node$n.samp, ncol=eigen.cnt), TraceXTX = double(1),
+		eigenvect = matrix(NaN, nrow=node$n.samp, ncol=eigen.cnt),
+		TraceXTX = double(1),
 		genmat = switch(as.integer(need.genmat)+1, double(0),
 			matrix(NaN, nrow=node$n.samp, ncol=node$n.samp)),
 		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
@@ -288,8 +289,9 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1, verbose=TRUE)
 	}
 
 	# call parallel PCA
-	rv <- .C("gnrPCASNPLoading", pcaobj$eigenval, dim(pcaobj$eigenvect), pcaobj$eigenvect,
-		pcaobj$TraceXTX, as.integer(num.thread), pcaobj$Bayesian, verbose, TRUE,
+	rv <- .C("gnrPCASNPLoading", pcaobj$eigenval, dim(pcaobj$eigenvect),
+		pcaobj$eigenvect, pcaobj$TraceXTX, as.integer(num.thread),
+		pcaobj$Bayesian, verbose, TRUE,
 		snploading = matrix(NaN, nrow=dim(pcaobj$eigenvect)[2], ncol=node$n.snp),
 		afreq=double(node$n.snp), scale=double(node$n.snp),
 		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
@@ -363,16 +365,17 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 	}
 
 	# call parallel PCA
-	rv <- .C("gnrPCASampLoading", length(loadobj$sample.id), loadobj$eigenval, eigcnt,
-		as.double(loadobj$snploading), loadobj$TraceXTX, loadobj$avefreq, loadobj$scale,
-		as.integer(num.thread), verbose, TRUE,
+	rv <- .C("gnrPCASampLoading", length(loadobj$sample.id), loadobj$eigenval,
+		eigcnt, as.double(loadobj$snploading), loadobj$TraceXTX,
+		loadobj$avefreq, loadobj$scale, as.integer(num.thread), verbose, TRUE,
 		eigenvect = matrix(NaN, nrow=node$n.samp, ncol=eigcnt),
 		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (rv$err != 0) stop(snpgdsErrMsg())
 
 	# return
 	rv <- list(sample.id = sample.ids, snp.id = loadobj$snp.ids,
-		eigenval = loadobj$eigenval, eigenvect = rv$eigenvect, TraceXTX = loadobj$TraceXTX,
+		eigenval = loadobj$eigenval, eigenvect = rv$eigenvect,
+		TraceXTX = loadobj$TraceXTX,
 		Bayesian = loadobj$Bayesian, genmat = NULL)
 	class(rv) <- "snpgdsPCAClass"
 	return(rv)

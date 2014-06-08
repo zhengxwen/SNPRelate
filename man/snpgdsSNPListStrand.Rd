@@ -8,11 +8,14 @@
 need to be switched, with respect to \code{snplist1}.
 }
 \usage{
-snpgdsSNPListStrand(snplist1, snplist2)
+snpgdsSNPListStrand(snplist1, snplist2, same.strand=FALSE)
 }
 \arguments{
 	\item{snplist1}{the first SNP list object ``snpgdsSNPListClass''}
 	\item{snplist2}{the second SNP list object ``snpgdsSNPListClass''}
+	\item{same.strand}{\code{TRUE} assuming alleles are on the same strand
+		(e.g., forward strand); otherwise, \code{FALSE} not assuming whether
+		on the same strand or not}
 }
 \value{
 	a logical vector, where TRUE indiciates the allele references need to be switched, and NA

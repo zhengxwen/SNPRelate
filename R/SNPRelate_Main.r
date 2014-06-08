@@ -1022,11 +1022,12 @@ snpgdsSNPListIntersect <- function(snplist1, snplist2)
 #   snplist2 -- the second object of snpgdsSNPListClass
 #
 
-snpgdsSNPListStrand <- function(snplist1, snplist2)
+snpgdsSNPListStrand <- function(snplist1, snplist2, same.strand=FALSE)
 {
 	# check
 	stopifnot(inherits(snplist1, "snpgdsSNPListClass"))
 	stopifnot(inherits(snplist2, "snpgdsSNPListClass"))
+	stopifnot(is.logical(same.strand))
 
 	s1 <- paste(snplist1$rs.id, snplist1$chromosome, snplist1$position, sep="-")
 	s2 <- paste(snplist2$rs.id, snplist2$chromosome, snplist2$position, sep="-")
@@ -1036,7 +1037,8 @@ snpgdsSNPListStrand <- function(snplist1, snplist2)
 	# call
 	rv <- .C("gnrAlleleStrand", snplist1$allele, snplist1$afreq, I1,
 		snplist2$allele, snplist2$afreq, I2,
-		length(s), out = logical(length(s)),
+		same.strand, length(s), out=logical(length(s)),
+		out.n.ambiguity=integer(1), out.n.mismatching=integer(1),
 		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (rv$err != 0) stop(snpgdsErrMsg())
 
@@ -2891,13 +2893,14 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1, autosome.end=22, ...)
 		stop("The package 'gdsfmt' was not installed correctly.")
 
 	# init SNPRelate
-	rv <- .C("gnrInit", lib.fn, err=character(1), sse=integer(1), PACKAGE="SNPRelate")
+	rv <- .C("gnrInit", lib.fn, err=character(1), sse=integer(1),
+		PACKAGE="SNPRelate")
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.15")
+	packageStartupMessage("SNPRelate: 0.9.16")
 	if (rv$sse != 0)
-		packageStartupMessage("Streaming SIMD Extensions 2 (SSE2) supported.\n")
+		packageStartupMessage("Supported by Streaming SIMD Extensions 2 (SSE2).")
 
 	TRUE
 }
