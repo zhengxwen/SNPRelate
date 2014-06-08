@@ -50,7 +50,7 @@ names(SnpLoad)
 # [1] "sample.id"  "snp.id"     "eigenval"   "snploading" "TraceXTX"
 # [6] "Bayesian"   "avefreq"    "scale"
 dim(SnpLoad$snploading)
-# [1]     8 43609
+# [1]     8 8722
 
 plot(SnpLoad$snploading[1,], type="h", ylab="PC 1")
 

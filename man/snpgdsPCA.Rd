@@ -9,7 +9,8 @@
 \usage{
 snpgdsPCA(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 	remove.monosnp = TRUE, maf = NaN, missing.rate = NaN, eigen.cnt = 32,
-	num.thread = 1, bayesian = FALSE, need.genmat = FALSE, verbose = TRUE)
+	num.thread = 1, bayesian = FALSE, need.genmat = FALSE, genmat.only = FALSE,
+	verbose = TRUE)
 }
 \arguments{
 	\item{gdsobj}{the \code{\link[gdsfmt]{gdsclass}} object in the \link{gdsfmt} package}
@@ -23,6 +24,7 @@ snpgdsPCA(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 	\item{num.thread}{the number of CPU cores used}
 	\item{bayesian}{if TRUE, use bayesian normalization}
 	\item{need.genmat}{if TRUE, return the genetic covariance matrix}
+	\item{genmat.only}{return the genetic covariance matrix only, do not compute the eigenvalues and eigenvectors}
 	\item{verbose}{if TRUE, show information}
 }
 \details{
@@ -56,16 +58,20 @@ over all the samples in sample.id.
 genofile <- openfn.gds(snpgdsExampleFileName())
 
 RV <- snpgdsPCA(genofile, num.thread=2)
-
 pop <- read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))
 plot(RV$eigenvect[,2], RV$eigenvect[,1], col=as.integer(factor(pop)),
 	xlab="PC 2", ylab="PC 1")
 legend("topleft", legend=levels(factor(pop)), pch="o", col=1:4)
 
+RV <- snpgdsPCA(genofile, num.thread=2, need.genmat=TRUE)
+names(RV)
+# [1] "sample.id" "snp.id"    "eigenval"  "eigenvect" "TraceXTX"  "Bayesian"  "genmat"
+
 # close the genotype file
 closefn.gds(genofile)
 }
 
+\keyword{multicore}
 \keyword{gds}
 \keyword{PCA}
 \keyword{GWAS}

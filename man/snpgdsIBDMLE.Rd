@@ -10,8 +10,8 @@
 \usage{
 snpgdsIBDMLE(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE, remove.monosnp=TRUE,
 	maf=NaN, missing.rate=NaN, kinship.constraint=FALSE, allele.freq=NULL,
-	method=c("downhill.simplex", "EM"),
-	max.niter=50000, reltol=.Machine$double.eps^0.75, coeff.correct=TRUE,
+	method=c("EM", "downhill.simplex"),
+	max.niter=1000, reltol=sqrt(.Machine$double.eps), coeff.correct=TRUE,
 	out.num.iter = TRUE, num.thread=1, verbose=TRUE)
 }
 \arguments{
@@ -77,12 +77,14 @@ than MoM, and might not be feasible to estimate pairwise relatedness for a large
 # open an example dataset (HapMap)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
-CEU.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
-	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="CEU"]
+YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
+	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="YRI"]
 
 # SNP pruning
-snpset <- sample(unlist(snpgdsLDpruning(genofile, sample.id=c(CEU.id))), 250)
-mibd <- snpgdsIBDMLE(genofile, sample.id=c(CEU.id), snp.id=snpset, num.thread=2)
+set.seed(1000)
+snpset <- snpgdsLDpruning(genofile, sample.id=c(YRI.id), maf=0.05, missing.rate=0.05)
+snpset <- sample(unlist(snpset), 1000)
+mibd <- snpgdsIBDMLE(genofile, sample.id=c(YRI.id), snp.id=snpset, num.thread=2)
 
 flag <- lower.tri(mibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
@@ -93,6 +95,7 @@ points(mibd$k0[flag], mibd$k1[flag])
 closefn.gds(genofile)
 }
 
+\keyword{multicore}
 \keyword{gds}
 \keyword{GWAS}
 \keyword{IBD}

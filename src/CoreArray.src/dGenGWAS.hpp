@@ -9,13 +9,14 @@
 // Author      : Xiuwen Zheng
 // Version     : 1.0.0.0
 // Copyright   : Xiuwen Zheng (LGPL v3.0)
-// Created     : 03/30/2011
+// Created     : 10/01/2011
 // Description :
 // ===========================================================
 
 #ifndef _dGenGWAS_H_
 #define _dGenGWAS_H_
 
+#include <dType.hpp>
 #include <CoreGDSLink.hpp>
 #include <ctime>
 #include <vector>
@@ -219,7 +220,7 @@ namespace GWAS
 		CdProgression();
 
 		void Init(Int64 TotalCnt, bool ShowInit=true);
-		bool Forward(Int64 step = 1);
+		bool Forward(Int64 step = 1, bool Show=true);
 		virtual void ShowProgress();
 
         /// Return the current percentile
@@ -460,10 +461,6 @@ namespace GWAS
 
 	// ===========================================================
 
-	/// The working genotypes
-	extern CdGenoWorkSpace GenoSpace;
-	/// The progression information
-	extern CdProgression Progress;
 	/// The number of SNPs in a block, the number of samples in a block
 	extern long BlockSNP, BlockSamp;
 	/// The mutex object for the variable "Progress" and the function "RequireWork"
@@ -482,6 +479,7 @@ namespace GWAS
 	 *                    genotypes are stored in the sample-major order if false
 	**/
 	bool RequireWork(UInt8 *buf, long &_SNPstart, long &_SNPlen, bool SNPOrder);
+	bool RequireWork_NoMutex(UInt8 *buf, long &_SNPstart, long &_SNPlen, bool SNPOrder);
 
 	/// The genotypes will be filled in the buffer, one genotype per byte.
 	/** 0 -- BB, 1 -- AB, 2 -- AA, otherwise missing
@@ -492,7 +490,70 @@ namespace GWAS
 	 *                    genotypes are stored in the sample-major order if false
 	**/
 	bool RequireWorkSamp(UInt8 *buf, long &_SampStart, long &_SampLen, bool SNPOrder);
+	bool RequireWorkSamp_NoMutex(UInt8 *buf, long &_SampStart, long &_SampLen, bool SNPOrder);
 
+
+	// ===========================================================
+
+	class CMultiCoreWorkingGeno
+	{
+	public:
+		typedef void (*TDoBlockRead)(UInt8 *GenoBuf, long Start, long Cnt, void* Param);
+		typedef void (*TDoEachThread)(int ThreadIndex, long Start, long Cnt, void* Param);
+
+		/// The working genotypes
+		CdGenoWorkSpace Space;
+		/// The progression information
+		CdProgression Progress;
+
+		CMultiCoreWorkingGeno();
+		~CMultiCoreWorkingGeno();
+
+		void InitParam(bool snp_direction, bool read_snp_order, long block_size);
+
+		void Run(int nThread, TDoBlockRead do_read, TDoEachThread do_thread, void *Param);
+
+		static void SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[], Int64 outMatCnt[]);
+		static void SplitJobs(int nJob, int MatSize, IdMatTriD outMatIdx[], Int64 outMatCnt[]);
+
+		// internal uses
+		void _DoThread_WorkingGeno(TdThread Thread, int ThreadIndex);
+	protected:
+		/// The genotypes will be filled in the buffer, one genotype per byte.
+		/** 0 -- BB, 1 -- AB, 2 -- AA, otherwise missing
+		 *  \param buf        the output buffer
+		 *  \param _SNPstart  output parameter, the starting SNP of block
+		 *  \param _SNPlen    output parameter, the SNP length of block
+		 *  \param SNPOrder   genotypes are stored in the SNP-major order if true,
+		 *                    genotypes are stored in the sample-major order if false
+		**/
+
+		/// if TRUE perform computing SNP by SNP, otherwise sample by sample
+		bool _SNP_Direction;
+		/// if TRUE read genotypes in the major of SNP order, otherwise in the major of sample order
+		bool _Read_SNP_Order;
+		/// The number of SNPs or samples in a block
+		long _Block_Size;
+		/// The starting point of SNP or sample
+		long _Start_Position;
+		/// The temparory genotype buffer
+		std::auto_ptr<UInt8> _Geno_Block;
+
+		/// The mutex object
+		TdMutex _Mutex;
+		TdThreadsSuspending _Suspend;
+
+		// The internal parameter
+		void *_Param;            /// The internal parameter
+		int _Num_Thread;         /// The number of threads
+		TDoBlockRead _DoRead;
+		TDoEachThread _DoThread;
+		int _Num_Use;
+		bool _If_End;
+		long _StepCnt, _StepStart;
+	};
+
+	extern CMultiCoreWorkingGeno MCWorkingGeno;
 }
 
 

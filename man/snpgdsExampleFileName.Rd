@@ -8,8 +8,8 @@
 snpgdsExampleFileName()
 }
 \details{
-	A GDS genotype file is created from a subset of HapMap Phase II dataset, which has
-	270 individuals.
+	A GDS genotype file is created from a subset of HapMap Phase II dataset consisting of
+270 individuals and duplicates.
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 

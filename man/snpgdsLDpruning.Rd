@@ -31,6 +31,11 @@ snpgdsLDpruning(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 	The minor allele frequency and missing rate for each SNP passed in snp.id are calculated
 over all the samples in sample.id.
 
+	Four methods can be used to calculate linkage disequilibrium values:
+"composite" for LD composite measure, "r" for r square, "dprime" for D', and "corr" for
+correlation coefficient. The method "corr" is equivalent to "composite", when SNP genotypes
+are coded as: 0 -- BB, 1 -- AB, 2 -- AA. The LD is the absolute value of measurement.
+
 	It is useful to generate a pruned subset of SNPs that are in approximate linkage
 equilibrium with each other. The function \code{snpgdsLDpruning} recursively removes SNPs
 within a sliding window based on the pairwise genotypic correlation. SNP pruning is conducted
@@ -53,16 +58,15 @@ then skip j; otherwise, let S be S + \{ j \};
 	4) Output S, the final selection of SNPs.
 }
 \value{
-	Return a list of snp ids stratified by chromosomes.
+	Return a list of SNP IDs stratified by chromosomes.
 }
 \references{
 	Weir B: Inferences about linkage disequilibrium. Biometrics 1979; 35: 235-254.
 
 	Weir B: Genetic Data Analysis II. Sunderland, MA: Sinauer Associates, 1996.
 
-	Weir BS, Cockerham CC: Complete characterization of disequilibrium at two loci;
-		in Feldman MW (ed): Mathematical Evolutionary Theory.
-		Princeton, NJ: Princeton University Press, 1989.
+	Weir BS, Cockerham CC: Complete characterization of disequilibrium at two loci; in Feldman MW
+		(ed): Mathematical Evolutionary Theory. Princeton, NJ: Princeton University Press, 1989.
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 \seealso{
@@ -80,6 +84,9 @@ names(snpset)
 # ......
 head(snpset$chr1)
 # [1] 1 2 3 4 5 6
+
+# get SNP ids
+snp.id <- unlist(snpset)
 
 # close the genotype file
 closefn.gds(genofile)

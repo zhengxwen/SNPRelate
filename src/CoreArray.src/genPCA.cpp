@@ -73,36 +73,36 @@ namespace PCA
 		static const bool SSEFlag = SSE;
 		static const bool SSE2Flag = SSE2;
 
-		CPCAMat(size_t n, size_t m)
+		CPCAMat() { fN = fM = 0; }
+		CPCAMat(size_t n, size_t m) { Reset(n, m); }
+
+		void Reset(size_t n, size_t m)
 		{
 			fBuf.reset(new tfloat[n*m]);
 			fN = n; fM = m;
 		}
 
-		void COREARRAY_CALL_ALIGN MulAdd(size_t m, tfloat *OutMat)
+		void COREARRAY_CALL_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt, size_t ArrayLength, tfloat *OutBuf)
 		{
-			tfloat *s1 = fBuf.get();
-			for (size_t i1=0; i1 < fN; i1++, s1 += fM)
+			for (; IdxCnt > 0; IdxCnt--, ++Idx)
 			{
-				tfloat *s2 = s1;
-				for (size_t i2=i1; i2 < fN; i2++, s2 += fM)
+				tfloat *p1 = base() + Idx.Row() * fM;
+				tfloat *p2 = base() + Idx.Column() * fM;
+				tfloat rv = 0;
+				// unroll loop
+				size_t k = ArrayLength;
+				while (k >= 4)
 				{
-					// unroll loop
-					tfloat rv = 0, *p1 = s1, *p2 = s2;
-					size_t k = m;
-					while (k >= 4)
-					{
-						rv += p1[0] * p2[0]; rv += p1[1] * p2[1];
-						rv += p1[2] * p2[2]; rv += p1[3] * p2[3];
-						p1 += 4; p2 += 4; k -= 4;
-					}
-					while (k > 0)
-					{
-						rv += (*p1++) * (*p2++);
-						k--;
-					}
-					*OutMat++ += rv;
+					rv += p1[0] * p2[0]; rv += p1[1] * p2[1];
+					rv += p1[2] * p2[2]; rv += p1[3] * p2[3];
+					p1 += 4; p2 += 4; k -= 4;
 				}
+				while (k > 0)
+				{
+					rv += (*p1++) * (*p2++);
+					k--;
+				}
+				(*OutBuf++) += rv;
 			}
 		}
 
@@ -121,49 +121,48 @@ namespace PCA
 		static const bool SSEFlag = true;
 		static const bool SSE2Flag = SSE2;
 
-		CPCAMat(size_t n, size_t m)
+		CPCAMat() { fN = fM = 0; }
+		CPCAMat(size_t n, size_t m) { Reset(n, m); }
+
+		void Reset(size_t n, size_t m)
 		{
 			if (m & 0x03) m += 4 - (m & 0x03);
 			fBuf.Reset(n * m);
 			fN = n; fM = m;
 		}
 
-		void COREARRAY_CALL_ALIGN MulAdd(size_t m, float *OutMat)
+		void COREARRAY_CALL_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt, size_t ArrayLength, float *OutBuf)
 		{
-			float *s1 = fBuf.get();
-			for (size_t i1=0; i1 < fN; i1++, s1 += fM)
+			for (; IdxCnt > 0; IdxCnt--, ++Idx)
 			{
-				float *s2 = s1;
-				for (size_t i2=i1; i2 < fN; i2++, s2 += fM)
-				{
-					// unroll loop
-					float *p1 = s1, *p2 = s2;
-					float rv4[4] __ALIGNED16__ = {0, 0, 0, 0};
-					size_t k = m;
-					__m128 rv128 = _mm_load_ps(rv4);
+				float *p1 = base() + Idx.Row() * fM;
+				float *p2 = base() + Idx.Column() * fM;
+				// unroll loop
+				float rv4[4] __ALIGNED16__ = {0, 0, 0, 0};
+				size_t k = ArrayLength;
+				__m128 rv128 = _mm_load_ps(rv4);
 
-					while (k >= 16)
-					{
-						rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[0]), _mm_load_ps(&p2[0])));
-						rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[4]), _mm_load_ps(&p2[4])));
-						rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[8]), _mm_load_ps(&p2[8])));
-						rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[12]), _mm_load_ps(&p2[12])));
-						p1 += 16; p2 += 16; k -= 16;
-					}
-					while (k >= 4)
-					{
-						rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(p1), _mm_load_ps(p2)));
-						p1 += 4; p2 += 4; k -= 4;
-					}
-					_mm_store_ps(rv4, rv128);
-					rv4[0] += rv4[1] + rv4[2] + rv4[3];
-					while (k > 0)
-					{
-						rv4[0] += (*p1++) * (*p2++);
-						k--;
-					}
-					(*OutMat++) += rv4[0];
+				while (k >= 16)
+				{
+					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[0]), _mm_load_ps(&p2[0])));
+					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[4]), _mm_load_ps(&p2[4])));
+					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[8]), _mm_load_ps(&p2[8])));
+					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[12]), _mm_load_ps(&p2[12])));
+					p1 += 16; p2 += 16; k -= 16;
 				}
+				while (k >= 4)
+				{
+					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(p1), _mm_load_ps(p2)));
+					p1 += 4; p2 += 4; k -= 4;
+				}
+				_mm_store_ps(rv4, rv128);
+				rv4[0] += rv4[1] + rv4[2] + rv4[3];
+				while (k > 0)
+				{
+					rv4[0] += (*p1++) * (*p2++);
+					k--;
+				}
+				(*OutBuf++) += rv4[0];
 			}
 		}
 
@@ -183,46 +182,45 @@ namespace PCA
 		static const bool SSEFlag = true;
 		static const bool SSE2Flag = true;
 
-		CPCAMat(size_t n, size_t m)
+		CPCAMat() { fN = fM = 0; }
+		CPCAMat(size_t n, size_t m) { Reset(n, m); }
+
+		void Reset(size_t n, size_t m)
 		{
 			if (m & 0x01) m += 2 - (m & 0x01);
 			fBuf.Reset(n * m);
 			fN = n; fM = m;
 		}
 
-		void COREARRAY_CALL_ALIGN MulAdd(size_t m, double *OutMat)
+		void COREARRAY_CALL_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt, size_t ArrayLength, double *OutBuf)
 		{
-			double *s1 = fBuf.get();
-			for (size_t i1=0; i1 < fN; i1++, s1 += fM)
+			for (; IdxCnt > 0; IdxCnt--, ++Idx)
 			{
-				double *s2 = s1;
-				for (size_t i2=i1; i2 < fN; i2++, s2 += fM)
+				double *p1 = base() + Idx.Row() * fM;
+				double *p2 = base() + Idx.Column() * fM;
+				// unroll loop
+				double rv2[2] __ALIGNED16__ = {0, 0};
+				size_t k = ArrayLength;
+
+				__m128d rv128 = _mm_load_pd(rv2);
+				while (k >= 8)
 				{
-					// unroll loop
-					double *p1 = s1, *p2 = s2;
-					double rv2[2] __ALIGNED16__ = {0, 0};
-					size_t k = m;
-
-					__m128d rv128 = _mm_load_pd(rv2);
-					while (k >= 8)
-					{
-						rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[0]), _mm_load_pd(&p2[0])));
-						rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[2]), _mm_load_pd(&p2[2])));
-						rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[4]), _mm_load_pd(&p2[4])));
-						rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[6]), _mm_load_pd(&p2[6])));
-						p1 += 8; p2 += 8; k -= 8;
-					}
-
-					while (k >= 2)
-					{
-						rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(p1), _mm_load_pd(p2)));
-						p1 += 2; p2 += 2; k -= 2;
-					}
-					_mm_store_pd(rv2, rv128);
-					rv2[0] += rv2[1];
-					if (k > 0) rv2[0] += (*p1) * (*p2);
-					(*OutMat++) += rv2[0];
+					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[0]), _mm_load_pd(&p2[0])));
+					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[2]), _mm_load_pd(&p2[2])));
+					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[4]), _mm_load_pd(&p2[4])));
+					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[6]), _mm_load_pd(&p2[6])));
+					p1 += 8; p2 += 8; k -= 8;
 				}
+
+				while (k >= 2)
+				{
+					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(p1), _mm_load_pd(p2)));
+					p1 += 2; p2 += 2; k -= 2;
+				}
+				_mm_store_pd(rv2, rv128);
+				rv2[0] += rv2[1];
+				if (k > 0) rv2[0] += (*p1) * (*p2);
+				(*OutBuf++) += rv2[0];
 			}
 		}
 
@@ -250,11 +248,8 @@ namespace PCA
 	double *In_EigenVect = NULL;
 	/// the pointer to the object storing the eigenvectors, snp loadings
 	CPCAMat<double> *_EigenVectBuf = NULL;
-	/// the sample loadings
+	/// the pointer to allele frequency
 	double *In_AveFreq = NULL;
-
-	/// The mutex object for ptrPublicCov
-	TdMutex _CovMutex = NULL;
 
 	/// detect the effective value for BlockSNP
 	void AutoDetectSNPBlockSize(int nSamp, bool Detect=true)
@@ -273,164 +268,133 @@ namespace PCA
 	void InitMutexObject()
 	{
 		_Mutex = plc_InitMutex();
-		_CovMutex = plc_InitMutex();
 	}
 	/// destroy mutex objects
 	void DoneMutexObject()
 	{
 		plc_DoneMutex(_Mutex); _Mutex = NULL;
-		plc_DoneMutex(_CovMutex); _CovMutex = NULL;
 	}
 
 
+	// ****************** PCA covariate matrix ******************
 
-	// ****************** PCA algorithm ******************
+	/// The temparory variables used in computing
+	auto_ptr<int> PCA_gSum, PCA_gNum;
+	/// The mean-adjusted genotype buffers
+	CPCAMat<double> PCA_Mat;
+	/// The temporary variable
+	TdAlignPtr<double> tmpBuf;
 
-	/// The pointer to the variable PublicCov in the function "DoCovCalculate"
-	void *ptrPublicCov = NULL;
+	/// Thread variables
+	const int N_MAX_THREAD = 256;
+	IdMatTri PCA_Thread_MatIdx[N_MAX_THREAD];
+	Int64 PCA_Thread_MatCnt[N_MAX_THREAD];
 
-	/// The thread entry for the calculation of genetic covariace matrix
-	void COREARRAY_CALL_ALIGN Entry_CovCalc(TdThread Thread, int ThreadIndex, void *Param)
+	/// Convert the raw genotypes to the mean-adjusted genotypes
+	void _Do_PCA_ReadBlock(UInt8 *GenoBuf, long Start, long SNP_Cnt, void* Param)
 	{
-		// The number of working samples
-		const long n = GenoSpace.SampleNum();
-
-		auto_ptr<UInt8> GenoBlock(new UInt8[n*BlockSNP]);
-		auto_ptr<int> gSum(new int[BlockSNP]);
-		auto_ptr<int> gNum(new int[BlockSNP]);
-
-		CdMatTri<double> fpCov;
-		double *ptrfpCov = (double*)ptrPublicCov;
-		if (Thread)
-		{
-			fpCov.Reset(n); fpCov.Clear(0.0);
-			ptrfpCov = fpCov.get();
-		}
-
-		TdAlignPtr<double> fpBuf(BlockSNP);
-		CPCAMat<double> fpMat(n, BlockSNP);
+		// init ...
+		const int n = MCWorkingGeno.Space.SampleNum();
+		memset((void*)PCA_gSum.get(), 0, SNP_Cnt*sizeof(int));
+		memset((void*)PCA_gNum.get(), 0, SNP_Cnt*sizeof(int));
 
 		UInt8 *p, *s;
 		double *pf, *pp;
 
-		long _SNPstart, _SNPlen;
-		while (RequireWork(GenoBlock.get(), _SNPstart, _SNPlen, true))
+		// calculate the averages of genotypes for each SelSNP
+		p = GenoBuf;
+		pp = PCA_Mat.base();
+		for (long iSample=0; iSample < n; iSample++)
 		{
-			// calculate the averages of genotypes for each SelSNP
-			memset((void*)gSum.get(), 0, _SNPlen*sizeof(int));
-			memset((void*)gNum.get(), 0, _SNPlen*sizeof(int));
-			p = GenoBlock.get();
-			pp = fpMat.base();
-			for (long iSample=0; iSample < n; iSample++)
+			pf = pp; pp += PCA_Mat.M();
+			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 			{
-				pf = pp; pp += fpMat.M();
-				for (long iSNP=0; iSNP < _SNPlen; iSNP++)
+				if (*p < 3)
 				{
-					if (*p < 3)
-					{
-						gSum.get()[iSNP] += *p;
-						gNum.get()[iSNP]++;
-					}
-					*pf++ = *p++;
+					PCA_gSum.get()[iSNP] += *p;
+					PCA_gNum.get()[iSNP]++;
 				}
+				*pf++ = *p++;
 			}
-			for (long iSNP=0; iSNP < _SNPlen; iSNP++)
-			{
-				double &fv = fpBuf.get()[iSNP];
-				long gN = gNum.get()[iSNP];
-				if (gN > 0)
-					fv = (double)gSum.get()[iSNP] / gN;
-				else
-					fv = 0;
-			}
-
-			// Averaging and set missing values to ZERO
-			pp = fpMat.base(); // C@ij - 2p@j
-			for (long iSample=0; iSample < n; iSample++)
-			{
-				vt<double, av16Align>::Sub(pp, pp, fpBuf.get(), _SNPlen);
-				pp += fpMat.M();
-			}
-			pf = fpBuf.get(); // 1/sqrt(p@j*(1-p@j))
-			for (long iSNP=0; iSNP < _SNPlen; iSNP++, pf++)
-			{
-				double scale;
-				if (BayesianNormal)
-				{
-					long gN = gNum.get()[iSNP];
-					scale = (gN > 0) ? ((gSum.get()[iSNP] + 1.0) / (2*gN + 2)) : 0;
-				} else
-					scale = *pf / 2;
-				if (0.0 < scale && scale < 1.0)
-					*pf = 1.0 / sqrt(scale*(1.0-scale));
-				else
-					*pf = 0;
-			}
-			pp = fpMat.base(); // (C@ij - 2p@j) / sqrt(p@j*(1-p@j))
-			for (long iSample=0; iSample < n; iSample++)
-			{
-				vt<double, av16Align>::Mul(pp, pp, fpBuf.get(), _SNPlen);
-				pp += fpMat.M();
-			}
-
-			// missing values
-			p = GenoBlock.get();
-			pp = fpMat.base();
-			for (long iSample=0; iSample < n; iSample++)
-			{
-				pf = pp; pp += fpMat.M();
-				for (long iSNP=0; iSNP < _SNPlen; iSNP++)
-				{
-					if (*p > 2) *pf = 0;
-					p++; pf++;
-				}
-			}
-
-			// A += M * M'
-			fpMat.MulAdd(_SNPlen, ptrfpCov);
-
-			// Update progress
-			{
-				TdAutoMutex _m(_Mutex);
-				Progress.Forward(_SNPlen);
-            }
 		}
 
-		// finally, update fpCov
-		if (Thread)
+		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 		{
-			// auto Lock and Unlock
-			TdAutoMutex _m(_CovMutex);
-			vt<double, av16Align>::Add((double*)ptrPublicCov,
-				(double*)ptrPublicCov, fpCov.get(), fpCov.Size());
-		} else
-			// Unlock the elements of the variable "PublicCov"
-			plc_UnlockMutex(_CovMutex);
+			double &fv = tmpBuf.get()[iSNP];
+			long gN = PCA_gNum.get()[iSNP];
+			if (gN > 0)
+				fv = (double)PCA_gSum.get()[iSNP] / gN;
+			else
+				fv = 0;
+		}
+
+		// Averaging and set missing values to ZERO
+		pp = PCA_Mat.base(); // C@ij - 2p@j
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			vt<double, av16Align>::Sub(pp, pp, tmpBuf.get(), SNP_Cnt);
+			pp += PCA_Mat.M();
+		}
+		pf = tmpBuf.get(); // 1/sqrt(p@j*(1-p@j))
+		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++, pf++)
+		{
+			double scale;
+			if (BayesianNormal)
+			{
+				long gN = PCA_gNum.get()[iSNP];
+				scale = (gN > 0) ? ((PCA_gSum.get()[iSNP] + 1.0) / (2*gN + 2)) : 0;
+			} else
+				scale = *pf / 2;
+			if (0.0 < scale && scale < 1.0)
+				*pf = 1.0 / sqrt(scale*(1.0-scale));
+			else
+				*pf = 0;
+		}
+		// (C@ij - 2p@j) / sqrt(p@j*(1-p@j))
+		pp = PCA_Mat.base();
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			vt<double, av16Align>::Mul(pp, pp, tmpBuf.get(), SNP_Cnt);
+			pp += PCA_Mat.M();
+		}
+
+		// missing values
+		p = GenoBuf; pp = PCA_Mat.base();
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			pf = pp; pp += PCA_Mat.M();
+			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+			{
+				if (*p > 2) *pf = 0;
+				p++; pf++;
+			}
+		}
+	}
+
+	/// Compute the covariate matrix
+	void _Do_PCA_ComputeCov(int ThreadIndex, long Start, long SNP_Cnt, void* Param)
+	{
+		double *base = (double*)Param;
+		IdMatTri I = PCA_Thread_MatIdx[ThreadIndex];
+		PCA_Mat.MulAdd(I, PCA_Thread_MatCnt[ThreadIndex], SNP_Cnt, base + I.Offset());
 	}
 
     /// Calculate the genetic covariace
 	void DoCovCalculate(CdMatTri<double> &PublicCov, int NumThread, const char *Info, bool verbose)
 	{
-		// initialize mutex objects
-		InitMutexObject();
+		// Initialize ...
+		PCA_gSum.reset(new int[BlockSNP]);
+		PCA_gNum.reset(new int[BlockSNP]);
+		PCA_Mat.Reset(PublicCov.N(), BlockSNP);
+		tmpBuf.Reset(PCA_Mat.M());
+		memset(PublicCov.get(), 0, sizeof(double)*PublicCov.Size());
 
-		PublicCov.Clear(0.0);
-		ptrPublicCov = PublicCov.get();
+		MCWorkingGeno.Progress.Info = Info;
+		MCWorkingGeno.Progress.Show() = verbose;
+		MCWorkingGeno.InitParam(true, true, BlockSNP);
 
-		// Lock the elements of the varaible "PublicCov"
-		plc_LockMutex(_CovMutex);
-
-		// Initialize progress information
-		Progress.Info = Info;
-		Progress.Show() = verbose;
-		Progress.Init(GenoSpace.SNPNum());
-		SNPStart = 0;
-
-		// Threads
-		plc_DoBaseThread(Entry_CovCalc, NULL, NumThread);
-
-		// destory the mutex objects
-		DoneMutexObject();
+		MCWorkingGeno.SplitJobs(NumThread, PublicCov.N(), PCA_Thread_MatIdx, PCA_Thread_MatCnt);
+		MCWorkingGeno.Run(NumThread, &_Do_PCA_ReadBlock, &_Do_PCA_ComputeCov, PublicCov.get());
 	}
 
 
@@ -469,7 +433,7 @@ namespace PCA
 	void Entry_SNPCorrCalc(TdThread Thread, int ThreadIndex, void *Param)
 	{
 		// The number of working samples
-		const long n = GenoSpace.SampleNum();
+		const long n = MCWorkingGeno.Space.SampleNum();
 		auto_ptr<UInt8> GenoBlock(new UInt8[n*BlockSNP]);
 
 		long _SNPstart, _SNPlen;
@@ -491,7 +455,7 @@ namespace PCA
 			// Update progress
 			{
 				TdAutoMutex _m(_Mutex);
-				Progress.Forward(_SNPlen);
+				MCWorkingGeno.Progress.Forward(_SNPlen);
 			}
 		}
 	}
@@ -504,9 +468,9 @@ namespace PCA
 		InitMutexObject();
 
 		// Initialize progress information
-		Progress.Info = Info;
-		Progress.Show() = verbose;
-		Progress.Init(GenoSpace.SNPNum());
+		MCWorkingGeno.Progress.Info = Info;
+		MCWorkingGeno.Progress.Show() = verbose;
+		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SNPNum());
 		SNPStart = 0;
 		OutputEigenDim = EigCnt;
 		Out_Buffer = out_snpcorr; In_EigenVect = EigenVect;
@@ -553,7 +517,7 @@ namespace PCA
 	void Entry_SNPLoadingCalc(TdThread Thread, int ThreadIndex, void *Param)
 	{
 		// The number of working samples
-		const long n = GenoSpace.SampleNum();
+		const long n = MCWorkingGeno.Space.SampleNum();
 		auto_ptr<UInt8> GenoBlock(new UInt8[n*BlockSNP]);
 		TdAlignPtr<double> NormalGeno(n);
 
@@ -576,7 +540,7 @@ namespace PCA
 			// Update progress
 			{
 				TdAutoMutex _m(_Mutex);
-				Progress.Forward(_SNPlen);
+				MCWorkingGeno.Progress.Forward(_SNPlen);
 			}
 		}
 	}
@@ -584,18 +548,18 @@ namespace PCA
 	/// Calculate the SNP loadings
 	void GetPCAFreqScale(double OutFreq[], double OutScale[])
 	{
-		if (GenoSpace.SNPOrder())
+		if (MCWorkingGeno.Space.SNPOrder())
 		{
 			// initialize
-			const int nsnp = GenoSpace.SNPNum();
+			const int nsnp = MCWorkingGeno.Space.SNPNum();
 			auto_ptr<UInt8> buf(new UInt8[nsnp]);
 			auto_ptr<int> n(new int[nsnp]);
 			for (int i=0; i < nsnp; i++)
 				{ n.get()[i] = 0; OutFreq[i] = 0; }
 			// for-loop for each sample
-			for (int iSamp=0; iSamp < GenoSpace.SampleNum(); iSamp++)
+			for (int iSamp=0; iSamp < MCWorkingGeno.Space.SampleNum(); iSamp++)
 			{
-				GenoSpace.sampleRead(iSamp, 1, buf.get(), true);
+				MCWorkingGeno.Space.sampleRead(iSamp, 1, buf.get(), true);
 				for (int i=0; i < nsnp; i++)
 				{
 					UInt8 &v = buf.get()[i];
@@ -603,7 +567,7 @@ namespace PCA
 				}
 			}
 			// average
-			for (int i=0; i < GenoSpace.SNPNum(); i++)
+			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
 			{
 				const int nn = n.get()[i];
 				const double sum = OutFreq[i];
@@ -614,14 +578,14 @@ namespace PCA
 			}
 		} else {
 			// initialize
-			auto_ptr<UInt8> buf(new UInt8[GenoSpace.SampleNum()]);
+			auto_ptr<UInt8> buf(new UInt8[MCWorkingGeno.Space.SampleNum()]);
 			// for-loop for each snp
-			for (int isnp=0; isnp < GenoSpace.SNPNum(); isnp++)
+			for (int isnp=0; isnp < MCWorkingGeno.Space.SNPNum(); isnp++)
 			{
 				int n = 0;
 				double sum = 0;
-				GenoSpace.snpRead(isnp, 1, buf.get(), false);
-				for (int i=0; i < GenoSpace.SampleNum(); i++)
+				MCWorkingGeno.Space.snpRead(isnp, 1, buf.get(), false);
+				for (int i=0; i < MCWorkingGeno.Space.SampleNum(); i++)
 				{
 					UInt8 &v = buf.get()[i];
 					if (v <= 2) { sum += v; n ++; }
@@ -643,15 +607,15 @@ namespace PCA
 		InitMutexObject();
 
 		// Initialize progress information
-		Progress.Info = Info;
-		Progress.Show() = verbose;
-		Progress.Init(GenoSpace.SNPNum());
+		MCWorkingGeno.Progress.Info = Info;
+		MCWorkingGeno.Progress.Show() = verbose;
+		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SNPNum());
 		SNPStart = 0;
 		OutputEigenDim = EigCnt;
 		Out_Buffer = out_snploading;
 
 		// Array of eigenvectors
-		const long n = GenoSpace.SampleNum();
+		const long n = MCWorkingGeno.Space.SampleNum();
 		double Scale = double(n-1) / TraceXTX;
 		_EigenVectBuf = new CPCAMat<double>(OutputEigenDim, n);
 		for (long i=0; i < OutputEigenDim; i++)
@@ -676,7 +640,7 @@ namespace PCA
 	void Entry_SampLoadingCalc(TdThread Thread, int ThreadIndex, void *Param)
 	{
 		// The number of working samples
-		const long n = GenoSpace.SNPNum();
+		const long n = MCWorkingGeno.Space.SNPNum();
 		auto_ptr<UInt8> GenoBlock(new UInt8[n*BlockSamp]);
 		auto_ptr<double> buf(new double[n]);
 
@@ -704,13 +668,13 @@ namespace PCA
 						p1 += OutputEigenDim; p2 ++;
 					}
 					*out = sum;
-					out += GenoSpace.SampleNum();
+					out += MCWorkingGeno.Space.SampleNum();
 				}
 			}
 			// Update progress
 			{
 				TdAutoMutex _m(_Mutex);
-				Progress.Forward(_SampLen);
+				MCWorkingGeno.Progress.Forward(_SampLen);
             }
 		}
 	}
@@ -724,10 +688,10 @@ namespace PCA
 		InitMutexObject();
 
 		// Initialize progress information
-		const int n = GenoSpace.SNPNum();
-		Progress.Info = Info;
-		Progress.Show() = verbose;
-		Progress.Init(GenoSpace.SampleNum());
+		const int n = MCWorkingGeno.Space.SNPNum();
+		MCWorkingGeno.Progress.Info = Info;
+		MCWorkingGeno.Progress.Show() = verbose;
+		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SampleNum());
 
 		double ss = double(Num-1) / TraceXTX;
 		vector<double> eigen(EigenCnt);

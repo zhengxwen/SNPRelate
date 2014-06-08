@@ -524,15 +524,15 @@ namespace LD
 	void InitPackedGeno()
 	{
 		// set # of samples and snps
-		nSNP = GenoSpace.SNPNum();
-		nPackedSamp = (GenoSpace.SampleNum() % 4 > 0) ?
-			(GenoSpace.SampleNum()/4 + 1) : (GenoSpace.SampleNum()/4);
+		nSNP = MCWorkingGeno.Space.SNPNum();
+		nPackedSamp = (MCWorkingGeno.Space.SampleNum() % 4 > 0) ?
+			(MCWorkingGeno.Space.SampleNum()/4 + 1) : (MCWorkingGeno.Space.SampleNum()/4);
 		PackedGeno.reset(new UInt8[nPackedSamp*nSNP]);
 
 		// buffer
-		CdBufSpace Buf(GenoSpace, true, CdBufSpace::acInc);
+		CdBufSpace Buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
 		UInt8 *p = PackedGeno.get();
-		for (long i=0; i < GenoSpace.SNPNum(); i++)
+		for (long i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
 		{
 			p = Buf.ReadPackedGeno(i, p);
 		}
@@ -623,8 +623,8 @@ namespace LD
 		const double LD_threshold, bool *out_SNP)
 	{
 		// initial variables
-		nPackedSamp = (GenoSpace.SampleNum() % 4 > 0) ?
-			(GenoSpace.SampleNum()/4 + 1) : (GenoSpace.SampleNum()/4);
+		nPackedSamp = (MCWorkingGeno.Space.SampleNum() % 4 > 0) ?
+			(MCWorkingGeno.Space.SampleNum()/4 + 1) : (MCWorkingGeno.Space.SampleNum()/4);
 		list<TSNP> ListGeno;
 		out_SNP[StartIdx] = true;
 		auto_ptr<UInt8> buf(new UInt8[nPackedSamp]);
@@ -632,12 +632,12 @@ namespace LD
 		// -----------------------------------------------------
 		// increasing searching
 
-		CdBufSpace BufSNP(GenoSpace, true, CdBufSpace::acInc);
+		CdBufSpace BufSNP(MCWorkingGeno.Space, true, CdBufSpace::acInc);
 		ListGeno.push_back(TSNP(StartIdx, pos_bp[StartIdx], nPackedSamp));
 		BufSNP.ReadPackedGeno(StartIdx, &(ListGeno.back().genobuf[0]));
 
 		// for-loop, increasing
-		for (int i=StartIdx+1; i < GenoSpace.SNPNum(); i++)
+		for (int i=StartIdx+1; i < MCWorkingGeno.Space.SNPNum(); i++)
 		{
 			// load genotypes
 			BufSNP.ReadPackedGeno(i, buf.get());
@@ -673,7 +673,7 @@ namespace LD
 		// decreasing searching
 
 		ListGeno.clear();
-		for (int i=StartIdx; i < GenoSpace.SNPNum(); i++)
+		for (int i=StartIdx; i < MCWorkingGeno.Space.SNPNum(); i++)
 		{
 			if (out_SNP[i])
 			{

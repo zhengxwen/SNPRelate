@@ -51,6 +51,7 @@ image(RV$ibs0[L, L]/length(RV$snp.id))
 closefn.gds(genofile)
 }
 
+\keyword{multicore}
 \keyword{gds}
 \keyword{GWAS}
 \keyword{IBS}

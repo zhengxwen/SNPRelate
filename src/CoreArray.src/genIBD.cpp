@@ -99,12 +99,12 @@ namespace IBD
 	// AlleleFreq should have enough buffer
 	void Init_EPrIBD_IBS(double *out_afreq)
 	{
-		const long nSNP = GenoSpace.SNPNum();
+		const long nSNP = MCWorkingGeno.Space.SNPNum();
 
 		// clear EPrIBS_IBD
 		std::memset((void*)EPrIBS_IBD, 0, sizeof(EPrIBS_IBD));
 		auto_ptr<int> AA(new int[nSNP]), AB(new int[nSNP]), BB(new int[nSNP]);
-		GenoSpace.GetABNumPerSNP(AA.get(), AB.get(), BB.get());
+		MCWorkingGeno.Space.GetABNumPerSNP(AA.get(), AB.get(), BB.get());
 
 		// for-loop each snp
 		long nInvalid = 0;
@@ -243,15 +243,15 @@ namespace IBD
 	void InitPackedGeno(void *buffer)
 	{
 		// set # of samples and snps
-		nSamp = GenoSpace.SampleNum();
-		nPackedSNP = (GenoSpace.SNPNum() % 4 > 0) ?
-			(GenoSpace.SNPNum()/4 + 1) : (GenoSpace.SNPNum()/4);
+		nSamp = MCWorkingGeno.Space.SampleNum();
+		nPackedSNP = (MCWorkingGeno.Space.SNPNum() % 4 > 0) ?
+			(MCWorkingGeno.Space.SNPNum()/4 + 1) : (MCWorkingGeno.Space.SNPNum()/4);
 		PackedGeno = (UInt8*)buffer;
 
 		// buffer
-		CdBufSpace Buf(GenoSpace, false, CdBufSpace::acInc);
+		CdBufSpace Buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 		UInt8 *p = PackedGeno;
-		for (long i=0; i < GenoSpace.SampleNum(); i++)
+		for (long i=0; i < MCWorkingGeno.Space.SampleNum(); i++)
 		{
 			p = Buf.ReadPackedGeno(i, p);
 		}
@@ -611,7 +611,7 @@ namespace IBD
 					pIBD = pMatIBD; pMatIBD ++;
 					if (pNIter)
 						{ pniter = pNIter; pNIter ++; }
-					Progress.Forward(1);
+					MCWorkingGeno.Progress.Forward(1, Thread==0);
 				}
 			}
 			if (!WorkFlag) break;
@@ -670,7 +670,7 @@ namespace IBD
 			MLEAlleleFreq[i] = -1;
 		if (AFreq)
 		{
-			for (int i=0; i < GenoSpace.SNPNum(); i++)
+			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
 			{
 				double v = AFreq[i];
 				if ((v <= 0) || (v >= 1)) v = -1;
@@ -718,7 +718,7 @@ namespace IBD
 		double *out_AFreq, int NumThread, const char *Info, double *tmpAF, bool verbose)
 	{
 		InitAFreq(AFreq, tmpAF);
-		for (int i=0; i < GenoSpace.SNPNum(); i++)
+		for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
 			out_AFreq[i] = MLEAlleleFreq[i];
 
 		IBD = &PublicIBD; pMatIBD = PublicIBD.get();
@@ -730,10 +730,10 @@ namespace IBD
 		_Mutex = plc_InitMutex();
 
 		// Initialize progress information
-		const int n = GenoSpace.SNPNum();
-		Progress.Info = Info;
-		Progress.Show() = verbose;
-		Progress.Init(nMatTriD);
+		const int n = MCWorkingGeno.Space.SNPNum();
+		MCWorkingGeno.Progress.Info = Info;
+		MCWorkingGeno.Progress.Show() = verbose;
+		MCWorkingGeno.Progress.Init(nMatTriD);
 
 		// Threads
 		plc_DoBaseThread(Entry_MLEIBD, NULL, NumThread);

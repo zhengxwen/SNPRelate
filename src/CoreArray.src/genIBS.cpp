@@ -59,9 +59,6 @@ namespace IBS
 	using namespace GWAS;
 
 
-	/// The mutex object for ptrPublicCov
-	TdMutex _IBSMutex = NULL;
-
 	/// Packed size
 	static const long _size = 256*256;
 
@@ -72,6 +69,15 @@ namespace IBS
 	/// The number of IBS 2 in the packed genotype
 	UInt8 IBS2_Num_SNP[_size];
 
+	/// The packed genotype buffer
+	auto_ptr<UInt8> GenoPacked;
+
+	/// Thread variables
+	const int N_MAX_THREAD = 256;
+	IdMatTriD IBS_Thread_MatIdx[N_MAX_THREAD];
+	Int64 IBS_Thread_MatCnt[N_MAX_THREAD];
+
+
 	/// The pointer to the variable PublicIBS in the function "DoIBSCalculate"
 	/// The structure of IBS states
 	struct TIBSflag
@@ -79,8 +85,6 @@ namespace IBS
 		UInt32 IBS0, IBS1, IBS2;
 		TIBSflag() { IBS0 = IBS1 = IBS2 = 0; }
 	};
-	TIBSflag *ptrPublicIBS;
-
 
 
 	// TInit object
@@ -126,107 +130,58 @@ namespace IBS
 		if (BlockSNP < 16) BlockSNP = 16;
 	}
 
-	/// The thread entry for the calculation of genetic covariace matrix
-	void Entry_IBSCalc(TdThread Thread, int ThreadIndex, void *Param)
+	/// Convert the raw genotypes to the mean-adjusted genotypes
+	static void _Do_IBS_ReadBlock(UInt8 *GenoBuf, long Start, long SNP_Cnt, void* Param)
 	{
-		// The number of working samples
-		const long n = GenoSpace.SampleNum();
+		// init ...
+		const int n = MCWorkingGeno.Space.SampleNum();
+		UInt8 *pG = GenoBuf;
+		UInt8 *pPack = GenoPacked.get();
 
-		// The buffer of genotype
-		auto_ptr<UInt8> GenoBlock(new UInt8[n * BlockSNP]);
-		auto_ptr<UInt8> GenoPacked(new UInt8[n * BlockSNP / 4]);
-
-		CdMatTriDiag<TIBSflag> fpIBS;
-		TIBSflag *ptrfpIBS = ptrPublicIBS;
-		if (Thread)
+		// pack genotypes
+		for (long iSamp=0; iSamp < n; iSamp++)
 		{
-			fpIBS.Reset(n); fpIBS.Clear(TIBSflag());
-			ptrfpIBS = fpIBS.get();
+			pPack = PackGenotypes(pG, SNP_Cnt, pPack);
+			pG += SNP_Cnt;
 		}
+	}
 
-		long _SNPstart, _SNPlen;
-		while (RequireWork(GenoBlock.get(), _SNPstart, _SNPlen, true))
+	/// Compute the covariate matrix
+	static void _Do_IBS_Compute(int ThreadIndex, long Start, long SNP_Cnt, void* Param)
+	{
+		long Cnt = IBS_Thread_MatCnt[ThreadIndex];
+		IdMatTriD I = IBS_Thread_MatIdx[ThreadIndex];
+		TIBSflag *p = ((TIBSflag*)Param) + I.Offset();
+		long _PackSNPLen = (SNP_Cnt / 4) + (SNP_Cnt % 4 ? 1 : 0);
+
+		for (; Cnt > 0; Cnt--, ++I, p++)
 		{
-			UInt8 *pG = GenoBlock.get();
-			UInt8 *pPack = GenoPacked.get();
-
-			// pack genotypes
-			for (long iSamp=0; iSamp < n; iSamp++)
+			UInt8 *p1 = GenoPacked.get() + I.Row()*_PackSNPLen;
+			UInt8 *p2 = GenoPacked.get() + I.Column()*_PackSNPLen;
+			for (long k=_PackSNPLen; k > 0; k--, p1++, p2++)
 			{
-				pPack = PackGenotypes(pG, _SNPlen, pPack);
-				pG += _SNPlen;
-			}
-
-			TIBSflag *pr = ptrfpIBS;
-			long _PackSNPLen = (_SNPlen / 4) + (_SNPlen % 4 ? 1 : 0);
-
-			for (long i=0; i < n; i++)
-			{
-				for (long j=i+1; j < n; j++)
-				{
-					UInt8 *p1 = GenoPacked.get() + i*_PackSNPLen;
-					UInt8 *p2 = GenoPacked.get() + j*_PackSNPLen;
-					for (long k=_PackSNPLen; k > 0; k--, p1++, p2++)
-					{
-						size_t t = (size_t(*p1) << 8) | (*p2);
-						pr->IBS0 += IBS0_Num_SNP[t];
-						pr->IBS1 += IBS1_Num_SNP[t];
-						pr->IBS2 += IBS2_Num_SNP[t];
-					}
-					pr++;
-				}
-			}
-
-			// Update progress
-			{
-				TdAutoMutex _m(_Mutex);
-				Progress.Forward(_SNPlen);
+				size_t t = (size_t(*p1) << 8) | (*p2);
+				p->IBS0 += IBS0_Num_SNP[t];
+				p->IBS1 += IBS1_Num_SNP[t];
+				p->IBS2 += IBS2_Num_SNP[t];
 			}
 		}
-
-		// finally, update fpCov
-		if (Thread)
-		{
-			// auto Lock and Unlock
-			TdAutoMutex _m(_IBSMutex);
-			TIBSflag *s = fpIBS.get(), *d = ptrPublicIBS;
-			for (size_t i=fpIBS.Size(); i > 0; i--)
-			{
-				d->IBS0 += s->IBS0; d->IBS1 += s->IBS1;
-				d->IBS2 += s->IBS2;
-				d++; s++;
-			}
-		} else
-			// Unlock the elements of the variable "IBSMutex"
-			plc_UnlockMutex(_IBSMutex);
 	}
 
 	/// Calculate the IBS matrix
 	void DoIBSCalculate(CdMatTriDiag<TIBSflag> &PublicIBS, int NumThread,
 		const char *Info, bool verbose)
 	{
-		// initialize mutex objects
-		_Mutex = plc_InitMutex();
-		_IBSMutex = plc_InitMutex();
+		// Initialize ...
+		GenoPacked.reset(new UInt8[BlockSNP * PublicIBS.N()]);
+		memset(PublicIBS.get(), 0, sizeof(TIBSflag)*PublicIBS.Size());
 
-		PublicIBS.Clear(TIBSflag());
-		ptrPublicIBS = PublicIBS.get();
+		MCWorkingGeno.Progress.Info = Info;
+		MCWorkingGeno.Progress.Show() = verbose;
+		MCWorkingGeno.InitParam(true, true, BlockSNP);
 
-		// Lock the elements of the varaible "PublicIBS"
-		plc_LockMutex(_IBSMutex);
-
-		// Initialize progress information
-		Progress.Info = Info;
-		Progress.Show() = verbose;
-		Progress.Init(GenoSpace.SNPNum());
-		SNPStart = 0;
-
-		// Threads
-		plc_DoBaseThread(Entry_IBSCalc, NULL, NumThread);
-
-		/// destroy mutex objects
-		plc_DoneMutex(_Mutex); _Mutex = NULL;
-		plc_DoneMutex(_IBSMutex); _IBSMutex = NULL;
+		MCWorkingGeno.SplitJobs(NumThread, PublicIBS.N(), IBS_Thread_MatIdx, IBS_Thread_MatCnt);
+		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_IBS_Compute, PublicIBS.get());
 	}
 
 }

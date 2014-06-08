@@ -73,6 +73,7 @@ points(pibd$k0[flag], pibd$k1[flag])
 closefn.gds(genofile)
 }
 
+\keyword{multicore}
 \keyword{gds}
 \keyword{GWAS}
 \keyword{IBD}

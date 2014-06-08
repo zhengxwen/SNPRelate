@@ -4,15 +4,15 @@
 \docType{package}
 \title{Parallel Computing Toolset for genome-wide association studies}
 \description{
-	A High-performance Computing Package for Relatedness, Linkage Disequilibrium and
-Principal Component Analysis in Genome-wide Association Studies
+	A high-performance computing toolset for relatedness and principal component analysis in
+Genome-wide Association Studies
 }
 \details{
 \tabular{ll}{
 Package: \tab SNPRelate\cr
 Type: \tab Package\cr
-Version: \tab 0.9.1\cr
-Date: \tab 2011-08-11\cr
+Version: \tab 0.9.2\cr
+Date: \tab 2012-02-01\cr
 License: \tab LGPL version 3\cr
 Depends: \tab gdsfmt (>= 0.9.5)\cr
 }
@@ -101,6 +101,7 @@ image(abs(L1$LD), col=terrain.colors(64))
 closefn.gds(genofile)
 }
 
+\keyword{multicore}
 \keyword{gds}
 \keyword{GWAS}
 \keyword{genetics}

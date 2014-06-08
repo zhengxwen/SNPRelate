@@ -48,12 +48,14 @@ snpgdsIBDMLELogLik(gdsobj, ibdobj, k0 = NaN, k1 = NaN,
 # open an example dataset (HapMap)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
-CEU.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
-	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="CEU"]
+YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
+	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="YRI"]
 
 # SNP pruning
-snpset <- sample(unlist(snpgdsLDpruning(genofile, sample.id=c(CEU.id))), 250)
-mibd <- snpgdsIBDMLE(genofile, sample.id=c(CEU.id), snp.id=snpset, num.thread=2)
+set.seed(1000)
+snpset <- snpgdsLDpruning(genofile, sample.id=c(YRI.id), maf=0.05, missing.rate=0.05)
+snpset <- sample(unlist(snpset), 1000)
+mibd <- snpgdsIBDMLE(genofile, sample.id=c(YRI.id), snp.id=snpset, num.thread=2)
 
 loglik <- snpgdsIBDMLELogLik(genofile, mibd)
 loglik0 <- snpgdsIBDMLELogLik(genofile, mibd, relatedness="unrelated")

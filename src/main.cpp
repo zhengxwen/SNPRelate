@@ -315,20 +315,24 @@ DLLEXPORT void gnrSetGenoSpace(TdSequenceX *Node,
 	LongBool *out_err)
 {
 	CORETRY
-		GenoSpace.SetGeno(*Node, false);
+		MCWorkingGeno.Space.SetGeno(*Node, false);
 		if (*SelSampFlag)
 		{
-			for (int i=0; i < GenoSpace.TotalSampleNum(); i++)
-				GenoSpace.SampleSelection()[i] = (SelSamp[i] != 0);
+			for (int i=0; i < MCWorkingGeno.Space.TotalSampleNum(); i++)
+			{
+				MCWorkingGeno.Space.SampleSelection()[i] = (SelSamp[i] != 0);
+			}
 		}
 		if (*SelSNPFlag)
 		{
-			for (int i=0; i < GenoSpace.TotalSNPNum(); i++)
-				GenoSpace.SNPSelection()[i] = (SelSNP[i] != 0);
+			for (int i=0; i < MCWorkingGeno.Space.TotalSNPNum(); i++)
+			{
+				MCWorkingGeno.Space.SNPSelection()[i] = (SelSNP[i] != 0);
+			}
 		}
-		GenoSpace.InitSelection();
-		*out_nsnp = GenoSpace.SNPNum();
-		*out_nsamp = GenoSpace.SampleNum();
+		MCWorkingGeno.Space.InitSelection();
+		*out_nsnp = MCWorkingGeno.Space.SNPNum();
+		*out_nsamp = MCWorkingGeno.Space.SampleNum();
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
 }
@@ -336,18 +340,18 @@ DLLEXPORT void gnrSetGenoSpace(TdSequenceX *Node,
 /// get the dimension of SNP genotypes
 DLLEXPORT void gnrGetGenoDim(int *out_nsnp, int *out_nsamp)
 {
-	*out_nsnp = GenoSpace.SNPNum();
-	*out_nsamp = GenoSpace.SampleNum();
+	*out_nsnp = MCWorkingGeno.Space.SNPNum();
+	*out_nsamp = MCWorkingGeno.Space.SampleNum();
 }
 
 /// set the SNP selection on the genotype node
 DLLEXPORT void gnrSetGenoSelSNP(LongBool SNP_Flag[], LongBool *out_err)
 {
 	CORETRY
-		auto_ptr<CBOOL> buf(new CBOOL[GenoSpace.SNPNum()]);
-		for (int i=0; i < GenoSpace.SNPNum(); i++)
+		auto_ptr<CBOOL> buf(new CBOOL[MCWorkingGeno.Space.SNPNum()]);
+		for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
 			buf.get()[i] = (SNP_Flag[i]!=0);
-		GenoSpace.Set_SNPSelection(buf.get());
+		MCWorkingGeno.Space.Set_SNPSelection(buf.get());
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
 }
@@ -361,9 +365,10 @@ DLLEXPORT void gnrSelSNP_Base(LongBool *remove_mono, double *maf, double *missra
 	int *out_num, LongBool *out_selection, LongBool *out_err)
 {
 	CORETRY
-		const int n = GenoSpace.SNPNum();
+		const int n = MCWorkingGeno.Space.SNPNum();
 		auto_ptr<CBOOL> sel(new CBOOL[n]);
-		*out_num = GenoSpace.Select_SNP_Base(*remove_mono!=0, *maf, *missrate, sel.get());
+		*out_num = MCWorkingGeno.Space.Select_SNP_Base(*remove_mono!=0,
+			*maf, *missrate, sel.get());
 		for (int i=0; i < n; i++) out_selection[i] = sel.get()[i];
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
@@ -375,10 +380,10 @@ DLLEXPORT void gnrSNPFreq(
 	LongBool *out_err)
 {
 	CORETRY
-		GenoSpace.GetAlleleFreqs(out_allelefreq);
-		for (int i=0; i < GenoSpace.SNPNum(); i++)
+		MCWorkingGeno.Space.GetAlleleFreqs(out_allelefreq);
+		for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
 			out_minorfreq[i] = min(out_allelefreq[i], 1-out_allelefreq[i]);
-		GenoSpace.GetMissingRates(out_missrate);
+		MCWorkingGeno.Space.GetMissingRates(out_missrate);
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
 }
@@ -387,7 +392,7 @@ DLLEXPORT void gnrSNPFreq(
 DLLEXPORT void gnrSampFreq(double out_missrate[], LongBool *out_err)
 {
 	CORETRY
-		GenoSpace.GetSampMissingRates(out_missrate);
+		MCWorkingGeno.Space.GetSampMissingRates(out_missrate);
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
 }
@@ -397,7 +402,7 @@ DLLEXPORT void gnrCacheGeno(double *out_GenoSum, LongBool *out_err)
 {
 	CORETRY
 		if (out_GenoSum)
-			*out_GenoSum = GenoSpace.GenoSum();
+			*out_GenoSum = MCWorkingGeno.Space.GenoSum();
 		if (out_err) *out_err = 0;
 	CORECATCH(if (out_err) *out_err = 1)
 }
@@ -407,7 +412,8 @@ DLLEXPORT void gnrCacheGeno(double *out_GenoSum, LongBool *out_err)
 DLLEXPORT void gnrInitGenoBuffer(LongBool *SNPorSamp, int *AF, int *out_obj, LongBool *out_err)
 {
 	CORETRY
-		CdBufSpace *p = new CdBufSpace(GenoSpace, *SNPorSamp, CdBufSpace::TAccessFlag(*AF));
+		CdBufSpace *p = new CdBufSpace(MCWorkingGeno.Space,
+			*SNPorSamp, CdBufSpace::TAccessFlag(*AF));
 		memmove((void*)out_obj, (void*)&p, sizeof(CdBufSpace *));
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
@@ -444,8 +450,8 @@ DLLEXPORT void gnrCopyGeno(TdSequenceX *Node, LongBool *snpfirstorder, LongBool 
 		*out_err = 1;
 		if (*snpfirstorder)
 		{
-			CoreArray::Int32 cnt[2] = { 1, GenoSpace.SNPNum() };
-			CdBufSpace buf(GenoSpace, false, CdBufSpace::acInc);
+			CoreArray::Int32 cnt[2] = { 1, MCWorkingGeno.Space.SNPNum() };
+			CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				UInt8 *p = buf.ReadGeno(i);
@@ -454,8 +460,8 @@ DLLEXPORT void gnrCopyGeno(TdSequenceX *Node, LongBool *snpfirstorder, LongBool 
 					return;
 			}
 		} else {
-			CoreArray::Int32 cnt[2] = { 1, GenoSpace.SampleNum() };
-			CdBufSpace buf(GenoSpace, true, CdBufSpace::acInc);
+			CoreArray::Int32 cnt[2] = { 1, MCWorkingGeno.Space.SampleNum() };
+			CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				UInt8 *p = buf.ReadGeno(i);
@@ -475,16 +481,16 @@ DLLEXPORT void gnrCopyGenoMem(int *membuf, LongBool *snpfirstorder, LongBool *ou
 		*out_err = 1;
 		if (*snpfirstorder)
 		{
-			int cnt = GenoSpace.SNPNum();
-			CdBufSpace buf(GenoSpace, false, CdBufSpace::acInc);
+			int cnt = MCWorkingGeno.Space.SNPNum();
+			CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				UInt8 *p = buf.ReadGeno(i);
 				for (int k=0; k < cnt; k++) *membuf++ = *p++;
 			}
 		} else {
-			int cnt = GenoSpace.SampleNum();
-			CdBufSpace buf(GenoSpace, true, CdBufSpace::acInc);
+			int cnt = MCWorkingGeno.Space.SampleNum();
+			CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				UInt8 *p = buf.ReadGeno(i);
@@ -502,19 +508,19 @@ DLLEXPORT void gnrAppendGenoSpace(TdSequenceX *Node, LongBool *snpfirstorder, Lo
 		*out_err = 1;
 		if (*snpfirstorder)
 		{
-			CdBufSpace buf(GenoSpace, false, CdBufSpace::acInc);
+			CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				UInt8 *p = buf.ReadGeno(i);
-				if (!gds_AppendData(*Node, GenoSpace.SNPNum(), p, svUInt8))
+				if (!gds_AppendData(*Node, MCWorkingGeno.Space.SNPNum(), p, svUInt8))
 					return;
 			}
 		} else {
-			CdBufSpace buf(GenoSpace, true, CdBufSpace::acInc);
+			CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				UInt8 *p = buf.ReadGeno(i);
-				if (!gds_AppendData(*Node, GenoSpace.SampleNum(), p, svUInt8))
+				if (!gds_AppendData(*Node, MCWorkingGeno.Space.SampleNum(), p, svUInt8))
 					return;
 			}
 		}
@@ -530,8 +536,8 @@ DLLEXPORT void gnrAppendGenoSpaceStrand(TdSequenceX *Node, LongBool *snpfirstord
 		*out_err = 1;
 		if (*snpfirstorder)
 		{
-			const int n = GenoSpace.SNPNum();
-			CdBufSpace buf(GenoSpace, false, CdBufSpace::acInc);
+			const int n = MCWorkingGeno.Space.SNPNum();
+			CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				UInt8 *p = buf.ReadGeno(i);
@@ -541,8 +547,8 @@ DLLEXPORT void gnrAppendGenoSpaceStrand(TdSequenceX *Node, LongBool *snpfirstord
 					return;
 			}
 		} else {
-			const int n = GenoSpace.SampleNum();
-			CdBufSpace buf(GenoSpace, true, CdBufSpace::acInc);
+			const int n = MCWorkingGeno.Space.SampleNum();
+			CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				UInt8 *p = buf.ReadGeno(i);
@@ -566,10 +572,9 @@ DLLEXPORT void gnrAppendGenoSpaceStrand(TdSequenceX *Node, LongBool *snpfirstord
 
 /// to compute the eigenvalues and eigenvectors
 DLLEXPORT void gnrPCA(int *EigenCnt, int *NumThread, LongBool *_BayesianNormal,
-	LongBool *NeedGenmat, LongBool *Verbose, LongBool *DataCache,
+	LongBool *NeedGenMat, LongBool *GenMat_Only, LongBool *Verbose, LongBool *DataCache,
 	double *out_Eigenvalues, double *out_Eigenvectors,
-	double *out_TraceXTX, double *out_GenMat, LongBool *out_err,
-	double *tmp_EigenVec, double *tmp_Work)
+	double *out_TraceXTX, double *out_GenMat, LongBool *out_err)
 {
 	CORETRY
 		// ******** To cache the genotype data ********
@@ -584,7 +589,7 @@ DLLEXPORT void gnrPCA(int *EigenCnt, int *NumThread, LongBool *_BayesianNormal,
 		// ******** The calculation of genetic covariance matrix ********
 
 		// the number of samples
-		const int n = GenoSpace.SampleNum();
+		const int n = MCWorkingGeno.Space.SampleNum();
 		// set parameters
 		PCA::BayesianNormal = (_BayesianNormal!=0);
 		PCA::AutoDetectSNPBlockSize(n);
@@ -598,30 +603,40 @@ DLLEXPORT void gnrPCA(int *EigenCnt, int *NumThread, LongBool *_BayesianNormal,
 		double scale = double(n-1) / TraceXTX;
 		vt<double, av16Align>::Mul(Cov.get(), Cov.get(), scale, Cov.Size());
 		*out_TraceXTX = TraceXTX;
-		if (*NeedGenmat) Cov.SaveTo(out_GenMat);
+		if (*NeedGenMat) Cov.SaveTo(out_GenMat);
 
 		// ******** The calculation of eigenvectors and eigenvalues ********
 
-		vt<double>::Sub(Cov.get(), 0.0, Cov.get(), Cov.Size());
-		if (*Verbose)
-			Rprintf("PCA:\t%s\tBegin (eigenvalues and eigenvectors)\n", NowDateToStr().c_str());
+		if (!(*GenMat_Only))
 		{
-			int info = 0;
-			F77_NAME(dspev)("V", "L", &n, Cov.get(), out_Eigenvalues,
-				tmp_EigenVec, &n, tmp_Work, &info);
-			if (info != 0)
-				Rprintf("LAPACK::SPEV error!");
+			const size_t NN = n;
+			auto_ptr<double> tmp_Work(new double[NN*3]);
+			auto_ptr<double> tmp_EigenVec(new double[NN*NN]);
+
+			vt<double>::Sub(Cov.get(), 0.0, Cov.get(), Cov.Size());
+			if (*Verbose)
+				Rprintf("PCA:\t%s\tBegin (eigenvalues and eigenvectors)\n", NowDateToStr().c_str());
+			{
+				int info = 0;
+				F77_NAME(dspev)("V", "L", &n, Cov.get(), out_Eigenvalues,
+					tmp_EigenVec.get(), &n, tmp_Work.get(), &info);
+				if (info != 0)
+					Rprintf("LAPACK::SPEV error!");
+			}
+
+			// output eigenvalues
+			vt<double>::Sub(out_Eigenvalues, 0.0, out_Eigenvalues, n);
+
+			// output eigenvectors
+			double *p = tmp_EigenVec.get();
+			for (int i=0; i < *EigenCnt; i++)
+			{
+				memmove(out_Eigenvectors, p, sizeof(double)*n);
+				out_Eigenvectors += n; p += n;
+			}
+			if (*Verbose)
+				Rprintf("PCA:\t%s\tEnd (eigenvalues and eigenvectors)\n", NowDateToStr().c_str());
 		}
-		// output eigenvalues
-		vt<double>::Sub(out_Eigenvalues, 0.0, out_Eigenvalues, n);
-		// output eigenvectors
-		for (int i=0; i < *EigenCnt; i++)
-		{
-			memmove(out_Eigenvectors, tmp_EigenVec, sizeof(double)*n);
-			out_Eigenvectors += n; tmp_EigenVec += n;
-		}
-		if (*Verbose)
-			Rprintf("PCA:\t%s\tEnd (eigenvalues and eigenvectors)\n", NowDateToStr().c_str());
 
 		// output
 		*out_err = 0;
@@ -643,7 +658,7 @@ DLLEXPORT void gnrPCACorr(int *DimCnt, double *EigenVect, int *NumThread,
 		}
 
 		// ******** To compute the snp correlation ********
-		PCA::AutoDetectSNPBlockSize(GenoSpace.SampleNum());
+		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space.SampleNum());
 		PCA::DoSNPCoeffCalculate(DimCnt[1], EigenVect, out_snpcorr, *NumThread,
 			*Verbose!=0, "SNP Correlations:");
 
@@ -654,8 +669,8 @@ DLLEXPORT void gnrPCACorr(int *DimCnt, double *EigenVect, int *NumThread,
 
 /// to calculate the SNP loadings
 DLLEXPORT void gnrPCASNPLoading(double *EigenVal, int *DimCnt, double *EigenVect,
-	double *TraceXTX, int *NumThread, LongBool *Bayesian, LongBool *Verbose, LongBool *DataCache,
-	double *out_snploading, double *out_afreq, double *out_scale,
+	double *TraceXTX, int *NumThread, LongBool *Bayesian, LongBool *Verbose,
+	LongBool *DataCache, double *out_snploading, double *out_afreq, double *out_scale,
 	LongBool *out_err)
 {
 	CORETRY
@@ -669,7 +684,7 @@ DLLEXPORT void gnrPCASNPLoading(double *EigenVal, int *DimCnt, double *EigenVect
 		}
 
 		// ******** To compute the snp correlation ********
-		PCA::AutoDetectSNPBlockSize(GenoSpace.SampleNum());
+		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space.SampleNum());
 		PCA::BayesianNormal = (Bayesian!=0);
 		PCA::GetPCAFreqScale(out_afreq, out_scale);
 		PCA::DoSNPLoadingCalculate(EigenVal, DimCnt[1], EigenVect, *TraceXTX,
@@ -727,7 +742,7 @@ DLLEXPORT void gnrIBSAve(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 		// ******** The calculation of genetic covariance matrix ********
 
 		// the number of samples
-		const int n = GenoSpace.SampleNum();
+		const int n = MCWorkingGeno.Space.SampleNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 		// the upper-triangle genetic covariance matrix
@@ -769,7 +784,7 @@ DLLEXPORT void gnrIBSNum(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 		// ******** The calculation of genetic covariance matrix ********
 
 		// the number of samples
-		const int n = GenoSpace.SampleNum();
+		const int n = MCWorkingGeno.Space.SampleNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 		// the upper-triangle genetic covariance matrix
@@ -777,7 +792,7 @@ DLLEXPORT void gnrIBSNum(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 
 		// Calculate the IBS matrix
 		auto_ptr<int> I(new int[n]);
-		GenoSpace.GetSampValidNum(I.get());
+		MCWorkingGeno.Space.GetSampValidNum(I.get());
 		IBS::DoIBSCalculate(IBS, *NumThread, "IBS:", *Verbose);
 
 		// output
@@ -817,7 +832,7 @@ DLLEXPORT void gnrIBD_PLINK(LongBool *Verbose, LongBool *DataCache, int *NumThre
 		}
 
 		// the number of samples
-		const int n = GenoSpace.SampleNum();
+		const int n = MCWorkingGeno.Space.SampleNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 
@@ -852,9 +867,9 @@ DLLEXPORT void gnrIBD_PLINK(LongBool *Verbose, LongBool *DataCache, int *NumThre
 /// get an error message
 DLLEXPORT void gnrIBD_SizeInt(int *out_size, int *out_snp_size)
 {
-	long nSamp = GenoSpace.SampleNum();
-	long nPackedSNP = (GenoSpace.SNPNum() % 4 > 0) ?
-		(GenoSpace.SNPNum()/4 + 1) : (GenoSpace.SNPNum()/4);
+	long nSamp = MCWorkingGeno.Space.SampleNum();
+	long nPackedSNP = (MCWorkingGeno.Space.SNPNum() % 4 > 0) ?
+		(MCWorkingGeno.Space.SNPNum()/4 + 1) : (MCWorkingGeno.Space.SNPNum()/4);
 	long nTotal = nSamp * nPackedSNP;
 	*out_size = nTotal/sizeof(int) + ((nTotal % sizeof(int) > 0) ? 1 : 0);
 	*out_snp_size = 4*nPackedSNP;
@@ -890,7 +905,7 @@ DLLEXPORT void gnrIBD_MLE(double *AlleleFreq, LongBool *UseSpecificAFreq,
 		IBD::MethodMLE = *method; IBD::Loglik_Adjust = *CoeffCorrect;
 
 		// the upper-triangle genetic covariance matrix
-		const int n = GenoSpace.SampleNum();
+		const int n = MCWorkingGeno.Space.SampleNum();
 		CdMatTriDiag<IBD::TIBD> IBD(IBD::TIBD(), n);
 		CdMatTriDiag<int> niter;
 		if (*ifoutn) niter.Reset(n);
@@ -990,11 +1005,11 @@ DLLEXPORT void gnrLDpruning(int *StartIdx, int *pos_bp, int *slide_max_bp, int *
 	double *LD_threshold, int *method, LongBool *out_SNPprune, LongBool *out_err)
 {
 	CORETRY
-		auto_ptr<bool> flag(new bool[GenoSpace.SNPNum()]);
+		auto_ptr<bool> flag(new bool[MCWorkingGeno.Space.SNPNum()]);
 		LD::LD_Method = *method;
 		LD::calcLDpruning(*StartIdx, pos_bp, *slide_max_bp, *slide_max_n, *LD_threshold,
 			flag.get());
-		for (int i=0; i < GenoSpace.SNPNum(); i++)
+		for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
 			out_SNPprune[i] = flag.get()[i];
 		// output
 		*out_err = 0;
@@ -1020,8 +1035,8 @@ DLLEXPORT void gnrIndInb(double *allele_freq, int *method, double *reltol, doubl
 	int out_iternum[], LongBool *out_err)
 {
 	CORETRY
-		const int n = GenoSpace.SNPNum();
-		CdBufSpace buf(GenoSpace, false, CdBufSpace::acInc);
+		const int n = MCWorkingGeno.Space.SNPNum();
+		CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 		for (long i=0; i < buf.IdxCnt(); i++)
 		{
 			UInt8 *p = buf.ReadGeno(i);
@@ -1051,25 +1066,25 @@ DLLEXPORT void gnrConvGDS2PED(char **pedfn, char **SampID, int *Sex,
 	LongBool *verbose, LongBool *out_err)
 {
 	CORETRY
-		Progress.Info = "\t\tOutput: ";
-		Progress.Show() = *verbose;
-		Progress.Init(GenoSpace.SampleNum());
+		MCWorkingGeno.Progress.Info = "\t\tOutput: ";
+		MCWorkingGeno.Progress.Show() = *verbose;
+		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SampleNum());
 
 		ofstream file(*pedfn);
 		if (!file.good())
 			throw ErrCoreArray("Fail to create the file %s.", *pedfn);
-		CdBufSpace buf(GenoSpace, false, CdBufSpace::acInc);
+		CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 		for (long i=0; i < buf.IdxCnt(); i++)
 		{
 			file << "0\t" << SampID[i] << "\t0\t0\t" << Sex[i] << "\t-9";
 			UInt8 *g = buf.ReadGeno(i);
-			for (long j=0; j < GenoSpace.SNPNum(); j++, g++)
+			for (long j=0; j < MCWorkingGeno.Space.SNPNum(); j++, g++)
 			{
 				const char *s = (*g==0) ? "B B" : ((*g==1)?"A B": ((*g==2)?"A A":"0 0"));
 				file << "\t" << s;
 			}
 			file << endl;
-			Progress.Forward(1);
+			MCWorkingGeno.Progress.Forward(1);
 		}
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
@@ -1080,9 +1095,9 @@ DLLEXPORT void gnrConvGDS2BED(char **bedfn, LongBool *SNPOrder,
 	LongBool *verbose, LongBool *out_err)
 {
 	CORETRY
-		Progress.Info = "\t\tOutput: ";
-		Progress.Show() = *verbose;
-		Progress.Init(GenoSpace.SampleNum());
+		MCWorkingGeno.Progress.Info = "\t\tOutput: ";
+		MCWorkingGeno.Progress.Show() = *verbose;
+		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SampleNum());
 
 		ofstream file(*bedfn, ios::binary);
 		if (!file.good())
@@ -1095,7 +1110,7 @@ DLLEXPORT void gnrConvGDS2BED(char **bedfn, LongBool *SNPOrder,
 			file.write(prefix, 3);
 		}
 
-		CdBufSpace buf(GenoSpace, !(*SNPOrder), CdBufSpace::acInc);
+		CdBufSpace buf(MCWorkingGeno.Space, !(*SNPOrder), CdBufSpace::acInc);
 		long nRe = buf.BufElmSize() % 4;
 		long nPack = (nRe > 0) ? (buf.BufElmSize()/4 + 1) : (buf.BufElmSize()/4);
 		vector<char> geno(nPack, 0);
@@ -1117,7 +1132,7 @@ DLLEXPORT void gnrConvGDS2BED(char **bedfn, LongBool *SNPOrder,
 				*p++ = b;
 			}
 			file.write(&geno[0], nPack);
-			Progress.Forward(1);
+			MCWorkingGeno.Progress.Forward(1);
 		}
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
@@ -1127,24 +1142,24 @@ DLLEXPORT void gnrConvGDS2BED(char **bedfn, LongBool *SNPOrder,
 DLLEXPORT void gnrConvGDS2EIGEN(char **pedfn, LongBool *verbose, LongBool *out_err)
 {
 	CORETRY
-		Progress.Info = "\tOutput: ";
-		Progress.Show() = *verbose;
-		Progress.Init(GenoSpace.SNPNum());
+		MCWorkingGeno.Progress.Info = "\tOutput: ";
+		MCWorkingGeno.Progress.Show() = *verbose;
+		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SNPNum());
 
 		ofstream file(*pedfn);
 		if (!file.good())
 			throw ErrCoreArray("Fail to create the file %s.", *pedfn);
-		CdBufSpace buf(GenoSpace, true, CdBufSpace::acInc);
+		CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
 		for (long i=0; i < buf.IdxCnt(); i++)
 		{
 			UInt8 *g = buf.ReadGeno(i);
-			for (long j=0; j < GenoSpace.SampleNum(); j++, g++)
+			for (long j=0; j < MCWorkingGeno.Space.SampleNum(); j++, g++)
 			{
 				int geno = (*g <= 2) ? (*g) : 9;
 				file << geno;
 			}
 			file << endl;
-			Progress.Forward(1);
+			MCWorkingGeno.Progress.Forward(1);
 		}
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
@@ -1175,9 +1190,9 @@ DLLEXPORT void gnrConvBED2GDS(char **bedfn, TdSequenceX *Node, LongBool *verbose
 		int DLen[2];
 		gds_SeqGetDim(Seq, DLen);
 
-		Progress.Info = " ";
-		Progress.Show() = *verbose;
-		Progress.Init(DLen[0]);
+		MCWorkingGeno.Progress.Info = " ";
+		MCWorkingGeno.Progress.Show() = *verbose;
+		MCWorkingGeno.Progress.Init(DLen[0]);
 
 		ifstream file(*bedfn, ios::binary);
 		if (!file.good())
@@ -1218,7 +1233,7 @@ DLLEXPORT void gnrConvBED2GDS(char **bedfn, TdSequenceX *Node, LongBool *verbose
 			// write
 			st[0] = i;
 			gds_wData(Seq, st, cnt, dstgeno.get(), svUInt8);
-			Progress.Forward(1);
+			MCWorkingGeno.Progress.Forward(1);
 		}
 		*out_err = 0;
 	CORECATCH(*out_err = 1)

@@ -32,7 +32,18 @@ snpgdsCreateGenoSet(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 
 \examples{
 # open an example dataset (HapMap)
-genofile <- openfn.gds(snpgdsExampleFileName())
+(genofile <- openfn.gds(snpgdsExampleFileName()))
+# + 	[   ]
+# |--+ sample.id	[ dFStr8 279 ZIP(23.10%) ]
+# |--+ snp.id	[ dInt32 45440 ZIP(34.60%) ]
+# |--+ snp.rs.id	[ dFStr8 45440 ZIP(41.05%) ]
+# |--+ snp.position	[ dInt32 45440 ZIP(94.25%) ]
+# |--+ snp.chromosome	[ dInt32 45440 ZIP(0.14%) ]
+# |--+ snp.allele	[ dFStr8 45440 ZIP(13.36%) ]
+# |--+ genotype	[ dBit2 45440x279 ]
+# |--+ sample.annot	[   ] *
+# |  |--+ sex	[ dFStr8 279 ZIP(28.32%) ] *
+# |  |--+ pop.group	[ dFStr8 279 ZIP(7.89%) ] *
 
 snpset <- unlist(snpgdsLDpruning(genofile))
 length(snpset)

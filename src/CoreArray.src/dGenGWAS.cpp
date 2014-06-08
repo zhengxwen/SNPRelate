@@ -9,13 +9,11 @@
 // Author      : Xiuwen Zheng
 // Version     : 1.0.0.0
 // Copyright   : Xiuwen Zheng (LGPL v3.0)
-// Created     : 03/30/2011
+// Created     : 10/01/2011
 // Description :
 // ===========================================================
 
 #include <dGenGWAS.hpp>
-#include <iostream>
-
 
 using namespace std;
 using namespace GWAS;
@@ -854,7 +852,7 @@ void CdProgression::Init(Int64 TotalCnt, bool ShowInit)
 	if (ShowInit) ShowProgress();
 }
 
-bool CdProgression::Forward(Int64 step)
+bool CdProgression::Forward(Int64 step, bool Show)
 {
 	fCurrent += step;
 	int p = int((100.0*fCurrent) / fTotal);
@@ -864,7 +862,7 @@ bool CdProgression::Forward(Int64 step)
 		if (((Now - OldTime) >= TimeInterval) || (p == 100))
 		{
 			fPercent = p;
-			ShowProgress();
+			if (Show) ShowProgress();
 			OldTime = Now;
 			return true;
 		}
@@ -880,9 +878,11 @@ void CdProgression::ShowProgress()
 		string s(ctime(&tm));
 		s.erase(s.size()-1, 1);
 		if (Info.empty())
-			cout << s << "\t" << fPercent << "%" << endl;
+			Rprintf("%s\t%d%%\n", s.c_str(), fPercent);
+//			cout << s << "\t" << fPercent << "%" << endl;
 		else
-			cout << Info << "\t" << s << "\t" << fPercent << "%" << endl;
+			Rprintf("%s\t%s\t%d%%\n", Info.c_str(), s.c_str(), fPercent);
+//			cout << Info << "\t" << s << "\t" << fPercent << "%" << endl;
 	}
 }
 
@@ -1030,13 +1030,21 @@ IdMatTri & IdMatTri::operator-= (int val)
 
 IdMatTri & IdMatTri::operator++ ()
 {
-	*this += 1;
+	fOffset ++; fColumn ++;
+	if (fColumn >= fN)
+	{
+		fColumn = ++fRow;
+	}
 	return *this;
 }
 
 IdMatTri & IdMatTri::operator-- ()
 {
-	*this -= 1;
+	fOffset --; fColumn --;
+	if (fColumn < fRow)
+	{
+		--fRow; fColumn = fN-1;
+	}
 	return *this;
 }
 
@@ -1161,10 +1169,6 @@ void IdMatTriD::reset(int n)
 
 // ===========================================================
 
-/// The working genotypes
-CdGenoWorkSpace GWAS::GenoSpace;
-/// The progression information
-CdProgression GWAS::Progress;
 /// The number of SNPs in a block
 long GWAS::BlockSNP = 256;
 /// The number of samples in a block
@@ -1181,11 +1185,23 @@ bool GWAS::RequireWork(UInt8 *buf, long &_SNPstart, long &_SNPlen, bool SNPOrder
 	// auto Lock and Unlock
 	TdAutoMutex _m(_Mutex);
 
-	long Cnt = GenoSpace.SNPNum() - SNPStart;
+	long Cnt = MCWorkingGeno.Space.SNPNum() - SNPStart;
 	if (Cnt <= 0) return false;
 	if (Cnt > BlockSNP) Cnt = BlockSNP;
 
-	GenoSpace.snpRead(SNPStart, Cnt, buf, SNPOrder);
+	MCWorkingGeno.Space.snpRead(SNPStart, Cnt, buf, SNPOrder);
+	_SNPstart = SNPStart; _SNPlen = Cnt;
+	SNPStart += Cnt;
+	return true;
+}
+
+bool GWAS::RequireWork_NoMutex(UInt8 *buf, long &_SNPstart, long &_SNPlen, bool SNPOrder)
+{
+	long Cnt = MCWorkingGeno.Space.SNPNum() - SNPStart;
+	if (Cnt <= 0) return false;
+	if (Cnt > BlockSNP) Cnt = BlockSNP;
+
+	MCWorkingGeno.Space.snpRead(SNPStart, Cnt, buf, SNPOrder);
 	_SNPstart = SNPStart; _SNPlen = Cnt;
 	SNPStart += Cnt;
 	return true;
@@ -1196,13 +1212,182 @@ bool GWAS::RequireWorkSamp(UInt8 *buf, long &_SampStart, long &_SampLen, bool SN
 	// auto Lock and Unlock
 	TdAutoMutex _m(_Mutex);
 
-	long Cnt = GenoSpace.SampleNum() - SampStart;
+	long Cnt = MCWorkingGeno.Space.SampleNum() - SampStart;
 	if (Cnt <= 0) return false;
 	if (Cnt > BlockSamp) Cnt = BlockSamp;
 
-	GenoSpace.sampleRead(SampStart, Cnt, buf, SNPOrder);
+	MCWorkingGeno.Space.sampleRead(SampStart, Cnt, buf, SNPOrder);
 	_SampStart = SampStart; _SampLen = Cnt;
 	SampStart += Cnt;
 	return true;
 }
 
+bool GWAS::RequireWorkSamp_NoMutex(UInt8 *buf, long &_SampStart, long &_SampLen, bool SNPOrder)
+{
+	long Cnt = MCWorkingGeno.Space.SampleNum() - SampStart;
+	if (Cnt <= 0) return false;
+	if (Cnt > BlockSamp) Cnt = BlockSamp;
+
+	MCWorkingGeno.Space.sampleRead(SampStart, Cnt, buf, SNPOrder);
+	_SampStart = SampStart; _SampLen = Cnt;
+	SampStart += Cnt;
+	return true;
+}
+
+
+// CMultiCoreWorkingGeno
+
+CMultiCoreWorkingGeno GWAS::MCWorkingGeno;
+
+CMultiCoreWorkingGeno::CMultiCoreWorkingGeno()
+{
+	_Mutex = NULL;
+	_Suspend = NULL;
+}
+
+CMultiCoreWorkingGeno::~CMultiCoreWorkingGeno()
+{
+	if (_Mutex) plc_DoneMutex(_Mutex);
+	if (_Suspend) plc_DoneSuspend(_Suspend);
+}
+
+void CMultiCoreWorkingGeno::InitParam(bool snp_direction, bool read_snp_order, long block_size)
+{
+	if (_Mutex == NULL) _Mutex = plc_InitSuspend();
+	if (_Suspend == NULL) _Suspend = plc_InitSuspend();
+
+	_SNP_Direction = snp_direction;
+	_Read_SNP_Order = read_snp_order;
+	_Block_Size = block_size;
+	if (snp_direction)
+	{
+		_Geno_Block.reset(new UInt8[block_size * Space.SampleNum()]);
+		Progress.Init(Space.SNPNum());
+	} else {
+		_Geno_Block.reset(new UInt8[block_size * Space.SNPNum()]);
+		Progress.Init(Space.SampleNum());
+	}
+
+	// init the internal variables
+	_Start_Position = 0;
+}
+
+static void __DoThread_WorkingGeno(TdThread Thread, int ThreadIndex, void* Param)
+{
+	CMultiCoreWorkingGeno *obj = (CMultiCoreWorkingGeno*)Param;
+	obj->_DoThread_WorkingGeno(Thread, ThreadIndex);
+}
+
+void CMultiCoreWorkingGeno::Run(int nThread, TDoBlockRead do_read, TDoEachThread do_thread, void *Param)
+{
+	_Num_Thread = nThread;
+	_DoRead = do_read; _DoThread = do_thread;
+	_Param = Param;
+	_Num_Use = 0; _If_End = false;
+	_StepCnt = 0; _StepStart = 0;
+	plc_DoBaseThread(__DoThread_WorkingGeno, this, nThread);
+}
+
+void CMultiCoreWorkingGeno::_DoThread_WorkingGeno(TdThread Thread, int ThreadIndex)
+{
+	// if not main thread, suspend
+	if (ThreadIndex > 0) plc_Suspend(_Suspend);
+
+	// for loop
+	while (!_If_End)
+	{
+		if (ThreadIndex == 0)
+		{
+			// check no other thread is using ...
+			int I;
+			do {
+				plc_LockMutex(_Mutex);
+				I = _Num_Use;
+				plc_UnlockMutex(_Mutex);
+			} while (I > 0);
+
+			// progression information
+			{
+				long L = _Start_Position - _StepStart;
+				if (L > 0) Progress.Forward(L);
+			}
+
+			// reading ...
+			if (_SNP_Direction)
+			{
+				_StepCnt = Space.SNPNum() - _Start_Position;
+				if (_StepCnt <= 0)
+					{ _If_End = true; break; }
+				if (_StepCnt > _Block_Size) _StepCnt = _Block_Size;
+
+				Space.snpRead(_Start_Position, _StepCnt, _Geno_Block.get(), _Read_SNP_Order);
+			} else {
+				_StepCnt = Space.SampleNum() - _Start_Position;
+				if (_StepCnt <= 0)
+					{ _If_End = true; break; }
+				if (_StepCnt > _Block_Size) _StepCnt = _Block_Size;
+
+				Space.sampleRead(_Start_Position, _StepCnt, _Geno_Block.get(), _Read_SNP_Order);
+			}
+			_StepStart = _Start_Position;
+			_Start_Position += _StepCnt;
+			// handle reading ...
+			_DoRead(_Geno_Block.get(), _StepStart, _StepCnt, _Param);
+
+			// Wake up other threads
+			_Num_Use = _Num_Thread;
+			plc_WakeUp(_Suspend);
+
+			// handle each thread
+			_DoThread(ThreadIndex, _StepStart, _StepCnt, _Param);
+
+			plc_LockMutex(_Mutex);
+			_Num_Use --;
+			plc_UnlockMutex(_Mutex);
+		} else {
+			// handle each thread
+			_DoThread(ThreadIndex, _StepStart, _StepCnt, _Param);
+			//
+			plc_LockMutex(_Mutex);
+			_Num_Use --;
+			plc_UnlockMutex(_Mutex);
+			// Suspend immediately
+			plc_Suspend(_Suspend);
+		}
+	}
+
+	// end ...
+	if (ThreadIndex == 0) plc_WakeUp(_Suspend);
+}
+
+void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[],
+	Int64 outMatCnt[])
+{
+	if (nJob <= 0) nJob = 1;
+	IdMatTri pt(MatSize);
+	double ratio = 0.5*(MatSize+1)*MatSize / nJob, st = 0;
+	Int64 s = 0;
+	for (int i=0; i < nJob; i++)
+	{
+		st += ratio;
+		Int64 p = (Int64)(st + 0.5);
+		outMatIdx[i] = pt; outMatCnt[i] = p - s;
+		pt += p - s; s = p;
+	}
+}
+
+void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTriD outMatIdx[],
+	Int64 outMatCnt[])
+{
+	if (nJob <= 0) nJob = 1;
+	IdMatTriD pt(MatSize);
+	double ratio = 0.5*(MatSize-1)*MatSize / nJob, st = 0;
+	Int64 s = 0;
+	for (int i=0; i < nJob; i++)
+	{
+		st += ratio;
+		Int64 p = (Int64)(st + 0.5);
+		outMatIdx[i] = pt; outMatCnt[i] = p - s;
+		pt += p - s; s = p;
+	}
+}

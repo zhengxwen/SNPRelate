@@ -199,4 +199,3 @@ namespace GDSInterface
 }
 
 #endif /* _CoreGDSLink_H_ */
-
