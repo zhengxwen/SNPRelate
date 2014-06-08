@@ -1,0 +1,15 @@
+Package: SNPRelate
+Type: Package
+Title: Parallel Computing Toolset for genome-wide association studies
+Version: 0.9.0
+Date: 2011-08-02
+Depends: gdsfmt (>= 0.9.4)
+Author: Xiuwen Zheng
+Maintainer: Xiuwen Zheng <zhengx@u.washington.edu>
+Description: A high-performance computing package for relatedness,
+        linkage disequilibrium and principal component analysis in
+        GWAS.
+License: LGPL-3
+Packaged: 2011-08-02 21:54:17 UTC; foxsts
+Repository: CRAN
+Date/Publication: 2011-08-03 06:26:36

@@ -1,0 +1,61 @@
+\name{snpgdsCreateGeno}
+\alias{snpgdsCreateGeno}
+\title{
+	Create a SNP genotype dataset from a matrix
+}
+\description{
+	To create a GDS file of genotypes from a matrix.
+}
+\usage{
+snpgdsCreateGeno(gds.fn, genmat, sample.id = NULL, snp.id = NULL, snp.rs.id = NULL,
+	snp.chromosome = NULL, snp.position = NULL, snp.allele=NULL, snpfirstorder = TRUE,
+	compress.annotation = "ZIP.max", compress.geno = "", other.vars = NULL)
+}
+\arguments{
+	\item{gds.fn}{the file name of gds}
+	\item{genmat}{a matrix of genotypes}
+	\item{sample.id}{the sample ids, which should be unique}
+	\item{snp.id}{the SNP ids, which should be unique}
+	\item{snp.rs.id}{the rs ids for SNPs, which can be not unique}
+	\item{snp.chromosome}{the chromosome indices}
+	\item{snp.position}{the SNP positions in basepair}
+	\item{snp.allele}{the reference/non-reference alleles}
+	\item{snpfirstorder}{if TRUE, genotypes are stored in the individual-major mode,
+		(i.e, list all SNPs for the first individual, and then list all SNPs for
+		the second individual, etc)}
+	\item{compress.annotation}{the compression method for the variables except \code{genotype}}
+	\item{compress.geno}{the compression method for the variable \code{genotype}}
+	\item{other.vars}{a list object storing other variables}
+}
+\details{
+	The typical variables specified in \code{other.vars} are ``sample.annot'' and ``snp.annot'',
+	which are data.frame objects.
+}
+\value{
+	None.
+}
+\author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+\seealso{
+	\code{\link{snpgdsCreateGenoSet}}, \code{\link{snpgdsCombineGeno}}
+}
+\examples{
+# load data
+data(hapmap.geno)
+
+# create a gds file
+with(hapmap.geno, snpgdsCreateGeno("test.gds", genmat=genotype,
+	sample.id=sample.id, snp.id=snp.id, snp.chromosome=snp.chromosome,
+	snp.position=snp.position, snp.allele=snp.allele, snpfirstorder=TRUE))
+
+# open the gds file
+genofile <- openfn.gds("test.gds")
+
+RV <- snpgdsPCA(genofile)
+plot(RV$eigenvect[,2], RV$eigenvect[,1], xlab="PC 2", ylab="PC 1")
+
+# close the genotype file
+closefn.gds(genofile)
+}
+
+\keyword{gds}
+\keyword{GWAS}

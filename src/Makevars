@@ -1,0 +1,46 @@
+##################################################################
+###                     CoreArray Codes                        ###
+###                                                            ###
+
+
+# additional preprocessor options
+PKG_CPPFLAGS = -I. -I./CoreArray.src
+
+# to set flags for the linker
+PKG_LIBS = $(FLIBS) $(BLAS_LIBS) $(LAPACK_LIBS) -lCoreComputing -L.
+
+# flags for CoreArray library
+# COREFLAG = -O3 -I./CoreArray.src -I$(R_HOME)/include $(CXXPICFLAGS)
+# to use SSE2 SIMD instructions
+COREFLAG = -O3 -mfpmath=sse -mmmx -msse2 -msse -I./CoreArray.src -I$(R_HOME)/include $(CXXPICFLAGS)
+
+
+.PHONY: all .ComputingBuild
+
+all: $(SHLIB)
+
+$(SHLIB): .ComputingBuild
+
+
+# clean
+clean:
+	$(RM) *.o
+	$(RM) *.a
+	$(RM) genrelated.so genrelated.dll
+
+
+
+##################################################################
+###                     CoreArray library                      ###
+###                                                            ###
+
+.ComputingBuild:
+	$(CXX) $(COREFLAG) -c -o CoreGDSLink.o CoreArray.src/CoreGDSLink.cpp
+	$(CXX) $(COREFLAG) -c -o dGenGWAS.o CoreArray.src/dGenGWAS.cpp
+	$(CXX) $(COREFLAG) -c -o dVect.o CoreArray.src/dVect.cpp
+	$(CXX) $(COREFLAG) -c -o genPCA.o CoreArray.src/genPCA.cpp
+	$(CXX) $(COREFLAG) -c -o genIBS.o CoreArray.src/genIBS.cpp
+	$(CXX) $(COREFLAG) -c -o genIBD.o CoreArray.src/genIBD.cpp
+	$(CXX) $(COREFLAG) -c -o genLD.o CoreArray.src/genLD.cpp
+	$(RM) libCoreComputing.a
+	$(AR) -r libCoreComputing.a CoreGDSLink.o dGenGWAS.o dVect.o genPCA.o genIBS.o genIBD.o genLD.o
