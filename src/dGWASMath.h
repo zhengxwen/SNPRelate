@@ -8,8 +8,8 @@
 // Name        : dGWASMath
 // Author      : Xiuwen Zheng
 // Version     : 1.0.0.0
-// Copyright   : Xiuwen Zheng (unpublished)
-// Created     : 03/30/2009
+// Copyright   : Xiuwen Zheng (LGPL v3.0)
+// Created     : 04/22/2012
 // Description :
 // ===========================================================
 

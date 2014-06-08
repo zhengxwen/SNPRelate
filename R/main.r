@@ -1,9 +1,11 @@
 #######################################################################
 #
 # Package name: SNPRelate
+#
 # Description:
 #     A high-performance computing toolset for relatedness and
 #   principal component analysis in GWAS
+#
 # Author: Xiuwen Zheng
 # Email: zhengx@u.washington.edu
 #
@@ -247,12 +249,13 @@ snpgdsSelectSNP <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #   num.thread -- the number of threads
 #   bayesian -- if TRUE, to use Bayesian adjustment
 #   need.genmat -- if TRUE, return genetic covariance matrix
-#   verbose -- show information
+#   verbose -- show information, if TRUE
 #
 
 snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-	eigen.cnt=32, num.thread=1, bayesian=FALSE, need.genmat=FALSE, genmat.only=FALSE, verbose=TRUE)
+	eigen.cnt=32, num.thread=1, bayesian=FALSE, need.genmat=FALSE, genmat.only=FALSE,
+	verbose=TRUE)
 {
 	# check
 	stopifnot(class(gdsobj)=="gdsclass")
@@ -299,7 +302,7 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 			if (verbose)
 			{
 				tmp <- n.snp - sum(snp.id)
-				if (tmp > 0) cat("Removing", tmp, "non-autosomal SNPs\n")
+				if (tmp > 0) cat("Removing", tmp, "non-autosomal SNPs.\n")
 			}
 		}
 		snp.ids <- snp.ids[snp.id]
@@ -310,7 +313,7 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 			snp.id <- chr %in% 1:22
 			snp.ids <- snp.ids[snp.id]
 			if (verbose)
-				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs\n")
+				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs.\n")
 		}
 	}
 
@@ -349,15 +352,17 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	if (verbose)
 	{
 		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		cat("\tUse", num.thread, "CPU cores.\n")
+		if (num.thread <= 1)
+			cat("\tUsing", num.thread, "CPU core.\n")
+		else
+			cat("\tUsing", num.thread, "CPU cores.\n")
 	}
 
 	# call parallel PCA
 	rv <- .C("gnrPCA", as.integer(eigen.cnt), as.integer(num.thread), as.logical(bayesian),
-		as.logical(need.genmat), as.logical(genmat.only), as.logical(verbose), TRUE,
-		eigenval = double(node$n.samp),
-		eigenvect = matrix(NaN, nrow=node$n.samp, ncol=eigen.cnt),
-		TraceXTX = double(1),
+		as.logical(need.genmat), as.logical(genmat.only),
+		as.logical(verbose), TRUE, eigenval = double(node$n.samp),
+		eigenvect = matrix(NaN, nrow=node$n.samp, ncol=eigen.cnt), TraceXTX = double(1),
 		genmat = switch(as.integer(need.genmat)+1, double(0),
 			matrix(NaN, nrow=node$n.samp, ncol=node$n.samp)),
 		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
@@ -428,8 +433,11 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
 	{
 		cat("SNP correlations:\n")
 		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		cat("\tUse", num.thread, "CPU cores.\n")
-		cat("\tUse the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
+		if (num.thread <= 1)
+			cat("\tUsing", num.thread, "CPU core.\n")
+		else
+			cat("\tUsing", num.thread, "CPU cores.\n")
+		cat("\tUsing the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
 	}
 
 	# call parallel PCA
@@ -487,8 +495,11 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1, verbose=TRUE)
 	{
 		cat("SNP loadings:\n")
 		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		cat("\tUse", num.thread, "CPU cores.\n")
-		cat("\tUse the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
+		if (num.thread <= 1)
+			cat("\tUsing", num.thread, "CPU core.\n")
+		else
+			cat("\tUsing", num.thread, "CPU cores.\n")
+		cat("\tUsing the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
 	}
 
 	# call parallel PCA
@@ -558,8 +569,11 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 	{
 		cat("Sample loadings:\n")
 		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		cat("\tUse", num.thread, "CPU cores.\n")
-		cat("\tUse the top", eigcnt, "eigenvectors.\n")
+		if (num.thread <= 1)
+			cat("\tUsing", num.thread, "CPU core.\n")
+		else
+			cat("\tUsing", num.thread, "CPU cores.\n")
+		cat("\tUsing the top", eigcnt, "eigenvectors.\n")
 	}
 
 	# call parallel PCA
@@ -691,7 +705,10 @@ snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	if (verbose)
 	{
 		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		cat("\tUse", num.thread, "CPU cores.\n")
+		if (num.thread <= 1)
+			cat("\tUsing", num.thread, "CPU core.\n")
+		else
+			cat("\tUsing", num.thread, "CPU cores.\n")
 	}
 
 	# call parallel PCA
@@ -812,7 +829,10 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	if (verbose)
 	{
 		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		cat("\tUse", num.thread, "CPU cores.\n")
+		if (num.thread <= 1)
+			cat("\tUsing", num.thread, "CPU core.\n")
+		else
+			cat("\tUsing", num.thread, "CPU cores.\n")
 	}
 
 	# call parallel PCA
@@ -847,7 +867,8 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #   autosome.only -- whether only use autosomal SNPs
 #   remove.monosnp -- whether remove monomorphic snps or not
 #   maf -- the threshold of minor allele frequencies, keeping ">= maf"
-#   missing.rate -- the threshold of missing rates, keeping "<= missing.rate"
+#   missing.rate -- the threshold of missing rates, keeping "<= missing.rate"#
+#   allele.freq -- specify the allele frequencies
 #   kinship.constraint -- constrict IBD coeff in the geneloical region
 #   num.thread -- the number of threads to be used
 #   verbose -- show information
@@ -855,12 +876,13 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
 snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-	kinship.constraint=FALSE, num.thread=1, verbose=TRUE)
+	allele.freq=NULL, kinship.constraint=FALSE, num.thread=1, verbose=TRUE)
 {
 	# check
 	stopifnot(class(gdsobj)=="gdsclass")
 	stopifnot(is.numeric(num.thread) & (num.thread>0))
 	stopifnot(is.logical(verbose))
+	stopifnot(is.null(allele.freq) | is.numeric(allele.freq))
 
 	# samples
 	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
@@ -890,10 +912,18 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 			stop("Some of snp.id do not exist!")
 		if (n.snp <= 0)
 			stop("No SNP in the working dataset.")
+		if (!is.null(allele.freq))
+		{
+			if (n.snp != length(allele.freq))
+				stop("`length(allele.freq)' should equal to the number of SNPs.")
+		}
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
+			chridx <- chr[snp.id]
 			snp.id <- snp.id & (chr %in% 1:22)
+			if (!is.null(allele.freq))
+				allele.freq <- allele.freq[chridx %in% 1:22]
 			if (verbose)
 			{
 				tmp <- n.snp - sum(snp.id)
@@ -902,14 +932,29 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		}
 		snp.ids <- snp.ids[snp.id]
 	} else {
+		if (!is.null(allele.freq))
+		{
+			if (length(snp.ids) != length(allele.freq))
+				stop("`length(allele.freq)' should equal to the number of SNPs.")
+		}
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
 			snp.id <- chr %in% 1:22
 			snp.ids <- snp.ids[snp.id]
+			if (!is.null(allele.freq))
+				allele.freq <- allele.freq[snp.id]
 			if (verbose)
 				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs\n")
 		}
+	}
+
+	# check
+	if (!is.null(allele.freq))
+	{
+		cat(sprintf("Specifying allele frequencies, mean: %0.3f, sd: %0.3f\n",
+			mean(allele.freq, na.rm=TRUE), sd(allele.freq, na.rm=TRUE)))
+		cat("*** A correction factor based on allele counts is not used, since the allele frequencies are specified.\n")
 	}
 
 	# call C codes
@@ -926,13 +971,26 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	{
 		if (!is.finite(maf)) maf <- -1;
 		if (!is.finite(missing.rate)) missing.rate <- 2;
+
 		# call
-		rv <- .C("gnrSelSNP_Base", as.logical(remove.monosnp),
-			as.double(maf), as.double(missing.rate),
-			out.num=integer(1), out.snpflag = logical(node$n.snp),
-			err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		if (is.null(allele.freq))
+		{
+			rv <- .C("gnrSelSNP_Base", as.logical(remove.monosnp),
+				as.double(maf), as.double(missing.rate),
+				out.num=integer(1), out.snpflag = logical(node$n.snp),
+				err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		} else {
+			rv <- .C("gnrSelSNP_Base_Ex", as.double(allele.freq), as.logical(remove.monosnp),
+				as.double(maf), as.double(missing.rate),
+				out.num=integer(1), out.snpflag = logical(node$n.snp),
+				err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		}
 		if (rv$err != 0) stop(snpgdsErrMsg())
+
 		snp.ids <- snp.ids[rv$out.snpflag]
+		if (!is.null(allele.freq))
+			allele.freq <- allele.freq[rv$out.snpflag]
+
 		# show
 		if (verbose)
 			cat("Removing", rv$out.num, "SNPs (monomorphic, < MAF, or > missing rate)\n")
@@ -945,12 +1003,15 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	if (verbose)
 	{
 		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		cat("\tUse", num.thread, "CPU cores.\n")
+		if (num.thread <= 1)
+			cat("\tUsing", num.thread, "CPU core.\n")
+		else
+			cat("\tUsing", num.thread, "CPU cores.\n")
 	}
 
 	# call parallel IBD
 	rv <- .C("gnrIBD_PLINK", as.logical(verbose), TRUE, as.integer(num.thread),
-		as.logical(kinship.constraint),
+		as.double(allele.freq), !is.null(allele.freq), as.logical(kinship.constraint),
 		k0 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
 		k1 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
 		afreq = double(node$n.snp), err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
@@ -958,6 +1019,7 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
 	# return
 	rv <- list(sample.id=sample.ids, snp.id=snp.ids, afreq=rv$afreq, k0=rv$k0, k1=rv$k1)
+	rv$afreq[rv$afreq < 0] <- NaN
 	class(rv) <- "snpgdsIBDClass"
 	return(rv)
 }
@@ -984,7 +1046,7 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
 	kinship.constraint=FALSE, allele.freq=NULL, method=c("EM", "downhill.simplex"),
 	max.niter=1000, reltol=sqrt(.Machine$double.eps), coeff.correct=TRUE,
-	out.num.iter = TRUE, num.thread=1, verbose=TRUE)
+	out.num.iter=TRUE, num.thread=1, verbose=TRUE)
 {
 	# check
 	stopifnot(class(gdsobj)=="gdsclass")
@@ -992,6 +1054,7 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	stopifnot(is.logical(out.num.iter))
 	stopifnot(is.logical(verbose))
 	stopifnot(method %in% c("EM", "downhill.simplex"))
+	stopifnot(is.null(allele.freq) | is.numeric(allele.freq))
 
 	# samples
 	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
@@ -1018,13 +1081,21 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		snp.id <- snp.ids %in% snp.id
 		n.snp <- sum(snp.id)
 		if (n.snp != n.tmp)
-			stop("Some of snp.id do not exist!")
+			stop("Some of `snp.id' do not exist!")
 		if (n.snp <= 0)
 			stop("No SNP in the working dataset.")
+		if (!is.null(allele.freq))
+		{
+			if (n.snp != length(allele.freq))
+				stop("`length(allele.freq)' should equal to the number of SNPs.")
+		}
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
+			chridx <- chr[snp.id]
 			snp.id <- snp.id & (chr %in% 1:22)
+			if (!is.null(allele.freq))
+				allele.freq <- allele.freq[chridx %in% 1:22]
 			if (verbose)
 			{
 				tmp <- n.snp - sum(snp.id)
@@ -1033,14 +1104,28 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		}
 		snp.ids <- snp.ids[snp.id]
 	} else {
+		if (!is.null(allele.freq))
+		{
+			if (length(snp.ids) != length(allele.freq))
+				stop("`length(allele.freq)' should equal to the number of SNPs.")
+		}
 		if (autosome.only)
 		{
 			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
 			snp.id <- chr %in% 1:22
 			snp.ids <- snp.ids[snp.id]
+			if (!is.null(allele.freq))
+				allele.freq <- allele.freq[snp.id]
 			if (verbose)
 				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs\n")
 		}
+	}
+
+	# check
+	if (!is.null(allele.freq))
+	{
+		cat(sprintf("Specifying allele frequencies, mean: %0.3f, sd: %0.3f\n",
+			mean(allele.freq, na.rm=TRUE), sd(allele.freq, na.rm=TRUE)))
 	}
 
 	# method
@@ -1065,12 +1150,22 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	{
 		if (!is.finite(maf)) maf <- -1;
 		if (!is.finite(missing.rate)) missing.rate <- 2;
+
 		# call
-		rv <- .C("gnrSelSNP_Base", as.logical(remove.monosnp),
-			as.double(maf), as.double(missing.rate),
-			out.num=integer(1), out.snpflag = logical(node$n.snp),
-			err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		if (is.null(allele.freq))
+		{
+			rv <- .C("gnrSelSNP_Base", as.logical(remove.monosnp),
+				as.double(maf), as.double(missing.rate),
+				out.num=integer(1), out.snpflag = logical(node$n.snp),
+				err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		} else {
+			rv <- .C("gnrSelSNP_Base_Ex", as.double(allele.freq), as.logical(remove.monosnp),
+				as.double(maf), as.double(missing.rate),
+				out.num=integer(1), out.snpflag = logical(node$n.snp),
+				err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+		}
 		if (rv$err != 0) stop(snpgdsErrMsg())
+
 		snp.ids <- snp.ids[rv$out.snpflag]
 		if (!is.null(allele.freq))
 			allele.freq <- allele.freq[rv$out.snpflag]
@@ -1086,7 +1181,10 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	if (verbose)
 	{
 		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		cat("\tUse", num.thread, "CPU cores.\n")
+		if (num.thread <= 1)
+			cat("\tUsing", num.thread, "CPU core.\n")
+		else
+			cat("\tUsing", num.thread, "CPU cores.\n")
 	}
 
 	# call parallel IBD
@@ -1102,13 +1200,15 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		k0 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
 		k1 = matrix(NaN, ncol=node$n.samp, nrow=node$n.samp),
 		afreq = double(node$n.snp),
-		niter = switch(out.num.iter+1, NULL, matrix(as.integer(NA), ncol=node$n.samp, nrow=node$n.samp)),
+		niter = switch(out.num.iter+1, integer(0),
+			matrix(as.integer(NA), ncol=node$n.samp, nrow=node$n.samp)),
 		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (rv$err != 0) stop(snpgdsErrMsg())
 
 	# return
 	rv <- list(sample.id=sample.ids, snp.id=snp.ids, afreq=rv$afreq,
 		k0=rv$k0, k1=rv$k1, niter=rv$niter)
+	rv$afreq[rv$afreq < 0] <- NaN
 	class(rv) <- "snpgdsIBDClass"
 	return(rv)
 }
@@ -1190,6 +1290,148 @@ snpgdsIBDMLELogLik <- function(gdsobj, ibdobj, k0=NaN, k1=NaN,
 
 	# return
 	return(rv$loglik)
+}
+
+
+#######################################################################
+# To calculate the identity-by-descent (IBD) for a pair of SNP genotypes
+#   using MLE
+#
+# INPUT:
+#   geno1 -- SNP profile of the first individual
+#   geno2 -- SNP profile of the second individual
+#   allele.freq --  allele frequencies
+#   method -- the searching algorithm
+#   kinship.constraint -- restrict the IBD coefficients
+#   max.niter -- the maximum number of iterations
+#   reltol -- the relative tolerance
+#   coeff.correct -- internal use
+#
+
+snpgdsPairIBD <- function(geno1, geno2, allele.freq,
+	method=c("EM", "downhill.simplex", "MoM"), kinship.constraint=FALSE, max.niter=1000,
+	reltol=sqrt(.Machine$double.eps), coeff.correct=TRUE,
+	out.num.iter=TRUE, verbose=TRUE)
+{
+	# check
+	stopifnot(is.vector(geno1) & is.numeric(geno1))
+	stopifnot(is.vector(geno2) & is.numeric(geno2))
+	stopifnot(is.vector(allele.freq) & is.numeric(allele.freq))
+	stopifnot(length(geno1) == length(geno2))
+	stopifnot(length(geno1) == length(allele.freq))
+	stopifnot(method %in% c("EM", "downhill.simplex", "MoM"))
+	stopifnot(is.logical(kinship.constraint))
+	stopifnot(is.logical(coeff.correct))
+
+	# method
+	if (method[1] == "EM")
+		method <- 0
+	else if (method[1] == "downhill.simplex")
+		method <- 1
+	else if (method[1] == "MoM")
+		method <- -1
+	else
+		stop("Invalid MLE method!")
+
+	allele.freq[!is.finite(allele.freq)] <- -1
+	flag <- (0 <= allele.freq) & (allele.freq <= 1)
+	if (sum(flag) < length(geno1))
+	{
+		if (verbose)
+		{
+			cat(sprintf(
+				"IBD MLE for %d SNPs in total, after removing loci with invalid allele frequencies.\n",
+				sum(flag)))
+		}
+		geno1 <- geno1[flag]; geno2 <- geno2[flag]
+		allele.freq <- allele.freq[flag]
+	}
+
+	# call C codes
+	rv <- .C("gnrPairIBD", length(geno1), as.integer(geno1), as.integer(geno2),
+		as.double(allele.freq), as.logical(kinship.constraint), as.integer(max.niter),
+		as.double(reltol), as.logical(coeff.correct), as.integer(method),
+		out.k0 = double(1), out.k1 = double(1), out.loglik = double(1),
+		out.niter = integer(1), double(3*length(geno1)),
+		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+	if (rv$err != 0) stop(snpgdsErrMsg())
+
+	# return
+	ans <- data.frame(k0=rv$out.k0, k1=rv$out.k1, loglik=rv$out.loglik)
+	if (out.num.iter) ans$niter <- rv$out.niter
+	ans
+}
+
+
+#######################################################################
+# To calculate the identity-by-descent (IBD) matrix (MLE) for SNP genotypes
+#
+# INPUT:
+#   geno1 -- SNP profile of the first individual
+#   geno2 -- SNP profile of the second individual
+#   allele.freq --  allele frequencies
+#   k0 -- the first IBD coefficient
+#   k1 -- the second IBD coefficient
+#
+
+snpgdsPairIBDMLELogLik <- function(geno1, geno2, allele.freq, k0=NaN, k1=NaN,
+	relatedness=c("", "self", "fullsib", "offspring", "halfsib", "cousin", "unrelated"),
+	verbose=TRUE)
+{
+	# check
+	stopifnot(is.vector(geno1) & is.numeric(geno1))
+	stopifnot(is.vector(geno2) & is.numeric(geno2))
+	stopifnot(is.vector(allele.freq) & is.numeric(allele.freq))
+	stopifnot(length(geno1) == length(geno2))
+	stopifnot(length(geno1) == length(allele.freq))
+	stopifnot(is.numeric(k0))
+	stopifnot(is.numeric(k1))
+	stopifnot(is.character(relatedness))
+
+	allele.freq[!is.finite(allele.freq)] <- -1
+	flag <- (0 <= allele.freq) & (allele.freq <= 1)
+	if (sum(flag) < length(geno1))
+	{
+		if (verbose)
+		{
+			cat(sprintf(
+				"IBD MLE for %d SNPs in total, after removing loci with invalid allele frequencies.\n",
+				sum(flag)))
+		}
+		geno1 <- geno1[flag]; geno2 <- geno2[flag]
+		allele.freq <- allele.freq[flag]
+	}
+
+	# relatedness
+	relatedness <- relatedness[1]
+	if (relatedness == "self")
+	{
+		k0 <- 0; k1 <- 0
+	} else if (relatedness == "fullsib")
+	{
+		k0 <- 0.25; k1 <- 0.5
+	} else if (relatedness == "offspring")
+	{
+		k0 <- 0; k1 <- 1
+	} else if (relatedness == "halfsib")
+	{
+		k0 <- 0.5; k1 <- 0.5
+	} else if (relatedness == "cousin")
+	{
+		k0 <- 0.75; k1 <- 0.25
+	} else if (relatedness == "unrelated")
+	{
+		k0 <- 1; k1 <- 0
+	}
+
+	# call C codes
+	rv <- .C("gnrPairIBDLogLik", length(geno1), as.integer(geno1), as.integer(geno2),
+		as.double(allele.freq), as.double(k0), as.double(k1), out.loglik = double(1),
+		double(3*length(geno1)), err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
+	if (rv$err != 0) stop(snpgdsErrMsg())
+
+	# return
+	rv$out.loglik
 }
 
 
@@ -1357,7 +1599,10 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	{
 		cat("Linkage Disequilibrium (LD) analysis on SNP genotypes:\n");
 		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		cat("\tUse", num.thread, "CPU cores.\n")
+		if (num.thread <= 1)
+			cat("\tUsing", num.thread, "CPU core.\n")
+		else
+			cat("\tUsing", num.thread, "CPU cores.\n")
 	}
 
 	# call parallel IBD
@@ -2861,7 +3106,7 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, verbose=T
 	D <- data.frame(chr = xchr, rs = snp.ids,
 		gen = rep(0, length(snp.idx)),
 		base = read.gdsn(index.gdsn(gdsobj, "snp.position"))[snp.idx],
-		A1 = nonref, A2 = ref,
+		A1 = ref, A2 = nonref,
 		stringsAsFactors = FALSE)
 	write.table(D, file=paste(bed.fn, ".bim", sep=""), sep="\t",
 		quote=FALSE, row.names=FALSE, col.names=FALSE)
@@ -3163,13 +3408,15 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbo
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.4")
+	packageStartupMessage("SNPRelate: 0.9.5")
 	if (rv$sse != 0)
 		packageStartupMessage("Streaming SIMD Extensions 2 (SSE2) supported.\n")
+	TRUE
 }
 
 .Last.lib <- function(libpath)
 {
 	# finalize SNPRelate
 	rv <- .C("gnrDone", PACKAGE="SNPRelate")
+	TRUE
 }

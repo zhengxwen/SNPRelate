@@ -17,7 +17,7 @@ snpgdsPCASNPLoading(pcaobj, gdsobj, num.thread = 1, verbose = TRUE)
 }
 \details{
 	Calculate the SNP loadings (or SNP eigenvectors) from the principal component
-	analysis conducted in \code{snpgdsPCA}.
+analysis conducted in \code{snpgdsPCA}.
 }
 \value{
 	Return a \code{snpgdsPCASNPLoading} object, which is a list:

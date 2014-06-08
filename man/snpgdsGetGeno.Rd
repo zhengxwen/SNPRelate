@@ -33,6 +33,7 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 
 snpset <- sample(read.gdsn(index.gdsn(genofile, "snp.id")), 1000)
 mat <- snpgdsGetGeno(genofile, snp.id=snpset)
+mat[!is.element(mat, c(0,1,2))] <- NA
 dim(mat)
 
 # close the file

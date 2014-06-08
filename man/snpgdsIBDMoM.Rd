@@ -9,8 +9,8 @@
 }
 \usage{
 snpgdsIBDMoM(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
-	remove.monosnp = TRUE, maf = NaN, missing.rate = NaN, kinship.constraint = FALSE,
-	num.thread = 1, verbose = TRUE)
+	remove.monosnp = TRUE, maf = NaN, missing.rate = NaN, allele.freq = NULL,
+	kinship.constraint = FALSE, num.thread = 1, verbose = TRUE)
 }
 \arguments{
 	\item{gdsobj}{the \code{\link[gdsfmt]{gdsclass}} object in the \link{gdsfmt} package}
@@ -20,15 +20,20 @@ snpgdsIBDMoM(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 	\item{remove.monosnp}{if TRUE, remove monomorphic SNPs}
 	\item{maf}{to use the SNPs with ">= maf" only; if NaN, no MAF threshold}
 	\item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN, no missing threshold}
+	\item{allele.freq}{to specify the allele frequencies; if NULL, determine the allele
+		frequencies from \code{gdsobj} using the specified samples}
 	\item{kinship.constraint}{if TRUE, constrict IBD coefficients ($k_0,k_1,k_2$) in the geneloical region ($2 k_0 k_1 >= k_2^2$)}
 	\item{num.thread}{the number of CPU cores used}
 	\item{verbose}{if TRUE, show information}
 }
 \details{
 	PLINK IBD estimator is a moment estimator, and it is computationally efficient relative to
-MLE method.
-	The minor allele frequency and missing rate for each SNP passed in snp.id are calculated
-over all the samples in sample.id.
+MLE method. In the PLINK method of moment, a correction factor based on allele counts is used to
+adjust for sampling. However, if allele frequencies are specified, no correction factor is
+conducted since the specified allele frequencies are assumed to be known without sampling.
+
+	The minor allele frequency and missing rate for each SNP passed in \code{snp.id} are
+calculated over all the samples in \code{sample.id}.
 }
 \value{
 	Return a list:
@@ -54,7 +59,7 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 # CEU population
 CEU.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="CEU"]
-pibd <- snpgdsIBDMoM(genofile, sample.id=c(CEU.id), num.thread=2)
+pibd <- snpgdsIBDMoM(genofile, sample.id=CEU.id, num.thread=2)
 flag <- lower.tri(pibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
 lines(c(0,1), c(1,0), col="red", lty=3)
@@ -63,11 +68,28 @@ points(pibd$k0[flag], pibd$k1[flag])
 # YRI population
 YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="YRI"]
-pibd <- snpgdsIBDMoM(genofile, sample.id=c(YRI.id), num.thread=2)
+pibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id, num.thread=2)
 flag <- lower.tri(pibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
 lines(c(0,1), c(1,0), col="red", lty=3)
 points(pibd$k0[flag], pibd$k1[flag])
+
+
+# specify the allele frequencies
+afreq <- snpgdsSNPRateFreq(genofile, sample.id=YRI.id)$AlleleFreq
+aibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id, num.thread=2, allele.freq=afreq)
+flag <- lower.tri(aibd$k0)
+plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
+lines(c(0,1), c(1,0), col="red", lty=3)
+points(aibd$k0[flag], aibd$k1[flag])
+
+# analysis on a subset
+subibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id[1:25], num.thread=2, allele.freq=afreq)
+summary(c(subibd$k0 - aibd$k0[1:25, 1:25]))
+# ZERO
+summary(c(subibd$k1 - aibd$k1[1:25, 1:25]))
+# ZERO
+
 
 # close the genotype file
 closefn.gds(genofile)

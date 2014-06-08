@@ -28,8 +28,15 @@ snpgdsCreateGeno(gds.fn, genmat, sample.id = NULL, snp.id = NULL, snp.rs.id = NU
 	\item{other.vars}{a list object storing other variables}
 }
 \details{
+	There are possible values stored in the variable \code{genmat}: 0, 1, 2 and other values.
+``0'' indicates two B alleles, ``1'' indicates one A allele and one B allele,
+``2'' indicates two A alleles, and other values indicate a missing genotype.
+
+	If \code{snpfirstorder} is \code{TRUE}, then \code{genmat} is ``# of SNPs X # of samples'';
+if \code{snpfirstorder} is \code{FALSE}, then \code{genmat} is ``# of samples X # of SNPs''.
+
 	The typical variables specified in \code{other.vars} are ``sample.annot'' and ``snp.annot'',
-	which are data.frame objects.
+which are data.frame objects.
 }
 \value{
 	None.

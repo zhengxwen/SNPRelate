@@ -38,10 +38,9 @@ snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, compress.annotation="ZIP.max", 
 
 \examples{
 # PLINK BED files
-path <- paste(.path.package("SNPRelate"), "/extdata", sep="")
-bed.fn <- paste(path, "/plinkhapmap.bed", sep="")
-bim.fn <- paste(path, "/plinkhapmap.bim", sep="")
-fam.fn <- paste(path, "/plinkhapmap.fam", sep="")
+bed.fn <- system.file("extdata", "plinkhapmap.bed", package="SNPRelate")
+bim.fn <- system.file("extdata", "plinkhapmap.bim", package="SNPRelate")
+fam.fn <- system.file("extdata", "plinkhapmap.fam", package="SNPRelate")
 
 # convert
 snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "HapMap.gds")

@@ -1,5 +1,5 @@
-\name{snpgdsIBDMLELogLik}
-\alias{snpgdsIBDMLELogLik}
+\name{snpgdsPairIBDMLELogLik}
+\alias{snpgdsPairIBDMLELogLik}
 \title{
 	Log likelihood for MLE method in the Identity-By-Descent (IBD) Analysis
 }
@@ -7,19 +7,24 @@
 	Calculate the log likelihood values from maximum likelihood estimation.
 }
 \usage{
-snpgdsIBDMLELogLik(gdsobj, ibdobj, k0 = NaN, k1 = NaN,
-	relatedness = c("", "self", "fullsib", "offspring", "halfsib", "cousin", "unrelated"))
+snpgdsPairIBDMLELogLik(geno1, geno2, allele.freq, k0=NaN, k1=NaN,
+	relatedness=c("", "self", "fullsib", "offspring", "halfsib", "cousin", "unrelated"),
+	verbose=TRUE)
 }
 \arguments{
-	\item{gdsobj}{the \code{\link[gdsfmt]{gdsclass}} object in the \link{gdsfmt} package}
-	\item{ibdobj}{the \code{snpgdsIBDClass} object returned from \link{snpgdsIBDMLE}}
+	\item{geno1}{the SNP genotypes for the first individual, 0 -- BB, 1 -- AB, 2 -- AA,
+		other values -- missing}
+	\item{geno2}{the SNP genotypes for the second individual, 0 -- BB, 1 -- AB, 2 -- AA,
+		other values -- missing}
+	\item{allele.freq}{the allele frequencies}
 	\item{k0}{specified IBD coefficient}
 	\item{k1}{specified IBD coefficient}
 	\item{relatedness}{specify a relatedness, otherwise use the values of k0 and k1}
+	\item{verbose}{if TRUE, show information}
 }
 \details{
-	If (\code{relatedness} == "") and (k0 == NaN or k1 == NaN), then return the log likelihood
-values for each (k0, k1) stored in ibdobj. \\
+	If (\code{relatedness} == "") and (k0 == NaN or k1 == NaN), then return the log likelihood values
+for each (k0, k1) stored in ibdobj. \\
 	If (\code{relatedness} == "") and (k0 != NaN) and (k1 != NaN), then return the log likelihood
 values for a specific IBD coefficient (k0, k1). \\
 	If \code{relatedness} is: "self", then k0 = 0, k1 = 0; "fullsib", then k0 = 0.25, k1 = 0.5;
@@ -27,7 +32,7 @@ values for a specific IBD coefficient (k0, k1). \\
 "cousin", then k0 = 0.75, k1 = 0.25; "unrelated", then k0 = 1, k1 = 0.
 }
 \value{
-	Return a n-by-n matrix of log likelihood values, where n is the number of samples.
+	The value of log likelihood.
 }
 \references{
 	Milligan BG. 2003. Maximum-likelihood estimation of relatedness. Genetics 163:1153-1167.
@@ -41,7 +46,8 @@ values for a specific IBD coefficient (k0, k1). \\
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 \seealso{
-	\code{\link{snpgdsIBDMLE}}, \code{\link{snpgdsIBDMoM}}
+	\code{\link{snpgdsPairIBD}}, \code{\link{snpgdsIBDMLE}},
+	\code{\link{snpgdsIBDMLELogLik}}, \code{\link{snpgdsIBDMoM}}
 }
 
 \examples{
@@ -56,12 +62,22 @@ set.seed(1000)
 snpset <- snpgdsLDpruning(genofile, sample.id=YRI.id, maf=0.05, missing.rate=0.05)
 snpset <- sample(unlist(snpset), 1000)
 mibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snpset, num.thread=2)
+loglik <- snpgdsIBDMLELogLik(genofile, mibd, relatedness="unrelated")
 
-loglik <- snpgdsIBDMLELogLik(genofile, mibd)
-loglik0 <- snpgdsIBDMLELogLik(genofile, mibd, relatedness="unrelated")
 
-# likelihood ratio test
-p.value <- pchisq(loglik - loglik0, 1, lower.tail=FALSE)
+# genotype matrix
+mat <- snpgdsGetGeno(genofile, sample.id=YRI.id[1:25], snp.id=mibd$snp.id)
+mat[!is.element(mat, c(0,1,2))] <- NA
+
+llik <- c()
+for (i in 2:25)
+{
+	L <- snpgdsPairIBD(mat[,1], mat[,i], mibd$afreq, "EM")
+	llik <- c(llik, snpgdsPairIBDMLELogLik(mat[,1], mat[,i], mibd$afreq,
+		relatedness="unrelated", verbose=TRUE))
+}
+summary(llik - loglik[1, 2:25])
+
 
 # close the genotype file
 closefn.gds(genofile)

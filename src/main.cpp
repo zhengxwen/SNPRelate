@@ -103,17 +103,24 @@ namespace IBD
 	extern bool KinshipConstraint;
 
 	// PLINK method of moment
-	void Init_EPrIBD_IBS(double *out_afreq);
+	void Init_EPrIBD_IBS(const double in_afreq[], double out_afreq[],
+		bool CorrectFactor, long nSNP = -1);
 	void Est_PLINK_Kinship(int IBS0, int IBS1, int IBS2, double &k0, double &k1,
 		bool KinshipConstrict);
 
 	// MLE
+	extern double EPrIBS_IBD[3][3];
 	extern long nIterMax;
 	extern double FuncRelTol;
 	extern int MethodMLE;
 	extern bool Loglik_Adjust;
+	extern double *MLEAlleleFreq;
+	extern long nTotalSNP;
+
 
 	void InitPackedGeno(void *buffer);
+	void prIBDTable(int g1, int g2, double &t0, double &t1, double &t2, double p);
+
 	void Do_MLE_IBD_Calculate(const double *AFreq, CdMatTriDiag<TIBD> &PublicIBD,
 		CdMatTriDiag<int> *PublicNIter,
 		double *out_AFreq, int NumThread, const char *Info, double *tmpAF, bool verbose);
@@ -121,6 +128,9 @@ namespace IBD
 		double *tmp_AF, double *out_loglik);
 	void Do_MLE_LogLik_k01(const double *AFreq, const double k0, const double k1,
 		double *tmp_AF, double *out_loglik);
+
+	void Do_MLE_IBD_Pair(int n, const int *geno1, const int *geno2, const double *AFreq,
+		double &out_k0, double &out_k1, double &out_loglik, int &out_niter, double tmpprob[]);
 }
 
 namespace LD
@@ -379,7 +389,26 @@ DLLEXPORT void gnrSelSNP_Base(LongBool *remove_mono, double *maf, double *missra
 	CORETRY
 		const int n = MCWorkingGeno.Space.SNPNum();
 		auto_ptr<CBOOL> sel(new CBOOL[n]);
-		*out_num = MCWorkingGeno.Space.Select_SNP_Base(*remove_mono!=0,
+		*out_num = MCWorkingGeno.Space.Select_SNP_Base((*remove_mono) != 0,
+			*maf, *missrate, sel.get());
+		for (int i=0; i < n; i++) out_selection[i] = sel.get()[i];
+		*out_err = 0;
+	CORECATCH(*out_err = 1)
+}
+
+/** to compute missing rates, and specify allele frequency
+ *  \param afreq          specifying the allele frequencies
+ *  \param remove_mono    whether remove monomorphic snps or not
+ *  \param maf            the threshold of minor allele frequencies, keeping ">= maf"
+ *  \param missrate       the threshold of missing rates, keeping "<= missing.rate"
+**/
+DLLEXPORT void gnrSelSNP_Base_Ex(double *afreq, LongBool *remove_mono, double *maf,
+	double *missrate, int *out_num, LongBool *out_selection, LongBool *out_err)
+{
+	CORETRY
+		const int n = MCWorkingGeno.Space.SNPNum();
+		auto_ptr<CBOOL> sel(new CBOOL[n]);
+		*out_num = MCWorkingGeno.Space.Select_SNP_Base_Ex(afreq, (*remove_mono) != 0,
 			*maf, *missrate, sel.get());
 		for (int i=0; i < n; i++) out_selection[i] = sel.get()[i];
 		*out_err = 0;
@@ -872,8 +901,8 @@ DLLEXPORT void gnrDist(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 
 /// to compute the IBD coefficients by PLINK method of moment
 DLLEXPORT void gnrIBD_PLINK(LongBool *Verbose, LongBool *DataCache, int *NumThread,
-	LongBool *KinshipConstrict, double *out_k0, double *out_k1, double *out_afreq,
-	LongBool *out_err)
+	double *AlleleFreq, LongBool *UseSpecificAFreq, LongBool *KinshipConstrict,
+	double *out_k0, double *out_k1, double *out_afreq, LongBool *out_err)
 {
 	CORETRY
 		// ******** to cache the genotype data ********
@@ -893,7 +922,8 @@ DLLEXPORT void gnrIBD_PLINK(LongBool *Verbose, LongBool *DataCache, int *NumThre
 		// ******** PLINK method of moment ********
 
 		// initialize the internal matrix
-		IBD::Init_EPrIBD_IBS(out_afreq);
+		IBD::Init_EPrIBD_IBS(*UseSpecificAFreq ? AlleleFreq : NULL,
+			out_afreq, !(*UseSpecificAFreq));
 		// the upper-triangle genetic covariance matrix
 		CdMatTriDiag<IBS::TIBSflag> IBS(IBS::TIBSflag(), n);
 		// Calculate the IBS matrix
@@ -907,7 +937,8 @@ DLLEXPORT void gnrIBD_PLINK(LongBool *Verbose, LongBool *DataCache, int *NumThre
 			for (int j=i+1; j < n; j++, p++)
 			{
 				double k0, k1;
-				IBD::Est_PLINK_Kinship(p->IBS0, p->IBS1, p->IBS2, k0, k1, *KinshipConstrict);
+				IBD::Est_PLINK_Kinship(p->IBS0, p->IBS1, p->IBS2, k0, k1,
+					(*KinshipConstrict != 0));
 				out_k0[i*n + j] = out_k0[j*n + i] = k0;
 				out_k1[i*n + j] = out_k1[j*n + i] = k1;
 			}
@@ -928,6 +959,7 @@ DLLEXPORT void gnrIBD_SizeInt(int *out_size, int *out_snp_size)
 	*out_size = nTotal/sizeof(int) + ((nTotal % sizeof(int) > 0) ? 1 : 0);
 	*out_snp_size = 4*nPackedSNP;
 }
+
 
 /// to compute the IBD coefficients by MLE
 DLLEXPORT void gnrIBD_MLE(double *AlleleFreq, LongBool *UseSpecificAFreq,
@@ -950,13 +982,14 @@ DLLEXPORT void gnrIBD_MLE(double *AlleleFreq, LongBool *UseSpecificAFreq,
 
 		// ******** MLE IBD ********
 
-		// initialize the internal matrix
-		IBD::Init_EPrIBD_IBS(NULL);
 		// initialize the packed genotypes
 		IBD::InitPackedGeno(tmp_buffer);
+		// initialize the internal matrix
+		IBD::Init_EPrIBD_IBS(*UseSpecificAFreq ? AlleleFreq : NULL, NULL, false);
 
 		IBD::nIterMax = *MaxIterCnt; IBD::FuncRelTol = *RelTol;
 		IBD::MethodMLE = *method; IBD::Loglik_Adjust = *CoeffCorrect;
+		IBD::KinshipConstraint = (*KinshipConstraint != 0);
 
 		// the upper-triangle genetic covariance matrix
 		const int n = MCWorkingGeno.Space.SampleNum();
@@ -988,6 +1021,49 @@ DLLEXPORT void gnrIBD_MLE(double *AlleleFreq, LongBool *UseSpecificAFreq,
 	CORECATCH(*out_err = 1)
 }
 
+
+/// to compute the IBD coefficients by MLE for a pair of individuals
+DLLEXPORT void gnrPairIBD(int *n, int *geno1, int *geno2, double *AlleleFreq,
+	LongBool *KinshipConstraint, int *MaxIterCnt, double *RelTol,
+	LongBool *CoeffCorrect, int *method,
+	double *out_k0, double *out_k1, double *out_loglik, int *out_niter,
+	double *tmp_buffer, LongBool *out_err)
+{
+	CORETRY
+		// initialize
+		IBD::nIterMax = *MaxIterCnt; IBD::FuncRelTol = *RelTol;
+		IBD::MethodMLE = *method; IBD::Loglik_Adjust = *CoeffCorrect;
+		IBD::KinshipConstraint = (*KinshipConstraint != 0);
+		IBD::Init_EPrIBD_IBS(AlleleFreq, NULL, false, *n);
+
+		// get the initial values
+		int IBS[3] = { 0, 0, 0 };
+		for (int i=0; i < *n; i++)
+		{
+			if ((0<=geno1[i]) && (geno1[i]<=2) && (0<=geno2[i]) && (geno2[i]<=2))
+			{
+				IBS[2 - abs(geno1[i] - geno2[i])] ++;
+			}
+		}
+		IBD::Est_PLINK_Kinship(IBS[0], IBS[1], IBS[2], *out_k0, *out_k1,
+			IBD::KinshipConstraint);
+
+		// compute
+		if (*method >= 0)
+		{
+			IBD::Do_MLE_IBD_Pair(*n, geno1, geno2, AlleleFreq,
+				*out_k0, *out_k1, *out_loglik, *out_niter, tmp_buffer);
+		} else {
+			*out_loglik = conf_F64_NaN();
+			*out_niter = 0;
+		}
+
+		// output
+		*out_err = 0;
+	CORECATCH(*out_err = 1)
+}
+
+
 /// to compute log likelihood of MLE
 DLLEXPORT void gnrIBD_LogLik(double *AlleleFreq, double *k0, double *k1,
 	int *tmp_buffer, double *tmp_AF, double *out_loglik, LongBool *out_err)
@@ -1002,6 +1078,7 @@ DLLEXPORT void gnrIBD_LogLik(double *AlleleFreq, double *k0, double *k1,
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
 }
+
 
 /// to compute log likelihood of MLE
 DLLEXPORT void gnrIBD_LogLik_k01(double *AlleleFreq, double *k0, double *k1,
@@ -1019,6 +1096,37 @@ DLLEXPORT void gnrIBD_LogLik_k01(double *AlleleFreq, double *k0, double *k1,
 }
 
 
+/// to compute the value of log likelihood for a pair of individuals
+DLLEXPORT void gnrPairIBDLogLik(int *n, int *geno1, int *geno2, double *AlleleFreq,
+	double *k0, double *k1, double *out_loglik, double *tmp_buffer, LongBool *out_err)
+{
+	CORETRY
+		// initialize the probability table
+		double *PrIBD = tmp_buffer;
+		for (int i=0; i < *n; i++)
+		{
+			IBD::prIBDTable(geno1[i], geno2[i], PrIBD[0], PrIBD[1], PrIBD[2], AlleleFreq[i]);
+			PrIBD += 3;
+		}
+
+		// calculate log likelihood value
+		double k[3] = { *k0, *k1, 1 - *k0 - *k1 }, LogLik = 0;
+		PrIBD = tmp_buffer;
+		for (int i=0; i < *n; i++)
+		{
+			double sum = PrIBD[0]*k[0] + PrIBD[1]*k[1] + PrIBD[2]*k[2];
+			if (sum > 0)
+				LogLik += log(sum);
+			PrIBD += 3;
+		}
+
+		// output
+		*out_loglik = LogLik;
+		*out_err = 0;
+	CORECATCH(*out_err = 1)
+}
+
+
 /// the functions for Linkage Disequilibrium (LD) analysis
 DLLEXPORT void gnrLDpair(int *snp1, int *snp2, int *len, int *method,
 	double *out_LD, LongBool *out_err)
@@ -1030,6 +1138,7 @@ DLLEXPORT void gnrLDpair(int *snp1, int *snp2, int *len, int *method,
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
 }
+
 
 /// to compute the IBD coefficients by MLE
 DLLEXPORT void gnrLDMat(int *method, LongBool *Verbose, LongBool *DataCache,
@@ -1053,6 +1162,7 @@ DLLEXPORT void gnrLDMat(int *method, LongBool *Verbose, LongBool *DataCache,
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
 }
+
 
 /// to compute the IBD coefficients by MLE
 DLLEXPORT void gnrLDpruning(int *StartIdx, int *pos_bp, int *slide_max_bp, int *slide_max_n,

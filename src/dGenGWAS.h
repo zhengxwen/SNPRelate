@@ -9,7 +9,7 @@
 // Author      : Xiuwen Zheng
 // Version     : 1.0.0.0
 // Copyright   : Xiuwen Zheng (LGPL v3.0)
-// Created     : 10/01/2011
+// Created     : 04/22/2012
 // Description :
 // ===========================================================
 
@@ -98,6 +98,16 @@ namespace GWAS
 		 *  \param missrate       the threshold of missing rates, keeping "<= missing.rate"
 		**/
 		int Select_SNP_Base(bool remove_mono, double maf, double missrate, CBOOL *out_sel=NULL);
+
+		/** To select SNPs based on criteria, and return # of SNPs deleted, specifying
+		 *    the allele frequencies
+		 *  \param afreq          the allele frequencies
+		 *  \param remove_mono    whether remove monomorphic snps or not
+		 *  \param maf            the threshold of minor allele frequencies, keeping ">= maf"
+		 *  \param missrate       the threshold of missing rates, keeping "<= missing.rate"
+		**/
+		int Select_SNP_Base_Ex(const double afreq[], bool remove_mono, double maf,
+			double missrate, CBOOL *out_sel=NULL);
 
 		void Set_SNPSelection(CBOOL flag[]);
 		void Set_SampSelection(CBOOL flag[]);
@@ -333,11 +343,11 @@ namespace GWAS
 	{
 	public:
 		CdMatTri()
-		{ fN = 0; }
+			{ fN = 0; }
 		CdMatTri(size_t n)
-		{ fN = 0; Reset(n); }
+			{ fN = 0; Reset(n); }
 		CdMatTri(size_t n, const Tx InitVal)
-		{ fN = 0; Reset(n); Clear(InitVal); }
+			{ fN = 0; Reset(n); Clear(InitVal); }
 
 		void Reset(size_t n)
 		{
@@ -382,15 +392,21 @@ namespace GWAS
 			return col + row*(2*fN-row-1)/2;
 		}
 
-		void SaveTo(double *n_n_buffer)
+		template<typename OUTTYPE> void SaveTo(OUTTYPE *n_n_buffer)
 		{
-			for (size_t i=0; i < fN; i++, n_n_buffer+=fN)
-				GetRow(n_n_buffer, i);
+			std::auto_ptr<Tx> buf(new Tx[fN]);
+			for (size_t i=0; i < fN; i++)
+			{
+				GetRow(buf.get(), i);
+				for (size_t j=0; j < fN; j++)
+					*n_n_buffer++ = (OUTTYPE)(buf.get()[j]);
+			}
 		}
 
 		inline Tx *get() { return ptr.get(); }
 		inline size_t N() const { return fN; }
 		inline size_t Size() const { return fN*(fN+1)/2; }
+
 	protected:
 		CoreArray::Vectorization::TdAlignPtr<Tx, vAlign> ptr;
 		size_t fN;
@@ -402,13 +418,13 @@ namespace GWAS
 	{
 	public:
 		CdMatTriDiag()
-		{ fN = 0; }
+			{ fN = 0; }
 		CdMatTriDiag(const Tx vDiag)
-		{ fN = 0; fDiag = vDiag; }
+			{ fN = 0; fDiag = vDiag; }
 		CdMatTriDiag(const Tx vDiag, size_t n)
-		{ fN = 0; fDiag = vDiag; Reset(n); }
+			{ fN = 0; fDiag = vDiag; Reset(n); }
 		CdMatTriDiag(const Tx vDiag, size_t n, const Tx InitVal)
-		{ fN = 0; fDiag = vDiag; Reset(n); Clear(InitVal); }
+			{ fN = 0; fDiag = vDiag; Reset(n); Clear(InitVal); }
 
 		void Reset(size_t n)
 		{
@@ -518,6 +534,7 @@ namespace GWAS
 
 		// internal uses
 		void _DoThread_WorkingGeno(TdThread Thread, int ThreadIndex);
+
 	protected:
 		/// The genotypes will be filled in the buffer, one genotype per byte.
 		/** 0 -- BB, 1 -- AB, 2 -- AA, otherwise missing
@@ -564,6 +581,5 @@ void Rprintf(const char *, ...);
 #ifdef  __cplusplus
 }
 #endif
-
 
 #endif /* _dGenGWAS_H_ */

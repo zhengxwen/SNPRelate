@@ -8,7 +8,7 @@
 //
 // genIBS.cpp: Identity by state (IBS) analysis on genome-wide association studies
 //
-// Copyright (C) 2011	Xiuwen Zheng
+// Copyright (C) 2012	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //

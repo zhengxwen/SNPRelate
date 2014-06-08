@@ -34,7 +34,7 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 # YRI population
 YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="YRI"]
-pibd <- snpgdsIBDMoM(genofile, sample.id=c(YRI.id))
+pibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id)
 flag <- lower.tri(pibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
 lines(c(0,1), c(1,0), col="red", lty=3)

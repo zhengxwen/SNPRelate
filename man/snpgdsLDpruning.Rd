@@ -28,8 +28,8 @@ snpgdsLDpruning(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 	\item{verbose}{if TRUE, show information}
 }
 \details{
-	The minor allele frequency and missing rate for each SNP passed in snp.id are calculated
-over all the samples in sample.id.
+	The minor allele frequency and missing rate for each SNP passed in \code{snp.id} are
+calculated over all the samples in \code{sample.id}.
 
 	Four methods can be used to calculate linkage disequilibrium values:
 "composite" for LD composite measure, "r" for r square, "dprime" for D', and "corr" for

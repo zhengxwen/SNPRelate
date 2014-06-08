@@ -16,25 +16,31 @@ snpgdsIBDMLE(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE, remove.mon
 }
 \arguments{
 	\item{gdsobj}{the \code{\link[gdsfmt]{gdsclass}} object in the \link{gdsfmt} package}
-	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
+	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all
+		samples are used}
 	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
 	\item{autosome.only}{if TRUE, use autosomal SNPs only}
 	\item{remove.monosnp}{if TRUE, remove monomorphic SNPs}
 	\item{maf}{to use the SNPs with ">= maf" only; if NaN, no any MAF threshold}
-	\item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN, no any missing threshold}
-	\item{kinship.constraint}{if TRUE, constrict IBD coefficients ($k_0,k_1,k_2$) in the geneloical region ($2 k_0 k_1 >= k_2^2$)}
-	\item{allele.freq}{to specify the allele frequencies; if NULL, determine}
+	\item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN, no any missing
+		threshold}
+	\item{kinship.constraint}{if TRUE, constrict IBD coefficients ($k_0,k_1,k_2$) in the
+		geneloical region ($2 k_0 k_1 >= k_2^2$)}
+	\item{allele.freq}{to specify the allele frequencies; if NULL, determine the allele
+		frequencies from \code{gdsobj} using the specified samples}
 	\item{method}{"EM", "downhill.simplex", see details}
 	\item{max.niter}{the maximum number of iterations}
-	\item{reltol}{relative convergence tolerance; the algorithm stops if it is unable to reduce the value of log likelihood by a factor of $reltol * (abs(log likelihood with the initial parameters) + reltol)$ at a step.}
+	\item{reltol}{relative convergence tolerance; the algorithm stops if it is unable to
+		reduce the value of log likelihood by a factor of $reltol * (abs(log likelihood
+		with the initial parameters) + reltol)$ at a step.}
 	\item{coeff.correct}{\code{TRUE} by default, see details}
-	\item{out.num.iter}{output the numbers of iterations}
+	\item{out.num.iter}{if TRUE, output the numbers of iterations}
 	\item{num.thread}{the number of CPU cores used}
 	\item{verbose}{if TRUE, show information}
 }
 \details{
-	The minor allele frequency and missing rate for each SNP passed in snp.id are calculated
-over all the samples in sample.id.
+	The minor allele frequency and missing rate for each SNP passed in \code{snp.id} are
+calculated over all the samples in \code{sample.id}.
 
 	The PLINK moment estimates are used as the initial values in the algorithm of searching
 maximum value of log likelihood function. Two numeric approaches can be used: one is
@@ -82,14 +88,24 @@ YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 
 # SNP pruning
 set.seed(1000)
-snpset <- snpgdsLDpruning(genofile, sample.id=c(YRI.id), maf=0.05, missing.rate=0.05)
+snpset <- snpgdsLDpruning(genofile, sample.id=YRI.id, maf=0.05, missing.rate=0.05)
 snpset <- sample(unlist(snpset), 1000)
-mibd <- snpgdsIBDMLE(genofile, sample.id=c(YRI.id), snp.id=snpset, num.thread=2)
+mibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snpset, num.thread=2)
 
 flag <- lower.tri(mibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
 lines(c(0,1), c(1,0), col="red", lty=3)
 points(mibd$k0[flag], mibd$k1[flag])
+
+# specify the allele frequencies
+afreq <- snpgdsSNPRateFreq(genofile, sample.id=YRI.id, snp.id=snpset)$AlleleFreq
+subibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id[1:25], snp.id=snpset,
+	num.thread=2, allele.freq=afreq)
+summary(c(subibd$k0 - mibd$k0[1:25, 1:25]))
+# ZERO
+summary(c(subibd$k1 - mibd$k1[1:25, 1:25]))
+# ZERO
+
 
 # close the genotype file
 closefn.gds(genofile)

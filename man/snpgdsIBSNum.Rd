@@ -22,8 +22,8 @@ snpgdsIBSNum(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 	\item{verbose}{if TRUE, show information}
 }
 \details{
-	The minor allele frequency and missing rate for each SNP passed in snp.id are calculated
-over all the samples in sample.id.
+	The minor allele frequency and missing rate for each SNP passed in \code{snp.id} are
+calculated over all the samples in \code{sample.id}.
 }
 \value{
 	Return a list (n is the number of samples):

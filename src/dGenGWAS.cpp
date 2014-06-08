@@ -9,7 +9,7 @@
 // Author      : Xiuwen Zheng
 // Version     : 1.0.0.0
 // Copyright   : Xiuwen Zheng (LGPL v3.0)
-// Created     : 10/01/2011
+// Created     : 04/22/2012
 // Description :
 // ===========================================================
 
@@ -581,12 +581,85 @@ int CdGenoWorkSpace::Select_SNP_Base(bool remove_mono, double maf, double missra
 	auto_ptr<CBOOL> sel(new CBOOL[fSNPNum]);
 	for (int i=0; i < fSNPNum; i++)
 	{
-		double MF = min(AFreq[i], 1-AFreq[i]);
-		double MR = MissRate[i];
 		bool flag = true;
-		if (remove_mono && (MF<=0)) flag = false;
-		if (flag && (MF<maf)) flag = false;
-		if (flag && (MR>missrate)) flag = false;
+		if (conf_IsFinite64(AFreq[i]))
+		{
+			double MF = min(AFreq[i], 1-AFreq[i]);
+			double MR = MissRate[i];
+			if (remove_mono && (MF<=0)) flag = false;
+			if (flag && (MF<maf)) flag = false;
+			if (flag && (MR>missrate)) flag = false;
+		} else
+			flag = false;
+		sel.get()[i] = flag;
+	}
+	if (out_sel) memmove(out_sel, sel.get(), sizeof(CBOOL)*fSNPNum);
+	int cnt = 0;
+	for (int i=0; i < fSNPNum; i++)
+		if (!sel.get()[i]) cnt ++;
+	Set_SNPSelection(sel.get());
+
+	// result
+	return cnt;
+}
+
+int CdGenoWorkSpace::Select_SNP_Base_Ex(const double afreq[], bool remove_mono, double maf,
+	double missrate, CBOOL *out_sel)
+{
+	// check first
+	_CheckGeno();
+
+	// initial variables
+	vector<double> MissRate(fSNPNum);
+	if (fSNPOrder)
+	{
+		// initialize
+		auto_ptr<UInt8> buf(new UInt8[fSNPNum]);
+		auto_ptr<int> n(new int[fSNPNum]);
+		for (int i=0; i < fSNPNum; i++) n.get()[i] = 0;
+		// for-loop for each sample
+		for (int iSamp=0; iSamp < fSampleNum; iSamp++)
+		{
+			sampleRead(iSamp, 1, buf.get(), true);
+			for (int i=0; i < fSNPNum; i++)
+			{
+				UInt8 &v = buf.get()[i];
+				if (v <= 2) n.get()[i] ++;
+			}
+		}
+		// average
+		for (int i=0; i < fSNPNum; i++)
+			MissRate[i] = 1 - double(n.get()[i]) / fSampleNum;
+	} else {
+		// initialize
+		auto_ptr<UInt8> buf(new UInt8[fSampleNum]);
+		// for-loop for each snp
+		for (int isnp=0; isnp < fSNPNum; isnp++)
+		{
+			int n = 0;
+			snpRead(isnp, 1, buf.get(), false);
+			for (int i=0; i < fSampleNum; i++)
+			{
+				if (buf.get()[i] <= 2) n ++;
+			}
+			MissRate[isnp] = 1.0 - double(n) / fSampleNum;
+		}
+	}
+
+	// SNP selections
+	auto_ptr<CBOOL> sel(new CBOOL[fSNPNum]);
+	for (int i=0; i < fSNPNum; i++)
+	{
+		bool flag = true;
+		if (conf_IsFinite64(afreq[i]))
+		{
+			double MF = min(afreq[i], 1-afreq[i]);
+			double MR = MissRate[i];
+			if (remove_mono && (MF<=0)) flag = false;
+			if (flag && (MF<maf)) flag = false;
+			if (flag && (MR>missrate)) flag = false;
+		} else
+			flag = false;
 		sel.get()[i] = flag;
 	}
 	if (out_sel) memmove(out_sel, sel.get(), sizeof(CBOOL)*fSNPNum);

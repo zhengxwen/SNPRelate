@@ -11,8 +11,8 @@ Genome-wide Association Studies
 	\tabular{ll}{
 		Package: \tab SNPRelate\cr
 		Type: \tab Package\cr
-		Version: \tab 0.9.4\cr
-		Date: \tab 2012-03-16\cr
+		Version: \tab 0.9.5\cr
+		Date: \tab 2012-04-02\cr
 		License: \tab LGPL version 3\cr
 		Depends: \tab gdsfmt (>= 0.9.7)\cr
 	}
@@ -23,17 +23,22 @@ Genome-wide Association Studies
 
 	\url{http://corearray.sourceforge.net/tutorials/SNPRelate/}
 }
+\references{
+	X. Zheng, D. Levine, J. Shen, C. Laurie, B. Weir.
+	A high-performance computing package for relatedness and principal component analysis in GWAS.
+	Poster, International Congress of Human Genetics (ICHG), Montreal, QC Canada, Oct 11 - 15, 2011
+}
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
+
 \examples{
 ####################################################################
 # Convert the PLINK BED file to the GDS file
 #
 
 # PLINK BED files
-path <- paste(.path.package("SNPRelate"), "/extdata", sep="")
-bed.fn <- paste(path, "/plinkhapmap.bed", sep="")
-bim.fn <- paste(path, "/plinkhapmap.bim", sep="")
-fam.fn <- paste(path, "/plinkhapmap.fam", sep="")
+bed.fn <- system.file("extdata", "plinkhapmap.bed", package="SNPRelate")
+bim.fn <- system.file("extdata", "plinkhapmap.bim", package="SNPRelate")
+fam.fn <- system.file("extdata", "plinkhapmap.fam", package="SNPRelate")
 # convert
 snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "HapMap.gds")
 

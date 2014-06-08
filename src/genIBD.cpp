@@ -8,7 +8,7 @@
 //
 // genIBD.cpp: Identity by descent (IBD) analysis on genome-wide association studies
 //
-// Copyright (C) 2011	Xiuwen Zheng
+// Copyright (C) 2012	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -97,21 +97,35 @@ namespace IBD
 
 	/// Initialzie the expected probability of IBS i, given by IBD
 	// AlleleFreq should have enough buffer
-	void Init_EPrIBD_IBS(double *out_afreq)
+	void Init_EPrIBD_IBS(const double in_afreq[], double out_afreq[],
+		bool CorrectFactor, long nSNP = -1)
 	{
-		const long nSNP = MCWorkingGeno.Space.SNPNum();
+		if (nSNP < 0)
+			nSNP = MCWorkingGeno.Space.SNPNum();
 
 		// clear EPrIBS_IBD
 		std::memset((void*)EPrIBS_IBD, 0, sizeof(EPrIBS_IBD));
 		auto_ptr<int> AA(new int[nSNP]), AB(new int[nSNP]), BB(new int[nSNP]);
-		MCWorkingGeno.Space.GetABNumPerSNP(AA.get(), AB.get(), BB.get());
+
+		if (!in_afreq)
+		{
+			MCWorkingGeno.Space.GetABNumPerSNP(AA.get(), AB.get(), BB.get());
+		}
 
 		// for-loop each snp
-		long nInvalid = 0;
+		long nValid = 0;
 		for (long i=0; i < nSNP; i++)
 		{
 			long n = 2 * (AA.get()[i] + AB.get()[i] + BB.get()[i]);
 			double p = (n > 0) ? (double(2*AA.get()[i] + AB.get()[i]) / n) : conf_F64_NaN();
+
+			if (in_afreq)
+			{
+				p = in_afreq[i];
+				if (conf_IsFinite64(p))
+					if ((p < 0) || (p > 1)) p = conf_F64_NaN();
+			}
+			
 			if (out_afreq) out_afreq[i] = p;
 
 			// Second, the expected probability of IBS i, given by IBD
@@ -121,27 +135,36 @@ namespace IBD
 			//
 			// The following codes are from PLINK/genome.cpp
 			//
-			a00 =
-				2*p*p*q*q * ( (x-1)/x * (y-1)/y *
-				(Na/(Na-1)) *(Na/(Na-2)) * (Na/(Na-3)) );
-			a01 =
-				4*p*p*p*q * ( (x-1)/x * (x-2)/x * (Na/(Na-1)) *
-				(Na/(Na-2)) * (Na/(Na-3)) ) + 4*p*q*q*q * ( (y-1)/y * (y-2)/y *
-				(Na/(Na-1)) * (Na/(Na-2)) * (Na/(Na-3)) );
-			a02 =
-				q*q*q*q * ( (y-1)/y * (y-2)/y * (y-3)/y *
-				(Na/(Na-1)) * (Na/(Na-2)) * (Na/(Na-3)) ) + p*p*p*p *
-				( (x-1)/x * (x-2)/x * (x-3)/x * (Na/(Na-1)) * (Na/(Na-2)) *
-				(Na/(Na-3)) ) + 4*p*p*q*q * ( (x-1)/x * (y-1)/y * (Na/(Na-1)) *
-				(Na/(Na-2)) * (Na/(Na-3)) );
-			a11 =
-				2*p*p*q * ( (x-1)/x *  Na/(Na-1) * Na/(Na-2) ) +
-				2*p*q*q * ( (y-1)/y *  Na/(Na-1) * Na/(Na-2) );
-			a12 =
-				p*p*p * ((x-1)/x * (x-2)/x *  Na/(Na-1) * Na/(Na-2)) +
-				q*q*q * ( (y-1)/y * (y-2)/y *  Na/(Na-1) * Na/(Na-2)) +
-				p*p*q * ( (x-1)/x * Na/(Na-1) * Na/(Na-2) ) +
-				p*q*q * ((y-1)/y  * Na/(Na-1) * Na/(Na-2));
+			if (CorrectFactor)
+			{
+				a00 =
+					2*p*p*q*q * ( (x-1)/x * (y-1)/y *
+					(Na/(Na-1)) *(Na/(Na-2)) * (Na/(Na-3)) );
+				a01 =
+					4*p*p*p*q * ( (x-1)/x * (x-2)/x * (Na/(Na-1)) *
+					(Na/(Na-2)) * (Na/(Na-3)) ) + 4*p*q*q*q * ( (y-1)/y * (y-2)/y *
+					(Na/(Na-1)) * (Na/(Na-2)) * (Na/(Na-3)) );
+				a02 =
+					q*q*q*q * ( (y-1)/y * (y-2)/y * (y-3)/y *
+					(Na/(Na-1)) * (Na/(Na-2)) * (Na/(Na-3)) ) + p*p*p*p *
+					( (x-1)/x * (x-2)/x * (x-3)/x * (Na/(Na-1)) * (Na/(Na-2)) *
+					(Na/(Na-3)) ) + 4*p*p*q*q * ( (x-1)/x * (y-1)/y * (Na/(Na-1)) *
+					(Na/(Na-2)) * (Na/(Na-3)) );
+				a11 =
+					2*p*p*q * ( (x-1)/x *  Na/(Na-1) * Na/(Na-2) ) +
+					2*p*q*q * ( (y-1)/y *  Na/(Na-1) * Na/(Na-2) );
+				a12 =
+					p*p*p * ((x-1)/x * (x-2)/x *  Na/(Na-1) * Na/(Na-2)) +
+					q*q*q * ( (y-1)/y * (y-2)/y *  Na/(Na-1) * Na/(Na-2)) +
+					p*p*q * ( (x-1)/x * Na/(Na-1) * Na/(Na-2) ) +
+					p*q*q * ((y-1)/y  * Na/(Na-1) * Na/(Na-2));
+			} else {
+				a00 = 2*p*p*q*q;
+				a01 = 4*p*p*p*q + 4*p*q*q*q;
+				a02 = q*q*q*q + p*p*p*p + 4*p*p*q*q;
+				a11 = 2*p*p*q + 2*p*q*q;
+				a12 = p*p*p + q*q*q + p*p*q + p*q*q;
+			}
 
 			//
 			// End: PLINK/genome.cpp
@@ -155,13 +178,13 @@ namespace IBD
 				EPrIBS_IBD[0][2] += a02;
 				EPrIBS_IBD[1][1] += a11;
 				EPrIBS_IBD[1][2] += a12;
-				nInvalid++;
+				nValid++;
 			}
 		}
 
-		EPrIBS_IBD[0][0] /= nInvalid; EPrIBS_IBD[1][0] = 0;         EPrIBS_IBD[2][0] = 0;
-		EPrIBS_IBD[0][1] /= nInvalid; EPrIBS_IBD[1][1] /= nInvalid; EPrIBS_IBD[2][1] = 0;
-		EPrIBS_IBD[0][2] /= nInvalid; EPrIBS_IBD[1][2] /= nInvalid; EPrIBS_IBD[2][2] = 1;
+		EPrIBS_IBD[0][0] /= nValid; EPrIBS_IBD[1][0] = 0;       EPrIBS_IBD[2][0] = 0;
+		EPrIBS_IBD[0][1] /= nValid; EPrIBS_IBD[1][1] /= nValid; EPrIBS_IBD[2][1] = 0;
+		EPrIBS_IBD[0][2] /= nValid; EPrIBS_IBD[1][2] /= nValid; EPrIBS_IBD[2][2] = 1;
 	}
 
 	// estimate k0, k1 and k2
@@ -214,6 +237,8 @@ namespace IBD
 	// ---------------------------------------------------------------------
 	// IBD: Maximum Likelihood Estimation (MLE)
 
+	static const double IBDMLE_InitVal_Tol = 0.005;
+
 	// public parameters
 	/// The maximum number of iterations, 1000 by default
 	long nIterMax = 1000;
@@ -233,7 +258,8 @@ namespace IBD
 	/// Genotype, stored in a packed mode
 	UInt8 *PackedGeno = NULL;
 	/// the number of samples and snps
-	long nSamp, nPackedSNP;
+	long nSamp, nPackedSNP, nTotalSNP;
+	///
 	long nMatTriD, idxMatTriD;
 
 	// AlleleFreq
@@ -246,6 +272,7 @@ namespace IBD
 		nSamp = MCWorkingGeno.Space.SampleNum();
 		nPackedSNP = (MCWorkingGeno.Space.SNPNum() % 4 > 0) ?
 			(MCWorkingGeno.Space.SNPNum()/4 + 1) : (MCWorkingGeno.Space.SNPNum()/4);
+		nTotalSNP = nPackedSNP * 4;
 		PackedGeno = (UInt8*)buffer;
 
 		// buffer
@@ -269,7 +296,7 @@ namespace IBD
 	 *  \param t2  the probability of IBD given by IBD state = 2
 	 *  \param p   the frequency of allele A
 	**/
-	static void prIBDTable(UInt8 g1, UInt8 g2, double &t0, double &t1, double &t2, double p)
+	void prIBDTable(int g1, int g2, double &t0, double &t1, double &t2, double p)
 	{
 		if ((0 < p) && (p < 1))
 		{
@@ -392,7 +419,7 @@ namespace IBD
 		return LogLik;
 	}
 
-	/// MLE - EM algorithm
+	/// MLE -- EM algorithm
 	/**   out_k0 and out_k1 are the initial parameter values, and they
 	 *  should be within the region of { 0 < k0, 0 < k1, k0+k1 < 1 }.
 	**/
@@ -422,7 +449,7 @@ namespace IBD
 			long nSNP = 0;
 
 			LogLik = 0;
-			for (long iSNP = nPackedSNP*4; iSNP > 0; iSNP--)
+			for (long iSNP = nTotalSNP; iSNP > 0; iSNP--)
 			{
 				double mul[3] = { pr[0]*k[0], pr[1]*k[1], pr[2]*k[2] };
 				double mulsum = mul[0] + mul[1] + mul[2];
@@ -570,7 +597,8 @@ namespace IBD
 		int nIter;
 
 		// Downhill simplex approach
-		GWAS_Math::SimplexMin<double>(p, k, LogLik, nIter, _optim, (void*)PrIBD, FuncRelTol, nIterMax);
+		GWAS_Math::SimplexMin<double>(p, k, LogLik, nIter, _optim,
+			(void*)PrIBD, FuncRelTol, nIterMax);
 		if (out_niter) *out_niter = nIter;
 
 		// fill the result
@@ -592,7 +620,7 @@ namespace IBD
 	void Entry_MLEIBD(TdThread Thread, int ThreadIndex, void *Param)
 	{
 		// initialize buffer
-		auto_ptr<double> PrIBD(new double[3*4*nPackedSNP]);
+		auto_ptr<double> PrIBD(new double[3*nTotalSNP]);
 
 		// loop
 		while (true)
@@ -632,11 +660,10 @@ namespace IBD
 			Est_PLINK_Kinship(IBS0, IBS1, IBS2, pIBD->k0, pIBD->k1, false);
 			// adjust the initial values
 			{
-				const double InitCutoff = 0.005;
 				double k0 = pIBD->k0, k1 = pIBD->k1, k2 = 1-k0-k1;
-				if (k0 < InitCutoff) k0 = InitCutoff;
-				if (k1 < InitCutoff) k1 = InitCutoff;
-				if (k2 < InitCutoff) k2 = InitCutoff;
+				if (k0 < IBDMLE_InitVal_Tol) k0 = IBDMLE_InitVal_Tol;
+				if (k1 < IBDMLE_InitVal_Tol) k1 = IBDMLE_InitVal_Tol;
+				if (k2 < IBDMLE_InitVal_Tol) k2 = IBDMLE_InitVal_Tol;
 				double s = k0 + k1 + k2;
 				pIBD->k0 = k0/s; pIBD->k1 = k1/s;
 			}
@@ -666,21 +693,20 @@ namespace IBD
 	{
 		// initialize the allele frequency
 		MLEAlleleFreq = AF;
-		for (int i=0; i < nPackedSNP*4; i++)
+		for (int i=0; i < nTotalSNP; i++)
 			MLEAlleleFreq[i] = -1;
 		if (AFreq)
 		{
 			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
 			{
-				double v = AFreq[i];
-				if ((v <= 0) || (v >= 1)) v = -1;
-				MLEAlleleFreq[i] = v;
+				if (conf_IsFinite64(AFreq[i]))
+					MLEAlleleFreq[i] = AFreq[i];
 			}
 		} else {
 			// init
-			vector<int> n(nPackedSNP*4);
-			for (int i=0; i < nPackedSNP*4; i++) n[i] = 0;
-			for (int i=0; i < nPackedSNP*4; i++) MLEAlleleFreq[i] = 0;
+			vector<int> n(nTotalSNP);
+			for (int i=0; i < nTotalSNP; i++) n[i] = 0;
+			for (int i=0; i < nTotalSNP; i++) MLEAlleleFreq[i] = 0;
 			// for-loop for allele frequency
 			UInt8 *p = &PackedGeno[0];
 			for (int iSamp=0; iSamp < nSamp; iSamp++)
@@ -688,7 +714,7 @@ namespace IBD
 				for (int i=0; i < nPackedSNP; i++)
 				{
 					UInt8 L = *p++;
-					for (int k=0; k < 3; k++)
+					for (int k=0; k < 4; k++)
 					{
 						UInt8 B = L & 0x03; L >>= 2;
 						if (B < 3)
@@ -700,13 +726,10 @@ namespace IBD
 				}
 			}
 			// for-loop
-			for (int i=0; i < 4*nPackedSNP; i++)
+			for (int i=0; i < nTotalSNP; i++)
 			{
 				double &v = MLEAlleleFreq[i];
-				if ((n[i]>0) && (0 < v) && (v < n[i]))
-					v /= n[i];
-				else
-					v = -1;
+				v = (n[i] > 0) ? (v / n[i]) : -1;
 			}
 		}
 	}
@@ -741,13 +764,57 @@ namespace IBD
 		plc_DoneMutex(_Mutex); _Mutex = NULL;
 	}
 
+	/// to conduct MLE IBD for a pair of individuals, no missing genotypes (0, 1, 2)
+	void Do_MLE_IBD_Pair(int n, const int *geno1, const int *geno2, const double *AFreq,
+		double &out_k0, double &out_k1, double &out_loglik, int &out_niter, double tmpprob[])
+	{
+		// adjust the initial values
+		{
+			double k0 = out_k0, k1 = out_k1, k2 = 1 - out_k0 - out_k1;
+			if (k0 < IBDMLE_InitVal_Tol) k0 = IBDMLE_InitVal_Tol;
+			if (k1 < IBDMLE_InitVal_Tol) k1 = IBDMLE_InitVal_Tol;
+			if (k2 < IBDMLE_InitVal_Tol) k2 = IBDMLE_InitVal_Tol;
+			double s = k0 + k1 + k2;
+			out_k0 = k0/s; out_k1 = k1/s;
+		}
+
+		// MLE
+		nTotalSNP = n;
+		double *ptmp = tmpprob;
+		switch (MethodMLE)
+		{
+			case 0:
+				// fill PrIBD, Pr(ibs state|ibd state j)
+				for (int i=0; i < n; i++)
+				{
+					prIBDTable(geno1[i], geno2[i], ptmp[0], ptmp[1], ptmp[2], AFreq[i]);
+					ptmp += 3;
+				}
+				// MLE - EM algorithm
+				EMAlg(tmpprob, out_k0, out_k1, out_loglik, &out_niter);
+				break;
+			case 1:
+				// fill PrIBD, Pr(ibs state|ibd state j)
+				for (int i=0; i < n; i++)
+				{
+					prIBDTable(geno1[i], geno2[i], ptmp[0], ptmp[1], ptmp[2], AFreq[i]);
+					ptmp[0] -= ptmp[2]; ptmp[1] -= ptmp[2];
+					ptmp += 3;
+				}
+				// MLE - downhill simplex algorithm
+				Simplex(tmpprob, out_k0, out_k1, out_loglik, &out_niter);
+				break;
+		}
+	}
+
+
 	/// to compute the log likelihood
 	void Do_MLE_LogLik(const double *AFreq, const double *k0, const double *k1,
 		double *tmp_AF, double *out_loglik)
 	{
 		InitAFreq(AFreq, tmp_AF);
 		// initialize buffer
-		auto_ptr<double> PrIBD(new double[3*4*nPackedSNP]);
+		auto_ptr<double> PrIBD(new double[3*nTotalSNP]);
 		for (int i=0; i < nSamp; i++)
 		{
 			for (int j=i; j < nSamp; j++)
@@ -759,13 +826,14 @@ namespace IBD
 			}
 		}
 	}
+
 	/// to compute the log likelihood
 	void Do_MLE_LogLik_k01(const double *AFreq, const double k0, const double k1,
 		double *tmp_AF, double *out_loglik)
 	{
 		InitAFreq(AFreq, tmp_AF);
 		// initialize buffer
-		auto_ptr<double> PrIBD(new double[3*4*nPackedSNP]);
+		auto_ptr<double> PrIBD(new double[3*nTotalSNP]);
 		for (int i=0; i < nSamp; i++)
 		{
 			for (int j=i; j < nSamp; j++)
@@ -777,7 +845,6 @@ namespace IBD
 			}
 		}
 	}
-
 }
 
 #endif  /* _FuncIBD_H_ */
