@@ -37,7 +37,7 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 # get chromosome index
 chr <- read.gdsn(index.gdsn(genofile, "snp.chromosome"))
 
-RV <- snpgdsPCA(genofile, num.thread=2)
+RV <- snpgdsPCA(genofile)
 CORR <- snpgdsPCACorr(RV, genofile, eig.which=1:4)
 plot(abs(CORR$snpcorr[3,]), xlab="SNP Index", ylab="PC 3", col=chr)
 

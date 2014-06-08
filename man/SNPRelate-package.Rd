@@ -8,16 +8,20 @@
 Genome-wide Association Studies
 }
 \details{
-\tabular{ll}{
-Package: \tab SNPRelate\cr
-Type: \tab Package\cr
-Version: \tab 0.9.2\cr
-Date: \tab 2012-02-01\cr
-License: \tab LGPL version 3\cr
-Depends: \tab gdsfmt (>= 0.9.5)\cr
-}
+	\tabular{ll}{
+		Package: \tab SNPRelate\cr
+		Type: \tab Package\cr
+		Version: \tab 0.9.3\cr
+		Date: \tab 2012-02-24\cr
+		License: \tab LGPL version 3\cr
+		Depends: \tab gdsfmt (>= 0.9.6)\cr
+	}
 	The genotypes stored in GDS format can be analyzed by the R functions in SNPRelate, which
 	utilize the multi-core feature of machine for a single computer.
+
+	\url{http://corearray.sourceforge.net/}
+
+	\url{http://corearray.sourceforge.net/tutorials/SNPRelate/}
 }
 \author{Xiuwen Zheng \email{zhengx@u.washington.edu}}
 \examples{

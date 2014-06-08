@@ -54,7 +54,7 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 # CEU population
 CEU.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="CEU"]
-pibd <- snpgdsIBDMoM(genofile, sample.id=c(CEU.id))
+pibd <- snpgdsIBDMoM(genofile, sample.id=c(CEU.id), num.thread=2)
 flag <- lower.tri(pibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
 lines(c(0,1), c(1,0), col="red", lty=3)
@@ -63,7 +63,7 @@ points(pibd$k0[flag], pibd$k1[flag])
 # YRI population
 YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="YRI"]
-pibd <- snpgdsIBDMoM(genofile, sample.id=c(YRI.id))
+pibd <- snpgdsIBDMoM(genofile, sample.id=c(YRI.id), num.thread=2)
 flag <- lower.tri(pibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
 lines(c(0,1), c(1,0), col="red", lty=3)

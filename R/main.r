@@ -831,6 +831,7 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
 
 
+
 #######################################################################
 # Identity-by-Descent (IBD) analysis
 #######################################################################
@@ -2653,11 +2654,6 @@ snpgdsCombineGeno <- function(gds.fn, out.fn,
 
 
 
-
-
-
-
-
 #######################################################################
 # Plot functions
 #######################################################################
@@ -3142,15 +3138,11 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbo
 
 
 
-
-
-
-
 #######################################################################
 # Internal R library functions
 #######################################################################
 
-.onLoad <- function(lib, pkg)
+.onAttach <- function(lib, pkg)
 {
 	# get the filename of the dynamic-link library
 	lib.fn <- as.character(getLoadedDLLs()$gdsfmt[[2]])
@@ -3162,16 +3154,13 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbo
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.2")
+	packageStartupMessage("SNPRelate: 0.9.3")
 	if (rv$sse != 0)
 		packageStartupMessage("Streaming SIMD Extensions (SSE) supported.\n")
 }
 
-.onUnload <- function(libpath)
+.Last.lib <- function(libpath)
 {
 	# finalize SNPRelate
 	rv <- .C("gnrDone", PACKAGE="SNPRelate")
-	# unload the dynamic-link library
-	library.dynam.unload("SNPRelate", libpath)
 }
-

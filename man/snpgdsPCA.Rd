@@ -63,7 +63,7 @@ plot(RV$eigenvect[,2], RV$eigenvect[,1], col=as.integer(factor(pop)),
 	xlab="PC 2", ylab="PC 1")
 legend("topleft", legend=levels(factor(pop)), pch="o", col=1:4)
 
-RV <- snpgdsPCA(genofile, num.thread=2, need.genmat=TRUE)
+RV <- snpgdsPCA(genofile, need.genmat=TRUE)
 names(RV)
 # [1] "sample.id" "snp.id"    "eigenval"  "eigenvect" "TraceXTX"  "Bayesian"  "genmat"
 

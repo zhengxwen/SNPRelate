@@ -25,8 +25,8 @@
 // License along with CoreArray.
 // If not, see <http://www.gnu.org/licenses/>.
 
-#include <dGenGWAS.hpp>
-#include <dVect.hpp>
+#include <dGenGWAS.h>
+#include <dVect.h>
 #include <fstream>
 #include <map>
 #include <R.h>
@@ -72,6 +72,18 @@ namespace IBS
 
 	void AutoDetectSNPBlockSize(int nSamp, bool Detect=true);
 	void DoIBSCalculate(CdMatTriDiag<TIBSflag> &PublicIBS, int NumThread,
+		const char *Info, bool verbose);
+
+	/// The structure of genetic distance
+	struct TDistflag
+	{
+		Int64 SumGeno;
+		double SumAFreq;
+		TDistflag() { SumGeno = 0; SumAFreq = 0; }
+	};
+
+	/// Calculate the genetic distance matrix
+	void DoDistCalculate(CdMatTriDiag<TDistflag> &PublicDist, int NumThread,
 		const char *Info, bool verbose);
 }
 
@@ -814,6 +826,48 @@ DLLEXPORT void gnrIBSNum(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 }
 
 
+// the functions for genetic distances
+
+/// to compute the average genetic distance
+DLLEXPORT void gnrDist(LongBool *Verbose, LongBool *DataCache, int *NumThread,
+	double *out_Dist, LongBool *out_err)
+{
+	CORETRY
+		// ******** To cache the genotype data ********
+		if (*DataCache)
+		{
+			double GenoSum=0;
+			gnrCacheGeno(&GenoSum, NULL);
+			if (*Verbose)
+				Rprintf("Genetic Distance:\tthe sum of all working genotypes = %.0f\n", GenoSum);
+		}
+
+		// ******** The calculation of genetic covariance matrix ********
+
+		// the number of samples
+		const int n = MCWorkingGeno.Space.SampleNum();
+		// to detect the block size
+		IBS::AutoDetectSNPBlockSize(n);
+		// the upper-triangle genetic covariance matrix
+		CdMatTriDiag<IBS::TDistflag> Dist(IBS::TDistflag(), n);
+
+		// Calculate the genetic distance matrix
+		IBS::DoDistCalculate(Dist, *NumThread, "Genetic Distance:", *Verbose);
+
+		// output
+		IBS::TDistflag *p = Dist.get();
+		for (int i=0; i < n; i++)
+		{
+			out_Dist[i*n + i] = 0;
+			for (int j=i+1; j < n; j++, p++)
+				out_Dist[i*n + j] = out_Dist[j*n + i] = (p->SumGeno / p->SumAFreq);
+		}
+		// output
+		*out_err = 0;
+	CORECATCH(*out_err = 1)
+}
+
+
 // the functions for identity-by-descent (IBD)
 
 /// to compute the IBD coefficients by PLINK method of moment
@@ -1299,8 +1353,6 @@ DLLEXPORT void gnrAlleleStrand(char *allele1[], double afreq1[], int I1[],
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
 }
-
-
 
 
 

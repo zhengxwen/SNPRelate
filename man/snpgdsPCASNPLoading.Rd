@@ -43,7 +43,7 @@ snpgdsPCASNPLoading(pcaobj, gdsobj, num.thread = 1, verbose = TRUE)
 # open an example dataset (HapMap)
 genofile <- openfn.gds(snpgdsExampleFileName())
 
-PCARV <- snpgdsPCA(genofile, eigen.cnt=8, num.thread=2)
+PCARV <- snpgdsPCA(genofile, eigen.cnt=8)
 SnpLoad <- snpgdsPCASNPLoading(PCARV, genofile)
 
 names(SnpLoad)

@@ -50,7 +50,7 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 
 sample.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
 
-PCARV <- snpgdsPCA(genofile, eigen.cnt=8, num.thread=2)
+PCARV <- snpgdsPCA(genofile, eigen.cnt=8)
 SnpLoad <- snpgdsPCASNPLoading(PCARV, genofile)
 
 # calculate sample eigenvectors from SNP loadings
