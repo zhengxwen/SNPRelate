@@ -8,7 +8,7 @@
 //
 // CoreDEF.h: CoreArray global macro
 //
-// Copyright (C) 2011	Xiuwen Zheng
+// Copyright (C) 2012	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -29,10 +29,10 @@
  *	\file     CoreDEF.h
  *	\author   Xiuwen Zheng
  *	\version  1.0
- *	\date     2007 - 2011
+ *	\date     2007 - 2012
  *	\brief    CoreArray global macro
  *	\details
-*/
+**/
 
 #ifndef _GDSDEF_H_
 #define _GDSDEF_H_
@@ -123,6 +123,11 @@
 // solaris:
 #elif defined(sun) || defined(__sun)
 #  define COREARRAY_SUN
+#  if defined(__SVR4) || defined(__svr4__)
+#    define COREARRAY_SOLARIS
+#  else
+#    define COREARRAY_SUNOS
+#  endif
 
 // SGI Irix:
 #elif defined(__sgi)
@@ -165,6 +170,9 @@
 #endif
 
 
+
+
+// ******************************************************************************
 // MACRO for POSIX thread
 
 #if defined(COREARRAY_UNIX) || defined(posix) || defined(_posix) || defined(__posix)
@@ -172,7 +180,10 @@
 #endif
 
 
-// SSE instructions
+
+
+// ******************************************************************************
+// Streaming SIMD Extensions
 
 #if defined(__SSE__)
 #    define COREARRAY_SIMD_SSE
@@ -213,6 +224,9 @@
 #endif
 
 
+
+
+// ******************************************************************************
 // Endianness
 
 #ifdef COREARRAY_LITTLE_ENDIAN
@@ -252,7 +266,10 @@
 #endif
 
 
-// floating point data type
+
+
+// ******************************************************************************
+// Floating point data type
 
 #ifdef COREARRAY_HAVE_FLOAT128
 #  undef COREARRAY_HAVE_FLOAT128
@@ -273,35 +290,76 @@
 
 
 
+
+// ******************************************************************************
 // The stack is forced to be 16-byte aligned
 
 #if defined(__GNUC__) && (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__>1) && defined(__MINGW32__)
-
 #  define COREARRAY_CALL_ALIGN	__attribute__((force_align_arg_pointer))
 #  ifndef COREARRAY_CALL_ALIGN_NEED
 #    define COREARRAY_CALL_ALIGN_NEED
 #  endif
-
 #else
-
 #  define COREARRAY_CALL_ALIGN
 #  undef COREARRAY_CALL_ALIGN_NEED
-
 #endif
 
 
-// fastcall keyword
 
+
+// ******************************************************************************
+// Function attributes
+
+/// fastcall keyword
 #define COREARRAY_SUPPORT_FASTCALL
 
 #if defined(COREARRAY_BORLANDC) || defined(COREARRAY_MSC)
 #   define COREARRAY_FASTCALL	__fastcall
+#elif defined(COREARRAY_SUN)
+#   define COREARRAY_FASTCALL
 #elif (defined(__GNUC__) && ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3))) && (defined(__386__) || defined(__i386__))
 #   define COREARRAY_FASTCALL	__attribute__((fastcall))
 #else
 #   define COREARRAY_FASTCALL
 #   undef COREARRAY_SUPPORT_FASTCALL
 #endif
+
+
+/// inline keyword
+#define COREARRAY_SUPPORT_INLINE
+
+#define COREARRAY_INLINE    inline
+
+
+/// force inline keyword
+#define COREARRAY_SUPPORT_FORCE_INLINE
+
+#if defined(COREARRAY_BORLANDC) || defined(COREARRAY_MSC)
+#   define COREARRAY_FORCE_INLINE	__forceinline
+#elif defined(COREARRAY_SUN)
+#   define COREARRAY_FORCE_INLINE	COREARRAY_INLINE
+#elif (defined(__GNUC__) && ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)))
+#   define COREARRAY_FORCE_INLINE	__attribute__((always_inline))
+#else
+#   define COREARRAY_FORCE_INLINE	COREARRAY_INLINE
+#   undef COREARRAY_SUPPORT_FORCE_INLINE
+#endif
+
+
+/// dllexport keyword
+#define COREARRAY_SUPPORT_DLL_EXPORT
+
+#if defined(COREARRAY_BORLANDC) || defined(COREARRAY_MSC)
+#   define COREARRAY_DLLEXPORT	__declspec(dllexport)
+#elif (defined(__GNUC__) && ((__GNUC__ > 2) || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8)))
+#   define COREARRAY_DLLEXPORT	__attribute__((dllexport))
+#else
+#   define COREARRAY_DLLEXPORT
+#   undef COREARRAY_SUPPORT_DLL_EXPORT
+#endif
+
+
+
 
 
 
@@ -313,4 +371,3 @@
 
 
 #endif /* _GDSDEF_H_ */
-

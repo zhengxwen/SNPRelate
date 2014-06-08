@@ -6,9 +6,9 @@
 // _/_/_/   _/_/_/  _/_/_/_/_/     _/     _/_/_/   _/_/
 // ===========================================================
 //
-// CoreGDSLink.hpp: C interface for CoreArray's dynamic library
+// CoreGDSLink.h: Link C interface from the CoreArray's dynamic library "CoreGDS"
 //
-// Copyright (C) 2011	Xiuwen Zheng
+// Copyright (C) 2012	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -24,6 +24,16 @@
 // You should have received a copy of the GNU Lesser General Public
 // License along with CoreArray.
 // If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ *	\file     CoreGDSLink.h
+ *	\author   Xiuwen Zheng
+ *	\version  1.0
+ *	\date     2007 - 2012
+ *	\brief    Link C interface from the CoreArray's dynamic library "CoreGDS"
+ *	\details
+**/
+
 
 #ifndef _CoreGDSLink_H_
 #define _CoreGDSLink_H_
@@ -195,6 +205,7 @@ namespace GDSInterface
 	// ****  the functions for error messages
 	//
 
+	/// get the last error message
 	std::string & gds_LastError();
 }
 

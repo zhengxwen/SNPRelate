@@ -292,16 +292,16 @@ inline static void RStrAgn(const char *Text, char **rstr)
 // ===========================================================
 
 /// initialize the package
-DLLEXPORT void gnrInit(char **lib_fn, char **rstr, LongBool *sse)
+DLLEXPORT void gnrInit(char **lib_fn, char **rstr, LongBool *sse2)
 {
 	try {
 		GDSInterface::InitGDSInterface(*lib_fn);
 		RStrAgn("", rstr);
 
 		#ifdef COREARRAY_SIMD_SSE2
-		*sse = true;
+		*sse2 = true;
 		#else
-		*sse = false;
+		*sse2 = false;
 		#endif
 	}
 	catch (exception &E)
@@ -1353,8 +1353,6 @@ DLLEXPORT void gnrAlleleStrand(char *allele1[], double afreq1[], int I1[],
 		*out_err = 0;
 	CORECATCH(*out_err = 1)
 }
-
-
 
 
 

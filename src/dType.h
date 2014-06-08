@@ -8,7 +8,7 @@
 //
 // dType.h: Basic template classes for elementary types
 //
-// Copyright (C) 2011	Xiuwen Zheng
+// Copyright (C) 2012	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -29,10 +29,10 @@
  *	\file     dType.h
  *	\author   Xiuwen Zheng
  *	\version  1.0
- *	\date     2007 - 2011
+ *	\date     2007 - 2012
  *	\brief    Basic template classes for elementary types
  *	\details
-*/
+**/
 
 
 #ifndef _dType_H_
@@ -158,11 +158,11 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svInt8;
 
-		inline static const char * TraitName() { return "Int8"; };
-		inline static const char * StreamName() { return "dInt8"; };
+		static const char * TraitName() { return "Int8"; }
+		static const char * StreamName() { return "dInt8"; }
 
-		static short Min() { return INT8_MIN; };
-		static short Max() { return INT8_MAX; };
+		COREARRAY_FORCE_INLINE static short Min() { return INT8_MIN; }
+		COREARRAY_FORCE_INLINE static short Max() { return INT8_MAX; }
 	};
 
 	template<> struct TdTraits<UInt8>
@@ -175,11 +175,11 @@ namespace CoreArray
 		enum {
 			isNumeric = true
 		};
-		inline static const char * TraitName() { return "UInt8"; };
-		inline static const char * StreamName() { return "dUInt8"; };
+		static const char * TraitName() { return "UInt8"; }
+		static const char * StreamName() { return "dUInt8"; }
 
-		static unsigned short Min() { return 0; };
-		static unsigned short Max() { return UINT8_MAX; };
+		COREARRAY_FORCE_INLINE static unsigned short Min() { return 0; }
+		COREARRAY_FORCE_INLINE static unsigned short Max() { return UINT8_MAX; }
 	};
 
 	template<> struct TdTraits<Int16>
@@ -190,11 +190,11 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svInt16;
 
-		inline static const char * TraitName() { return "Int16"; };
-		inline static const char * StreamName() { return "dInt16"; };
+		static const char * TraitName() { return "Int16"; }
+		static const char * StreamName() { return "dInt16"; }
 
-		static Int16 Min() { return INT16_MIN; };
-		static Int16 Max() { return INT16_MAX; };
+		COREARRAY_FORCE_INLINE static Int16 Min() { return INT16_MIN; }
+		COREARRAY_FORCE_INLINE static Int16 Max() { return INT16_MAX; }
 	};
 
 	template<> struct TdTraits<UInt16>
@@ -205,11 +205,11 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svUInt16;
 
-		inline static const char * TraitName() { return "UInt16"; };
-		inline static const char * StreamName() { return "dUInt16"; };
+		static const char * TraitName() { return "UInt16"; }
+		static const char * StreamName() { return "dUInt16"; }
 
-		static UInt16 Min() { return 0; };
-		static UInt16 Max() { return UINT16_MAX; };
+		COREARRAY_FORCE_INLINE static UInt16 Min() { return 0; }
+		COREARRAY_FORCE_INLINE static UInt16 Max() { return UINT16_MAX; }
 	};
 
 	template<> struct TdTraits<Int32>
@@ -220,11 +220,11 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svInt32;
 
-		inline static const char * TraitName() { return "Int32"; };
-		inline static const char * StreamName() { return "dInt32"; };
+		static const char * TraitName() { return "Int32"; }
+		static const char * StreamName() { return "dInt32"; }
 
-		static Int32 Min() { return INT32_MIN; };
-		static Int32 Max() { return INT32_MAX; };
+		COREARRAY_FORCE_INLINE static Int32 Min() { return INT32_MIN; }
+		COREARRAY_FORCE_INLINE static Int32 Max() { return INT32_MAX; }
 	};
 
 	template<> struct TdTraits<UInt32>
@@ -235,11 +235,11 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svUInt32;
 
-		inline static const char * TraitName() { return "UInt32"; };
-		inline static const char * StreamName() { return "dUInt32"; };
+		static const char * TraitName() { return "UInt32"; }
+		static const char * StreamName() { return "dUInt32"; }
 
-		static UInt32 Min() { return 0; };
-		static UInt32 Max() { return UINT32_MAX; };
+		COREARRAY_FORCE_INLINE static UInt32 Min() { return 0; }
+		COREARRAY_FORCE_INLINE static UInt32 Max() { return UINT32_MAX; }
 	};
 
 	template<> struct TdTraits<Int64>
@@ -250,11 +250,11 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svInt64;
 
-		inline static const char * TraitName() { return "Int64"; };
-		inline static const char * StreamName() { return "dInt64"; };
+		static const char * TraitName() { return "Int64"; }
+		static const char * StreamName() { return "dInt64"; }
 
-		static Int64 Min() { return INT64_MIN; };
-		static Int64 Max() { return INT64_MAX; };
+		COREARRAY_FORCE_INLINE static Int64 Min() { return INT64_MIN; }
+		COREARRAY_FORCE_INLINE static Int64 Max() { return INT64_MAX; }
 	};
 
 	template<> struct TdTraits<UInt64>
@@ -265,11 +265,11 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svUInt64;
 
-		inline static const char * TraitName() { return "UInt64"; };
-		inline static const char * StreamName() { return "dUInt64"; };
+		static const char * TraitName() { return "UInt64"; }
+		static const char * StreamName() { return "dUInt64"; }
 
-		static UInt64 Min() { return 0; };
-		static UInt64 Max() { return UINT64_MAX; };
+		COREARRAY_FORCE_INLINE static UInt64 Min() { return 0; }
+		COREARRAY_FORCE_INLINE static UInt64 Max() { return UINT64_MAX; }
 	};
 
 
@@ -334,11 +334,8 @@ namespace CoreArray
 		};
 	}
 
-	#ifndef COREARRAY_SUNPROCC
-	#  pragma pack(push, 1)
-	#else
-	#  pragma pack(1)
-	#endif
+
+	/// the fundamental type of bits
 	template<int bits> struct BITS
 	{
 	public:
@@ -360,8 +357,8 @@ namespace CoreArray
 		static const IntTypeEx Mask2 = ~(_IntValEx << NumBit);
 		static const _IntTypeEx NOTMask2 = (_IntValEx << NumBit);
 
-		BITS() {};
-		BITS(IntType val) { fVal = val & Mask; };
+		BITS() {}
+		BITS(IntType val) { fVal = val & Mask; }
 
 		BITS<bits> & operator+=(IntType val)
 			{ fVal = (fVal + val) & Mask; return (*this); }
@@ -386,11 +383,7 @@ namespace CoreArray
 	protected:
 		IntType fVal;
 	};
-	#ifndef COREARRAY_SUNPROCC
-	#  pragma pack(pop)
-	#else
-	#  pragma pack(8)
-	#endif
+
 
 	template<> struct BITS<0>	{};
 	template<> struct BITS<-1>	{};
@@ -402,7 +395,7 @@ namespace CoreArray
 
 
 	template<typename IntType, int bits>
-	inline IntType BITS_ifsign(IntType val)
+	COREARRAY_FORCE_INLINE IntType BITS_ifsign(IntType val)
 	{
 		return (val & BITS<bits>::Flag) ? (val | BITS<bits>::NOTMask2) : val;
 	}
@@ -411,10 +404,10 @@ namespace CoreArray
 	// Bit Type Traits
 
 	// "dBit1" ... "dBit32"
-	extern const char *BitStreamNames[32];
+	extern const char *BitStreamNames[];
 
 	// "dSBit1" ... "dSBit32"
-	extern const char *SBitStreamNames[32];
+	extern const char *SBitStreamNames[];
 
 	template<int bits> struct TdTraits< BITS<bits> >
 	{
@@ -424,19 +417,19 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svCustomInt;
 
-		inline static const char * StreamName()
+		static const char * StreamName()
 		{
 			if (bits > 0)
 				return BitStreamNames[bits-1];
 			else
 				return SBitStreamNames[(-bits)-1];
-		};
-		inline static const char * TraitName() { return StreamName()+1; };
+		}
+		static const char * TraitName() { return StreamName()+1; }
 
-		static Int64 Min()
-			{ return (bits > 0) ? 0 : ((-1ll) << (BITS<bits>::NumBit-1)); };
-		static Int64 Max()
-			{ return (bits > 0) ? BITS<bits>::Mask : (BITS<bits>::Mask ^ BITS<bits>::Flag); };
+		COREARRAY_FORCE_INLINE static Int64 Min()
+			{ return (bits > 0) ? 0 : ((-1ll) << (BITS<bits>::NumBit-1)); }
+		COREARRAY_FORCE_INLINE static Int64 Max()
+			{ return (bits > 0) ? BITS<bits>::Mask : (BITS<bits>::Mask ^ BITS<bits>::Flag); }
 	};
 
 
@@ -462,13 +455,13 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svFloat32;
 
-		inline static const char * TraitName() { return "Float32"; }
-		inline static const char * StreamName() { return "dFloat32"; }
+		static const char * TraitName() { return "Float32"; }
+		static const char * StreamName() { return "dFloat32"; }
 
-		static Float32 Min() { return FLT_MIN; }
-		static Float32 Max() { return FLT_MAX; }
-		static Float32 Epsilon() { return FLT_EPSILON; }
-		static int Digits() { return FLT_MANT_DIG; }
+		COREARRAY_FORCE_INLINE static Float32 Min() { return FLT_MIN; }
+		COREARRAY_FORCE_INLINE static Float32 Max() { return FLT_MAX; }
+		COREARRAY_FORCE_INLINE static Float32 Epsilon() { return FLT_EPSILON; }
+		COREARRAY_FORCE_INLINE static int Digits() { return FLT_MANT_DIG; }
 	};
 
 	template<> struct TdTraits<Float64>
@@ -479,13 +472,13 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svFloat64;
 
-		inline static const char * TraitName() { return "Float64"; }
-		inline static const char * StreamName() { return "dFloat64"; }
+		static const char * TraitName() { return "Float64"; }
+		static const char * StreamName() { return "dFloat64"; }
 
-		static Float64 Min() { return DBL_MIN; }
-		static Float64 Max() { return DBL_MAX; }
-		static Float64 Epsilon() { return DBL_EPSILON; }
-		static int Digits() { return DBL_MANT_DIG; }
+		COREARRAY_FORCE_INLINE static Float64 Min() { return DBL_MIN; }
+		COREARRAY_FORCE_INLINE static Float64 Max() { return DBL_MAX; }
+		COREARRAY_FORCE_INLINE static Float64 Epsilon() { return DBL_EPSILON; }
+		COREARRAY_FORCE_INLINE static int Digits() { return DBL_MANT_DIG; }
 	};
 
 	template<> struct TdTraits<LongFloat>
@@ -496,7 +489,7 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svCustomFloat;
 
-		inline static const char * StreamName()
+		static const char * StreamName()
 		{
 		#if defined(COREARRAY_HAVE_FLOAT128)
 			return "dFloat128";
@@ -506,12 +499,12 @@ namespace CoreArray
         	return "dFloat80";
 		#endif
 		}
-		inline static const char * TraitName() { return StreamName()+1; }
+		static const char * TraitName() { return StreamName()+1; }
 
-		static LongFloat Min() { return LDBL_MIN; }
-		static LongFloat Max() { return LDBL_MAX; }
-		static LongFloat Epsilon() { return LDBL_EPSILON; }
-		static int Digits() { return LDBL_MANT_DIG; }
+		COREARRAY_FORCE_INLINE static LongFloat Min() { return LDBL_MIN; }
+		COREARRAY_FORCE_INLINE static LongFloat Max() { return LDBL_MAX; }
+		COREARRAY_FORCE_INLINE static LongFloat Epsilon() { return LDBL_EPSILON; }
+		COREARRAY_FORCE_INLINE static int Digits() { return LDBL_MANT_DIG; }
 	};
 
 
@@ -565,7 +558,7 @@ namespace CoreArray
 		static const bool isClass = true;
 		static const TSVType SVType = svStrUTF8;
 
-		inline static const char * TraitName() { return "UTF8"; };
+		static const char * TraitName() { return "UTF8"; }
 	};
 
 	template<> struct TdTraits<UTF8*>
@@ -577,8 +570,8 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svStrUTF8;
 
-		inline static const char * TraitName() { return "FStr8"; };
-		inline static const char * StreamName() { return "dFStr8"; };
+		static const char * TraitName() { return "FStr8"; }
+		static const char * StreamName() { return "dFStr8"; }
 	};
 
 	template<> struct TdTraits<UTF16String>
@@ -590,7 +583,7 @@ namespace CoreArray
 		static const bool isClass = true;
 		static const TSVType SVType = svStrUTF16;
 
-		inline static const char * TraitName() { return "UTF16"; };
+		static const char * TraitName() { return "UTF16"; }
 	};
 
 	template<> struct TdTraits<UTF16*>
@@ -602,8 +595,8 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svStrUTF16;
 
-		inline static const char * TraitName() { return "FStr16"; };
-		inline static const char * StreamName() { return "dFStr16"; };
+		static const char * TraitName() { return "FStr16"; }
+		static const char * StreamName() { return "dFStr16"; }
 	};
 
 	template<> struct TdTraits<UTF32String>
@@ -615,7 +608,7 @@ namespace CoreArray
 		static const bool isClass = true;
 		static const TSVType SVType = svCustomStr;
 
-		inline static const char * TraitName() { return "UTF32"; };
+		static const char * TraitName() { return "UTF32"; }
 	};
 
 	template<> struct TdTraits<UTF32*>
@@ -627,8 +620,8 @@ namespace CoreArray
 		static const bool isClass = false;
 		static const TSVType SVType = svCustomStr;
 
-		inline static const char * TraitName() { return "FStr32"; };
-		inline static const char * StreamName() { return "dFStr32"; };
+		static const char * TraitName() { return "FStr32"; }
+		static const char * StreamName() { return "dFStr32"; }
 	};
 
 
@@ -658,13 +651,13 @@ namespace CoreArray
 			{ return fVal != val.fVal; }
 
 		operator TYPE() const { return fVal; }
-		inline TYPE &get() { return fVal; }
-		inline const TYPE &get() const { return fVal; }
+		TYPE &get() { return fVal; }
+		const TYPE &get() const { return fVal; }
 
 		/// Return minimum value of the type
-		inline static const TYPE min() { return TdTraits<TYPE>::Min(); }
+		static const TYPE min() { return TdTraits<TYPE>::Min(); }
 		/// Return maximum value of the type
-		inline static const TYPE max() { return TdTraits<TYPE>::Max(); }
+		static const TYPE max() { return TdTraits<TYPE>::Max(); }
 
 	private:
 		TYPE fVal;
@@ -672,4 +665,3 @@ namespace CoreArray
 }
 
 #endif /* _dType_H_ */
-

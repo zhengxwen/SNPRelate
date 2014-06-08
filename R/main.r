@@ -358,7 +358,8 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		eigenval = double(node$n.samp),
 		eigenvect = matrix(NaN, nrow=node$n.samp, ncol=eigen.cnt),
 		TraceXTX = double(1),
-		genmat = switch(as.integer(need.genmat)+1, NULL, matrix(NaN, nrow=node$n.samp, ncol=node$n.samp)),
+		genmat = switch(as.integer(need.genmat)+1, double(0),
+			matrix(NaN, nrow=node$n.samp, ncol=node$n.samp)),
 		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
 	if (rv$err != 0) stop(snpgdsErrMsg())
 
@@ -2676,10 +2677,17 @@ snpgdsErrMsg <- function()
 	rv$msg
 }
 
+
+#######################################################################
+# To get the file name of an example
+#
 snpgdsExampleFileName <- function()
 {
-	paste(.path.package("SNPRelate"), "/extdata/hapmap.geno.gds", sep="")
+	system.file("extdata", "hapmap.geno.gds", package="SNPRelate")
 }
+
+
+
 
 
 
@@ -2849,6 +2857,7 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, verbose=T
 		ref <- rep("A", length(snp.idx))
 		nonref <- rep("G", length(snp.idx))
 	}
+
 	D <- data.frame(chr = xchr, rs = snp.ids,
 		gen = rep(0, length(snp.idx)),
 		base = read.gdsn(index.gdsn(gdsobj, "snp.position"))[snp.idx],
@@ -3154,9 +3163,9 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbo
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.3")
+	packageStartupMessage("SNPRelate: 0.9.4")
 	if (rv$sse != 0)
-		packageStartupMessage("Streaming SIMD Extensions (SSE) supported.\n")
+		packageStartupMessage("Streaming SIMD Extensions 2 (SSE2) supported.\n")
 }
 
 .Last.lib <- function(libpath)
