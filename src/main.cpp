@@ -83,7 +83,7 @@ namespace IBS
 	};
 
 	/// Calculate the genetic distance matrix
-	void DoDistCalculate(CdMatTriDiag<TDistflag> &PublicDist, int NumThread,
+	void DoDistCalculate(CdMatTri<TDistflag> &PublicDist, int NumThread,
 		const char *Info, bool verbose);
 }
 
@@ -493,20 +493,20 @@ DLLEXPORT void gnrCopyGeno(TdSequenceX *Node, LongBool *snpfirstorder, LongBool 
 		{
 			CoreArray::Int32 cnt[2] = { 1, MCWorkingGeno.Space.SNPNum() };
 			CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
-			for (long i=0; i < buf.IdxCnt(); i++)
+			for (int i=0; i < buf.IdxCnt(); i++)
 			{
 				UInt8 *p = buf.ReadGeno(i);
-				CoreArray::Int32 st[2] = {i, 0};
+				CoreArray::Int32 st[2] = { (CoreArray::Int32)i, 0 };
 				if (!gds_wData(*Node, st, cnt, p, svUInt8))
 					return;
 			}
 		} else {
 			CoreArray::Int32 cnt[2] = { 1, MCWorkingGeno.Space.SampleNum() };
 			CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
-			for (long i=0; i < buf.IdxCnt(); i++)
+			for (int i=0; i < buf.IdxCnt(); i++)
 			{
 				UInt8 *p = buf.ReadGeno(i);
-				CoreArray::Int32 st[2] = {i, 0};
+				CoreArray::Int32 st[2] = { (CoreArray::Int32)i, 0 };
 				if (!gds_wData(*Node, st, cnt, p, svUInt8))
 					return;
 			}
@@ -878,7 +878,7 @@ DLLEXPORT void gnrDist(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 		// the upper-triangle genetic covariance matrix
-		CdMatTriDiag<IBS::TDistflag> Dist(IBS::TDistflag(), n);
+		CdMatTri<IBS::TDistflag> Dist(n);
 
 		// Calculate the genetic distance matrix
 		IBS::DoDistCalculate(Dist, *NumThread, "Genetic Distance:", *Verbose);
@@ -887,10 +887,12 @@ DLLEXPORT void gnrDist(LongBool *Verbose, LongBool *DataCache, int *NumThread,
 		IBS::TDistflag *p = Dist.get();
 		for (int i=0; i < n; i++)
 		{
-			out_Dist[i*n + i] = 0;
+			out_Dist[i*n + i] = 2 * (p->SumGeno / p->SumAFreq);
+			p ++;
 			for (int j=i+1; j < n; j++, p++)
 				out_Dist[i*n + j] = out_Dist[j*n + i] = (p->SumGeno / p->SumAFreq);
 		}
+
 		// output
 		*out_err = 0;
 	CORECATCH(*out_err = 1)

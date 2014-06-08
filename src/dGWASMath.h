@@ -20,6 +20,7 @@
 #include <limits>
 #include <memory>
 #include <iostream>
+#include <cmath>
 
 
 namespace GWAS_Math
@@ -89,7 +90,7 @@ namespace GWAS_Math
 	{
 		int i, ihi, ilo, inhi, j;
 		tfloat convtol, sum, ysave, ytry;
-		tfloat y[ndim], psum[ndim];
+		tfloat y[ndim+1], psum[ndim];
 
 		// The components of y are initialized to the values of funk evaluated
 		// at the ndim+1 vertices (rows) of p.

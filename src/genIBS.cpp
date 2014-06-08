@@ -83,8 +83,12 @@ namespace IBS
 
 	/// Thread variables
 	const int N_MAX_THREAD = 256;
+	// IBS
 	IdMatTriD IBS_Thread_MatIdx[N_MAX_THREAD];
 	Int64 IBS_Thread_MatCnt[N_MAX_THREAD];
+	// Individual Similarity
+	IdMatTri IS_Thread_MatIdx[N_MAX_THREAD];
+	Int64 IS_Thread_MatCnt[N_MAX_THREAD];
 
 
 	/// The pointer to the variable PublicIBS in the function "DoIBSCalculate"
@@ -246,8 +250,8 @@ namespace IBS
 	/// Compute the covariate matrix
 	static void _Do_Dist_Compute(int ThreadIndex, long Start, long SNP_Cnt, void* Param)
 	{
-		long Cnt = IBS_Thread_MatCnt[ThreadIndex];
-		IdMatTriD I = IBS_Thread_MatIdx[ThreadIndex];
+		long Cnt = IS_Thread_MatCnt[ThreadIndex];
+		IdMatTri I = IS_Thread_MatIdx[ThreadIndex];
 		TDistflag *p = ((TDistflag*)Param) + I.Offset();
 		long _PackSNPLen = (SNP_Cnt / 4) + (SNP_Cnt % 4 ? 1 : 0);
 
@@ -270,7 +274,7 @@ namespace IBS
 	}
 
 	/// Calculate the genetic distance matrix
-	void DoDistCalculate(CdMatTriDiag<TDistflag> &PublicDist, int NumThread,
+	void DoDistCalculate(CdMatTri<TDistflag> &PublicDist, int NumThread,
 		const char *Info, bool verbose)
 	{
 		// Initialize ...
@@ -282,7 +286,7 @@ namespace IBS
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.InitParam(true, true, BlockSNP);
 
-		MCWorkingGeno.SplitJobs(NumThread, PublicDist.N(), IBS_Thread_MatIdx, IBS_Thread_MatCnt);
+		MCWorkingGeno.SplitJobs(NumThread, PublicDist.N(), IS_Thread_MatIdx, IS_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_Dist_ReadBlock, &_Do_Dist_Compute, PublicDist.get());
 	}
 }

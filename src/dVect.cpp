@@ -42,10 +42,10 @@
 
 // SSE intrinsics
 
-COREARRAY_FORCE_INLINE static float _add(const float v1, const float v2) { return v1+v2; }
-COREARRAY_FORCE_INLINE static float _sub(const float v1, const float v2) { return v1-v2; }
-COREARRAY_FORCE_INLINE static float _mul(const float v1, const float v2) { return v1*v2; }
-COREARRAY_FORCE_INLINE static float _div(const float v1, const float v2) { return v1/v2; }
+COREARRAY_INLINE static float _add(const float v1, const float v2) { return v1+v2; }
+COREARRAY_INLINE static float _sub(const float v1, const float v2) { return v1-v2; }
+COREARRAY_INLINE static float _mul(const float v1, const float v2) { return v1*v2; }
+COREARRAY_INLINE static float _div(const float v1, const float v2) { return v1/v2; }
 
 // Unroll loop
 
@@ -390,10 +390,10 @@ float CORESSECALL CoreArray::Vectorization::_SSE_DotProd_16(const float *x, cons
 
 // SSE2 intrinsics
 
-COREARRAY_FORCE_INLINE static double _add(const double v1, const double v2) { return v1+v2; }
-COREARRAY_FORCE_INLINE static double _sub(const double v1, const double v2) { return v1-v2; }
-COREARRAY_FORCE_INLINE static double _mul(const double v1, const double v2) { return v1*v2; }
-COREARRAY_FORCE_INLINE static double _div(const double v1, const double v2) { return v1/v2; }
+COREARRAY_INLINE static double _add(const double v1, const double v2) { return v1+v2; }
+COREARRAY_INLINE static double _sub(const double v1, const double v2) { return v1-v2; }
+COREARRAY_INLINE static double _mul(const double v1, const double v2) { return v1*v2; }
+COREARRAY_INLINE static double _div(const double v1, const double v2) { return v1/v2; }
 
 #define SSE2_L3_F64(Fd, Fs1, Fs2, Op, OpR) \
 	{ \

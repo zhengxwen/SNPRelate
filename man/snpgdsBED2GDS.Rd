@@ -12,7 +12,8 @@ snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, compress.annotation="ZIP.max", 
 	\item{fam.fn}{the file name of first six columns of *.ped}
 	\item{bim.fn}{the file name of extended MAP file: two extra cols = allele names}
 	\item{out.gdsfn}{the output gds file}
-	\item{compress.annotation}{the compression flag of the nodes stored, except "genotype"; the string value is defined in the function of \code{add.gdsn}}
+	\item{compress.annotation}{the compression flag of the nodes stored, except
+		"genotype"; the string value is defined in the function of \code{add.gdsn}}
 	\item{verbose}{if TRUE, show information}
 }
 \value{

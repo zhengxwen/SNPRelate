@@ -8,11 +8,11 @@
 	Maximum Likelihood Estimation.
 }
 \usage{
-snpgdsIBDMLE(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE, remove.monosnp=TRUE,
-	maf=NaN, missing.rate=NaN, kinship.constraint=FALSE, allele.freq=NULL,
-	method=c("EM", "downhill.simplex"),
+snpgdsIBDMLE(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+	remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, kinship=FALSE,
+	kinship.constraint=FALSE, allele.freq=NULL, method=c("EM", "downhill.simplex"),
 	max.niter=1000, reltol=sqrt(.Machine$double.eps), coeff.correct=TRUE,
-	out.num.iter = TRUE, num.thread=1, verbose=TRUE)
+	out.num.iter=TRUE, num.thread=1, verbose=TRUE)
 }
 \arguments{
 	\item{gdsobj}{the \code{\link[gdsfmt]{gdsclass}} object in the \link{gdsfmt} package}
@@ -24,6 +24,7 @@ snpgdsIBDMLE(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE, remove.mon
 	\item{maf}{to use the SNPs with ">= maf" only; if NaN, no any MAF threshold}
 	\item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN, no any missing
 		threshold}
+	\item{kinship}{if \code{TRUE}, output the estimated kinship coefficients}
 	\item{kinship.constraint}{if TRUE, constrict IBD coefficients ($k_0,k_1,k_2$) in the
 		geneloical region ($2 k_0 k_1 >= k_2^2$)}
 	\item{allele.freq}{to specify the allele frequencies; if NULL, determine the allele
@@ -63,6 +64,7 @@ than MoM, and might not be feasible to estimate pairwise relatedness for a large
 	\item{afreq}{the allele frequencies used in the analysis}
 	\item{k0}{IBD coefficient, the probability of sharing ZERO IBD}
 	\item{k1}{IBD coefficient, the probability of sharing ONE IBD}
+	\item{kinship}{the estimated kinship coefficients, if the parameter \code{kinship=TRUE}}
 }
 \references{
 	Milligan BG. 2003. Maximum-likelihood estimation of relatedness. Genetics 163:1153-1167.
@@ -85,12 +87,21 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 
 YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="YRI"]
+YRI.id <- YRI.id[1:30]
 
 # SNP pruning
 set.seed(1000)
 snpset <- snpgdsLDpruning(genofile, sample.id=YRI.id, maf=0.05, missing.rate=0.05)
-snpset <- sample(unlist(snpset), 1000)
-mibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snpset, num.thread=2)
+snpset <- sample(unlist(snpset), 500)
+mibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snpset, num.thread=2, kinship=TRUE)
+names(mibd)
+
+loglik <- snpgdsIBDMLELogLik(genofile, mibd)
+loglik0 <- snpgdsIBDMLELogLik(genofile, mibd, relatedness="unrelated")
+
+# likelihood ratio test
+p.value <- pchisq(loglik - loglik0, 1, lower.tail=FALSE)
+
 
 flag <- lower.tri(mibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")

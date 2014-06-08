@@ -70,8 +70,8 @@ namespace CoreArray
 				}
 			}
 
-			COREARRAY_FORCE_INLINE Tx * get() { return base; };
-			COREARRAY_FORCE_INLINE size_t len() { return vlen; };
+			COREARRAY_INLINE Tx * get() { return base; };
+			COREARRAY_INLINE size_t len() { return vlen; };
 		private:
 			char *alloc;
 			Tx *base;
@@ -254,31 +254,31 @@ namespace CoreArray
 			static const bool useSSE4 = SSE4;
 
 			// Add
-			COREARRAY_FORCE_INLINE static void Add(float *d, const float *s1, const float *s2, size_t n) // d := s1 + s2
+			COREARRAY_INLINE static void Add(float *d, const float *s1, const float *s2, size_t n) // d := s1 + s2
 				{ _SSE_Add(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Add(float *d, const float *s, const float v, size_t n) // d := s + v
+			COREARRAY_INLINE static void Add(float *d, const float *s, const float v, size_t n) // d := s + v
 				{ _SSE_Add(d, s, v, n); }
 
 			// Sub
-			COREARRAY_FORCE_INLINE static void Sub(float *d, const float *s1, const float *s2, size_t n) // d := s1 - s2
+			COREARRAY_INLINE static void Sub(float *d, const float *s1, const float *s2, size_t n) // d := s1 - s2
 				{ _SSE_Sub(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Sub(float *d, const float *s, const float v, size_t n) // d := s - v
+			COREARRAY_INLINE static void Sub(float *d, const float *s, const float v, size_t n) // d := s - v
 				{ _SSE_Sub(d, s, v, n); }
-			COREARRAY_FORCE_INLINE static void Sub(float *d, const float v, const float *s, size_t n) // d := v - s
+			COREARRAY_INLINE static void Sub(float *d, const float v, const float *s, size_t n) // d := v - s
 				{ _SSE_Sub(d, v, s, n); }
 
 			// Mul
-			COREARRAY_FORCE_INLINE static void Mul(float *d, const float *s1, const float *s2, size_t n) // d := s1 * s2
+			COREARRAY_INLINE static void Mul(float *d, const float *s1, const float *s2, size_t n) // d := s1 * s2
 				{ _SSE_Mul(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Mul(float *d, const float *s, const float scale, size_t n) // d := s * scale
+			COREARRAY_INLINE static void Mul(float *d, const float *s, const float scale, size_t n) // d := s * scale
 				{ _SSE_Mul(d, s, scale, n); }
 
 			// Div
-			COREARRAY_FORCE_INLINE static void Div(float *d, const float *s1, const float *s2, size_t n) // d := s1 / s2
+			COREARRAY_INLINE static void Div(float *d, const float *s1, const float *s2, size_t n) // d := s1 / s2
 				{ _SSE_Div(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Div(float *d, const float *s, const float v, size_t n) // d := s / v
+			COREARRAY_INLINE static void Div(float *d, const float *s, const float v, size_t n) // d := s / v
 				{ _SSE_Div(d, s, v, n); }
-			COREARRAY_FORCE_INLINE static void Div(float *d, const float v, const float *s, size_t n) // d := v / s
+			COREARRAY_INLINE static void Div(float *d, const float v, const float *s, size_t n) // d := v / s
 				{ _SSE_Div(d, v, s, n); }
 		};
 
@@ -292,35 +292,35 @@ namespace CoreArray
 			static const bool useSSE4 = SSE4;
 
 			// Add
-			COREARRAY_FORCE_INLINE static void Add(float *d, const float *s1, const float *s2, size_t n) // d := s1 + s2
+			COREARRAY_INLINE static void Add(float *d, const float *s1, const float *s2, size_t n) // d := s1 + s2
 				{ _SSE_Add_16(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Add(float *d, const float *s, const float v, size_t n) // d := s + v
+			COREARRAY_INLINE static void Add(float *d, const float *s, const float v, size_t n) // d := s + v
 				{ _SSE_Add_16(d, s, v, n); }
 
 			// Sub
-			COREARRAY_FORCE_INLINE static void Sub(float *d, const float *s1, const float *s2, size_t n) // d := s1 - s2
+			COREARRAY_INLINE static void Sub(float *d, const float *s1, const float *s2, size_t n) // d := s1 - s2
 				{ _SSE_Sub_16(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Sub(float *d, const float *s, const float v, size_t n) // d := s - v
+			COREARRAY_INLINE static void Sub(float *d, const float *s, const float v, size_t n) // d := s - v
 				{ _SSE_Sub_16(d, s, v, n); }
-			COREARRAY_FORCE_INLINE static void Sub(float *d, const float v, const float *s, size_t n) // d := v - s
+			COREARRAY_INLINE static void Sub(float *d, const float v, const float *s, size_t n) // d := v - s
 				{ _SSE_Sub_16(d, v, s, n); }
 
 			// Mul
-			COREARRAY_FORCE_INLINE static void Mul(float *d, const float *s1, const float *s2, size_t n) // d := s1 * s2
+			COREARRAY_INLINE static void Mul(float *d, const float *s1, const float *s2, size_t n) // d := s1 * s2
 				{ _SSE_Mul_16(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Mul(float *d, const float *s, const float scale, size_t n) // d := s * scale
+			COREARRAY_INLINE static void Mul(float *d, const float *s, const float scale, size_t n) // d := s * scale
 				{ _SSE_Mul_16(d, s, scale, n); }
 
 			// Div
-			COREARRAY_FORCE_INLINE static void Div(float *d, const float *s1, const float *s2, size_t n) // d := s1 / s2
+			COREARRAY_INLINE static void Div(float *d, const float *s1, const float *s2, size_t n) // d := s1 / s2
 				{ _SSE_Div_16(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Div(float *d, const float *s, const float v, size_t n) // d := s / v
+			COREARRAY_INLINE static void Div(float *d, const float *s, const float v, size_t n) // d := s / v
 				{ _SSE_Div_16(d, s, v, n); }
-			COREARRAY_FORCE_INLINE static void Div(float *d, const float v, const float *s, size_t n) // d := v / s
+			COREARRAY_INLINE static void Div(float *d, const float v, const float *s, size_t n) // d := v / s
 				{ _SSE_Div_16(d, v, s, n); }
 
 			// Dot product
-			COREARRAY_FORCE_INLINE static float DotProd(const float *s1, const float *s2, size_t n)
+			COREARRAY_INLINE static float DotProd(const float *s1, const float *s2, size_t n)
 				{ return _SSE_DotProd_16(s1, s2, n); }
 		};
 	#endif
@@ -336,35 +336,35 @@ namespace CoreArray
 			static const bool useSSE4 = SSE4;
 
 			// Add
-			COREARRAY_FORCE_INLINE static void Add(double *d, const double *s1, const double *s2, size_t n) // d := s1 + s2
+			COREARRAY_INLINE static void Add(double *d, const double *s1, const double *s2, size_t n) // d := s1 + s2
 				{ _SSE2_Add_16(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Add(double *d, const double *s, const double v, size_t n) // d := s + v
+			COREARRAY_INLINE static void Add(double *d, const double *s, const double v, size_t n) // d := s + v
 				{ _SSE2_Add_16(d, s, v, n); }
 
 			// Sub
-			COREARRAY_FORCE_INLINE static void Sub(double *d, const double *s1, const double *s2, size_t n) // d := s1 - s2
+			COREARRAY_INLINE static void Sub(double *d, const double *s1, const double *s2, size_t n) // d := s1 - s2
 				{ _SSE2_Sub_16(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Sub(double *d, const double *s, const double v, size_t n) // d := s - v
+			COREARRAY_INLINE static void Sub(double *d, const double *s, const double v, size_t n) // d := s - v
 				{ _SSE2_Sub_16(d, s, v, n); }
-			COREARRAY_FORCE_INLINE static void Sub(double *d, const double v, const double *s, size_t n) // d := v - s
+			COREARRAY_INLINE static void Sub(double *d, const double v, const double *s, size_t n) // d := v - s
 				{ _SSE2_Sub_16(d, v, s, n); }
 
 			// Mul
-			COREARRAY_FORCE_INLINE static void Mul(double *d, const double *s1, const double *s2, size_t n) // d := s1 * s2
+			COREARRAY_INLINE static void Mul(double *d, const double *s1, const double *s2, size_t n) // d := s1 * s2
 				{ _SSE2_Mul_16(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Mul(double *d, const double *s, const double scale, size_t n) // d := s * scale
+			COREARRAY_INLINE static void Mul(double *d, const double *s, const double scale, size_t n) // d := s * scale
 				{ _SSE2_Mul_16(d, s, scale, n); }
 
 			// Div
-			COREARRAY_FORCE_INLINE static void Div(double *d, const double *s1, const double *s2, size_t n) // d := s1 / s2
+			COREARRAY_INLINE static void Div(double *d, const double *s1, const double *s2, size_t n) // d := s1 / s2
 				{ _SSE2_Div_16(d, s1, s2, n); }
-			COREARRAY_FORCE_INLINE static void Div(double *d, const double *s, const double v, size_t n) // d := s / v
+			COREARRAY_INLINE static void Div(double *d, const double *s, const double v, size_t n) // d := s / v
 				{ _SSE2_Div_16(d, s, v, n); }
-			COREARRAY_FORCE_INLINE static void Div(double *d, const double v, const double *s, size_t n) // d := v / s
+			COREARRAY_INLINE static void Div(double *d, const double v, const double *s, size_t n) // d := v / s
 				{ _SSE2_Div_16(d, v, s, n); }
 
 			// Dot product
-			COREARRAY_FORCE_INLINE static double DotProd(const double *s1, const double *s2, size_t n)
+			COREARRAY_INLINE static double DotProd(const double *s1, const double *s2, size_t n)
 				{ return _SSE2_DotProd_16(s1, s2, n); }
 		};
 	#endif

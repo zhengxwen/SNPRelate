@@ -869,14 +869,15 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #   maf -- the threshold of minor allele frequencies, keeping ">= maf"
 #   missing.rate -- the threshold of missing rates, keeping "<= missing.rate"#
 #   allele.freq -- specify the allele frequencies
+#   kinship -- if TRUE, output estimated kinship coefficients
 #   kinship.constraint -- constrict IBD coeff in the geneloical region
 #   num.thread -- the number of threads to be used
 #   verbose -- show information
 #
 
-snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-	autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-	allele.freq=NULL, kinship.constraint=FALSE, num.thread=1, verbose=TRUE)
+snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+	remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, allele.freq=NULL,
+	kinship=FALSE, kinship.constraint=FALSE, num.thread=1, verbose=TRUE)
 {
 	# check
 	stopifnot(class(gdsobj)=="gdsclass")
@@ -1019,6 +1020,8 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
 	# return
 	rv <- list(sample.id=sample.ids, snp.id=snp.ids, afreq=rv$afreq, k0=rv$k0, k1=rv$k1)
+	if (kinship)
+		rv$kinship <- 0.5*(1 - rv$k0 - rv$k1) + 0.25*rv$k1
 	rv$afreq[rv$afreq < 0] <- NaN
 	class(rv) <- "snpgdsIBDClass"
 	return(rv)
@@ -1036,14 +1039,15 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #   remove.monosnp -- whether remove monomorphic snps or not
 #   maf -- the threshold of minor allele frequencies, keeping ">= maf"
 #   missing.rate -- the threshold of missing rates, keeping "<= missing.rate"
+#   kinship -- if TRUE, output estimated kinship coefficients
 #   kinship.constraint --
 #   out.num.iter = FALSE
 #   num.thread -- the number of threads to be used
 #   verbose -- show information
 #
 
-snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-	autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+	remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, kinship=FALSE,
 	kinship.constraint=FALSE, allele.freq=NULL, method=c("EM", "downhill.simplex"),
 	max.niter=1000, reltol=sqrt(.Machine$double.eps), coeff.correct=TRUE,
 	out.num.iter=TRUE, num.thread=1, verbose=TRUE)
@@ -1208,6 +1212,8 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	# return
 	rv <- list(sample.id=sample.ids, snp.id=snp.ids, afreq=rv$afreq,
 		k0=rv$k0, k1=rv$k1, niter=rv$niter)
+	if (kinship)
+		rv$kinship <- 0.5*(1 - rv$k0 - rv$k1) + 0.25*rv$k1
 	rv$afreq[rv$afreq < 0] <- NaN
 	class(rv) <- "snpgdsIBDClass"
 	return(rv)
@@ -1979,7 +1985,6 @@ snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 		rv$out.num.iter <- r$iternum
 	return(rv)
 }
-
 
 
 
@@ -3388,6 +3393,164 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbo
 }
 
 
+#######################################################################
+# Convert a VCF (sequence) file to a GDS file
+#
+# INPUT:
+#   vcf.fn -- the file name of VCF format
+#   outfn.gds -- the output gds file
+#   nblock -- the number of lines in buffer
+#   compress.annotation -- the compression method for sample and snp annotations
+#   verbose -- show information
+#
+
+snpgdsVCF2GDS <- function(vcf.fn, outfn.gds, nblock=1024, compress.annotation="ZIP.max",
+	verbose=TRUE)
+{
+	# check
+	stopifnot(is.character(vcf.fn))
+	stopifnot(is.character(outfn.gds))
+
+	# total number of rows and columns
+	Cnt <- count.fields(vcf.fn)
+	# check
+	if (any(Cnt != Cnt[1])) stop("The file has different numbers of columns.")
+
+	line.cnt <- length(Cnt)
+	col.cnt <- max(Cnt)
+	if (verbose)
+	{
+		cat("Start snpgdsVCF2GDS ...\n")
+		cat("\tOpen", vcf.fn, "\n")
+		cat("\tScanning ...\n")
+	}
+
+
+	######################################################################
+	# Scan VCF file
+	#
+
+	# open the vcf file
+	opfile <- file(vcf.fn, open="r")
+
+	# read header
+	fmtstr <- substring(readLines(opfile, n=1), 3)
+	samp.id <- NULL
+	while (length(s <- readLines(opfile, n=1)) > 0)
+	{
+		if (substr(s, 1, 6) == "#CHROM")
+		{
+			samp.id <- scan(text=s, what=character(0), quiet=TRUE)[-c(1:9)]
+			break
+		}
+	}
+	if (is.null(samp.id))
+		stop("Error VCF format: invalid sample id!")
+
+	# scan
+	xchr.str <- c(1:22, "X", "Y", "XY", "MT", 23, 24, 25, 26)
+	xchr <- as.integer(c(1:22, 23, 24, 25, 26, 23, 24, 25, 26))
+	chr <- integer(line.cnt); position <- integer(line.cnt)
+	snp.rs <- character(line.cnt)
+	snp.allele <- character(line.cnt)
+	snp.cnt <- 0
+
+	while (length(s <- readLines(opfile, n=nblock)) > 0)
+	{
+		for (i in 1:length(s))
+		{
+			ss <- scan(text=s[i], what=character(0), quiet=TRUE, n=5)
+			if (all(ss[c(4,5)] %in% c("A", "G", "C", "T")))
+			{
+				snp.cnt <- snp.cnt + 1
+				chr[snp.cnt] <- xchr[match(ss[1], xchr.str)]
+				position[snp.cnt] <- as.integer(ss[2])
+				snp.rs[snp.cnt] <- ss[3]
+				snp.allele[snp.cnt] <- paste(ss[4], ss[5], sep="/")
+			}
+		}
+	}
+
+	# close the file
+	close(opfile)
+
+	# trim
+	chr <- chr[1:snp.cnt]; position <- position[1:snp.cnt]
+	snp.rs <- snp.rs[1:snp.cnt]; snp.allele <- snp.allele[1:snp.cnt]
+	nSamp <- length(samp.id); nSNP <- length(chr)
+	geno.str <- c("0|0", "0|1", "1|0", "1|1", "0/0", "0/1", "1/0", "1/1")
+	geno.code <- c(2, 1, 1, 0, 2, 1, 1, 0)
+
+
+	######################################################################
+	# create GDS file
+	#
+	gfile <- createfn.gds(outfn.gds)
+
+	# add "sample.id"
+	add.gdsn(gfile, "sample.id", samp.id, compress=compress.annotation, closezip=TRUE)
+	# add "snp.id"
+	add.gdsn(gfile, "snp.id", seq.int(1, length(chr)), compress=compress.annotation, closezip=TRUE)
+	# add "snp.rs.id"
+	add.gdsn(gfile, "snp.rs.id", snp.rs, compress=compress.annotation, closezip=TRUE)
+	# add "snp.position"
+	add.gdsn(gfile, "snp.position", position, compress=compress.annotation, closezip=TRUE)
+	# add "snp.chromosome"
+	add.gdsn(gfile, "snp.chromosome", chr, storage="uint8", compress=compress.annotation, closezip=TRUE)
+	# add "snp.allele"
+	add.gdsn(gfile, "snp.allele", snp.allele, compress=compress.annotation, closezip=TRUE)
+
+	# sync file
+	sync.gds(gfile)
+
+	if (verbose)
+	{
+		cat(date(), "\tstore sample id, snp id, position, and chromosome.\n")
+		cat("\tstart writing ...\n")
+	}
+
+	# add "gonetype", 2 bits to store one genotype
+	gGeno <- add.gdsn(gfile, "genotype", storage="bit2", valdim=c(nSamp, nSNP))
+	put.attr.gdsn(gGeno, "sample.order")
+	# sync file
+	sync.gds(gfile)
+
+
+	# open the vcf file
+	opfile <- file(vcf.fn, open="r")
+	# read header
+	fmtstr <- substring(readLines(opfile, n=1), 3)
+	while (length(s <- readLines(opfile, n=1)) > 0)
+	{
+		if (substr(s, 1, 6) == "#CHROM")
+			break
+	}
+	# scan
+	snp.cnt <- 0
+	while (length(s <- readLines(opfile, n=nblock)) > 0)
+	{
+		for (i in 1:length(s))
+		{
+			ss <- scan(text=s[i], what=character(0), quiet=TRUE, n=5)
+			if (all(ss[c(4,5)] %in% c("A", "G", "C", "T")))
+			{
+				ss <- scan(text=s[i], what=character(0), quiet=TRUE)[-c(1:9)]
+				x <- match(substr(ss, 1, 3), geno.str)
+				snp.cnt <- snp.cnt + 1
+				write.gdsn(gGeno, geno.code[x], start=c(1,snp.cnt), count=c(-1,1))
+			}
+		}
+	}
+
+	# close the file
+	close(opfile)
+	# close files
+	closefn.gds(gfile)
+
+	if (verbose) cat(date(), "\tDone.\n")
+
+	return(invisible(NULL))
+}
 
 
 
@@ -3408,7 +3571,7 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbo
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.5")
+	packageStartupMessage("SNPRelate: 0.9.6")
 	if (rv$sse != 0)
 		packageStartupMessage("Streaming SIMD Extensions 2 (SSE2) supported.\n")
 	TRUE

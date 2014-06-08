@@ -50,39 +50,6 @@ values for a specific IBD coefficient (k0, k1). \\
 	\code{\link{snpgdsIBDMLELogLik}}, \code{\link{snpgdsIBDMoM}}
 }
 
-\examples{
-# open an example dataset (HapMap)
-genofile <- openfn.gds(snpgdsExampleFileName())
-
-YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
-	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="YRI"]
-
-# SNP pruning
-set.seed(1000)
-snpset <- snpgdsLDpruning(genofile, sample.id=YRI.id, maf=0.05, missing.rate=0.05)
-snpset <- sample(unlist(snpset), 1000)
-mibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snpset, num.thread=2)
-loglik <- snpgdsIBDMLELogLik(genofile, mibd, relatedness="unrelated")
-
-
-# genotype matrix
-mat <- snpgdsGetGeno(genofile, sample.id=YRI.id[1:25], snp.id=mibd$snp.id)
-mat[!is.element(mat, c(0,1,2))] <- NA
-
-llik <- c()
-for (i in 2:25)
-{
-	L <- snpgdsPairIBD(mat[,1], mat[,i], mibd$afreq, "EM")
-	llik <- c(llik, snpgdsPairIBDMLELogLik(mat[,1], mat[,i], mibd$afreq,
-		relatedness="unrelated", verbose=TRUE))
-}
-summary(llik - loglik[1, 2:25])
-
-
-# close the genotype file
-closefn.gds(genofile)
-}
-
 \keyword{gds}
 \keyword{GWAS}
 \keyword{IBD}

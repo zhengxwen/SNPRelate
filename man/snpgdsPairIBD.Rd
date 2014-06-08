@@ -99,7 +99,11 @@ mat[!is.element(mat, c(0,1,2))] <- NA
 
 rv <- NULL
 for (i in 2:n)
+{
 	rv <- rbind(rv, snpgdsPairIBD(mat[,1], mat[,i], afreq, "EM"))
+	print( snpgdsPairIBDMLELogLik(mat[,1], mat[,i], afreq,
+		relatedness="unrelated", verbose=TRUE))
+}
 rv
 summary(rv$k0 - subMLE$k0[1, 2:n])
 summary(rv$k1 - subMLE$k1[1, 2:n])

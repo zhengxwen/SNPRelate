@@ -11,17 +11,19 @@ Genome-wide Association Studies
 	\tabular{ll}{
 		Package: \tab SNPRelate\cr
 		Type: \tab Package\cr
-		Version: \tab 0.9.5\cr
-		Date: \tab 2012-04-02\cr
+		Version: \tab 0.9.6\cr
+		Date: \tab 2012-07-14\cr
 		License: \tab LGPL version 3\cr
 		Depends: \tab gdsfmt (>= 0.9.7)\cr
 	}
-	The genotypes stored in GDS format can be analyzed by the R functions in SNPRelate, which
-	utilize the multi-core feature of machine for a single computer.
+	The genotypes stored in GDS format can be analyzed by the R functions in SNPRelate,
+	which utilize the multi-core feature of machine for a single computer.
 
-	\url{http://corearray.sourceforge.net/}
+	Webpage: \url{http://corearray.sourceforge.net/}
 
-	\url{http://corearray.sourceforge.net/tutorials/SNPRelate/}
+	Tutorial: \url{http://corearray.sourceforge.net/tutorials/SNPRelate/}
+
+	Forums:	\url{http://sourceforge.net/projects/corearray/forums}
 }
 \references{
 	X. Zheng, D. Levine, J. Shen, C. Laurie, B. Weir.

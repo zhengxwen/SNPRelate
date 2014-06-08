@@ -8,9 +8,9 @@
 	PLINK method of moment (MoM).
 }
 \usage{
-snpgdsIBDMoM(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
-	remove.monosnp = TRUE, maf = NaN, missing.rate = NaN, allele.freq = NULL,
-	kinship.constraint = FALSE, num.thread = 1, verbose = TRUE)
+snpgdsIBDMoM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+	remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, allele.freq=NULL,
+	kinship=FALSE, kinship.constraint=FALSE, num.thread=1, verbose=TRUE)
 }
 \arguments{
 	\item{gdsobj}{the \code{\link[gdsfmt]{gdsclass}} object in the \link{gdsfmt} package}
@@ -22,6 +22,7 @@ snpgdsIBDMoM(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
 	\item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN, no missing threshold}
 	\item{allele.freq}{to specify the allele frequencies; if NULL, determine the allele
 		frequencies from \code{gdsobj} using the specified samples}
+	\item{kinship}{if \code{TRUE}, output the estimated kinship coefficients}
 	\item{kinship.constraint}{if TRUE, constrict IBD coefficients ($k_0,k_1,k_2$) in the geneloical region ($2 k_0 k_1 >= k_2^2$)}
 	\item{num.thread}{the number of CPU cores used}
 	\item{verbose}{if TRUE, show information}
@@ -59,7 +60,9 @@ genofile <- openfn.gds(snpgdsExampleFileName())
 # CEU population
 CEU.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
 	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="CEU"]
-pibd <- snpgdsIBDMoM(genofile, sample.id=CEU.id, num.thread=2)
+pibd <- snpgdsIBDMoM(genofile, sample.id=CEU.id, num.thread=2, kinship=TRUE)
+names(pibd)
+
 flag <- lower.tri(pibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
 lines(c(0,1), c(1,0), col="red", lty=3)

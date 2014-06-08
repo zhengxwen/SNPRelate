@@ -44,29 +44,6 @@ values for a specific IBD coefficient (k0, k1). \\
 	\code{\link{snpgdsIBDMLE}}, \code{\link{snpgdsIBDMoM}}
 }
 
-\examples{
-# open an example dataset (HapMap)
-genofile <- openfn.gds(snpgdsExampleFileName())
-
-YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
-	read.gdsn(index.gdsn(genofile, c("sample.annot", "pop.group")))=="YRI"]
-
-# SNP pruning
-set.seed(1000)
-snpset <- snpgdsLDpruning(genofile, sample.id=YRI.id, maf=0.05, missing.rate=0.05)
-snpset <- sample(unlist(snpset), 1000)
-mibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snpset, num.thread=2)
-
-loglik <- snpgdsIBDMLELogLik(genofile, mibd)
-loglik0 <- snpgdsIBDMLELogLik(genofile, mibd, relatedness="unrelated")
-
-# likelihood ratio test
-p.value <- pchisq(loglik - loglik0, 1, lower.tail=FALSE)
-
-# close the genotype file
-closefn.gds(genofile)
-}
-
 \keyword{gds}
 \keyword{GWAS}
 \keyword{IBD}
