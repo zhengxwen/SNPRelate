@@ -686,7 +686,7 @@ DLLEXPORT void gnrPCA(int *EigenCnt, int *NumThread, LongBool *_BayesianNormal,
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
 		// set parameters
-		PCA::BayesianNormal = (_BayesianNormal!=0);
+		PCA::BayesianNormal = ((*_BayesianNormal) == TRUE);
 		PCA::AutoDetectSNPBlockSize(n);
 		// the upper-triangle genetic covariance matrix
 		CdMatTri<double> Cov(n);

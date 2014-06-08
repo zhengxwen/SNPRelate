@@ -882,8 +882,10 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 		ns <- c(ns, "kinship")
 	}
 	if (is.finite(kinship.cutoff))
+	{
 		flag <- lower.tri(ibdobj$kinship) & (ibdobj$kinship >= kinship.cutoff)
-	else
+		flag[is.na(flag)] <- FALSE
+	} else
 		flag <- lower.tri(ibdobj$kinship)
 
 	# output

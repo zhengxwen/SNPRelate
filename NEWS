@@ -1,3 +1,8 @@
+Changes in 0.9.18:
+
+	* minor fixes in 'snpgdsIBDSelection': missing IBD coefficients
+
+
 Changes in 0.9.17:
 
 	* avoid compiler issues when the version of R < v3.0

@@ -2898,7 +2898,7 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1, autosome.end=22, ...)
 	if (rv$err != "") stop(rv$err)
 
 	# information
-	packageStartupMessage("SNPRelate: 0.9.16")
+	packageStartupMessage("SNPRelate: 0.9.18")
 	if (rv$sse != 0)
 		packageStartupMessage("Supported by Streaming SIMD Extensions 2 (SSE2).")
 
