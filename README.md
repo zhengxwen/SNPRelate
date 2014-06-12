@@ -15,7 +15,7 @@ Genome-wide association studies are widely used to investigate the genetic basis
 * Development version from Github:
 ```
 library("devtools")
-install_github("SNPRelate", user="zhengxwen")
+install_github("zhengxwen/SNPRelate")
 ```
 The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the R FAQ for your operating system; you may also need to install dependencies manually.
 * Nearly up-to-date development binaries from `gdsfmt` r-forge repository:
