@@ -21,6 +21,6 @@ The `install_github()` approach requires that you build from source, i.e. `make`
 * Nearly up-to-date development binaries from `gdsfmt` r-forge repository:
 ```
 install.packages("SNPRelate",
-   repos=c("http://SNPRelate.r-forge.r-project.org/repos",
+   repos=c("http://gdsfmt.r-forge.r-project.org/repos",
           getOption("repos")[["CRAN"]]))
 ```
