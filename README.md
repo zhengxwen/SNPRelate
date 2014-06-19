@@ -19,6 +19,16 @@ install_github("zhengxwen/gdsfmt")
 install_github("zhengxwen/SNPRelate")
 ```
 The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the R FAQ for your operating system; you may also need to install dependencies manually.
+
+* Bioconductor extra repository:
+```
+source("http://bioconductor.org/biocLite.R")
+library(BiocInstaller)
+BiocInstaller::useDevel()
+
+biocLite("SNPRelate")
+```
+
 * Nearly up-to-date development binaries from `gdsfmt` r-forge repository:
 ```
 install.packages(c("gdsfmt", "SNPRelate"),
