@@ -27,9 +27,9 @@ install.packages(c("gdsfmt", "SNPRelate"),
 ```
 
 * Install the packages (gdsfmt and SNPRelate) from the source code:
-[gdsfmt](https://github.com/zhengxwen/gdsfmt/archive/v1.0.5.tar.gz)
+[gdsfmt](http://codeload.github.com/zhengxwen/gdsfmt/tar.gz/v1.0.5)
 and
-[SNPRelate](https://github.com/zhengxwen/SNPRelate/archive/v0.9.20.tar.gz)
+[SNPRelate](http://codeload.github.com/zhengxwen/SNPRelate/tar.gz/v0.9.20)
 ```
 R CMD INSTALL gdsfmt-1.0.5.tar.gz
 R CMD INSTALL SNPRelate-0.9.20.tar.gz
