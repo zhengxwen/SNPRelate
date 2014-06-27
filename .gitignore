@@ -1,0 +1,6 @@
+.DS_Store
+.Rproj.user
+.Rhistory
+.Rprofile
+*.o
+*.so
