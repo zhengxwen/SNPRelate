@@ -6,9 +6,9 @@
 // _/_/_/   _/_/_/  _/_/_/_/_/     _/     _/_/_/   _/_/
 // ===========================================================
 //
-// genLD.cpp: Linkage Disequilibrium (LD) analysis on genome-wide association studies
+// genLD.cpp: Linkage Disequilibrium (LD) analysis on GWAS
 //
-// Copyright (C) 2013	Xiuwen Zheng
+// Copyright (C) 2011 - 2014	Xiuwen Zheng [zhengxwen@gmail.com]
 //
 // This file is part of SNPRelate.
 //
@@ -26,11 +26,12 @@
 // If not, see <http://www.gnu.org/licenses/>.
 
 
+#ifndef _HEADER_LD_
+#define _HEADER_LD_
+
 // CoreArray library header
-#include <dType.h>
-#include <dVect.h>
-#include <CoreGDSLink.h>
 #include <dGenGWAS.h>
+#include <dVect.h>
 
 // Standard library header
 #include <cmath>
@@ -48,15 +49,11 @@
 #endif
 
 
-#ifndef _FuncLD_H_
-#define _FuncLD_H_
-
 namespace LD
 {
 	// using namespace
 	using namespace std;
 	using namespace CoreArray;
-	using namespace GDSInterface;
 	using namespace GWAS;
 
 
@@ -66,45 +63,45 @@ namespace LD
 	static const int _size = 256*256;
 
 	/// The number of valid pair of SNPs in the packed genotypes
-	UInt8 Valid_Num_SNP[_size];
+	C_UInt8 Valid_Num_SNP[_size];
 	/// The number of aa in a pair of packed SNPs
-	UInt8 Num_aa_SNP[_size];
+	C_UInt8 Num_aa_SNP[_size];
 	/// The number of aA in a pair of packed SNPs
-	UInt8 Num_aA_SNP[_size];
+	C_UInt8 Num_aA_SNP[_size];
 	/// The number of AA in a pair of packed SNPs
-	UInt8 Num_AA_SNP[_size];
+	C_UInt8 Num_AA_SNP[_size];
 
 	/// The number of AA BB pairs in the packed genotypes
-	UInt8 Num_AA_BB_SNP[_size];
+	C_UInt8 Num_AA_BB_SNP[_size];
 	/// The number of AA BB pairs in the packed genotypes
-	UInt8 Num_aa_bb_SNP[_size];
+	C_UInt8 Num_aa_bb_SNP[_size];
 	/// The number of aa BB pairs in the packed genotypes
-	UInt8 Num_aa_BB_SNP[_size];
+	C_UInt8 Num_aa_BB_SNP[_size];
 	/// The number of AA bb pairs in the packed genotypes
-	UInt8 Num_AA_bb_SNP[_size];
+	C_UInt8 Num_AA_bb_SNP[_size];
 	/// The number of double het pairs in the packed genotypes
-	UInt8 Num_DH_SNP[_size];
+	C_UInt8 Num_DH_SNP[_size];
 
 	/// The sum of X for a pair of SNPs in the packed genotypes
-	UInt8 Sum_X_SNP[_size];
+	C_UInt8 Sum_X_SNP[_size];
 	/// The sum of X^2 for a pair of SNPs in the packed genotypes
-	UInt8 Sum_X_2_SNP[_size];
+	C_UInt8 Sum_X_2_SNP[_size];
 	/// The sum of X*Y for a pair of SNPs in the packed genotypes
-	UInt8 Sum_XY_SNP[_size];
+	C_UInt8 Sum_XY_SNP[_size];
 
 	/// The number of haplotype A / A in the packed genotypes
-	UInt8 Num_A_A[_size];
+	C_UInt8 Num_A_A[_size];
 	/// The number of haplotype A / B in the packed genotypes
-	UInt8 Num_A_B[_size];
+	C_UInt8 Num_A_B[_size];
 	/// The number of haplotype B / A in the packed genotypes
-	UInt8 Num_B_A[_size];
+	C_UInt8 Num_B_A[_size];
 	/// The number of haplotype B / B in the packed genotypes
-	UInt8 Num_B_B[_size];
+	C_UInt8 Num_B_B[_size];
 	/// The number of DH (double hets)
-	UInt8 Num_DH2[_size];
+	C_UInt8 Num_DH2[_size];
 
 	/// Genotype, stored in a packed mode
-	auto_ptr<UInt8> PackedGeno;
+	vector<C_UInt8> PackedGeno;
 	/// the number of samples and snps
 	long nPackedSamp, nSNP;
 
@@ -190,8 +187,8 @@ namespace LD
 
 		for (; cnt > 0; cnt--, snp1++, snp2++)
 		{
-			UInt8 g1 = (0<=*snp1 && *snp1<=2) ? (*snp1 | ~0x03) : 0xFF;
-			UInt8 g2 = (0<=*snp2 && *snp2<=2) ? (*snp2 | ~0x03) : 0xFF;
+			C_UInt8 g1 = (0<=*snp1 && *snp1<=2) ? (*snp1 | ~0x03) : 0xFF;
+			C_UInt8 g2 = (0<=*snp2 && *snp2<=2) ? (*snp2 | ~0x03) : 0xFF;
 			size_t _p = (size_t(g1) << 8) | (g2);
 			size_t _q = (size_t(g2) << 8) | (g1);
 
@@ -217,9 +214,9 @@ namespace LD
 			if (t > 0)
 				return delta / sqrt(t);
 		}
-		return conf_F64_NaN();
+		return R_NaN;
 	}
-	static double PairComposite(const UInt8 *snp1, const UInt8 *snp2)
+	static double PairComposite(const C_UInt8 *snp1, const C_UInt8 *snp2)
 	{
 		// Init data
 		long n, naa, naA, nAA, nbb, nbB, nBB, nAABB, naabb, naaBB, nAAbb;
@@ -252,7 +249,7 @@ namespace LD
 			if (t > 0)
 				return delta / sqrt(t);
 		}
-		return conf_F64_NaN();
+		return R_NaN;
 	}
 
 	// ---------------------------------------------------------------------
@@ -271,7 +268,8 @@ namespace LD
 		\param pB_B  output the proportion of B / B
 		pA_A + pA_B + pB_A + pB_B = 1.
 	*/
-	inline static void ProportionHaplo(long nA_A, long nA_B, long nB_A, long nB_B, long nDH2,
+	inline static void ProportionHaplo(
+		long nA_A, long nA_B, long nB_A, long nB_B, long nDH2,
 		double &pA_A, double &pA_B, double &pB_A, double &pB_B)
 	{
 		// initial parameters
@@ -346,8 +344,8 @@ namespace LD
 		// Calculate the numbers of haplotypes
 		for (; cnt > 0; cnt--, snp1++, snp2++)
 		{
-			UInt8 g1 = (0<=*snp1 && *snp1<=2) ? (*snp1 | ~0x03) : 0xFF;
-			UInt8 g2 = (0<=*snp2 && *snp2<=2) ? (*snp2 | ~0x03) : 0xFF;
+			C_UInt8 g1 = (0<=*snp1 && *snp1<=2) ? (*snp1 | ~0x03) : 0xFF;
+			C_UInt8 g2 = (0<=*snp2 && *snp2<=2) ? (*snp2 | ~0x03) : 0xFF;
 			size_t _p = (size_t(g1) << 8) | (g2);
 			nA_A += Num_A_A[_p]; nA_B += Num_A_B[_p];
 			nB_A += Num_B_A[_p]; nB_B += Num_B_B[_p];
@@ -363,7 +361,7 @@ namespace LD
 		double D = pA_A - pA * p_A;
 		return D / sqrt(pA * p_A * pB * p_B);
 	}
-	static double PairR(const UInt8 *snp1, const UInt8 *snp2)
+	static double PairR(const C_UInt8 *snp1, const C_UInt8 *snp2)
 	{
 		// The number of haplotypes, nDH - double hets
 		long nA_A, nA_B, nB_A, nB_B, nDH2;
@@ -401,8 +399,8 @@ namespace LD
 		// Calculate the numbers of haplotypes
 		for (; cnt > 0; cnt--, snp1++, snp2++)
 		{
-			UInt8 g1 = (0<=*snp1 && *snp1<=2) ? (*snp1 | ~0x03) : 0xFF;
-			UInt8 g2 = (0<=*snp2 && *snp2<=2) ? (*snp2 | ~0x03) : 0xFF;
+			C_UInt8 g1 = (0<=*snp1 && *snp1<=2) ? (*snp1 | ~0x03) : 0xFF;
+			C_UInt8 g2 = (0<=*snp2 && *snp2<=2) ? (*snp2 | ~0x03) : 0xFF;
 			size_t _p = (size_t(g1) << 8) | (g2);
 			nA_A += Num_A_A[_p]; nA_B += Num_A_B[_p];
 			nB_A += Num_B_A[_p]; nB_B += Num_B_B[_p];
@@ -420,7 +418,7 @@ namespace LD
 		D = D / ((D>=0) ? min(pA*p_B, pB*p_A) : max(-pA*p_A, -pB*p_B));
 		return D;
 	}
-	static double PairDPrime(const UInt8 *snp1, const UInt8 *snp2)
+	static double PairDPrime(const C_UInt8 *snp1, const C_UInt8 *snp2)
 	{
 		// The number of haplotypes, nDH - double hets
 		long nA_A, nA_B, nB_A, nB_B, nDH2;
@@ -459,8 +457,8 @@ namespace LD
 		// Calculate the numbers of haplotypes
 		for (; cnt > 0; cnt--, snp1++, snp2++)
 		{
-			UInt8 g1 = (0<=*snp1 && *snp1<=2) ? (*snp1 | ~0x03) : 0xFF;
-			UInt8 g2 = (0<=*snp2 && *snp2<=2) ? (*snp2 | ~0x03) : 0xFF;
+			C_UInt8 g1 = (0<=*snp1 && *snp1<=2) ? (*snp1 | ~0x03) : 0xFF;
+			C_UInt8 g2 = (0<=*snp2 && *snp2<=2) ? (*snp2 | ~0x03) : 0xFF;
 			size_t _p = (size_t(g1) << 8) | (g2);
 			size_t _q = (size_t(g2) << 8) | (g1);
 			n += Valid_Num_SNP[_p];
@@ -476,9 +474,9 @@ namespace LD
 			if (val > 0)
 				return (XY - double(X)*Y/n) / sqrt(val);
 		}
-		return conf_F64_NaN();
+		return R_NaN;
 	}
-	static double PairCorr(const UInt8 *snp1, const UInt8 *snp2)
+	static double PairCorr(const C_UInt8 *snp1, const C_UInt8 *snp2)
 	{
 		// Init data
 		long n, X, XX, Y, YY, XY;
@@ -502,7 +500,7 @@ namespace LD
 			if (val > 0)
 				return (XY - double(X)*Y/n) / sqrt(val);
 		}
-		return conf_F64_NaN();
+		return R_NaN;
 	}
 
 
@@ -526,12 +524,13 @@ namespace LD
 		// set # of samples and snps
 		nSNP = MCWorkingGeno.Space.SNPNum();
 		nPackedSamp = (MCWorkingGeno.Space.SampleNum() % 4 > 0) ?
-			(MCWorkingGeno.Space.SampleNum()/4 + 1) : (MCWorkingGeno.Space.SampleNum()/4);
-		PackedGeno.reset(new UInt8[nPackedSamp*nSNP]);
+			(MCWorkingGeno.Space.SampleNum()/4 + 1) :
+			(MCWorkingGeno.Space.SampleNum()/4);
+		PackedGeno.resize(nPackedSamp * nSNP);
 
 		// buffer
 		CdBufSpace Buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
-		UInt8 *p = PackedGeno.get();
+		C_UInt8 *p = &PackedGeno[0];
 		for (long i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
 		{
 			p = Buf.ReadPackedGeno(i, p);
@@ -541,7 +540,7 @@ namespace LD
 	/// destroy the variable "Geno" with packed genotypes
 	void DonePackedGeno()
 	{
-		PackedGeno.reset(NULL);
+		PackedGeno.clear();
 	}
 
 
@@ -560,7 +559,7 @@ namespace LD
 			case 4:
 				return PairCorr(snp1, snp2, cnt);
 		}
-		return conf_F64_NaN();
+		return R_NaN;
 	}
 
 	// to compute LD matrix (n x n)
@@ -568,12 +567,13 @@ namespace LD
 	{
 		for (int i=0; i < nSNP; i++)
 		{
-			out_LD[i*nSNP+i] = 1;
+			out_LD[i*nSNP + i] = 1;
 			for (int j=i+1; j < nSNP; j++)
 			{
-				double &p1 = out_LD[i*nSNP+j], &p2 = out_LD[j*nSNP+i];
-				UInt8 *s1 = PackedGeno.get() + i*nPackedSamp;
-				UInt8 *s2 = PackedGeno.get() + j*nPackedSamp;
+				double &p1 = out_LD[i*nSNP + j];
+				double &p2 = out_LD[j*nSNP + i];
+				C_UInt8 *s1 = (&PackedGeno[0]) + i*nPackedSamp;
+				C_UInt8 *s2 = (&PackedGeno[0]) + j*nPackedSamp;
 				switch (LD_Method)
 				{
 					case 1:
@@ -585,7 +585,7 @@ namespace LD
 					case 4:
 						p1 = p2 = PairCorr(s1, s2); break;
 					default:
-						p1 = p2 = conf_F64_NaN();
+						p1 = p2 = R_NaN;
 				}
 			}
 		}
@@ -600,8 +600,8 @@ namespace LD
 			{
 				int d = j - i - 1;
 				double &pVal = out_LD[i*n_slide + d];				
-				UInt8 *s1 = PackedGeno.get() + i*nPackedSamp;
-				UInt8 *s2 = PackedGeno.get() + j*nPackedSamp;
+				C_UInt8 *s1 = (&PackedGeno[0]) + i*nPackedSamp;
+				C_UInt8 *s2 = (&PackedGeno[0]) + j*nPackedSamp;
 				switch (LD_Method)
 				{
 					case 1:
@@ -613,7 +613,7 @@ namespace LD
 					case 4:
 						pVal = PairCorr(s1, s2); break;
 					default:
-						pVal = conf_F64_NaN();
+						pVal = R_NaN;
 				}
 			}
 		}
@@ -627,13 +627,15 @@ namespace LD
 	struct TSNP
 	{
 		int idx, pos_bp;
-		vector<UInt8> genobuf;
-		TSNP(int n=0): genobuf(n) {}
-		TSNP(int _idx, int _pos, int n=0): genobuf(n) { idx = _idx; pos_bp = _pos; }
+		vector<C_UInt8> genobuf;
+		TSNP(int n=0): genobuf(n)
+			{ idx = pos_bp = 0; }
+		TSNP(int _idx, int _pos, int n=0): genobuf(n)
+			{ idx = _idx; pos_bp = _pos; }
 	};
 
 	// to compute pair LD
-	static double _CalcLD(const UInt8 *snp1, const UInt8 *snp2)
+	static double _CalcLD(const C_UInt8 *snp1, const C_UInt8 *snp2)
 	{
 		switch (LD_Method)
 		{
@@ -646,21 +648,21 @@ namespace LD
 			case 4:
 				return PairCorr(snp1, snp2);
 		}
-		return conf_F64_NaN();
+		return R_NaN;
 	}
 
-	void calcLDpruning(int StartIdx, int *pos_bp, int slide_max_bp, int slide_max_n,
-		const double LD_threshold, bool *out_SNP)
+	void calcLDpruning(int StartIdx, int *pos_bp, double slide_max_bp,
+		int slide_max_n, const double LD_threshold, C_BOOL *out_SNP)
 	{
 		// initial variables
 		nPackedSamp = (MCWorkingGeno.Space.SampleNum() % 4 > 0) ?
 			(MCWorkingGeno.Space.SampleNum()/4 + 1) : (MCWorkingGeno.Space.SampleNum()/4);
 		list<TSNP> ListGeno;
 		out_SNP[StartIdx] = true;
-		auto_ptr<UInt8> buf(new UInt8[nPackedSamp]);
+		vector<C_UInt8> buf(nPackedSamp);
 
 		// -----------------------------------------------------
-		// increasing searching
+		// increasing searching: i --> i+1
 
 		CdBufSpace BufSNP(MCWorkingGeno.Space, true, CdBufSpace::acInc);
 		ListGeno.push_back(TSNP(StartIdx, pos_bp[StartIdx], nPackedSamp));
@@ -670,7 +672,7 @@ namespace LD
 		for (int i=StartIdx+1; i < MCWorkingGeno.Space.SNPNum(); i++)
 		{
 			// load genotypes
-			BufSNP.ReadPackedGeno(i, buf.get());
+			BufSNP.ReadPackedGeno(i, &buf[0]);
 			// detect LD
 			int TotalCnt = 0, ValidCnt = 0;
 			list<TSNP>::iterator it;
@@ -680,14 +682,14 @@ namespace LD
 				if ((abs(i - it->idx) <= slide_max_n) &&
 					(abs(pos_bp[i] - it->pos_bp) <= slide_max_bp))
 				{
-					if (fabs(_CalcLD(&(it->genobuf[0]), buf.get())) <= LD_threshold)
+					if (fabs(_CalcLD(&(it->genobuf[0]), &buf[0])) <= LD_threshold)
 						ValidCnt ++;
-					it++;
+					it ++;
 				} else {
 					ValidCnt ++;
 					// delete it
 					list<TSNP>::iterator tmp_it = it;
-					it++;
+					it ++;
 					ListGeno.erase(tmp_it);
 				}
 			}
@@ -696,12 +698,12 @@ namespace LD
 			if (out_SNP[i])
 			{
 				ListGeno.push_back(TSNP(i, pos_bp[i], nPackedSamp));
-				memmove(&(ListGeno.back().genobuf[0]), buf.get(), nPackedSamp);
+				memmove(&(ListGeno.back().genobuf[0]), &buf[0], nPackedSamp);
 			}
 		}
 
 		// -----------------------------------------------------
-		// decreasing searching
+		// decreasing searching: i --> i-1
 
 		ListGeno.clear();
 		for (int i=StartIdx; i < MCWorkingGeno.Space.SNPNum(); i++)
@@ -724,7 +726,7 @@ namespace LD
 		for (int i=StartIdx-1; i >= 0; i--)
 		{
 			// load genotypes
-			BufSNP.ReadPackedGeno(i, buf.get());
+			BufSNP.ReadPackedGeno(i, &buf[0]);
 			// detect LD
 			int TotalCnt = 0, ValidCnt = 0;
 			list<TSNP>::iterator it;
@@ -734,7 +736,7 @@ namespace LD
 				if ((abs(i - it->idx) <= slide_max_n) &&
 					(abs(pos_bp[i] - it->pos_bp) <= slide_max_bp))
 				{
-					if (fabs(_CalcLD(&(it->genobuf[0]), buf.get())) <= LD_threshold)
+					if (fabs(_CalcLD(&(it->genobuf[0]), &buf[0])) <= LD_threshold)
 						ValidCnt ++;
 					it++;
 				} else {
@@ -750,11 +752,111 @@ namespace LD
 			if (out_SNP[i])
 			{
 				ListGeno.push_front(TSNP(i, pos_bp[i], nPackedSamp));
-				memmove(&(ListGeno.front().genobuf[0]), buf.get(), nPackedSamp);
+				memmove(&(ListGeno.front().genobuf[0]), &buf[0], nPackedSamp);
 			}
 		}
 	}
 }
 
 
-#endif  /* _FuncLD_H_ */
+using namespace LD;
+
+extern "C"
+{
+// ***********************************************************************
+// the functions for linkage disequilibrium (LD)
+//
+
+/// the functions for Linkage Disequilibrium (LD) analysis
+COREARRAY_DLL_EXPORT SEXP gnrLDpair(SEXP snp1, SEXP snp2, SEXP method)
+{
+	COREARRAY_TRY
+
+		PROTECT(rv_ans = NEW_NUMERIC(5));
+
+		double pA_A, pA_B, pB_A, pB_B;
+		LD::LD_Method = INTEGER(method)[0];
+		REAL(rv_ans)[0] = LD::calcLD(INTEGER(snp1), INTEGER(snp2),
+			XLENGTH(snp1), pA_A, pA_B, pB_A, pB_B);
+		REAL(rv_ans)[1] = pA_A;
+		REAL(rv_ans)[2] = pA_B;
+		REAL(rv_ans)[3] = pB_A;
+		REAL(rv_ans)[4] = pB_B;
+
+		UNPROTECT(1);
+
+	COREARRAY_CATCH
+}
+
+
+/// to compute the IBD coefficients by MLE
+COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP n_slide, SEXP NumThread,
+	SEXP _Verbose)
+{
+	bool verbose = SEXP_Verbose(_Verbose);
+
+	COREARRAY_TRY
+
+		// ******** To cache the genotype data ********
+		CachingSNPData("LD matrix", verbose);
+
+		// initialize the packed genotypes
+		LD::InitPackedGeno();
+		LD::LD_Method = INTEGER(method)[0];
+
+		if (INTEGER(n_slide)[0] <= 0)
+		{
+			PROTECT(rv_ans = allocMatrix(REALSXP,
+				MCWorkingGeno.Space.SNPNum(), MCWorkingGeno.Space.SNPNum()));
+			{
+				double *p = REAL(rv_ans);
+				R_xlen_t N = XLENGTH(rv_ans);
+				for (R_xlen_t i=0; i < N; i++)
+					*p ++ = R_NaN;
+			}
+
+			LD::calcLD_mat(INTEGER(NumThread)[0], REAL(rv_ans));
+		} else {
+			PROTECT(rv_ans = allocMatrix(REALSXP,
+				INTEGER(n_slide)[0], MCWorkingGeno.Space.SNPNum()));
+			{
+				double *p = REAL(rv_ans);
+				R_xlen_t N = XLENGTH(rv_ans);
+				for (R_xlen_t i=0; i < N; i++)
+					*p ++ = R_NaN;
+			}
+
+			LD::calcLD_slide_mat(INTEGER(NumThread)[0], REAL(rv_ans),
+				INTEGER(n_slide)[0]);
+		}
+
+		UNPROTECT(1);
+
+	COREARRAY_CATCH
+}
+
+
+/// to prune SNPs based on LD
+COREARRAY_DLL_EXPORT SEXP gnrLDpruning(SEXP StartIdx, SEXP pos_bp,
+	SEXP slide_max_bp, SEXP slide_max_n, SEXP LD_threshold, SEXP method)
+{
+	COREARRAY_TRY
+
+		vector<C_BOOL> flag(MCWorkingGeno.Space.SNPNum());
+		LD::LD_Method = INTEGER(method)[0];
+		LD::calcLDpruning(INTEGER(StartIdx)[0], INTEGER(pos_bp),
+			REAL(slide_max_bp)[0], INTEGER(slide_max_n)[0],
+			REAL(LD_threshold)[0], &flag[0]);
+
+		PROTECT(rv_ans = NEW_LOGICAL(MCWorkingGeno.Space.SNPNum()));
+		int *p = LOGICAL(rv_ans);
+		for (long i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+			p[i] = flag[i] ? TRUE : FALSE;
+		UNPROTECT(1);
+
+	COREARRAY_CATCH
+}
+
+}
+
+#endif  /* _HEADER_LD_ */

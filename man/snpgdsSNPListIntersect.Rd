@@ -1,34 +1,36 @@
 \name{snpgdsSNPListIntersect}
 \alias{snpgdsSNPListIntersect}
 \title{
-	Get a common SNP list between two SNP list objects
+    Get a common SNP list between two SNP list objects
 }
 \description{
-	Get a common SNP list by comparing their rs id, chromosome indices and positions.
+    Get a common SNP list by comparing their rs id, chromosome indices and
+positions.
 }
 \usage{
 snpgdsSNPListIntersect(snplist1, snplist2)
 }
 \arguments{
-	\item{snplist1}{the first SNP list object \code{\link{snpgdsSNPListClass}}}
-	\item{snplist2}{the second SNP list object \code{\link{snpgdsSNPListClass}}}
+    \item{snplist1}{the first SNP list object \code{\link{snpgdsSNPListClass}}}
+    \item{snplist2}{the second SNP list object \code{\link{snpgdsSNPListClass}}}
 }
 \value{
-	Return an object of ``snpgdsSNPListClass'' including the following components:
-	\item{rs.id}{SNP id}
-	\item{chromosome}{SNP chromosome index}
-	\item{position}{SNP physical position in basepair}
-	\item{allele}{reference / non-ref alleles from the first SNP list object}
-	\item{afreq}{allele frequency from the first SNP list object}
+    Return an object of \code{snpgdsSNPListClass} including the following
+components:
+    \item{rs.id}{SNP id}
+    \item{chromosome}{SNP chromosome index}
+    \item{position}{SNP physical position in basepair}
+    \item{allele}{reference / non-ref alleles from the first SNP list object}
+    \item{afreq}{allele frequency from the first SNP list object}
 }
 \author{Xiuwen Zheng}
 \seealso{
-	\code{\link{snpgdsSNPList}}, \code{\link{snpgdsSNPListStrand}}
+    \code{\link{snpgdsSNPList}}, \code{\link{snpgdsSNPListStrand}}
 }
 
 \examples{
 # open an example dataset (HapMap)
-genofile <- openfn.gds(snpgdsExampleFileName())
+genofile <- snpgdsOpen(snpgdsExampleFileName())
 
 # to get a snp list object
 snplist1 <- snpgdsSNPList(genofile)
@@ -39,9 +41,9 @@ snplist <- snpgdsSNPListIntersect(snplist1, snplist2)
 
 summary(snplist$afreq)
 
-# close the genotype file
-closefn.gds(genofile)
+# close the file
+snpgdsClose(genofile)
 }
 
-\keyword{gds}
+\keyword{GDS}
 \keyword{GWAS}

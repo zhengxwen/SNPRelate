@@ -1,22 +1,23 @@
 \name{snpgdsSummary}
 \alias{snpgdsSummary}
 \title{
-	Summary of GDS genotype file
+    Summary of GDS genotype file
 }
 \description{
-	Print the information stored in the gds object
+    Print the information stored in the gds object
 }
 \usage{
 snpgdsSummary(gds, show=TRUE)
 }
 \arguments{
-	\item{gds}{a GDS file object (\code{\link[gdsfmt]{gds.class}}), or a file name}
-	\item{show}{if TRUE, show information}
+    \item{gds}{a GDS file name, or an object of class
+        \code{\link{SNPGDSFileClass}}}
+    \item{show}{if TRUE, show information}
 }
 \value{
-	Return a list:
-	\item{sample.id}{the IDs of valid samples}
-	\item{snp.id}{the IDs of valid SNPs}
+    Return a list:
+    \item{sample.id}{the IDs of valid samples}
+    \item{snp.id}{the IDs of valid SNPs}
 }
 \author{Xiuwen Zheng}
 
@@ -24,5 +25,5 @@ snpgdsSummary(gds, show=TRUE)
 snpgdsSummary(snpgdsExampleFileName())
 }
 
-\keyword{gds}
+\keyword{GDS}
 \keyword{GWAS}

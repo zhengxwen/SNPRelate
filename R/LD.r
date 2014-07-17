@@ -6,8 +6,8 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Author: Xiuwen Zheng
-# Email: zhengx@u.washington.edu
+# Copyright (C) 2011 - 2014        Xiuwen Zheng
+# Email: zhengxwen@gmail.com
 #
 
 
@@ -18,138 +18,90 @@
 #######################################################################
 # To calculate LD for a pair of SNPs
 #
-# INPUT:
-#   snp1 -- an array of snp genotypes at the first locus
-#   snp2 -- an array of snp genotypes at the second locus
-#   method -- "composite"  Composite LD coefficients (by default)
-#             "r"          R coefficient (by EM algorithm assuming HWE)
-#             "dprime"     D' coefficient
-#             "corr"       Correlation coefficient (BB, AB, AA are codes as 0, 1, 2)
-#
 
-snpgdsLDpair <- function(snp1, snp2, method=c("composite", "r", "dprime", "corr"))
+snpgdsLDpair <- function(snp1, snp2,
+    method=c("composite", "r", "dprime", "corr"))
 {
-	# check
-	stopifnot(is.integer(snp1))
-	stopifnot(is.integer(snp2))
-	stopifnot(length(snp1) == length(snp2))
-	stopifnot(is.character(method))
+    # check
+    stopifnot(is.numeric(snp1) & is.vector(snp1))
+    stopifnot(is.numeric(snp2) & is.vector(snp2))
+    stopifnot(length(snp1) == length(snp2))
 
-	method <- match(method[1], c("composite", "r", "dprime", "corr"))
-	if (is.na(method))
-		stop("method should be one of \"composite\", \"r\", \"dprime\" and \"corr\"")
+    method <- match.arg(method)
+    method <- match(method, c("composite", "r", "dprime", "corr"))
 
-	# call
-	rv <- .C("gnrLDpair", as.integer(snp1), as.integer(snp2), length(snp1), method,
-		out=double(1), pA_A=double(1), pA_B=double(1), pB_A=double(1), pB_B=double(1),
-		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (rv$err != 0) stop(snpgdsErrMsg())
+    # call
+    rv <- .Call(gnrLDpair, as.integer(snp1), as.integer(snp2), method)
 
-	# output
-	if (method %in% c(2, 3))
-		return(data.frame(ld=rv$out, pA_A=rv$pA_A, pA_B=rv$pA_B, pB_A=rv$pB_A, pB_B=rv$pB_B))
-	else
-		return(data.frame(ld=rv$out))
+    # output
+    if (method %in% c(2, 3))
+    {
+        names(rv) <- c("ld", "pA_A", "pA_B", "pB_A", "pB_B")
+    } else {
+        rv <- rv[1]
+        names(rv) <- "ld"
+    }
+    rv
 }
+
 
 
 #######################################################################
 # To calculate LD for each pair of SNPs in the region
 #
-# INPUT:
-#   gdsobj -- an object of gds file
-#   sample.id -- a vector of sample.id; if NULL, to use all samples
-#   snp.id -- a vector of snp.id; if NULL, to use all SNPs
-#   slide -- the size of sliding windows,
-#            if slide <= 0, no sliding window, output a n-by-n LD matrix
-#            otherwise, output a slide-by-n LD matrix
-#   method -- "composite"  Composite LD coefficients (by default)
-#             "r"          R coefficient (by EM algorithm assuming HWE)
-#             "dprime"     D' coefficient
-#             "corr"       Correlation coefficient (BB, AB, AA are codes as 0, 1, 2)
-#   num.thread -- the number of threads to be used
-#   verbose -- show information
-#
 
 snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-	slide=250, method=c("composite", "r", "dprime", "corr"),
-	num.thread=1, verbose=TRUE)
+    slide=250, method=c("composite", "r", "dprime", "corr"),
+    num.thread=1, verbose=TRUE)
 {
-	# check
-	stopifnot(inherits(gdsobj, "gds.class"))
-	stopifnot(is.numeric(num.thread) & (num.thread>0))
-	stopifnot(is.logical(verbose))
+    # check
+    ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id)
 
-	# samples
-	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
-	if (!is.null(sample.id))
-	{
-		n.tmp <- length(sample.id)
-		sample.id <- sample.ids %in% sample.id
-		n.samp <- sum(sample.id);
-		if (n.samp != n.tmp)
-			stop("Some of sample.id do not exist!")
-		if (n.samp <= 0)
-			stop("No sample in the working dataset.")
-		sample.ids <- sample.ids[sample.id]
-	}
+    stopifnot(is.numeric(slide))
+    stopifnot(is.numeric(num.thread) & (num.thread>0))
+    stopifnot(is.logical(verbose))
 
-	# SNPs
-	snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
-	if (!is.null(snp.id))
-	{
-		n.tmp <- length(snp.id)
-		snp.id <- snp.ids %in% snp.id
-		n.snp <- sum(snp.id)
-		if (n.snp != n.tmp)
-			stop("Some of snp.id do not exist!")
-		if (n.snp <= 0)
-			stop("No SNP in the working dataset.")
-		snp.ids <- snp.ids[snp.id]
-	}
+    # method
+    method <- match.arg(method)
+    method <- match(method[1], c("composite", "r", "dprime", "corr"))
+    if (is.na(method))
+    {
+        stop("method should be one of ",
+            "\"composite\", \"r\", \"dprime\" and \"corr\"")
+    }
 
-	# method
-	method <- match(method[1], c("composite", "r", "dprime", "corr"))
-	if (is.na(method))
-		stop("method should be one of \"composite\", \"r\", \"dprime\" and \"corr\"")
+    slide <- as.integer(slide)
+    if (is.na(slide)) slide <- as.integer(-1)
+    if (slide > ws$n.snp) slide <- ws$n.snp
 
-	# call C codes
-	# set genotype working space
-	node <- .C("gnrSetGenoSpace", as.integer(index.gdsn(gdsobj, "genotype")),
-		as.logical(sample.id), as.logical(!is.null(sample.id)),
-		as.logical(snp.id), as.logical(!is.null(snp.id)),
-		n.snp=integer(1), n.samp=integer(1),
-		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (node$err != 0) stop(snpgdsErrMsg())
+    if (verbose)
+    {
+        cat("Linkage Disequilibrium (LD) analysis on SNP genotypes:\n");
+        cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
+        if (num.thread <= 1)
+            cat("\tUsing", num.thread, "(CPU) core.\n")
+        else
+            cat("\tUsing", num.thread, "(CPU) cores.\n")
+        if (slide > 0)
+            cat("\tSliding window size:", slide, "\n")
+    }
 
-	slide <- as.integer(slide)
-	if (is.na(slide)) slide <- as.integer(-1)
-	if (slide > node$n.snp) slide <- node$n.snp
+    # call C function
+    rv <- list(sample.id = NULL, snp.id = NULL,
+        LD = .Call(gnrLDMat, method, slide, as.integer(num.thread), verbose),
+        slide = slide)
 
-	if (verbose)
-	{
-		cat("Linkage Disequilibrium (LD) analysis on SNP genotypes:\n");
-		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		if (num.thread <= 1)
-			cat("\tUsing", num.thread, "CPU core.\n")
-		else
-			cat("\tUsing", num.thread, "CPU cores.\n")
-		if (slide > 0)
-			cat("\tSliding window size:", slide, "\n")
-	}
+    # output
 
-	# call parallel IBD
-	rv <- .C("gnrLDMat", method, verbose, TRUE, as.integer(num.thread), slide,
-		LD = { if (slide <= 0)
-					matrix(NaN, nrow=node$n.snp, ncol=node$n.snp)
-				else
-					matrix(NaN, nrow=slide, ncol=node$n.snp) },
-		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (rv$err != 0) stop(snpgdsErrMsg())
+    rv$sample.id <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
+    if (!is.null(ws$samp.flag))
+        rv$sample.id <- rv$sample.id[ws$samp.flag]
 
-	# return
-	rv <- list(sample.id=sample.ids, snp.id=snp.ids, LD=rv$LD, slide=slide)
-	return(rv)
+    rv$snp.id <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+    if (!is.null(ws$snp.flag))
+        rv$snp.id <- rv$snp.id[ws$snp.flag]
+
+    return(rv)
 }
 
 
@@ -157,185 +109,179 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #######################################################################
 # To prune SNPs based on LD
 #
-# INPUT:
-#   gdsobj -- an object of gds file
-#   sample.id -- a vector of sample.id; if NULL, to use all samples
-#   snp.id -- a vector of snp.id; if NULL, to use all SNPs
-#   autosome.only -- whether only use autosomal SNPs
-#   remove.monosnp -- whether remove monomorphic snps or not
-#   maf -- the threshold of minor allele frequencies, keeping ">= maf"
-#   missing.rate -- the threshold of missing rates, keeping "<= missing.rate"
-#   method -- "composite"  Composite LD coefficients (by default)
-#             "r"          R coefficient (by EM algorithm assuming HWE)
-#             "dprime"     D' coefficient
-#             "corr"       Correlation coefficient (BB, AB, AA are codes as 0, 1, 2)
-#   num.thread -- the number of threads to be used
-#   verbose -- show information
-#
 
 snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-	autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-	method=c("composite", "r", "dprime", "corr"),
-	slide.max.bp=500000, slide.max.n=NA, ld.threshold=0.2,
-	num.thread=1, verbose=TRUE)
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    method=c("composite", "r", "dprime", "corr"),
+    slide.max.bp=500000, slide.max.n=NA, ld.threshold=0.2,
+    num.thread=1, verbose=TRUE)
 {
-	# check
-	stopifnot(inherits(gdsobj, "gds.class"))
-	stopifnot(is.na(slide.max.bp) | is.numeric(slide.max.bp))
-	stopifnot(is.na(slide.max.n) | is.numeric(slide.max.n))
-	stopifnot(is.numeric(ld.threshold) & is.finite(ld.threshold))
-	stopifnot(is.numeric(num.thread) & (num.thread>0))
-	if (num.thread > 1)
-		warning("The current version of 'snpgdsLDpruning' does not support multi processes.")
-	stopifnot(is.logical(verbose))
+    # check
+    ws <- .InitFile2(
+        cmd="SNP pruning based on LD:",
+        gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
+        autosome.only=autosome.only, remove.monosnp=remove.monosnp,
+        maf=maf, missing.rate=missing.rate, num.thread=num.thread,
+        verbose=verbose)
 
-	if (verbose)
-	{
-		cat("SNP pruning based on LD:\n")
-		bp <- slide.max.bp; mn <- slide.max.n
-		if (!is.finite(bp)) bp <- Inf
-		if (!is.finite(mn)) mn <- Inf
-		cat(sprintf("\tSliding window: %g basepairs, %g SNPs\n", bp, mn))
-		cat(sprintf("\t|LD| threshold: %g\n", ld.threshold))
-	}
+    stopifnot(is.na(slide.max.bp) | is.numeric(slide.max.bp))
+    stopifnot(is.na(slide.max.n) | is.numeric(slide.max.n))
+    stopifnot(is.numeric(ld.threshold) & is.finite(ld.threshold))
+    stopifnot(is.numeric(num.thread) & (num.thread>0))
+    if (num.thread > 1)
+    {
+        warning("The current version of 'snpgdsLDpruning' ",
+            "does not support multi processes.")
+    }
+    stopifnot(is.logical(verbose))
 
-	if (!is.finite(slide.max.bp))
-		slide.max.bp <- .Machine$double.xmax
-	if (!is.finite(slide.max.n))
-		slide.max.n <- .Machine$integer.max
+    slide.max.bp <- as.double(slide.max.bp)
+    slide.max.n <- as.integer(slide.max.n)
+    if (verbose)
+    {
+        bp <- slide.max.bp; mn <- slide.max.n
+        if (!is.finite(bp)) bp <- Inf
+        if (!is.finite(mn)) mn <- Inf
+        cat(sprintf("\tSliding window: %g basepairs, %g SNPs\n", bp, mn))
+        cat(sprintf("\t|LD| threshold: %g\n", ld.threshold))
+    }
 
-	# samples
-	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
-	if (!is.null(sample.id))
-	{
-		n.tmp <- length(sample.id)
-		sample.id <- sample.ids %in% sample.id
-		n.samp <- sum(sample.id);
-		if (n.samp != n.tmp)
-			stop("Some of sample.id do not exist!")
-		if (n.samp <= 0)
-			stop("No sample in the working dataset.")
-		sample.ids <- sample.ids[sample.id]
-	}
+    if (!is.finite(slide.max.bp))
+        slide.max.bp <- .Machine$double.xmax
+    if (!is.finite(slide.max.n))
+        slide.max.n <- .Machine$integer.max
 
-	# SNPs
-	total.snp.ids <- snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
-	chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-	position <- as.integer(read.gdsn(index.gdsn(gdsobj, "snp.position")))
-	if (!all(length(snp.ids)==length(chr), length(snp.ids)==length(position)))
-		stop("snp.id, snp.chromosome and snp.position should have the same length!")
-	if (!is.null(snp.id))
-	{
-		n.tmp <- length(snp.id)
-		snp.id <- snp.ids %in% snp.id
-		n.snp <- sum(snp.id)
-		if (n.snp != n.tmp)
-			stop("Some of snp.id do not exist!")
-		if (n.snp <= 0)
-			stop("No SNP in the working dataset.")
-		if (autosome.only)
-		{
-			opt <- snpgdsOption(gdsobj)
-			snp.id <- snp.id & (chr %in% c(opt$autosome.start : opt$autosome.end))
-			if (verbose)
-			{
-				tmp <- n.snp - sum(snp.id)
-				if (tmp > 0) cat("Removing", tmp, "non-autosomal SNPs\n")
-			}
-		}
-		snp.ids <- snp.ids[snp.id]
-	} else {
-		if (autosome.only)
-		{
-			opt <- snpgdsOption(gdsobj)
-			snp.id <- chr %in% c(opt$autosome.start : opt$autosome.end)
-			snp.ids <- snp.ids[snp.id]
-			if (verbose)
-				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs\n")
-		}
-	}
+    # method
+    method <- match(method[1], c("composite", "r", "dprime", "corr"))
+    if (is.na(method))
+    {
+        stop("method should be one of ",
+            "\"composite\", \"r\", \"dprime\" and \"corr\"")
+    }
 
-	# method
-	method <- match(method[1], c("composite", "r", "dprime", "corr"))
-	if (is.na(method))
-		stop("method should be one of \"composite\", \"r\", \"dprime\" and \"corr\"")
+    total.snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+    total.samp.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
+    chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
+    position <- read.gdsn(index.gdsn(gdsobj, "snp.position"))
 
-	# call C codes
-	# set genotype working space
-	node <- .C("gnrSetGenoSpace", as.integer(index.gdsn(gdsobj, "genotype")),
-		as.logical(sample.id), as.logical(!is.null(sample.id)),
-		as.logical(snp.id), as.logical(!is.null(snp.id)),
-		n.snp=integer(1), n.samp=integer(1),
-		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (node$err != 0) stop(snpgdsErrMsg())
 
-	# call allele freq. and missing rates
-	if (remove.monosnp || is.finite(maf) || is.finite(missing.rate))
-	{
-		if (!is.finite(maf)) maf <- -1;
-		if (!is.finite(missing.rate)) missing.rate <- 2;
-		# call
-		rv <- .C("gnrSelSNP_Base", as.logical(remove.monosnp),
-			as.double(maf), as.double(missing.rate),
-			out.num=integer(1), out.snpflag = logical(node$n.snp),
-			err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-		if (rv$err != 0) stop(snpgdsErrMsg())
-		snp.ids <- snp.ids[rv$out.snpflag]
-		# show
-		if (verbose)
-			cat("Removing", rv$out.num, "SNPs (monomorphic, < MAF, or > missing rate)\n")
-	}
+    # for-loop each chromosome
+    ntotal <- 0; res <- list()
+    snp.flag <- total.snp.ids %in% ws$snp.id
+    samp.flag <- total.samp.ids %in% ws$sample.id
 
-	# get the dimension of SNP genotypes
-	node <- .C("gnrGetGenoDim", n.snp=integer(1), n.samp=integer(1),
-		NAOK=TRUE, PACKAGE="SNPRelate")
+    if (is.numeric(chr))
+        chrset <- setdiff(unique(chr), c(0, NA))
+    else
+        chrset <- setdiff(unique(chr), c("", NA))
 
-	if (verbose)
-		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
+    for (ch in chrset)
+    {
+        flag <- snp.flag & (chr == ch)
+        flag[is.na(flag)] <- FALSE
+        n.tmp <- sum(flag)
+        if (n.tmp > 0)
+        {
+            # set genotype working space
+            node <- .C(gnrSetGenoSpace,
+                as.integer(index.gdsn(gdsobj, "genotype")),
+                samp.flag, TRUE,
+                flag, TRUE, n.snp=integer(1), n.samp=integer(1),
+                err=integer(1), NAOK=TRUE)
+            if (node$err != 0) stop(snpgdsErrMsg())
 
-	# for-loop each chromosome
-	ntotal <- 0; res <- list()
-	snp.flag <- total.snp.ids %in% snp.ids
+            # call LD prune for this chromosome
+            startidx <- sample(1:n.tmp, 1)
 
-	for (ch in setdiff(unique(chr), c(0, NA)))
-	{
-		flag <- snp.flag & (chr == ch)
-		n.tmp <- sum(flag)
-		if (n.tmp > 0)
-		{
-			# set genotype working space
-			node <- .C("gnrSetGenoSpace", as.integer(index.gdsn(gdsobj, "genotype")),
-				as.logical(sample.id), as.logical(!is.null(sample.id)),
-				flag, TRUE, n.snp=integer(1), n.samp=integer(1),
-				err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-			if (node$err != 0) stop(snpgdsErrMsg())
+            rv <- .Call(gnrLDpruning, as.integer(startidx-1), position[flag],
+                slide.max.bp, slide.max.n, as.double(ld.threshold), method)
 
-			# call LD prune for this chromosome
-			startidx <- sample(1:n.tmp, 1)
-			rv <- .C("gnrLDpruning", as.integer(startidx-1), position[flag],
-				as.integer(slide.max.bp), as.integer(slide.max.n), as.double(ld.threshold),
-				method, out_snp = logical(node$n.snp),
-				err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-			if (rv$err != 0) stop(snpgdsErrMsg())
+            # output
+            L <- rep(FALSE, length(total.snp.ids))
+            L[flag] <- rv
+            res[[paste("chr", ch, sep="")]] <- total.snp.ids[L]
+            ntotal <- ntotal + sum(rv)
 
-			# output
-			L <- rep(FALSE, length(total.snp.ids))
-			L[flag] <- rv$out_snp
-			res[[paste("chr", ch, sep="")]] <- total.snp.ids[L]
-			ntotal <- ntotal + sum(rv$out_snp)
+            # information
+            if (verbose)
+            {
+                ntmp <- sum(rv); ntot <- sum(chr == ch)
+                cat(sprintf("Chromosome %s: %0.2f%%, %d/%d\n",
+                    as.character(ch), 100*ntmp/ntot, ntmp, ntot))
+            }
+        }
+    }
 
-			# information
-			if (verbose)
-			{
-				ntmp <- sum(rv$out_snp); ntot <- sum(chr == ch)
-				cat(sprintf("Chromosome %d: %0.2f%%, %d/%d\n", ch, 100*ntmp/ntot, ntmp, ntot))
-			}
-		}
-	}
+    if (verbose)
+        cat(sprintf("%d SNPs are selected in total.\n", ntotal))
 
-	if (verbose)
-		cat(sprintf("%d SNPs are selected in total.\n", ntotal))
+    # return
+    return(res)
+}
 
-	# return
-	return(res)
+
+
+#######################################################################
+# Randomly selects SNPs for which each pair is at least as far apart
+#    as the specified basepair distance
+#
+
+snpgdsApartSelection <- function(chromosome, position, min.dist=100000,
+    max.n.snp.perchr=-1, verbose=TRUE) 
+{
+    # check
+    stopifnot(is.vector(chromosome))
+    stopifnot(is.vector(position) & is.numeric(position))
+    if (length(chromosome) != length(position))
+        stop("The lengths of 'chomosome' and 'position' do not match.")
+
+    stopifnot(is.numeric(min.dist) & is.vector(min.dist))
+    stopifnot(length(min.dist) == 1)
+
+    stopifnot(is.numeric(max.n.snp.perchr) & is.vector(max.n.snp.perchr))
+    stopifnot(length(max.n.snp.perchr) == 1)
+
+    stopifnot(is.logical(verbose) & is.vector(verbose))
+    stopifnot(length(verbose) == 1)
+
+    # chromosome codes
+    chrlist <- unique(chromosome)
+
+    # initialize the result
+    rv <- rep(FALSE, length(chromosome))
+
+    # for-loop
+    for (chr in chrlist)
+    {
+        b <- (chromosome==chr)
+        b[is.na(b)] <- FALSE
+        pos <- position[b]
+        sel <- seq_len(length(pos))
+        flag <- rep(FALSE, length(pos))
+
+        iter.num <- 0
+        repeat {
+            if ((length(sel)==0) | (iter.num==max.n.snp.perchr))
+                break
+            iter.num <- iter.num + 1
+            p.i <- sel[sample.int(length(sel), 1)]
+            flag[p.i] <- TRUE
+            sel <- sel[abs(pos[sel] - pos[p.i]) >= min.dist]
+            if (verbose & (iter.num %% 5000 == 0))
+            {
+                cat(date(), "\tChromosome ", chr, ", # of SNPs: ",
+                    iter.num, "\n", sep="")
+            }
+        }
+        if (verbose)
+        {
+            cat(date(), "\tChromosome ", chr, ", # of SNPs: ",
+                    sum(flag), "\n", sep="")
+        }
+        rv[b] <- flag
+    }
+    if (verbose) 
+        cat("Total # of SNPs selected:", sum(rv), "\n", sep="")
+
+    return(rv)
 }

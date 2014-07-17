@@ -8,7 +8,7 @@
 //
 // dVect.h: Classess and functions for vectorization
 //
-// Copyright (C) 2013	Xiuwen Zheng
+// Copyright (C) 2007 - 2014	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -27,15 +27,15 @@
 
 /**
  *	\file     dVect.h
- *	\author   Xiuwen Zheng
+ *	\author   Xiuwen Zheng [zhengxwen@gmail.com]
  *	\version  1.0
- *	\date     2007 - 2013
+ *	\date     2007 - 2014
  *	\brief    Classess and functions for vectorization
  *	\details
 **/
 
-#ifndef _dVect_H_
-#define _dVect_H_
+#ifndef _HEADER_COREARRAY_VECT_
+#define _HEADER_COREARRAY_VECT_
 
 #include <dType.h>
 
@@ -157,9 +157,9 @@ namespace CoreArray
 
 	// SSE/SSE2 optimization
 
-	#ifdef COREARRAY_VT_SIMD
+	#ifdef COREARRAY_PREDEFINED_SIMD
 
-		#if defined(COREARRAY_BORLANDC) || defined(COREARRAY_MSC)
+		#if defined(COREARRAY_CC_BORLAND) || defined(COREARRAY_CC_MSC)
 			#define CORESSECALL __fastcall
 		#else
 			#define CORESSECALL
@@ -373,4 +373,4 @@ namespace CoreArray
 	}
 }
 
-#endif /* _dVect_H_ */
+#endif /* _HEADER_COREARRAY_VECT_ */

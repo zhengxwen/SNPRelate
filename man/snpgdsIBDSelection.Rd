@@ -1,43 +1,43 @@
 \name{snpgdsIBDSelection}
 \alias{snpgdsIBDSelection}
 \title{
-	Get a table of IBD coefficients
+    Get a table of IBD coefficients
 }
 \description{
-	Return a data frame with IBD coefficients.
+    Return a data frame with IBD coefficients.
 }
 \usage{
 snpgdsIBDSelection(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 }
 \arguments{
-	\item{ibdobj}{an object of \code{snpgdsIBDClass} returned by
-		\code{\link{snpgdsIBDMLE}} or \code{\link{snpgdsIBDMoM}}}
-	\item{kinship.cutoff}{select the individual pairs with kinship coefficients
-		>= kinship.cutoff; no filter if \code{kinship.cutoff = NaN}}
-	\item{samp.sel}{a logical vector or integer vector to specify selection
-		of samples}
+    \item{ibdobj}{an object of \code{snpgdsIBDClass} returned by
+        \code{\link{snpgdsIBDMLE}} or \code{\link{snpgdsIBDMoM}}}
+    \item{kinship.cutoff}{select the individual pairs with kinship coefficients
+        >= kinship.cutoff; no filter if \code{kinship.cutoff = NaN}}
+    \item{samp.sel}{a logical vector or integer vector to specify selection
+        of samples}
 }
 \value{
-	Return a data.frame:
-	\item{ID1}{the id of the first individual}
-	\item{ID2}{the id of the second individual}
-	\item{k0}{the probability of sharing ZERO alleles}
-	\item{k1}{the probability of sharing ONE alleles}
-	\item{kinship}{kinship coefficient}
+    Return a data.frame:
+    \item{ID1}{the id of the first individual}
+    \item{ID2}{the id of the second individual}
+    \item{k0}{the probability of sharing ZERO alleles}
+    \item{k1}{the probability of sharing ONE alleles}
+    \item{kinship}{kinship coefficient}
 }
 \author{Xiuwen Zheng}
 \seealso{
-	\code{\link{snpgdsIBDMLE}}, \code{\link{snpgdsIBDMoM}},
-	\code{\link{snpgdsIBDKING}}
+    \code{\link{snpgdsIBDMLE}}, \code{\link{snpgdsIBDMoM}},
+    \code{\link{snpgdsIBDKING}}
 }
 
 \examples{
 # open an example dataset (HapMap)
-genofile <- openfn.gds(snpgdsExampleFileName())
+genofile <- snpgdsOpen(snpgdsExampleFileName())
 
 # YRI population
 YRI.id <- read.gdsn(index.gdsn(genofile, "sample.id"))[
-	read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="YRI"]
+    read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="YRI"]
 pibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id)
 flag <- lower.tri(pibd$k0)
 plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
@@ -45,7 +45,7 @@ lines(c(0,1), c(1,0), col="red", lty=3)
 points(pibd$k0[flag], pibd$k1[flag])
 
 # close the genotype file
-closefn.gds(genofile)
+snpgdsClose(genofile)
 
 # IBD coefficients
 dat <- snpgdsIBDSelection(pibd, 1/32)
@@ -59,6 +59,5 @@ head(dat)
 # 6 NA19160 NA19161 0.008635754 0.9847777 0.24948770
 }
 
-\keyword{gds}
+\keyword{GDS}
 \keyword{GWAS}
-\keyword{IBD}

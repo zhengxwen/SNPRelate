@@ -6,9 +6,9 @@
 // _/_/_/   _/_/_/  _/_/_/_/_/     _/     _/_/_/   _/_/
 // ===========================================================
 //
-// genPCA.cpp: Principal component analysis on genome-wide association studies
+// genPCA.cpp: Principal component analysis on GWAS
 //
-// Copyright (C) 2013	Xiuwen Zheng
+// Copyright (C) 2011 - 2014	Xiuwen Zheng [zhengxwen@gmail.com]
 //
 // This file is part of SNPRelate.
 //
@@ -26,14 +26,13 @@
 // If not, see <http://www.gnu.org/licenses/>.
 
 
-#ifndef _FuncPCA_H_
-#define _FuncPCA_H_
+#ifndef _HEADER_PCA_
+#define _HEADER_PCA_
 
 // CoreArray library header
-#include <dType.h>
-#include <dVect.h>
-#include <CoreGDSLink.h>
 #include <dGenGWAS.h>
+#include <dVect.h>
+#include <R_ext/Lapack.h>
 
 // Standard library header
 #include <cmath>
@@ -47,6 +46,12 @@
 #ifdef COREARRAY_SIMD_SSE2
 #include <emmintrin.h>
 #endif
+
+
+#ifndef COREARRAY_CALL_ALIGN16_ARG
+#   define COREARRAY_CALL_ALIGN16_ARG    COREARRAY_CALL_ALIGN
+#endif
+
 
 namespace PCA
 {
@@ -78,11 +83,12 @@ namespace PCA
 
 		void Reset(size_t n, size_t m)
 		{
-			fBuf.reset(new tfloat[n*m]);
+			fBuf.resize(n * m);
 			fN = n; fM = m;
 		}
 
-		void COREARRAY_CALL_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt, size_t ArrayLength, tfloat *OutBuf)
+		void COREARRAY_CALL_ALIGN16_ARG MulAdd(IdMatTri &Idx, size_t IdxCnt,
+			size_t ArrayLength, tfloat *OutBuf)
 		{
 			for (; IdxCnt > 0; IdxCnt--, ++Idx)
 			{
@@ -108,9 +114,10 @@ namespace PCA
 
 		inline size_t N() const { return fN; }
 		inline size_t M() const { return fM; }
-		inline tfloat* base() { return fBuf.get(); }
+		inline tfloat* base() { return &fBuf[0]; }
+
 	private:
-		auto_ptr<tfloat> fBuf;
+		vector<tfloat> fBuf;
 		size_t fN, fM;
 	};
 
@@ -131,7 +138,8 @@ namespace PCA
 			fN = n; fM = m;
 		}
 
-		void COREARRAY_CALL_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt, size_t ArrayLength, float *OutBuf)
+		void COREARRAY_CALL_ALIGN16_ARG MulAdd(IdMatTri &Idx, size_t IdxCnt,
+			size_t ArrayLength, float *OutBuf)
 		{
 			for (; IdxCnt > 0; IdxCnt--, ++Idx)
 			{
@@ -144,15 +152,20 @@ namespace PCA
 
 				while (k >= 16)
 				{
-					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[0]), _mm_load_ps(&p2[0])));
-					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[4]), _mm_load_ps(&p2[4])));
-					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[8]), _mm_load_ps(&p2[8])));
-					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[12]), _mm_load_ps(&p2[12])));
+					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[0]),
+						_mm_load_ps(&p2[0])));
+					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[4]),
+						_mm_load_ps(&p2[4])));
+					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[8]),
+						_mm_load_ps(&p2[8])));
+					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[12]),
+						_mm_load_ps(&p2[12])));
 					p1 += 16; p2 += 16; k -= 16;
 				}
 				while (k >= 4)
 				{
-					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(p1), _mm_load_ps(p2)));
+					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(p1),
+						_mm_load_ps(p2)));
 					p1 += 4; p2 += 4; k -= 4;
 				}
 				_mm_store_ps(rv4, rv128);
@@ -192,7 +205,8 @@ namespace PCA
 			fN = n; fM = m;
 		}
 
-		void COREARRAY_CALL_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt, size_t ArrayLength, double *OutBuf)
+		void COREARRAY_CALL_ALIGN16_ARG MulAdd(IdMatTri &Idx, size_t IdxCnt,
+			size_t ArrayLength, double *OutBuf)
 		{
 			for (; IdxCnt > 0; IdxCnt--, ++Idx)
 			{
@@ -205,16 +219,21 @@ namespace PCA
 				__m128d rv128 = _mm_load_pd(rv2);
 				while (k >= 8)
 				{
-					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[0]), _mm_load_pd(&p2[0])));
-					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[2]), _mm_load_pd(&p2[2])));
-					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[4]), _mm_load_pd(&p2[4])));
-					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[6]), _mm_load_pd(&p2[6])));
+					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[0]),
+						_mm_load_pd(&p2[0])));
+					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[2]),
+						_mm_load_pd(&p2[2])));
+					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[4]),
+						_mm_load_pd(&p2[4])));
+					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[6]),
+						_mm_load_pd(&p2[6])));
 					p1 += 8; p2 += 8; k -= 8;
 				}
 
 				while (k >= 2)
 				{
-					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(p1), _mm_load_pd(p2)));
+					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(p1),
+						_mm_load_pd(p2)));
 					p1 += 2; p2 += 2; k -= 2;
 				}
 				_mm_store_pd(rv2, rv128);
@@ -256,9 +275,12 @@ namespace PCA
 	{
 		if (Detect)
 		{
-			long L2Cache = conf_GetL2CacheMemory();
-			if (L2Cache <= 0) L2Cache = 1024*1024; // 1M
-			BlockSNP = (L2Cache - 8*1024) / (sizeof(double)*nSamp);
+//			C_UInt64 L2Cache = GDS_Mach_GetCPULevelCache(2);
+//			C_UInt64 L3Cache = GDS_Mach_GetCPULevelCache(3);
+//			C_UInt64 Cache = (L2Cache > L3Cache) ? L2Cache : L3Cache;
+			C_UInt64 Cache = 0;
+			if ((C_Int64)Cache <= 0) Cache = 1024*1024; // 1M
+			BlockSNP = (Cache - 8*1024) / (sizeof(double)*nSamp);
 		}
 		BlockSNP = (BlockSNP / 4) * 4;
 		if (BlockSNP < 16) BlockSNP = 16;
@@ -267,41 +289,46 @@ namespace PCA
 	/// init mutex objects
 	void InitMutexObject()
 	{
-		_Mutex = plc_InitMutex();
+		_Mutex = GDS_Parallel_InitMutex();
 	}
 	/// destroy mutex objects
 	void DoneMutexObject()
 	{
-		plc_DoneMutex(_Mutex); _Mutex = NULL;
+		GDS_Parallel_DoneMutex(_Mutex); _Mutex = NULL;
 	}
 
 
-	// ****************** PCA covariate matrix ******************
-
-	/// The temparory variables used in computing
-	auto_ptr<int> PCA_gSum, PCA_gNum;
-	/// The mean-adjusted genotype buffers
-	CPCAMat<double> PCA_Mat;
-	/// The temporary variable
-	TdAlignPtr<double> tmpBuf;
+	// ---------------------------------------------------------------------
+	// ---------------------------------------------------------------------
 
 	/// Thread variables
 	const int N_MAX_THREAD = 256;
 	IdMatTri PCA_Thread_MatIdx[N_MAX_THREAD];
-	Int64 PCA_Thread_MatCnt[N_MAX_THREAD];
+	C_Int64 PCA_Thread_MatCnt[N_MAX_THREAD];
+
+	// ****************** PCA covariate matrix ******************
+
+	/// The temparory variables used in computing
+	static vector<int> PCA_gSum, PCA_gNum;
+	/// The mean-adjusted genotype buffers
+	static CPCAMat<double> PCA_Mat;
+	/// The temporary variable
+	static TdAlignPtr<double> tmpBuf;
 
 	/// Convert the raw genotypes to the mean-adjusted genotypes
-	void _Do_PCA_ReadBlock(UInt8 *GenoBuf, long Start, long SNP_Cnt, void* Param)
+	static void _Do_PCA_ReadBlock(C_UInt8 *GenoBuf, long Start, long SNP_Cnt,
+		void* Param)
 	{
 		// init ...
 		const int n = MCWorkingGeno.Space.SampleNum();
-		memset((void*)PCA_gSum.get(), 0, SNP_Cnt*sizeof(int));
-		memset((void*)PCA_gNum.get(), 0, SNP_Cnt*sizeof(int));
+		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
+		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
 
-		UInt8 *p;
+		C_UInt8 *p;
 		double *pf, *pp;
 
 		// calculate the averages of genotypes for each SelSNP
+		// store the values in PCA_gSum
 		p = GenoBuf;
 		pp = PCA_Mat.base();
 		for (long iSample=0; iSample < n; iSample++)
@@ -311,25 +338,26 @@ namespace PCA
 			{
 				if (*p < 3)
 				{
-					PCA_gSum.get()[iSNP] += *p;
-					PCA_gNum.get()[iSNP]++;
+					PCA_gSum[iSNP] += *p;
+					PCA_gNum[iSNP]++;
 				}
 				*pf++ = *p++;
 			}
 		}
 
+		// PCA_gSum = 2 * \bar{p}_l
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 		{
 			double &fv = tmpBuf.get()[iSNP];
-			long gN = PCA_gNum.get()[iSNP];
+			long gN = PCA_gNum[iSNP];
 			if (gN > 0)
-				fv = (double)PCA_gSum.get()[iSNP] / gN;
+				fv = (double)PCA_gSum[iSNP] / gN;
 			else
 				fv = 0;
 		}
 
 		// Averaging and set missing values to ZERO
-		pp = PCA_Mat.base(); // C@ij - 2p@j
+		pp = PCA_Mat.base(); // G@ij - 2\bar{p}_l
 		for (long iSample=0; iSample < n; iSample++)
 		{
 			vt<double, av16Align>::Sub(pp, pp, tmpBuf.get(), SNP_Cnt);
@@ -341,16 +369,16 @@ namespace PCA
 			double scale;
 			if (BayesianNormal)
 			{
-				long gN = PCA_gNum.get()[iSNP];
-				scale = (gN > 0) ? ((PCA_gSum.get()[iSNP] + 1.0) / (2*gN + 2)) : 0;
+				long gN = PCA_gNum[iSNP];
+				scale = (gN > 0) ? ((PCA_gSum[iSNP] + 1.0) / (2*gN + 2)) : 0;
 			} else
-				scale = *pf / 2;
+				scale = (*pf) * 0.5;
 			if (0.0 < scale && scale < 1.0)
 				*pf = 1.0 / sqrt(scale*(1.0-scale));
 			else
 				*pf = 0;
 		}
-		// (C@ij - 2p@j) / sqrt(p@j*(1-p@j))
+		// (G@ij - 2p@j) / sqrt(p@j*(1-p@j))
 		pp = PCA_Mat.base();
 		for (long iSample=0; iSample < n; iSample++)
 		{
@@ -372,19 +400,22 @@ namespace PCA
 	}
 
 	/// Compute the covariate matrix
-	void _Do_PCA_ComputeCov(int ThreadIndex, long Start, long SNP_Cnt, void* Param)
+	static void _Do_PCA_ComputeCov(int ThreadIndex, long Start, long SNP_Cnt,
+		void* Param)
 	{
 		double *base = (double*)Param;
 		IdMatTri I = PCA_Thread_MatIdx[ThreadIndex];
-		PCA_Mat.MulAdd(I, PCA_Thread_MatCnt[ThreadIndex], SNP_Cnt, base + I.Offset());
+		PCA_Mat.MulAdd(I, PCA_Thread_MatCnt[ThreadIndex], SNP_Cnt,
+			base + I.Offset());
 	}
 
     /// Calculate the genetic covariace
-	void DoCovCalculate(CdMatTri<double> &PublicCov, int NumThread, const char *Info, bool verbose)
+	void DoCovCalculate(CdMatTri<double> &PublicCov, int NumThread,
+		const char *Info, bool verbose)
 	{
 		// Initialize ...
-		PCA_gSum.reset(new int[BlockSNP]);
-		PCA_gNum.reset(new int[BlockSNP]);
+		PCA_gSum.resize(BlockSNP);
+		PCA_gNum.resize(BlockSNP);
 		PCA_Mat.Reset(PublicCov.N(), BlockSNP);
 		tmpBuf.Reset(PCA_Mat.M());
 		memset(PublicCov.get(), 0, sizeof(double)*PublicCov.Size());
@@ -393,15 +424,17 @@ namespace PCA
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.InitParam(true, true, BlockSNP);
 
-		MCWorkingGeno.SplitJobs(NumThread, PublicCov.N(), PCA_Thread_MatIdx, PCA_Thread_MatCnt);
-		MCWorkingGeno.Run(NumThread, &_Do_PCA_ReadBlock, &_Do_PCA_ComputeCov, PublicCov.get());
+		MCWorkingGeno.SplitJobs(NumThread, PublicCov.N(), PCA_Thread_MatIdx,
+			PCA_Thread_MatCnt);
+		MCWorkingGeno.Run(NumThread, &_Do_PCA_ReadBlock, &_Do_PCA_ComputeCov,
+			PublicCov.get());
 	}
 
 
 	// ****************** SNP coefficients ******************
 
 	// Correlation
-	static double SNP_PC_Corr(double *pX, UInt8 *pY, long n)
+	static double SNP_PC_Corr(double *pX, C_UInt8 *pY, long n)
 	{
 		long m = 0;
 		double XY, X, XX, Y, YY;
@@ -424,22 +457,22 @@ namespace PCA
 			if (val > 0)
 				return (XY-X*Y/m) / sqrt(val);
 			else
-				return conf_F64_NaN();
+				return R_NaN;
 		} else
-			return conf_F64_NaN();
+			return R_NaN;
 	}
 
 	/// The thread entry for the calculation of SNP coefficients
-	void Entry_SNPCorrCalc(TdThread Thread, int ThreadIndex, void *Param)
+	void Entry_SNPCorrCalc(PdThread Thread, int ThreadIndex, void *Param)
 	{
 		// The number of working samples
 		const long n = MCWorkingGeno.Space.SampleNum();
-		auto_ptr<UInt8> GenoBlock(new UInt8[n*BlockSNP]);
+		vector<C_UInt8> GenoBlock(n * BlockSNP);
 
 		long _SNPstart, _SNPlen;
-		while (RequireWork(GenoBlock.get(), _SNPstart, _SNPlen, false))
+		while (RequireWork(&GenoBlock[0], _SNPstart, _SNPlen, false))
 		{
-			UInt8 *pGeno = GenoBlock.get();
+			C_UInt8 *pGeno = &GenoBlock[0];
 			double *Out = Out_Buffer + (_SNPstart*OutputEigenDim);
 			for (long iSNP=0; iSNP < _SNPlen; iSNP++)
 			{
@@ -476,7 +509,7 @@ namespace PCA
 		Out_Buffer = out_snpcorr; In_EigenVect = EigenVect;
 
 		// Threads
-		plc_DoBaseThread(Entry_SNPCorrCalc, NULL, NumThread);
+		GDS_Parallel_RunThreads(Entry_SNPCorrCalc, NULL, NumThread);
 
 		// destory the mutex objects
 		DoneMutexObject();
@@ -492,7 +525,7 @@ namespace PCA
 	 *  \param NumGeno    the number of total genotype
 	 *  \param AdjNormal  whether or not use Bayerian correction factor
 	**/
-	inline static void NormalizeGeno(UInt8 *Geno, double *NormalizedGeno, long NumGeno)
+	inline static void NormalizeGeno(C_UInt8 *Geno, double *NormalizedGeno, long NumGeno)
 	{
 		// the sum of genotype, and the number of non-missing snps
 		long n;
@@ -503,7 +536,7 @@ namespace PCA
 			double scale = BayesianNormal ? ((sum+1.0) / (2*n+2)) : (ave/2);
 			scale = ((0.0 < scale) && (scale < 1.0)) ?
 				(1.0 / sqrt(scale*(1.0-scale))) : 0.0;
-			UInt8 *pGeno = Geno;
+			C_UInt8 *pGeno = Geno;
 			for (long i=NumGeno; i > 0; i--)
 			{
 				*NormalizedGeno++ = (*pGeno < 3) ? (*pGeno-ave)*scale : 0.0;
@@ -514,20 +547,20 @@ namespace PCA
 	}
 
 	/// The thread entry for the calculation of SNP loadings
-	void Entry_SNPLoadingCalc(TdThread Thread, int ThreadIndex, void *Param)
+	void Entry_SNPLoadingCalc(PdThread Thread, int ThreadIndex, void *Param)
 	{
 		// The number of working samples
 		const long n = MCWorkingGeno.Space.SampleNum();
-		auto_ptr<UInt8> GenoBlock(new UInt8[n*BlockSNP]);
+		vector<C_UInt8> GenoBlock(n * BlockSNP);
 		TdAlignPtr<double> NormalGeno(n);
 
 		long _SNPstart, _SNPlen;
-		while (RequireWork(GenoBlock.get(), _SNPstart, _SNPlen, false))
+		while (RequireWork(&GenoBlock[0], _SNPstart, _SNPlen, false))
 		{
 			for (long iSNP=0; iSNP < _SNPlen; iSNP++)
 			{
 				// Normalize genotypes
-				NormalizeGeno(GenoBlock.get() + iSNP*n, NormalGeno.get(), n);
+				NormalizeGeno((&GenoBlock[0]) + iSNP*n, NormalGeno.get(), n);
 				// SNP loadings, X'W
 				double *Out = Out_Buffer + ((_SNPstart+iSNP)*OutputEigenDim);
 				double *pEig = _EigenVectBuf->base();
@@ -552,48 +585,61 @@ namespace PCA
 		{
 			// initialize
 			const int nsnp = MCWorkingGeno.Space.SNPNum();
-			auto_ptr<UInt8> buf(new UInt8[nsnp]);
-			auto_ptr<int> n(new int[nsnp]);
+			vector<C_UInt8> buf(nsnp);
+			vector<int> n(nsnp);
 			for (int i=0; i < nsnp; i++)
-				{ n.get()[i] = 0; OutFreq[i] = 0; }
+			{
+				n[i] = 0;
+				OutFreq[i] = 0;
+			}
+
 			// for-loop for each sample
 			for (int iSamp=0; iSamp < MCWorkingGeno.Space.SampleNum(); iSamp++)
 			{
-				MCWorkingGeno.Space.sampleRead(iSamp, 1, buf.get(), true);
+				MCWorkingGeno.Space.sampleRead(iSamp, 1, &buf[0], true);
 				for (int i=0; i < nsnp; i++)
 				{
-					UInt8 &v = buf.get()[i];
-					if (v <= 2) { OutFreq[i] += v; n.get()[i] ++; }
+					C_UInt8 &v = buf[i];
+					if (v <= 2)
+					{
+						OutFreq[i] += v;
+						n[i] ++;
+					}
 				}
 			}
 			// average
 			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
 			{
-				const int nn = n.get()[i];
+				const int nn = n[i];
 				const double sum = OutFreq[i];
 				double ave = sum / nn;
-				double scale = BayesianNormal ? ((sum+1.0) / (2*nn+2)) : (0.5*ave);
-				scale = ((0.0 < scale) && (scale < 1.0)) ? (1.0 / sqrt(scale*(1.0-scale))) : 0.0;
-				OutFreq[i] = ave; OutScale[i] = scale;
+				double scale = BayesianNormal ? ((sum+1.0)/(2*nn+2)) : (0.5*ave);
+				scale = ((0.0 < scale) && (scale < 1.0)) ?
+					(1.0 / sqrt(scale*(1.0-scale))) : 0.0;
+				OutFreq[i] = ave;
+				OutScale[i] = scale;
 			}
 		} else {
 			// initialize
-			auto_ptr<UInt8> buf(new UInt8[MCWorkingGeno.Space.SampleNum()]);
+			vector<C_UInt8> buf(MCWorkingGeno.Space.SampleNum());
+
 			// for-loop for each snp
 			for (int isnp=0; isnp < MCWorkingGeno.Space.SNPNum(); isnp++)
 			{
 				int n = 0;
 				double sum = 0;
-				MCWorkingGeno.Space.snpRead(isnp, 1, buf.get(), false);
+				MCWorkingGeno.Space.snpRead(isnp, 1, &buf[0], false);
 				for (int i=0; i < MCWorkingGeno.Space.SampleNum(); i++)
 				{
-					UInt8 &v = buf.get()[i];
+					C_UInt8 &v = buf[i];
 					if (v <= 2) { sum += v; n ++; }
 				}
 				double ave = sum / n;
-				double scale = BayesianNormal ? ((sum+1.0) / (2*n+2)) : (0.5*ave);
-				scale = ((0.0 < scale) && (scale < 1.0)) ? (1.0 / sqrt(scale*(1.0-scale))) : 0.0;
-				OutFreq[isnp] = ave; OutScale[isnp] = scale;
+				double scale = BayesianNormal ? ((sum+1.0)/(2*n+2)) : (0.5*ave);
+				scale = ((0.0 < scale) && (scale < 1.0)) ?
+					(1.0 / sqrt(scale*(1.0-scale))) : 0.0;
+				OutFreq[isnp] = ave;
+				OutScale[isnp] = scale;
 			}
 		}
 	}
@@ -620,13 +666,13 @@ namespace PCA
 		_EigenVectBuf = new CPCAMat<double>(OutputEigenDim, n);
 		for (long i=0; i < OutputEigenDim; i++)
 		{
-			vt<double>::Mul(_EigenVectBuf->base() + i*_EigenVectBuf->M(), EigenVect,
-				sqrt(Scale / EigenVal[i]), n);
+			vt<double>::Mul(_EigenVectBuf->base() + i*_EigenVectBuf->M(),
+				EigenVect, sqrt(Scale / EigenVal[i]), n);
 			EigenVect += n;
 		}
 
 		// Threads
-		plc_DoBaseThread(Entry_SNPLoadingCalc, NULL, NumThread);
+		GDS_Parallel_RunThreads(Entry_SNPLoadingCalc, NULL, NumThread);
 
 		// destory the mutex objects
 		DoneMutexObject();
@@ -637,22 +683,22 @@ namespace PCA
 	// ****************** Sample loadings ******************
 
 	/// The thread entry for the calculation of genetic covariace matrix
-	void Entry_SampLoadingCalc(TdThread Thread, int ThreadIndex, void *Param)
+	void Entry_SampLoadingCalc(PdThread Thread, int ThreadIndex, void *Param)
 	{
 		// The number of working samples
 		const long n = MCWorkingGeno.Space.SNPNum();
-		auto_ptr<UInt8> GenoBlock(new UInt8[n*BlockSamp]);
-		auto_ptr<double> buf(new double[n]);
+		vector<C_UInt8> GenoBlock(n * BlockSamp);
+		vector<double> buf(n);
 
 		long _SampStart, _SampLen;
-		while (RequireWorkSamp(GenoBlock.get(), _SampStart, _SampLen, true))
+		while (RequireWorkSamp(&GenoBlock[0], _SampStart, _SampLen, true))
 		{
 			// for-loop each sample
 			for (long iS=0; iS < _SampLen; iS++)
 			{
 				// fill the buffer
-				UInt8 *g = GenoBlock.get() + iS*n;
-				double *p = buf.get();
+				C_UInt8 *g = (&GenoBlock[0]) + iS*n;
+				double *p = &buf[0];
 				for (long i=0; i < n; i++, p++, g++)
 					*p = (*g <= 2) ? (*g - In_AveFreq[i]) : 0.0;
 
@@ -660,7 +706,8 @@ namespace PCA
 				double *out = Out_Buffer + _SampStart + iS;
 				for (int i=0; i < OutputEigenDim; i++)
 				{
-					double *p1 = In_EigenVect + i, *p2 = buf.get();
+					double *p1 = In_EigenVect + i;
+					double *p2 = &buf[0];
 					double sum = 0;
 					for (int j=0; j < n; j++)
 					{
@@ -682,7 +729,8 @@ namespace PCA
     /// Calculate the genetic covariace
 	void DoSampLoadingCalculate(double *Ave_Freq, double *Scale, int EigenCnt,
 		double *SNP_Loadings, double *EigenVal, int Num, double TraceXTX,
-		double *out_SampLoadings, int NumThread, const char *Info, bool verbose)
+		double *out_SampLoadings, int NumThread, const char *Info,
+		bool verbose)
 	{
 		// initialize mutex objects
 		InitMutexObject();
@@ -708,13 +756,992 @@ namespace PCA
 				*p++ *= Scale[i] * eigen[j];
 		}
 
-		// Threads
+		// threads
 		SampStart = 0;
-		plc_DoBaseThread(Entry_SampLoadingCalc, NULL, NumThread);
+		GDS_Parallel_RunThreads(Entry_SampLoadingCalc, NULL, NumThread);
 
 		// destory the mutex objects
 		DoneMutexObject();
 	}
+
+
+
+	// ---------------------------------------------------------------------
+	// Admixture Analyses
+	// ---------------------------------------------------------------------
+
+	// ****************** Relative IBD matrix ******************
+
+	/// Missing genotypic flags:
+	//      0 -- missing value, other value -- valid genotype
+	static vector<C_UInt8> Admix_Missing_Flag;
+
+	/// Adjusted genotypic values for diagonal
+	static vector<double> Admix_Adj_Geno;
+	/// the product of allele frequencies: 4 * p_l * (1 - p_l)
+	static vector<double> Admix_P_ONE_P;
+
+	/// Convert the raw genotypes to the mean-adjusted genotypes
+	static void _Do_Admix_RatioOfAvg_ReadBlock(C_UInt8 *GenoBuf,
+		long Start, long SNP_Cnt, void* Param)
+	{
+		// init ...
+		const int n = MCWorkingGeno.Space.SampleNum();
+		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
+		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
+
+		C_UInt8 *p, *pMissing;
+		double *pf, *pp;
+		double *pAdjGeno = &Admix_Adj_Geno[0];
+
+		// calculate the averages of genotypes for each SelSNP
+		// store the values in PCA_gSum
+		p = GenoBuf;
+		pMissing = &Admix_Missing_Flag[0];
+		pp = PCA_Mat.base();
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			pf = pp; pp += PCA_Mat.M();
+			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+			{
+				if (*p < 3)
+				{
+					PCA_gSum[iSNP] += *p;
+					PCA_gNum[iSNP]++;
+					*pAdjGeno += (*p) * (2 - *p);
+					*pMissing++ = true;
+				} else {
+					*pMissing++ = false;
+				}
+				*pf++ = *p++;
+			}
+			pAdjGeno ++;
+		}
+
+		// PCA_gSum = 2 * \bar{p}_l
+		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+		{
+			double &fv = tmpBuf.get()[iSNP];
+			long gN = PCA_gNum[iSNP];
+			if (gN > 0)
+				fv = (double)PCA_gSum[iSNP] / gN;
+			else
+				fv = 0;
+		}
+
+		// Averaging and set missing values to ZERO
+		pp = PCA_Mat.base(); // G@ij - 2\bar{p}_l
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			vt<double, av16Align>::Sub(pp, pp, tmpBuf.get(), SNP_Cnt);
+			pp += PCA_Mat.M();
+		}
+
+		// missing values
+		p = GenoBuf; pp = PCA_Mat.base();
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			pf = pp; pp += PCA_Mat.M();
+			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+			{
+				if (*p > 2) *pf = 0;
+				p++; pf++;
+			}
+		}
+
+		// 4 * p_l * (1 - p_l) -> tmpBuf
+		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+		{
+			double &f = tmpBuf.get()[iSNP];
+			f *= 0.5;
+			f = 4 * f * (1 - f);
+		}
+	}
+
+	/// Compute the relative IBD matrix
+	static void _Do_Admix_RatioOfAvg_Compute(int ThreadIndex,
+		long Start, long SNP_Cnt, void* Param)
+	{
+		double **Ptr = (double**)Param;
+
+		// numerator
+		IdMatTri I = PCA_Thread_MatIdx[ThreadIndex];
+		PCA_Mat.MulAdd(I, PCA_Thread_MatCnt[ThreadIndex], SNP_Cnt,
+			Ptr[0] + I.Offset());
+
+		// denominator
+		I = PCA_Thread_MatIdx[ThreadIndex];
+		double *pAFreq = Ptr[1] + I.Offset();
+		for (C_Int64 L = PCA_Thread_MatCnt[ThreadIndex]; L > 0; L--)
+		{
+			C_UInt8 *p1 = &(Admix_Missing_Flag[0]) + SNP_Cnt*I.Row();
+			C_UInt8 *p2 = &(Admix_Missing_Flag[0]) + SNP_Cnt*I.Column();
+			for (long i=0; i< SNP_Cnt; i++)
+			{
+				if (p1[i] && p2[i])
+					*pAFreq += tmpBuf.get()[i];
+			}
+			pAFreq ++;
+			++ I;
+		}
+	}
+
+	/// Calculate the genetic covariace by ratio of averages (or ratio of sums)
+	void DoAdmixCalc_RatioOfAvg(CdMatTri<double> &OutIBD, bool DiagAdj,
+		int NumThread, bool verbose)
+	{
+		// initialize ...
+		const long n = OutIBD.N();  // the number of individuals
+
+		PCA_gSum.resize(BlockSNP);
+		PCA_gNum.resize(BlockSNP);
+		PCA_Mat.Reset(n, BlockSNP);
+		tmpBuf.Reset(PCA_Mat.M());
+		Admix_Missing_Flag.resize(BlockSNP * n);
+		Admix_Adj_Geno.resize(n);
+
+		memset(OutIBD.get(), 0, sizeof(double)*OutIBD.Size());
+		memset(&Admix_Adj_Geno[0], 0, sizeof(double)*n);
+
+		MCWorkingGeno.Progress.Info = "Eigen-analysis:";
+		MCWorkingGeno.Progress.Show() = verbose;
+		MCWorkingGeno.InitParam(true, true, BlockSNP);
+
+		CdMatTri<double> AFreqProd(n);
+		memset(AFreqProd.get(), 0, sizeof(double)*AFreqProd.Size());
+
+		double *Ptr[2] = { OutIBD.get(), AFreqProd.get() };
+
+		MCWorkingGeno.SplitJobs(NumThread, n, PCA_Thread_MatIdx,
+			PCA_Thread_MatCnt);
+		MCWorkingGeno.Run(NumThread, &_Do_Admix_RatioOfAvg_ReadBlock,
+			&_Do_Admix_RatioOfAvg_Compute, (void*)Ptr);
+
+		// output
+		double *p = OutIBD.get();
+		double *s = AFreqProd.get();
+		for (long i=0; i < n; i++)
+		{
+			if (DiagAdj)
+				(*p) -= Admix_Adj_Geno[i];
+			for (long j=i; j < n; j++)
+				{ *p /= *s; p++; s++; }
+		}
+	}
+
+
+	// ************************************ //
+
+	/// Convert the raw genotypes to the mean-adjusted genotypes
+	static void _Do_Admix_AvgOfRatio_ReadBlock(C_UInt8 *GenoBuf,
+		long Start, long SNP_Cnt, void* Param)
+	{
+		// init ...
+		const int n = MCWorkingGeno.Space.SampleNum();
+		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
+		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
+
+		C_UInt8 *p, *pMissing;
+		double *pf, *pp;
+
+		// calculate the averages of genotypes for each SelSNP
+		// store the values in PCA_gSum
+		p = GenoBuf;
+		pMissing = &Admix_Missing_Flag[0];
+		pp = PCA_Mat.base();
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			pf = pp; pp += PCA_Mat.M();
+			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+			{
+				if (*p < 3)
+				{
+					PCA_gSum[iSNP] += *p;
+					PCA_gNum[iSNP]++;
+					*pMissing++ = true;
+				} else {
+					*pMissing++ = false;
+				}
+				*pf++ = *p++;
+			}
+		}
+
+		// PCA_gSum = 2 * \bar{p}_l
+		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+		{
+			double &fv = tmpBuf.get()[iSNP];
+			long gN = PCA_gNum[iSNP];
+			if (gN > 0)
+				fv = (double)PCA_gSum[iSNP] / gN;
+			else
+				fv = 0;
+		}
+
+		// Averaging and set missing values to ZERO
+		pp = PCA_Mat.base(); // G@ij - 2\bar{p}_l
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			vt<double, av16Align>::Sub(pp, pp, tmpBuf.get(), SNP_Cnt);
+			pp += PCA_Mat.M();
+		}
+
+		// 1 / (2*sqrt(p@j*(1-p@j)))
+		pf = tmpBuf.get();
+		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++, pf++)
+		{
+			double scale = (*pf) * 0.5;
+			if ((0.0 < scale) && (scale < 1.0))
+				*pf = 0.5 / sqrt(scale * (1.0-scale));
+			else
+				*pf = 0;
+		}
+
+		// G * (2 - G) / (4*p*(1-p))
+		double *pAdjGeno = &Admix_Adj_Geno[0];
+		p = GenoBuf;
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			pf = tmpBuf.get();
+			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+			{
+				if (*p < 3)
+					*pAdjGeno += (*p) * (2 - *p) * (*pf) * (*pf);
+				p++; pf++;
+			}
+			pAdjGeno ++;
+		}
+
+		// (G@ij - 2p@j) / (2 * sqrt(p@j*(1-p@j)))
+		pp = PCA_Mat.base();
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			vt<double, av16Align>::Mul(pp, pp, tmpBuf.get(), SNP_Cnt);
+			pp += PCA_Mat.M();
+		}
+
+		// missing values
+		p = GenoBuf; pp = PCA_Mat.base();
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			pf = pp; pp += PCA_Mat.M();
+			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+			{
+				if (*p > 2) *pf = 0;
+				p++; pf++;
+			}
+		}
+	}
+
+	/// Compute the relative IBD matrix
+	static void _Do_Admix_AvgOfRatio_Compute(int ThreadIndex,
+		long Start, long SNP_Cnt, void* Param)
+	{
+		void **Ptr = (void**)Param;
+		double *Ptr1 = (double*)(Ptr[0]);
+
+		// numerator
+		IdMatTri I = PCA_Thread_MatIdx[ThreadIndex];
+		PCA_Mat.MulAdd(I, PCA_Thread_MatCnt[ThreadIndex], SNP_Cnt,
+			Ptr1 + I.Offset());
+
+		// denominator
+		I = PCA_Thread_MatIdx[ThreadIndex];
+		int *Ptr2 = (int*)(Ptr[1]) + I.Offset();
+		for (C_Int64 L = PCA_Thread_MatCnt[ThreadIndex]; L > 0; L--)
+		{
+			C_UInt8 *p1 = &Admix_Missing_Flag[0] + SNP_Cnt*I.Row();
+			C_UInt8 *p2 = &Admix_Missing_Flag[0] + SNP_Cnt*I.Column();
+			for (long i=0; i< SNP_Cnt; i++)
+			{
+				if ((*p1) && (*p2)) (*Ptr2) ++;
+				p1 ++; p2 ++;
+			}
+			Ptr2 ++;
+			++ I;
+		}
+	}
+
+	/// Calculate the genetic covariace by averaging ratios
+	void DoAdmixCalc_AvgOfRatios(CdMatTri<double> &OutIBD, bool DiagAdj,
+		int NumThread, bool verbose)
+	{
+		// initialize ...
+		const long n = OutIBD.N();  // the number of individuals
+
+		PCA_gSum.resize(BlockSNP);
+		PCA_gNum.resize(BlockSNP);
+		PCA_Mat.Reset(n, BlockSNP);
+		tmpBuf.Reset(PCA_Mat.M());
+		Admix_Missing_Flag.resize(BlockSNP * n);
+		Admix_Adj_Geno.resize(n);
+
+		memset(OutIBD.get(), 0, sizeof(double)*OutIBD.Size());
+		memset(&Admix_Adj_Geno[0], 0, sizeof(double)*n);
+
+		MCWorkingGeno.Progress.Info = "Eigen-analysis:";
+		MCWorkingGeno.Progress.Show() = verbose;
+		MCWorkingGeno.InitParam(true, true, BlockSNP);
+
+		CdMatTri<int> NumValid(n);
+		memset(NumValid.get(), 0, sizeof(int)*NumValid.Size());
+
+		void *Ptr[2] = { OutIBD.get(), NumValid.get() };
+
+		MCWorkingGeno.SplitJobs(NumThread, n, PCA_Thread_MatIdx,
+			PCA_Thread_MatCnt);
+		MCWorkingGeno.Run(NumThread, &_Do_Admix_AvgOfRatio_ReadBlock,
+			&_Do_Admix_AvgOfRatio_Compute, (void*)Ptr);
+
+		// output
+		double *p = OutIBD.get();
+		int *s = NumValid.get();
+		for (long i=0; i < n; i++)
+		{
+			if (DiagAdj)
+				(*p) -= Admix_Adj_Geno[i];
+			for (long j=i; j < n; j++)
+				{ *p /= *s; p++; s++; }
+		}
+	}
+
+
+	// ************************************ //
+
+	/// Convert the raw genotypes to the mean-adjusted genotypes
+	static void _Do_GRM_AvgOfRatio_ReadBlock(C_UInt8 *GenoBuf,
+		long Start, long SNP_Cnt, void* Param)
+	{
+		const static double SCALE = 1.0 / sqrt(2.0);
+
+		// init ...
+		const int n = MCWorkingGeno.Space.SampleNum();
+		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
+		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
+
+		C_UInt8 *p, *pMissing;
+		double *pf, *pp;
+
+		// calculate the averages of genotypes for each SelSNP
+		// store the values in PCA_gSum
+		p = GenoBuf;
+		pMissing = &Admix_Missing_Flag[0];
+		pp = PCA_Mat.base();
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			pf = pp; pp += PCA_Mat.M();
+			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+			{
+				if (*p < 3)
+				{
+					PCA_gSum[iSNP] += *p;
+					PCA_gNum[iSNP]++;
+					*pMissing++ = true;
+				} else {
+					*pMissing++ = false;
+				}
+				*pf++ = *p++;
+			}
+		}
+
+		// PCA_gSum = 2 * \bar{p}_l
+		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+		{
+			double &fv = tmpBuf.get()[iSNP];
+			long gN = PCA_gNum[iSNP];
+			if (gN > 0)
+				fv = (double)PCA_gSum[iSNP] / gN;
+			else
+				fv = 0;
+		}
+
+		// Averaging and set missing values to ZERO
+		pp = PCA_Mat.base(); // G@ij - 2\bar{p}_l
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			vt<double, av16Align>::Sub(pp, pp, tmpBuf.get(), SNP_Cnt);
+			pp += PCA_Mat.M();
+		}
+
+		// (1 - 2p) * (G - 2p) / (2*p*(1-p))
+		double *pAdjGeno = &Admix_Adj_Geno[0];
+		p = GenoBuf;
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			pf = tmpBuf.get();
+			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+			{
+				double scale = (*pf) * 0.5;
+				if ((0.0 < scale) && (scale < 1.0))
+					scale = 1 / (2 * scale * (1 - scale));
+				else
+					scale = 0;
+				if (*p < 3)
+					*pAdjGeno += (1 - *pf) * (*p - *pf) * scale;
+				p++; pf++;
+			}
+			pAdjGeno ++;
+		}
+
+		// 1 / (sqrt(2)*sqrt(p@j*(1-p@j)))
+		pf = tmpBuf.get();
+		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++, pf++)
+		{
+			double scale = (*pf) * 0.5;
+			if ((0.0 < scale) && (scale < 1.0))
+				*pf = SCALE / sqrt(scale * (1 - scale));
+			else
+				*pf = 0;
+		}
+
+		// (G@ij - 2p@j) / (sqrt(2) * sqrt(p@j*(1-p@j)))
+		pp = PCA_Mat.base();
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			vt<double, av16Align>::Mul(pp, pp, tmpBuf.get(), SNP_Cnt);
+			pp += PCA_Mat.M();
+		}
+
+		// missing values
+		p = GenoBuf; pp = PCA_Mat.base();
+		for (long iSample=0; iSample < n; iSample++)
+		{
+			pf = pp; pp += PCA_Mat.M();
+			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
+			{
+				if (*p > 2) *pf = 0;
+				p++; pf++;
+			}
+		}
+	}
+
+	/// Calculate the genetic relationship matrix (GRM)
+	void DoGRMCalc(CdMatTri<double> &OutIBD, int NumThread,
+		bool verbose)
+	{
+		// initialize ...
+		const long n = OutIBD.N();  // the number of individuals
+
+		PCA_gSum.resize(BlockSNP);
+		PCA_gNum.resize(BlockSNP);
+		PCA_Mat.Reset(n, BlockSNP);
+		tmpBuf.Reset(PCA_Mat.M());
+		Admix_Missing_Flag.resize(BlockSNP * n);
+		Admix_Adj_Geno.resize(n);
+
+		memset(OutIBD.get(), 0, sizeof(double)*OutIBD.Size());
+		memset(&Admix_Adj_Geno[0], 0, sizeof(double)*n);
+
+		MCWorkingGeno.Progress.Info = "GRM-analysis:";
+		MCWorkingGeno.Progress.Show() = verbose;
+		MCWorkingGeno.InitParam(true, true, BlockSNP);
+
+		CdMatTri<int> NumValid(n);
+		memset(NumValid.get(), 0, sizeof(int)*NumValid.Size());
+
+		void *Ptr[2] = { OutIBD.get(), NumValid.get() };
+
+		MCWorkingGeno.SplitJobs(NumThread, n, PCA_Thread_MatIdx,
+			PCA_Thread_MatCnt);
+		MCWorkingGeno.Run(NumThread, &_Do_GRM_AvgOfRatio_ReadBlock,
+			&_Do_Admix_AvgOfRatio_Compute, (void*)Ptr);
+
+		// output
+		double *p = OutIBD.get();
+		int *s = NumValid.get();
+		for (long i=0; i < n; i++)
+		{
+			(*p) -= Admix_Adj_Geno[i];
+			for (long j=i; j < n; j++)
+				{ *p /= *s; p++; s++; }
+		}
+	}
 }
 
-#endif  /* _FuncPCA_H_ */
+
+using namespace PCA;
+
+extern "C"
+{
+// ************************************************************************
+// the functions for Principal Component Analysis (PCA)
+// ************************************************************************
+
+/// to compute the eigenvalues and eigenvectors
+COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
+	SEXP _BayesianNormal, SEXP NeedGenMat, SEXP GenMat_Only, SEXP _Verbose)
+{
+	bool verbose = SEXP_Verbose(_Verbose);
+
+	COREARRAY_TRY
+
+		// ******** To cache the genotype data ********
+		CachingSNPData("PCA", verbose);
+
+		// ******** The calculation of genetic covariance matrix ********
+
+		// the number of samples
+		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		// set parameters
+		PCA::BayesianNormal = (LOGICAL(_BayesianNormal)[0] == TRUE);
+		PCA::AutoDetectSNPBlockSize(n);
+		// the upper-triangle genetic covariance matrix
+		CdMatTri<double> Cov(n);
+
+		// Calculate the genetic covariace
+		PCA::DoCovCalculate(Cov, INTEGER(NumThread)[0], "PCA:", verbose);
+		// Normalize
+		double TraceXTX = Cov.Trace();
+		double scale = double(n-1) / TraceXTX;
+		vt<double, av16Align>::Mul(Cov.get(), Cov.get(), scale, Cov.Size());
+
+		// ******** output ********
+
+		int nProtected = 0;
+		PROTECT(rv_ans = NEW_LIST(4));
+		nProtected ++;
+
+		SEXP tmp;
+		PROTECT(tmp = NEW_NUMERIC(1));
+		nProtected ++;
+		REAL(tmp)[0] = TraceXTX;
+		SET_ELEMENT(rv_ans, 0, tmp);
+
+		if (LOGICAL(NeedGenMat)[0] == TRUE)
+		{
+			PROTECT(tmp = allocMatrix(REALSXP, n, n));
+			nProtected ++;
+			SET_ELEMENT(rv_ans, 1, tmp);
+			Cov.SaveTo(REAL(tmp));
+		}
+
+		// ******** eigenvectors and eigenvalues ********
+
+		if (LOGICAL(GenMat_Only)[0] != TRUE)
+		{
+			const size_t NN = n;
+			vector<double> tmp_Work(NN*3);
+			vector<double> tmp_EigenVec(NN*NN);
+
+			vt<double>::Sub(Cov.get(), 0.0, Cov.get(), Cov.Size());
+			if (verbose)
+			{
+				Rprintf("PCA:\t%s\tBegin (eigenvalues and eigenvectors)\n",
+					NowDateToStr().c_str());
+			}
+
+			SEXP EigVal;
+			PROTECT(EigVal = NEW_NUMERIC(n));
+			nProtected ++;
+			SET_ELEMENT(rv_ans, 2, EigVal);
+
+			{
+				int info = 0;
+				int _n = n;
+				F77_NAME(dspev)("V", "L", &_n, Cov.get(), REAL(EigVal),
+					&tmp_EigenVec[0], &_n, &tmp_Work[0], &info);
+				if (info != 0)
+					throw "LAPACK::SPEV error!";
+			}
+
+			// output eigenvalues
+			vt<double>::Sub(REAL(EigVal), 0.0, REAL(EigVal), n);
+
+			int EigCnt = INTEGER(EigenCnt)[0];
+
+			// output eigenvectors
+			SEXP EigVect;
+			PROTECT(EigVect = allocMatrix(REALSXP, n, EigCnt));
+			nProtected ++;
+			SET_ELEMENT(rv_ans, 3, EigVect);
+
+			for (int i=0; i < EigCnt; i++)
+			{
+				memmove(REAL(EigVect) + n*i,
+					&tmp_EigenVec[0] + n*i, sizeof(double)*n);
+			}
+			if (verbose)
+			{
+				Rprintf("PCA:\t%s\tEnd (eigenvalues and eigenvectors)\n",
+					NowDateToStr().c_str());
+			}
+		}
+
+		UNPROTECT(nProtected);
+
+	COREARRAY_CATCH
+}
+
+
+/// to calculate the SNP correlations
+COREARRAY_DLL_EXPORT SEXP gnrPCACorr(SEXP LenEig, SEXP EigenVect,
+	SEXP NumThread, SEXP _Verbose)
+{
+	bool verbose = SEXP_Verbose(_Verbose);
+
+	COREARRAY_TRY
+
+		// ******** To cache the genotype data ********
+		CachingSNPData("SNP Correlation", verbose);
+
+		// ******** To compute the snp correlation ********
+		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space.SampleNum());
+
+		PROTECT(rv_ans = allocMatrix(REALSXP, INTEGER(LenEig)[0],
+			MCWorkingGeno.Space.SNPNum()));
+
+		PCA::DoSNPCoeffCalculate(INTEGER(LenEig)[0], REAL(EigenVect),
+			REAL(rv_ans), INTEGER(NumThread)[0], verbose, "SNP Correlation:");
+
+		UNPROTECT(1);
+
+	COREARRAY_CATCH
+}
+
+
+/// to calculate the SNP loadings
+COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP DimCnt,
+	SEXP EigenVect, SEXP TraceXTX, SEXP NumThread, SEXP Bayesian,
+	SEXP _Verbose)
+{
+	bool verbose = SEXP_Verbose(_Verbose);
+
+	COREARRAY_TRY
+
+		// ******** To cache the genotype data ********
+		CachingSNPData("SNP Loading", verbose);
+
+		// ******** To compute the snp correlation ********
+		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space.SampleNum());
+		PCA::BayesianNormal = (LOGICAL(Bayesian)[0] == TRUE);
+
+		PROTECT(rv_ans = NEW_LIST(3));
+
+		SEXP loading, afreq, scale;
+		PROTECT(loading = allocMatrix(REALSXP, INTEGER(DimCnt)[1],
+			MCWorkingGeno.Space.SNPNum()));
+		SET_ELEMENT(rv_ans, 0, loading);
+
+		PROTECT(afreq = NEW_NUMERIC(MCWorkingGeno.Space.SNPNum()));
+		SET_ELEMENT(rv_ans, 1, afreq);
+
+		PROTECT(scale = NEW_NUMERIC(MCWorkingGeno.Space.SNPNum()));
+		SET_ELEMENT(rv_ans, 2, scale);
+
+		PCA::GetPCAFreqScale(REAL(afreq), REAL(scale));
+		PCA::DoSNPLoadingCalculate(REAL(EigenVal), INTEGER(DimCnt)[1],
+			REAL(EigenVect), REAL(TraceXTX)[0], REAL(loading),
+			INTEGER(NumThread)[0], verbose,
+			"SNP Loading:");
+
+		UNPROTECT(4);
+
+	COREARRAY_CATCH
+}
+
+
+/// to calculate the sample loadings from SNP loadings
+COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
+	SEXP EigenCnt, SEXP SNPLoadings, SEXP TraceXTX, SEXP AveFreq, SEXP Scale,
+	SEXP NumThread, SEXP _Verbose)
+{
+	bool verbose = SEXP_Verbose(_Verbose);
+
+	COREARRAY_TRY
+
+		// ******** To cache the genotype data ********
+		CachingSNPData("Sample Loading", verbose);
+
+		PROTECT(rv_ans = allocMatrix(REALSXP,
+			MCWorkingGeno.Space.SampleNum(), INTEGER(EigenCnt)[0]));
+
+		// ******** To compute the snp correlation ********
+		PCA::DoSampLoadingCalculate(REAL(AveFreq), REAL(Scale),
+			INTEGER(EigenCnt)[0], REAL(SNPLoadings),
+			REAL(EigenVal), INTEGER(Num)[0], REAL(TraceXTX)[0],
+			REAL(rv_ans), INTEGER(NumThread)[0], "Sample Loading:",
+			verbose);
+
+		UNPROTECT(1);
+
+	COREARRAY_CATCH
+}
+
+
+// ***********************************************************************
+// the functions for eigen-analysis for admixtures
+//
+
+struct TEigPair
+{
+	double EigVal;
+	int Index;
+	TEigPair(double e, int i) { EigVal = e; Index = i; }
+};
+
+static bool _EigComp(const TEigPair &i, const TEigPair &j)
+{
+	return (fabs(i.EigVal) >= fabs(j.EigVal));
+}
+
+/// to compute the eigenvalues and eigenvectors
+COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _EigenCnt, SEXP _NumThread,
+	SEXP _NeedIBDMat, SEXP _IBDMatOnly, SEXP _Verbose)
+{
+	bool verbose = SEXP_Verbose(_Verbose);
+
+	COREARRAY_TRY
+
+		// ******** To cache the genotype data ********
+		CachingSNPData("GRM-analysis", verbose);
+
+		// ******** The calculation of genetic covariance matrix ********
+
+		// the number of samples
+		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+
+		// set internal parameters
+		PCA::AutoDetectSNPBlockSize(n);
+
+		// the upper-triangle IBD matrix
+		CdMatTri<double> IBD(n);
+
+		// Calculate the genetic covariace
+		PCA::DoGRMCalc(IBD, INTEGER(_NumThread)[0], verbose);
+
+		// ******** The calculation of eigenvectors and eigenvalues ********
+
+		int nProtected = 0;
+		SEXP EigenVal=NULL, EigenVec=NULL, IBDMat=NULL;
+
+		if (LOGICAL(_NeedIBDMat)[0] == TRUE)
+		{
+			PROTECT(IBDMat = allocMatrix(REALSXP, n, n));
+			nProtected ++;
+
+			double *base = REAL(IBDMat);
+			double *p = IBD.get();
+			for (R_xlen_t i=0; i < n; i++)
+			{
+				for (R_xlen_t j=i; j < n; j++)
+				{
+					base[i*n + j] = base[j*n + i] = *p;
+					p ++;
+				}
+			}
+		}
+
+		if (LOGICAL(_IBDMatOnly)[0] != TRUE)
+		{
+			const size_t NN = n;
+			vector<double> tmp_Work(NN*3);
+			vector<double> tmp_EigenVec(NN*NN);
+
+			vt<double>::Sub(IBD.get(), 0.0, IBD.get(), IBD.Size());
+			if (verbose)
+			{
+				Rprintf("GRM-analysis:\t%s\tBegin (eigenvalues and eigenvectors)\n",
+					NowDateToStr().c_str());
+			}
+
+			int eigencnt = INTEGER(_EigenCnt)[0];
+			if (eigencnt > n) eigencnt = n;
+
+			PROTECT(EigenVal = NEW_NUMERIC(n));
+			PROTECT(EigenVec = allocMatrix(REALSXP, n, eigencnt));
+			nProtected += 2;
+
+			{
+				int info = 0;
+				int _n = n;
+				F77_NAME(dspev)("V", "L", &_n, IBD.get(), REAL(EigenVal),
+					&tmp_EigenVec[0], &_n, &tmp_Work[0], &info);
+				if (info != 0)
+					throw "LAPACK::SPEV error!";
+			}
+
+			// sort in a decreasing order
+			vector<TEigPair> lst;
+			for (int i=0; i < n; i++)
+				lst.push_back(TEigPair(REAL(EigenVal)[i], i));
+			sort(lst.begin(), lst.end(), _EigComp);
+
+			// output eigenvalues
+			for (int i=0; i < n; i++)
+				REAL(EigenVal)[i] = - lst[i].EigVal;
+
+			// output eigenvectors
+			for (int i=0; i < eigencnt; i++)
+			{
+				double *p = &tmp_EigenVec[0] + lst[i].Index * n;
+				memmove(&(REAL(EigenVec)[i*n]), p, sizeof(double)*n);
+			}
+
+			if (verbose)
+			{
+				Rprintf("GRM-analysis:\t%s\tEnd (eigenvalues and eigenvectors)\n",
+					NowDateToStr().c_str());
+			}
+		}
+
+		PROTECT(rv_ans = NEW_LIST(3));
+		nProtected ++;
+
+		if (EigenVal != NULL)
+			SET_ELEMENT(rv_ans, 0, EigenVal);
+		if (EigenVec != NULL)
+			SET_ELEMENT(rv_ans, 1, EigenVec);
+		if (IBDMat != NULL)
+			SET_ELEMENT(rv_ans, 2, IBDMat);
+
+		SEXP tmp;
+		PROTECT(tmp = NEW_CHARACTER(3));
+		nProtected ++;
+			SET_STRING_ELT(tmp, 0, mkChar("eigenval"));
+			SET_STRING_ELT(tmp, 1, mkChar("eigenvect"));
+			SET_STRING_ELT(tmp, 2, mkChar("GRM"));
+		SET_NAMES(rv_ans, tmp);
+
+		UNPROTECT(nProtected);
+
+	COREARRAY_CATCH
+}
+
+/// to compute the eigenvalues and eigenvectors
+COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
+	SEXP _NeedIBDMat, SEXP _IBDMatOnly, SEXP _Method, SEXP _DiagAdj,
+	SEXP _Verbose)
+{
+	bool verbose = SEXP_Verbose(_Verbose);
+
+	COREARRAY_TRY
+
+		// ******** To cache the genotype data ********
+		CachingSNPData("Eigen-analysis", verbose);
+
+		// ******** The calculation of genetic covariance matrix ********
+
+		// the number of samples
+		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+
+		// set internal parameters
+		PCA::AutoDetectSNPBlockSize(n);
+
+		// the upper-triangle IBD matrix
+		CdMatTri<double> IBD(n);
+
+		// Calculate the genetic covariace
+		switch (INTEGER(_Method)[0])
+		{
+			case 1:
+				PCA::DoAdmixCalc_RatioOfAvg(IBD, LOGICAL(_DiagAdj)[0]==TRUE,
+					INTEGER(_NumThread)[0], verbose);
+				break;
+			case 2:
+				PCA::DoAdmixCalc_AvgOfRatios(IBD, LOGICAL(_DiagAdj)[0]==TRUE,
+					INTEGER(_NumThread)[0], verbose);
+				break;
+			default:
+				throw "Invalid method.";
+		}
+
+		// ******** The calculation of eigenvectors and eigenvalues ********
+
+		int nProtected = 0;
+		SEXP EigenVal=NULL, EigenVec=NULL, IBDMat=NULL;
+
+		if (LOGICAL(_NeedIBDMat)[0] == TRUE)
+		{
+			PROTECT(IBDMat = allocMatrix(REALSXP, n, n));
+			nProtected ++;
+
+			double *base = REAL(IBDMat);
+			double *p = IBD.get();
+			for (R_xlen_t i=0; i < n; i++)
+			{
+				for (R_xlen_t j=i; j < n; j++)
+				{
+					base[i*n + j] = base[j*n + i] = *p;
+					p ++;
+				}
+			}
+		}
+
+		if (LOGICAL(_IBDMatOnly)[0] != TRUE)
+		{
+			const size_t NN = n;
+			vector<double> tmp_Work(NN*3);
+			vector<double> tmp_EigenVec(NN*NN);
+
+			vt<double>::Sub(IBD.get(), 0.0, IBD.get(), IBD.Size());
+			if (verbose)
+			{
+				Rprintf("Eigen-analysis:\t%s\tBegin (eigenvalues and eigenvectors)\n",
+					NowDateToStr().c_str());
+			}
+
+			int eigencnt = INTEGER(_EigenCnt)[0];
+			if (eigencnt > n) eigencnt = n;
+
+			PROTECT(EigenVal = NEW_NUMERIC(n));
+			PROTECT(EigenVec = allocMatrix(REALSXP, n, eigencnt));
+			nProtected += 2;
+
+			{
+				int info = 0;
+				int _n = n;
+				F77_NAME(dspev)("V", "L", &_n, IBD.get(), REAL(EigenVal),
+					&tmp_EigenVec[0], &_n, &tmp_Work[0], &info);
+				if (info != 0)
+					throw "LAPACK::SPEV error!";
+			}
+
+			// sort in a decreasing order
+			vector<TEigPair> lst;
+			for (int i=0; i < n; i++)
+				lst.push_back(TEigPair(REAL(EigenVal)[i], i));
+			sort(lst.begin(), lst.end(), _EigComp);
+
+			// output eigenvalues
+			for (int i=0; i < n; i++)
+				REAL(EigenVal)[i] = - lst[i].EigVal;
+
+			// output eigenvectors
+			for (int i=0; i < eigencnt; i++)
+			{
+				double *p = &tmp_EigenVec[0] + lst[i].Index * n;
+				memmove(&(REAL(EigenVec)[i*n]), p, sizeof(double)*n);
+			}
+
+			if (verbose)
+			{
+				Rprintf("Eigen-analysis:\t%s\tEnd (eigenvalues and eigenvectors)\n",
+					NowDateToStr().c_str());
+			}
+		}
+
+		PROTECT(rv_ans = NEW_LIST(3));
+		nProtected ++;
+
+		if (EigenVal != NULL)
+			SET_ELEMENT(rv_ans, 0, EigenVal);
+		if (EigenVec != NULL)
+			SET_ELEMENT(rv_ans, 1, EigenVec);
+		if (IBDMat != NULL)
+			SET_ELEMENT(rv_ans, 2, IBDMat);
+
+		SEXP tmp;
+		PROTECT(tmp = NEW_CHARACTER(3));
+		nProtected ++;
+			SET_STRING_ELT(tmp, 0, mkChar("eigenval"));
+			SET_STRING_ELT(tmp, 1, mkChar("eigenvect"));
+			SET_STRING_ELT(tmp, 2, mkChar("ibdmat"));
+		SET_NAMES(rv_ans, tmp);
+
+		UNPROTECT(nProtected);
+
+	COREARRAY_CATCH
+}
+
+}
+
+#endif  /* _HEADER_PCA_ */

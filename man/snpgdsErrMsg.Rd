@@ -1,15 +1,19 @@
 \name{snpgdsErrMsg}
 \alias{snpgdsErrMsg}
 \title{
-	Get the last error information
+    Get the last error information
 }
 \description{
-	Return the last error message.
+    Return the last error message.
 }
 \usage{
 snpgdsErrMsg()
 }
 \author{Xiuwen Zheng}
 
-\keyword{gds}
+\examples{
+snpgdsErrMsg()
+}
+
+\keyword{GDS}
 \keyword{GWAS}

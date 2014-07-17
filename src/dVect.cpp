@@ -8,7 +8,7 @@
 //
 // dVect.cpp: Classess and functions for vectorization
 //
-// Copyright (C) 2013	Xiuwen Zheng
+// Copyright (C) 2007 - 2014	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //
@@ -28,13 +28,13 @@
 
 #include <dVect.h>
 
-#ifdef COREARRAY_VT_SIMD
+#ifdef COREARRAY_PREDEFINED_SIMD
 #include <xmmintrin.h>
 #include <emmintrin.h>
 #endif
 
 
-#ifdef COREARRAY_VT_SIMD
+#ifdef COREARRAY_PREDEFINED_SIMD
 
 // SSE intrinsics
 

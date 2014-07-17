@@ -1,28 +1,29 @@
-Changes in 0.9.20:
+Changes in 0.99.0:
 
-	* update information
+	* fully support long vectors (>= R v3.0)
+	* >5x speedup in the function 'snpgdsVCF2GDS'
+	* SNP GDS format allows character-type chromosome codes
+	* add a new argument 'ref.allele' in 'snpgdsVCF2GDS'
+	* add new functions 'snpgdsOpen' and 'snpgdsClose'
+	* add a new function 'snpgdsTranspose' to transpose the genotypic matrix
+	* add a new function 'snpgdsAlleleSwitch' to switch alleles if needed
+	* add a new function 'snpgdsUnitTest' for unit testing
+	* add a new function 'snpgdsApartSelection'
+	* add a new function 'snpgdsGEN2GDS' to import Oxford GEN data
+	* use NA instead of 3 as missing value in 'snpgdsGetGeno'
+	* add a new argument 'snpfirstdim' in the function 'snpgdsGDS2BED'
+	* add a new argument 'with.id' in the functions 'snpgdsSNPRateFreq' and 'snpgdsSampMissRate'
+	* return a numeric vector instead of data.frame in 'snpgdsLDpair'
+	* add estimating nine Jacquard's coefficients in 'snpgdsIBDMLE'
+	* fix the memory issues reported by valgrind
+	* support the LinkingTo mechanism
 
 
-Changes in 0.9.19:
+Changes in 0.9.16 - 0.9.19:
 
-	* Update unit tests
-	* improve the function 'snpgdsGDS2PED' allowing allelic coding output
-
-
-Changes in 0.9.18:
-
-	* minor fixes in 'snpgdsIBDSelection': missing IBD coefficients
-
-
-Changes in 0.9.17:
-
+	* support long vectors (>= R v3.0), allowing >4G (memory size) vectors in R
 	* avoid compiler issues when the version of R < v3.0
-	* minor fixes in 'snpgdsIBDSelection': allow non-character-type sample IDs
-
-
-Changes in 0.9.16:
-
-	* support long vectors
+	* minor fixes in 'snpgdsIBDSelection': allow non-character-type sample IDs and missing IBD coefficients
 
 
 Changes in 0.9.15:
@@ -55,16 +56,12 @@ Changes in 0.9.12:
 	* improve 'snpgdsSummary'
 
 
-Changes in 0.9.11:
+Changes in 0.9.10 - 0.9.11:
 
+	* bug fixes in 'snpgdsPairIBD'
 	* bug fix in 'snpgdsVCF2GDS': to use "\t" as the field separator character
 	* bug fixes according to gdsfmt v0.9.11
 	* improve the vignette
-
-
-Changes in 0.9.10:
-
-	* bug fixes in 'snpgdsPairIBD'
 
 
 Changes in 0.9.9:
@@ -97,15 +94,11 @@ Changes in 0.9.7:
 	* add a vignette
 
 
-Changes in 0.9.6:
-
-	* add functions to 'snpgdsIBDMLE' and 'snpgdsIBDMoM'
-	* add a new function 'snpgdsVCF2GDS'
-
-
-Changes in 0.9.1-0.9.5:
+Changes in 0.9.1-0.9.6:
 
 	* bug fixes
+	* add functions to 'snpgdsIBDMLE' and 'snpgdsIBDMoM'
+	* add a new function 'snpgdsVCF2GDS'
 
 
 0.9.0	03-Aug-2011	Xiuwen Zheng <zhengx@u.washington.edu>

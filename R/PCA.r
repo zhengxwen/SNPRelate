@@ -6,8 +6,8 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Author: Xiuwen Zheng
-# Email: zhengx@u.washington.edu
+# Copyright (C) 2011 - 2014        Xiuwen Zheng
+# Email: zhengxwen@gmail.com
 #
 
 
@@ -18,146 +18,37 @@
 #######################################################################
 # To conduct Principal Component Analysis
 #
-# INPUT:
-#   gdsobj -- an object of gds file
-#   sample.id -- a vector of sample.id; if NULL, to use all samples
-#   snp.id -- a vector of snp.id; if NULL, to use all SNPs
-#   autosome.only -- whether only use autosomal SNPs
-#   remove.monosnp -- whether remove monomorphic snps or not
-#   maf -- the threshold of minor allele frequencies, keeping ">= maf"
-#   missing.rate -- the threshold of missing rates, keeping "<= missing.rate"
-#   eigen.cnt -- the number of eigenvectors output
-#   num.thread -- the number of threads
-#   bayesian -- if TRUE, to use Bayesian adjustment
-#   need.genmat -- if TRUE, return genetic covariance matrix
-#   verbose -- show information, if TRUE
-#
 
 snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-	autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-	eigen.cnt=32, num.thread=1, bayesian=FALSE, need.genmat=FALSE, genmat.only=FALSE,
-	verbose=TRUE)
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    eigen.cnt=32, num.thread=1L, bayesian=FALSE, need.genmat=FALSE,
+    genmat.only=FALSE, verbose=TRUE)
 {
-	# check
-	stopifnot(inherits(gdsobj, "gds.class"))
-	stopifnot(is.numeric(num.thread) & (num.thread>0))
-	stopifnot(is.numeric(eigen.cnt))
-	stopifnot(is.logical(bayesian))
-	stopifnot(is.logical(need.genmat))
-	stopifnot(is.logical(genmat.only))
-	stopifnot(is.logical(verbose))
-	if (genmat.only) need.genmat <- TRUE
+    # check
+    ws <- .InitFile2(
+        cmd="Principal Component Analysis (PCA) on SNP genotypes:",
+        gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
+        autosome.only=autosome.only, remove.monosnp=remove.monosnp,
+        maf=maf, missing.rate=missing.rate, num.thread=num.thread,
+        verbose=verbose)
 
-	# samples
-	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
-	if (!is.null(sample.id))
-	{
-		n.tmp <- length(sample.id)
-		sample.id <- sample.ids %in% sample.id
-		n.samp <- sum(sample.id);
-		if (n.samp != n.tmp)
-			stop("Some of sample.id do not exist!")
-		if (n.samp <= 0)
-			stop("No sample in the working dataset.")
-		sample.ids <- sample.ids[sample.id]
-	}
+    stopifnot(is.numeric(eigen.cnt))
+    stopifnot(is.logical(bayesian))
+    stopifnot(is.logical(need.genmat))
+    stopifnot(is.logical(genmat.only))
+    if (genmat.only) need.genmat <- TRUE
+    if (eigen.cnt <= 0) eigen.cnt <- ws$n.samp
 
-	if (verbose)
-		cat("Principal Component Analysis (PCA) on SNP genotypes:\n");
+    # call parallel PCA
+    rv <- .Call(gnrPCA, as.integer(eigen.cnt), ws$num.thread,
+        bayesian, need.genmat, genmat.only, verbose)
 
-	# SNPs
-	snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
-	if (!is.null(snp.id))
-	{
-		n.tmp <- length(snp.id)
-		snp.id <- snp.ids %in% snp.id
-		n.snp <- sum(snp.id)
-		if (n.snp != n.tmp)
-			stop("Some of snp.id do not exist!")
-		if (n.snp <= 0)
-			stop("No SNP in the working dataset.")
-		if (autosome.only)
-		{
-			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			opt <- snpgdsOption(gdsobj)
-			snp.id <- snp.id & (chr %in% c(opt$autosome.start : opt$autosome.end))
-			if (verbose)
-			{
-				tmp <- n.snp - sum(snp.id)
-				if (tmp > 0) cat("Removing", tmp, "non-autosomal SNPs.\n")
-			}
-		}
-		snp.ids <- snp.ids[snp.id]
-	} else {
-		if (autosome.only)
-		{
-			chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-			opt <- snpgdsOption(gdsobj)
-			snp.id <- chr %in% c(opt$autosome.start : opt$autosome.end)
-			snp.ids <- snp.ids[snp.id]
-			if (verbose)
-				cat("Removing", length(chr) - length(snp.ids), "non-autosomal SNPs.\n")
-		}
-	}
-
-	# call C codes
-	# set genotype working space
-	node <- .C("gnrSetGenoSpace", as.integer(index.gdsn(gdsobj, "genotype")),
-		as.logical(sample.id), as.logical(!is.null(sample.id)),
-		as.logical(snp.id), as.logical(!is.null(snp.id)),
-		n.snp=integer(1), n.samp=integer(1),
-		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (node$err != 0) stop(snpgdsErrMsg())
-
-	if (eigen.cnt <= 0) eigen.cnt <- node$n.samp
-
-	# call allele freq. and missing rates
-	if (remove.monosnp || is.finite(maf) || is.finite(missing.rate))
-	{
-		if (!is.finite(maf)) maf <- -1;
-		if (!is.finite(missing.rate)) missing.rate <- 2;
-		# call
-		rv <- .C("gnrSelSNP_Base", as.logical(remove.monosnp),
-			as.double(maf), as.double(missing.rate),
-			out.num=integer(1), out.snpflag = logical(node$n.snp),
-			err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-		if (rv$err != 0) stop(snpgdsErrMsg())
-		snp.ids <- snp.ids[rv$out.snpflag]
-		# show
-		if (verbose)
-			cat("Removing", rv$out.num, "SNPs (monomorphic, < MAF, or > missing rate)\n")
-	}
-
-	# get the dimension of SNP genotypes
-	node <- .C("gnrGetGenoDim", n.snp=integer(1), n.samp=integer(1),
-		NAOK=TRUE, PACKAGE="SNPRelate")
-
-	if (verbose)
-	{
-		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		if (num.thread <= 1)
-			cat("\tUsing", num.thread, "CPU core.\n")
-		else
-			cat("\tUsing", num.thread, "CPU cores.\n")
-	}
-
-	# call parallel PCA
-	rv <- .C("gnrPCA", as.integer(eigen.cnt), as.integer(num.thread),
-		as.logical(bayesian), as.logical(need.genmat), as.logical(genmat.only),
-		as.logical(verbose), TRUE, eigenval = double(node$n.samp),
-		eigenvect = matrix(NaN, nrow=node$n.samp, ncol=eigen.cnt),
-		TraceXTX = double(1),
-		genmat = switch(as.integer(need.genmat)+1, double(0),
-			matrix(NaN, nrow=node$n.samp, ncol=node$n.samp)),
-		err = integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (rv$err != 0) stop(snpgdsErrMsg())
-
-	# return
-	rv <- list(sample.id = sample.ids, snp.id = snp.ids,
-		eigenval = rv$eigenval, eigenvect = rv$eigenvect, TraceXTX = rv$TraceXTX,
-		Bayesian = bayesian, genmat = rv$genmat)
-	class(rv) <- "snpgdsPCAClass"
-	return(rv)
+    # return
+    rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
+        eigenval = rv[[3]], eigenvect = rv[[4]],
+        TraceXTX = rv[[1]], Bayesian = bayesian, genmat = rv[[2]])
+    class(rv) <- "snpgdsPCAClass"
+    return(rv)
 }
 
 
@@ -165,77 +56,47 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #######################################################################
 # To calculate SNP correlations from principal component analysis
 #
-# INPUT:
-#   pcaobj -- a "snpgdsPCAClass" object from the function "snpgds.pca"
-#   gdsobj -- an object of gds file
-#   snp.id -- a vector of snp.id; if NULL, to use all SNPs
-#   eig.which -- specify which eigenvectors to be used
-#   num.thread -- the number of threads
-#   verbose -- show information
-#
 
 snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
-	num.thread=1, verbose=TRUE)
+    num.thread=1L, verbose=TRUE)
 {
-	# check
-	stopifnot(inherits(pcaobj, "snpgdsPCAClass"))
-	stopifnot(inherits(gdsobj, "gds.class"))
-	stopifnot(is.numeric(num.thread) & (num.thread>0))
-	stopifnot(is.logical(verbose))
+    # check
+    stopifnot(inherits(pcaobj, "snpgdsPCAClass"))
+    ws <- .InitFile(gdsobj, sample.id=pcaobj$sample.id, snp.id=snp.id)
 
-	# samples
-	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
-	sample.id <- sample.ids %in% pcaobj$sample.id
-	sample.ids <- pcaobj$sample.id
+    snp.id <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+    if (!is.null(ws$snp.flag))
+        snp.id <- snp.id[ws$snp.flag]
 
-	# SNPs
-	snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
-	if (!is.null(snp.id))
-	{
-		n.tmp <- length(snp.id)
-		snp.id <- snp.ids %in% snp.id
-		n.snp <- sum(snp.id)
-		if (n.snp != n.tmp)
-			stop("Some of snp.id do not exist!")
-		if (n.snp <= 0)
-			stop("No SNP in the working dataset.")
-		snp.ids <- snp.ids[snp.id]
-	}
+    stopifnot(is.numeric(num.thread) & (num.thread>0))
+    stopifnot(is.logical(verbose))
 
-	if (is.null(eig.which))
-		eig.which <- 1:dim(pcaobj$eigenvect)[2]
+    if (is.null(eig.which))
+    {
+        eig.which <- 1:dim(pcaobj$eigenvect)[2]
+    } else {
+        stopifnot(is.vector(eig.which))
+        stopifnot(is.numeric(eig.which))
+        eig.which <- as.integer(eig.which)
+    }
 
-	# call C codes
-	# set genotype working space
-	node <- .C("gnrSetGenoSpace", as.integer(index.gdsn(gdsobj, "genotype")),
-		as.integer(sample.id), as.integer(!is.null(sample.id)),
-		as.integer(snp.id), as.integer(!is.null(snp.id)),
-		n.snp=integer(1), n.samp=integer(1),
-		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (node$err != 0) stop(snpgdsErrMsg())
+    if (verbose)
+    {
+        cat("SNP correlations:\n")
+        cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
+        if (num.thread <= 1)
+            cat("\tUsing", num.thread, "CPU core.\n")
+        else
+            cat("\tUsing", num.thread, "CPU cores.\n")
+        cat("\tUsing the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
+    }
 
-	if (verbose)
-	{
-		cat("SNP correlations:\n")
-		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		if (num.thread <= 1)
-			cat("\tUsing", num.thread, "CPU core.\n")
-		else
-			cat("\tUsing", num.thread, "CPU cores.\n")
-		cat("\tUsing the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
-	}
+    # call C function
+    rv <- .Call(gnrPCACorr, length(eig.which), pcaobj$eigenvect[,eig.which],
+        as.integer(num.thread), verbose)
 
-	# call parallel PCA
-	dm <- as.integer(c(dim(pcaobj$eigenvect)[1], length(eig.which)))
-	rv <- .C("gnrPCACorr", dm, pcaobj$eigenvect[, eig.which],
-		as.integer(num.thread), verbose, TRUE,
-		snpcorr = matrix(NaN, nrow=length(eig.which), ncol=node$n.snp),
-		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (rv$err != 0) stop(snpgdsErrMsg())
-
-	# return
-	rv <- list(sample.id=sample.ids, snp.id=snp.ids, snpcorr=rv$snpcorr)
-	return(rv)
+    # return
+    list(sample.id=pcaobj$sample.id, snp.id=snp.id, snpcorr=rv)
 }
 
 
@@ -243,140 +104,265 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
 #######################################################################
 # To calculate SNP loadings from principal component analysis
 #
-# INPUT:
-#   pcaobj -- a "snpgdsPCAClass" object from the function "snpgds.pca"
-#   gdsobj -- an object of gds file
-#   num.thread -- the number of threads
-#   verbose -- show information
-#
 
-snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1, verbose=TRUE)
+snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
 {
-	# check
-	stopifnot(inherits(pcaobj, "snpgdsPCAClass"))
-	stopifnot(inherits(gdsobj, "gds.class"))
-	stopifnot(is.numeric(num.thread) & (num.thread>0))
-	stopifnot(is.logical(verbose))
+    # check
+    stopifnot(inherits(pcaobj, "snpgdsPCAClass"))
+    ws <- .InitFile(gdsobj, sample.id=pcaobj$sample.id, snp.id=pcaobj$snp.id)
+    stopifnot(is.numeric(num.thread) & (num.thread>0))
+    stopifnot(is.logical(verbose))
 
-	# samples
-	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
-	sample.id <- sample.ids %in% pcaobj$sample.id
-	sample.ids <- pcaobj$sample.id
+    if (verbose)
+    {
+        cat("SNP loading:\n")
+        cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
+        if (num.thread <= 1)
+            cat("\tUsing", num.thread, "CPU core.\n")
+        else
+            cat("\tUsing", num.thread, "CPU cores.\n")
+        cat("\tUsing the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
+    }
 
-	# SNPs
-	snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
-	snp.id <- snp.ids %in% pcaobj$snp.id
-	snp.ids <- pcaobj$snp.id
+    # call parallel PCA
+    rv <- .Call(gnrPCASNPLoading, pcaobj$eigenval, dim(pcaobj$eigenvect),
+        pcaobj$eigenvect, pcaobj$TraceXTX, as.integer(num.thread),
+        pcaobj$Bayesian, verbose)
 
-	# call C codes
-	# set genotype working space
-	node <- .C("gnrSetGenoSpace", as.integer(index.gdsn(gdsobj, "genotype")),
-		as.integer(sample.id), as.integer(!is.null(sample.id)),
-		as.integer(snp.id), as.integer(!is.null(snp.id)),
-		n.snp=integer(1), n.samp=integer(1),
-		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (node$err != 0) stop(snpgdsErrMsg())
-
-	if (verbose)
-	{
-		cat("SNP loadings:\n")
-		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		if (num.thread <= 1)
-			cat("\tUsing", num.thread, "CPU core.\n")
-		else
-			cat("\tUsing", num.thread, "CPU cores.\n")
-		cat("\tUsing the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
-	}
-
-	# call parallel PCA
-	rv <- .C("gnrPCASNPLoading", pcaobj$eigenval, dim(pcaobj$eigenvect),
-		pcaobj$eigenvect, pcaobj$TraceXTX, as.integer(num.thread),
-		pcaobj$Bayesian, verbose, TRUE,
-		snploading = matrix(NaN, nrow=dim(pcaobj$eigenvect)[2], ncol=node$n.snp),
-		afreq=double(node$n.snp), scale=double(node$n.snp),
-		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (rv$err != 0) stop(snpgdsErrMsg())
-
-	# return
-	rv <- list(sample.id=sample.ids, snp.id=snp.ids, eigenval=pcaobj$eigenval,
-		snploading=rv$snploading, TraceXTX=pcaobj$TraceXTX,
-		Bayesian=pcaobj$Bayesian, avefreq=rv$afreq, scale=rv$scale)
-	class(rv) <- "snpgdsPCASNPLoadingClass"
-	return(rv)
+    # return
+    rv <- list(sample.id=pcaobj$sample.id, snp.id=pcaobj$snp.id,
+        eigenval=pcaobj$eigenval, snploading=rv[[1]],
+        TraceXTX=pcaobj$TraceXTX, Bayesian=pcaobj$Bayesian,
+        avefreq=rv[[2]], scale=rv[[3]])
+    class(rv) <- "snpgdsPCASNPLoadingClass"
+    return(rv)
 }
 
 
 
 #######################################################################
-# To calculate sample loadings from SNP loadings in principal component analysis
-#
-# INPUT:
-#   loadobj -- a "snpgdsPCASNPLoading" object from the function "snpgds.pca"
-#   gdsobj -- an object of gds file
-#   sample.id -- a vector of sample.id; if NULL, to use all samples
-#   num.thread -- the number of threads
-#   verbose -- show information
+# To calculate sample loadings from SNP loadings in PCA
 #
 
 snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
-	num.thread=1, verbose=TRUE)
+    num.thread=1L, verbose=TRUE)
 {
-	# check
-	stopifnot(inherits(loadobj, "snpgdsPCASNPLoadingClass"))
-	stopifnot(inherits(gdsobj, "gds.class"))
-	stopifnot(is.numeric(num.thread) & (num.thread>0))
-	stopifnot(is.logical(verbose))
+    # check
+    stopifnot(inherits(loadobj, "snpgdsPCASNPLoadingClass"))
 
-	# samples
-	sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
-	if (!is.null(sample.id))
-	{
-		sample.id <- sample.ids %in% sample.id
-		n.samp <- sum(sample.id);
-		if (n.samp <= 0)
-			stop("No sample in the working dataset.")
-		sample.ids <- sample.ids[sample.id]
-	}
+    ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=loadobj$snp.id)
 
-	# SNPs
-	snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
-	snp.id <- snp.ids %in% loadobj$snp.id
-	snp.ids <- loadobj$snp.id
+    sample.id <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
+    if (!is.null(ws$samp.flag))
+        sample.id <- sample.id[ws$samp.flag]
 
-	# call C codes
-	# set genotype working space
-	node <- .C("gnrSetGenoSpace", as.integer(index.gdsn(gdsobj, "genotype")),
-		as.integer(sample.id), as.integer(!is.null(sample.id)),
-		as.integer(snp.id), as.integer(!is.null(snp.id)),
-		n.snp=integer(1), n.samp=integer(1),
-		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (node$err != 0) stop(snpgdsErrMsg())
+    stopifnot(is.numeric(num.thread) & (num.thread>0))
+    stopifnot(is.logical(verbose))
 
-	eigcnt <- dim(loadobj$snploading)[1]
-	if (verbose)
-	{
-		cat("Sample loadings:\n")
-		cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-		if (num.thread <= 1)
-			cat("\tUsing", num.thread, "CPU core.\n")
-		else
-			cat("\tUsing", num.thread, "CPU cores.\n")
-		cat("\tUsing the top", eigcnt, "eigenvectors.\n")
-	}
+    eigcnt <- dim(loadobj$snploading)[1]
+    if (verbose)
+    {
+        cat("Sample loading:\n")
+        cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
+        if (num.thread <= 1)
+            cat("\tUsing", num.thread, "CPU core.\n")
+        else
+            cat("\tUsing", num.thread, "CPU cores.\n")
+        cat("\tUsing the top", eigcnt, "eigenvectors.\n")
+    }
 
-	# call parallel PCA
-	rv <- .C("gnrPCASampLoading", length(loadobj$sample.id), loadobj$eigenval,
-		eigcnt, as.double(loadobj$snploading), loadobj$TraceXTX,
-		loadobj$avefreq, loadobj$scale, as.integer(num.thread), verbose, TRUE,
-		eigenvect = matrix(NaN, nrow=node$n.samp, ncol=eigcnt),
-		err=integer(1), NAOK=TRUE, PACKAGE="SNPRelate")
-	if (rv$err != 0) stop(snpgdsErrMsg())
+    # call C function
+    rv <- .Call(gnrPCASampLoading, length(loadobj$sample.id),
+        loadobj$eigenval, eigcnt, loadobj$snploading, loadobj$TraceXTX,
+        loadobj$avefreq, loadobj$scale, as.integer(num.thread), verbose)
 
-	# return
-	rv <- list(sample.id = sample.ids, snp.id = loadobj$snp.ids,
-		eigenval = loadobj$eigenval, eigenvect = rv$eigenvect,
-		TraceXTX = loadobj$TraceXTX,
-		Bayesian = loadobj$Bayesian, genmat = NULL)
-	class(rv) <- "snpgdsPCAClass"
-	return(rv)
+    # return
+    rv <- list(sample.id = sample.id, snp.id = loadobj$snp.id,
+        eigenval = loadobj$eigenval, eigenvect = rv,
+        TraceXTX = loadobj$TraceXTX,
+        Bayesian = loadobj$Bayesian, genmat = NULL)
+    class(rv) <- "snpgdsPCAClass"
+    return(rv)
+}
+
+
+
+#######################################################################
+# Eigen-Analysis on the genetic relationship matrix (GRM)
+#
+
+snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    num.thread=1L, eigen.cnt=32, need.GRM=FALSE, GRM.only=FALSE,
+    verbose=TRUE)
+{
+    # check and initialize ...
+    ws <- .InitFile2(cmd="Genetic Relationship Matrix (GRM):",
+        gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
+        autosome.only=autosome.only, remove.monosnp=remove.monosnp,
+        maf=maf, missing.rate=missing.rate, num.thread=num.thread,
+        verbose=verbose)
+
+    stopifnot(is.numeric(eigen.cnt) & is.vector(eigen.cnt))
+    stopifnot(length(eigen.cnt) == 1)
+    eigen.cnt <- as.integer(eigen.cnt)
+    if (eigen.cnt < 1)
+        eigen.cnt <- as.integer(ws$n.samp)
+
+    stopifnot(is.logical(need.GRM) & is.vector(need.GRM))
+    stopifnot(length(need.GRM) == 1)
+
+    stopifnot(is.logical(GRM.only) & is.vector(GRM.only))
+    stopifnot(length(GRM.only) == 1)
+
+    # call GRM C function
+    rv <- .Call(gnrGRM, eigen.cnt, ws$num.thread, need.GRM,
+        GRM.only, verbose)
+
+    # return
+    rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
+        eigenval = rv$eigenval, eigenvect = rv$eigenvect,
+        GRM = rv$GRM)
+    class(rv) <- "snpgdsGRMClass"
+    return(rv)
+}
+
+
+
+#######################################################################
+# Eigen-Analysis on SNP genotypes
+#
+
+snpgdsEIGMIX <- function(gdsobj, sample.id=NULL, snp.id=NULL,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    num.thread=1L, eigen.cnt=32, need.ibdmat=FALSE, ibdmat.only=FALSE,
+    method=c("Coancestry", "GRM"), verbose=TRUE)
+{
+    # check and initialize ...
+    ws <- .InitFile2(cmd="Eigen-analysis on SNP genotypes:",
+        gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
+        autosome.only=autosome.only, remove.monosnp=remove.monosnp,
+        maf=maf, missing.rate=missing.rate, num.thread=num.thread,
+        verbose=verbose)
+
+    stopifnot(is.numeric(eigen.cnt) & is.vector(eigen.cnt))
+    stopifnot(length(eigen.cnt) == 1)
+    eigen.cnt <- as.integer(eigen.cnt)
+    if (eigen.cnt < 1)
+        eigen.cnt <- as.integer(ws$n.samp)
+
+    stopifnot(is.logical(need.ibdmat) & is.vector(need.ibdmat))
+    stopifnot(length(need.ibdmat) == 1)
+
+    stopifnot(is.logical(ibdmat.only) & is.vector(ibdmat.only))
+    stopifnot(length(ibdmat.only) == 1)
+
+    method <- match.arg(method)
+    diag.adjustment <- (method == "Coancestry")
+
+    in.method <- c("RatioOfAverages", "AverageOfRatios")
+    in.method <- as.character(in.method)[1]
+    in.method <- match(in.method, c("RatioOfAverages", "AverageOfRatios"))
+
+
+    #########################################################
+    # call eigen-analysis
+
+    rv <- .Call(gnrEIGMIX, eigen.cnt, ws$num.thread, need.ibdmat,
+        ibdmat.only, in.method, diag.adjustment, verbose)
+
+    # return
+    rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
+        eigenval = rv$eigenval, eigenvect = rv$eigenvect,
+        ibdmat = rv$ibdmat)
+    class(rv) <- "snpgdsEigMixClass"
+    return(rv)
+}
+
+
+
+#######################################################################
+# Admixture proportion from eigen-analysis
+#
+
+snpgdsAdmixProp <- function(eigobj, groups, bound=FALSE)
+{
+    # check
+    stopifnot( inherits(eigobj, "snpgdsEigMixClass") |
+        inherits(eigobj, "snpgdsPCAClass") )
+    # 'sample.id' and 'eigenvect' should exist
+    stopifnot(!is.null(eigobj$sample.id))
+    stopifnot(is.matrix(eigobj$eigenvect))
+
+    stopifnot(is.list(groups))
+    stopifnot(length(groups) > 1)
+    if (length(groups) > (ncol(eigobj$eigenvect)+1))
+    {
+        stop("`eigobj' should have more eigenvectors than ",
+            "what is specified in `groups'.")
+    }
+
+    grlist <- NULL
+    for (i in 1:length(groups))
+    {
+        if (!is.vector(groups[[i]]) & !is.factor(groups[[i]]))
+        {
+            stop(
+                "`groups' should be a list of sample IDs ",
+                "with respect to multiple groups."
+            )
+        }
+        if (any(!(groups[[i]] %in% eigobj$sample.id)))
+        {
+            stop(sprintf(
+                "`groups[[%d]]' includes sample(s) not existing ",
+                "in `eigobj$sample.id'.", i))
+        }
+
+        if (any(groups[[i]] %in% grlist))
+            warning("There are some overlapping between group sample IDs.")
+        grlist <- c(grlist, groups[[i]])
+    }
+
+    stopifnot(is.logical(bound) & is.vector(bound))
+    stopifnot(length(bound) == 1)
+
+    # calculate ...
+
+    E <- eigobj$eigenvect[, 1:(length(groups)-1)]
+    if (is.vector(E)) E <- matrix(E, ncol=1)
+    mat <- NULL
+    for (i in 1:length(groups))
+    {
+        k <- match(groups[[i]], eigobj$sample.id)
+        Ek <- E[k, ]
+        if (is.vector(Ek))
+            mat <- rbind(mat, mean(Ek))
+        else
+            mat <- rbind(mat, colMeans(Ek))
+    }
+
+    # check
+    if (any(is.na(mat)))
+        stop("The eigenvectors should not have missing value!")
+
+    T.P <- mat[length(groups), ]
+    T.R <- solve(mat[-length(groups), ] -
+        matrix(T.P, nrow=length(T.P), ncol=length(T.P), byrow=TRUE))
+
+    new.p <- (E - matrix(T.P, nrow=dim(E)[1], ncol=length(T.P),
+        byrow=TRUE)) %*% T.R
+    new.p <- cbind(new.p, 1 - rowSums(new.p))
+    colnames(new.p) <- names(groups)
+    rownames(new.p) <- eigobj$sample.id
+
+    # whether bounded
+    if (bound)
+    {
+        new.p[new.p < 0] <- 0
+        r <- 1.0 / rowSums(new.p)
+        new.p <- new.p * r
+    }
+
+    new.p
 }

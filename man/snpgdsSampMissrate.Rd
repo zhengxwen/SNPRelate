@@ -1,37 +1,41 @@
-\name{snpgdsSampMissrate}
-\alias{snpgdsSampMissrate}
+\name{snpgdsSampMissRate}
+\alias{snpgdsSampMissRate}
 \title{
-	Missing Rate of Samples
+    Missing Rate of Samples
 }
 \description{
-	Return the missing fraction for each sample
+    Return the missing fraction for each sample
 }
 \usage{
-snpgdsSampMissrate(gdsobj, sample.id=NULL, snp.id=NULL)
+snpgdsSampMissRate(gdsobj, sample.id=NULL, snp.id=NULL, with.id=FALSE)
 }
 \arguments{
-	\item{gdsobj}{a GDS file object (\code{\link[gdsfmt]{gds.class}})}
-	\item{sample.id}{a vector of sample id specifying selected samples; if NULL, all samples are used}
-	\item{snp.id}{a vector of snp id specifying selected SNPs; if NULL, all SNPs are used}
+    \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
+        a SNP GDS file}
+    \item{sample.id}{a vector of sample id specifying selected samples;
+        if \code{NULL}, all samples will be used}
+    \item{snp.id}{a vector of snp id specifying selected SNPs;
+        if \code{NULL}, all SNPs will be used}
+    \item{with.id}{if \code{TRUE}, the returned value with sample id}
 }
 \value{
-	a vector of numeric values
+    A vector of numeric values.
 }
 \author{Xiuwen Zheng}
 \seealso{
-	\code{\link{snpgdsSNPRateFreq}}
+    \code{\link{snpgdsSNPRateFreq}}
 }
 
 \examples{
 # open an example dataset (HapMap)
-genofile <- openfn.gds(snpgdsExampleFileName())
+genofile <- snpgdsOpen(snpgdsExampleFileName())
 
-RV <- snpgdsSampMissrate(genofile)
+RV <- snpgdsSampMissRate(genofile)
 summary(RV)
 
 # close the genotype file
-closefn.gds(genofile)
+snpgdsClose(genofile)
 }
 
-\keyword{gds}
+\keyword{GDS}
 \keyword{GWAS}

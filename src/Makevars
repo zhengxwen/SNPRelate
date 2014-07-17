@@ -1,9 +1,9 @@
 ##################################################################
-###                     CoreArray Codes                        ###
+###                     SNPRelate Codes                        ###
 ###                                                            ###
 
 # additional preprocessor options
-PKG_CPPFLAGS = -I. -DCOREARRAY_NO_FORCEINLINE -DCOREARRAY_R_LINK
+PKG_CPPFLAGS = -DUSING_R -I.
 
 # to set flags for the linker
 PKG_LIBS = $(FLIBS) $(BLAS_LIBS) $(LAPACK_LIBS)
