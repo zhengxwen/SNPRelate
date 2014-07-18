@@ -10,6 +10,9 @@ Version: 0.99.0
 
 Genome-wide association studies are widely used to investigate the genetic basis of diseases and traits, but they pose many computational challenges. We developed SNPRelate (R package for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations on SNP data: principal component analysis (PCA) and relatedness analysis using identity-by-descent measures. The kernels of our algorithms are written in C/C++ and highly optimized.
 
+## Wiki
+[Wiki Page](https://github.com/zhengxwen/SNPRelate/wiki)
+
 ## News in v0.99.0
 
 	* fully support long vectors (>= R v3.0)
