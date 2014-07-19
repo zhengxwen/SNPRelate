@@ -22,7 +22,6 @@ Genome-wide association studies are widely used to investigate the genetic basis
 	* add new functions 'snpgdsOpen' and 'snpgdsClose'
 	* add a new function 'snpgdsTranspose' to transpose the genotypic matrix
 	* add a new function 'snpgdsAlleleSwitch' to switch alleles if needed
-	* add a new function 'snpgdsUnitTest' for unit testing
 	* add a new function 'snpgdsApartSelection'
 	* add a new function 'snpgdsGEN2GDS' to import Oxford GEN data
 	* use NA instead of 3 as missing value in 'snpgdsGetGeno'
