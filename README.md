@@ -51,16 +51,16 @@ BiocInstaller::useDevel()
 biocLite("SNPRelate")
 ```
 
-* Install the packages (gdsfmt and SNPRelate) from the source code (v0.9.20):
+* Install the packages (gdsfmt and SNPRelate) from the source code (v0.99.0):
 [gdsfmt](https://codeload.github.com/zhengxwen/gdsfmt/tar.gz/v1.0.5)
 and
-[SNPRelate](https://codeload.github.com/zhengxwen/SNPRelate/tar.gz/v0.9.20)
+[SNPRelate](https://codeload.github.com/zhengxwen/SNPRelate/tar.gz/v0.99.0)
 ```
 wget https://codeload.github.com/zhengxwen/gdsfmt/tar.gz/v1.0.5 -O gdsfmt_1.0.5.tar.gz
-wget https://codeload.github.com/zhengxwen/SNPRelate/tar.gz/v0.9.20 -O SNPRelate_0.9.20.tar.gz
+wget https://codeload.github.com/zhengxwen/SNPRelate/tar.gz/v0.9.20 -O SNPRelate_0.99.0.tar.gz
 ** Or **
 curl https://codeload.github.com/zhengxwen/gdsfmt/tar.gz/v1.0.5 -o gdsfmt_1.0.5.tar.gz
-curl https://codeload.github.com/zhengxwen/SNPRelate/tar.gz/v0.9.20 -o SNPRelate_0.9.20.tar.gz
+curl https://codeload.github.com/zhengxwen/SNPRelate/tar.gz/v0.9.20 -o SNPRelate_0.99.0.tar.gz
 
 ** Install **
 R CMD INSTALL gdsfmt_1.0.5.tar.gz
