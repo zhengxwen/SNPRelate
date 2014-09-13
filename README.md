@@ -1,7 +1,7 @@
 SNPRelate: Parallel computing toolset for relatedness and principal component analysis of SNP data
 ===
 
-Version: 0.99.0
+Version: 0.99.1
 
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 
@@ -13,7 +13,7 @@ Genome-wide association studies are widely used to investigate the genetic basis
 ## Wiki
 [Wiki Page](https://github.com/zhengxwen/SNPRelate/wiki)
 
-## News in v0.99.0
+## News in Bioconductor version:
 
 	* fully support long vectors (>= R v3.0)
 	* >5x speedup in the function 'snpgdsVCF2GDS'
@@ -34,15 +34,7 @@ Genome-wide association studies are widely used to investigate the genetic basis
 
 ## Installation
 
-* Development version from Github (v0.99.0):
-```
-library("devtools")
-install_github("zhengxwen/gdsfmt")
-install_github("zhengxwen/SNPRelate")
-```
-The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the R FAQ for your operating system; you may also need to install dependencies manually.
-
-* Bioconductor extra repository (v0.9.19):
+* Bioconductor repository:
 ```
 source("http://bioconductor.org/biocLite.R")
 library(BiocInstaller)
@@ -50,6 +42,14 @@ BiocInstaller::useDevel()
 
 biocLite("SNPRelate")
 ```
+
+* Development version from Github (v0.99.1):
+```
+library("devtools")
+install_github("zhengxwen/gdsfmt")
+install_github("zhengxwen/SNPRelate")
+```
+The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the R FAQ for your operating system; you may also need to install dependencies manually.
 
 * Install the packages (gdsfmt and SNPRelate) from the source code (v0.99.0):
 [gdsfmt](https://codeload.github.com/zhengxwen/gdsfmt/tar.gz/v1.0.5)
