@@ -1,0 +1,23 @@
+# Export all names
+useDynLib(SNPRelate,
+    gnrChromParseNumeric, gnrChromRangeNumeric, gnrSNPRateFreq,
+    gnrSampFreq, gnrIndInbCoef, gnrSNPFreq, gnrIndInb, gnrCopyGenoMem,
+    gnrCopyGeno, gnrStrandSwitch, gnrChromParse, gnrErrMsg, gnrInit,
+    gnrSetGenoSpace, gnrSelSNP_Base, gnrSelSNP_Base_Ex, gnrGetGenoDim,
+    gnrDistPerm, gnrAlleleStrand, gnrAppendGenoSpaceStrand,
+    gnrConvGDS2BED, gnrBEDFlag, gnrConvBED2GDS, gnr_Init_Parse_VCF4,
+    gnr_Parse_VCF4, gnr_Parse_GEN, gnrConvGDS2PED, gnrConvGDS2EIGEN,
+    gnrIBD_PLINK, gnrIBD_MLE, gnrIBD_MLE_Jacquard, gnrIBD_LogLik_k01,
+    gnrIBD_LogLik, gnrPairIBD, gnrPairIBDLogLik, gnrIBD_KING_Homo,
+    gnrIBD_KING_Robust, gnrDiss, gnrIBDSelSampID_List1, gnrIBDSelSampID_List2,
+    gnrIBSAve, gnrIBSNum, gnrLDpair, gnrLDMat, gnrLDpruning, gnrPCA,
+    gnrPCACorr, gnrPCASNPLoading, gnrPCASampLoading, gnrGRM, gnrEIGMIX
+)
+
+# Export all names
+exportPattern("^snpgds*")
+export(.onAttach)
+
+# Import all packages listed as Imports or Depends
+import(gdsfmt)
+import(parallel)

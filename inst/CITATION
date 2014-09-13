@@ -1,0 +1,20 @@
+citHeader("To cite SNPRelate in publications use:")
+
+citEntry(entry="Article",
+    title = "A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data",
+    author = personList(as.person("Xiuwen Zheng"), as.person("David Levine"),
+        as.person("Jess Shen"), as.person("Stephanie M. Gogarten"),
+        as.person("Cathy Laurie"), as.person("Bruce S. Weir")),
+    journal = "Bioinformatics",
+    year = "2012",
+    doi = "10.1093/bioinformatics/bts606",
+    volume = "28",
+    number = "24",
+    pages = "3326-3328",
+    url = "http://bioinformatics.oxfordjournals.org/content/early/2012/10/11/bioinformatics.bts606.abstract",
+
+    textVersion =
+        paste("Xiuwen Zheng, David Levine, Jess Shen, Stephanie M. Gogarten, Cathy Laurie, Bruce S. Weir.",
+            "A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data.",
+            "Bioinformatics 2012; doi: 10.1093/bioinformatics/bts606")
+)

@@ -1,0 +1,31 @@
+Package: SNPRelate
+Type: Package
+Title: Parallel computing toolset for relatedness and principal
+        component analysis of SNP data
+Version: 0.99.1
+Date: 2014-06-25
+Depends: R (>= 2.14), gdsfmt (>= 1.0.4)
+LinkingTo: gdsfmt
+Imports: parallel
+Suggests: RUnit, lattice, BiocGenerics
+Author: Xiuwen Zheng, Stephanie M. Gogarten
+Maintainer: Xiuwen Zheng <zhengx@u.washington.edu>
+Description: Genome-wide association studies (GWAS) are widely used to
+        investigate the genetic basis of diseases and traits, but they
+        pose many computational challenges. We developed an R package
+        SNPRelate to provide a binary format for single-nucleotide
+        polymorphism (SNP) data in GWAS utilizing CoreArray Genomic
+        Data Structure (GDS) data files. The GDS format offers the
+        efficient operations specifically designed for integers with
+        two bits, since a SNP could occupy only two bits. SNPRelate is
+        also designed to accelerate two key computations on SNP data
+        using parallel computing for multi-core symmetric
+        multiprocessing computer architectures: Principal Component
+        Analysis (PCA) and relatedness analysis using
+        Identity-By-Descent measures. The SNP format in this package is
+        also being used by the GWASTools package with the support of S4
+        classes and generic functions.
+License: GPL-3
+URL: http://github.com/zhengxwen/SNPRelate,
+        http://corearray.sourceforge.net/tutorials/SNPRelate/
+biocViews: Infrastructure, StatisticalMethod, Genetics
