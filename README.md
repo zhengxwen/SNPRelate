@@ -2,7 +2,6 @@ SNPRelate: Parallel computing toolset for relatedness and principal component an
 ===
 
 Version: 0.99.1
-=======
 
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 
