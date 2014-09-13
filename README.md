@@ -1,7 +1,11 @@
 SNPRelate: Parallel computing toolset for relatedness and principal component analysis of SNP data
 ===
 
+<<<<<<< HEAD
 Version: 0.99.1
+=======
+Version: 0.99.0 **(We are moving SNPRelate from CRAN to Bioconductor!)**
+>>>>>>> FETCH_HEAD
 
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 
