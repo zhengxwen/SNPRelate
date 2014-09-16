@@ -66,3 +66,9 @@ curl https://codeload.github.com/zhengxwen/SNPRelate/tar.gz/v0.99.0 -o SNPRelate
 R CMD INSTALL gdsfmt_1.0.5.tar.gz
 R CMD INSTALL SNPRelate_0.99.0.tar.gz
 ```
+
+* Lower version (v0.9.19) from r-forge repository:
+```
+install.packages("gdsfmt", repos="http://R-Forge.R-project.org")
+install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
+```
