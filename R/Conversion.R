@@ -254,12 +254,14 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
-    compress.annotation="ZIP.max", option=NULL, verbose=TRUE)
+    compress.annotation="ZIP.max", option=NULL, cvt.snpid=c("auto", "int"),
+    verbose=TRUE)
 {
     # check
     stopifnot(is.character(bed.fn) & (length(bed.fn)==1))
     stopifnot(is.character(fam.fn) & (length(fam.fn)==1))
     stopifnot(is.character(bim.fn) & (length(bim.fn)==1))
+    cvt.snpid <- match.arg(cvt.snpid)
     stopifnot(is.logical(verbose))
 
     bed.fn <- normalizePath(bed.fn, mustWork=FALSE)
@@ -308,9 +310,14 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     chr[is.na(chr)] <- 0
 
     # snp.id
-    if (length(unique(bimD$snp.id)) == dim(bimD)[1])
+    if (cvt.snpid == "auto")
     {
-        snp.id <- bimD$snp.id; snp.rs.id <- NULL
+        if (length(unique(bimD$snp.id)) == dim(bimD)[1])
+        {
+            snp.id <- bimD$snp.id; snp.rs.id <- NULL
+        } else {
+            snp.id <- 1:dim(bimD)[1]; snp.rs.id <- bimD$snp.id
+        }
     } else {
         snp.id <- 1:dim(bimD)[1]; snp.rs.id <- bimD$snp.id
     }

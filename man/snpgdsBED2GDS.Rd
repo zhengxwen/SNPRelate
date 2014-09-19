@@ -6,7 +6,8 @@
 }
 \usage{
 snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
-    compress.annotation="ZIP.max", option=NULL, verbose=TRUE)
+    compress.annotation="ZIP.max", option=NULL, cvt.snpid=c("auto", "int"),
+    verbose=TRUE)
 }
 \arguments{
     \item{bed.fn}{the file name of binary file, genotype information}
@@ -21,6 +22,10 @@ snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
         \code{add.gdsn}}
     \item{option}{\code{NULL} or an object from \code{\link{snpgdsOption}},
         see details}
+    \item{cvt.snpid}{\code{"int"} -- to create an integer \code{snp.id}
+        starting from 1; \code{"auto"} -- if SNP IDs in the PLINK file are not
+        unique, to create an an integer \code{snp.id}, otherwise to use SNP
+        IDs for \code{snp.id}}
     \item{verbose}{if TRUE, show information}
 }
 \value{

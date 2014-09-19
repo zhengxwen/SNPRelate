@@ -1,4 +1,9 @@
+Version 0.99.1:
+
+    * an option to create an integer snp.id when converting from PLINK
+
+
 Version 0.99.0:
 
     * initial submission to Bioconductor
-    * the package SNPRelate is moving from CRAN to Bioconductor
+    * moving from CRAN to Bioconductor

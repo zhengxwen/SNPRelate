@@ -13,7 +13,7 @@ Genome-wide association studies are widely used to investigate the genetic basis
 ## Wiki
 [Wiki Page](https://github.com/zhengxwen/SNPRelate/wiki)
 
-## News in Bioconductor version:
+## News in Bioconductor version (compared to CRAN version):
 
 	* fully support long vectors (>= R v3.0)
 	* >5x speedup in the function 'snpgdsVCF2GDS'
