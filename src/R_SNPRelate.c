@@ -14,4 +14,4 @@
 //
 
 // do not modify this file, R_GDS.c is from the gdsfmt package
-#include <R_GDS.c>
+#include <R_GDS_Patch.h>

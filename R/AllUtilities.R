@@ -2242,11 +2242,12 @@ snpgdsErrMsg <- function()
     sse <- .Call(gnrInit)
 
     # information
-    packageStartupMessage("SNPRelate")
     if (sse)
     {
         packageStartupMessage(
-            "Supported by Streaming SIMD Extensions 2 (SSE2)")
+            "SNPRelate -- Supported by Streaming SIMD Extensions 2 (SSE2)")
+    } else {
+        packageStartupMessage("SNPRelate")
     }
 
     TRUE
