@@ -192,10 +192,9 @@ namespace IBS
 	{
 		if (Detect)
 		{
-//			C_UInt64 L2Cache = GDS_Mach_GetCPULevelCache(2);
-//			C_UInt64 L3Cache = GDS_Mach_GetCPULevelCache(3);
-//			C_UInt64 Cache = (L2Cache > L3Cache) ? L2Cache : L3Cache;
-			C_UInt64 Cache = 0;
+			C_UInt64 L2Cache = GDS_Mach_GetCPULevelCache(2);
+			C_UInt64 L3Cache = GDS_Mach_GetCPULevelCache(3);
+			C_UInt64 Cache = (L2Cache > L3Cache) ? L2Cache : L3Cache;
 			if ((C_Int64)Cache <= 0) Cache = 1024*1024; // 1M
 			BlockSNP = (Cache - 3*256*256 - 8*1024) / nSamp * 4;
 		}
