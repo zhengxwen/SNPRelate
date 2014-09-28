@@ -513,3 +513,73 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 
     ans
 }
+
+
+
+#######################################################################
+# F_st estimation
+#
+
+snpgdsFst <- function(gdsobj, pop, method=c("W&B02", "W&C84"),
+    sample.id=NULL, snp.id=NULL, autosome.only=TRUE, remove.monosnp=TRUE,
+    maf=NaN, missing.rate=NaN, with.id=TRUE, verbose=TRUE)
+{
+    # check
+    ws <- .InitFile2(
+        cmd="Fst estimation on SNP genotypes:",
+        gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
+        autosome.only=autosome.only, remove.monosnp=remove.monosnp,
+        maf=maf, missing.rate=missing.rate, num.thread=1L,
+        verbose=verbose)
+
+    # method
+    method <- match.arg(method)
+    method <- match(method, c("W&B02", "W&C84"))
+
+    # population assignment
+    stopifnot(is.factor(pop))
+    if (is.null(sample.id))
+    {
+        if (length(pop) != ws$n.samp)
+        {
+            stop("The length of 'pop' should be the number of samples ",
+                "in the GDS file.")
+        }
+    } else {
+        if (length(pop) != length(sample.id))
+        {
+            stop("The length of 'pop' should be the same as ",
+                "the length of 'sample.id'.")
+        }
+        pop <- pop[match(ws$sample.id, sample.id)]
+    }
+    if (any(is.na(pop)))
+        stop("'pop' should not have missing values!")
+    stopifnot(nlevels(pop) > 1)
+    if (any(table(pop) < 1))
+        stop("Each population should have at least one individual.")
+
+    if (verbose)
+    {
+        cat("# of Populations: ", nlevels(pop), ", ",
+            paste(levels(pop), collapse=" "), "\n", sep="")
+    }
+
+    # call C function
+    d <- .Call(gnrFst, pop, nlevels(pop), method)
+
+    # return
+    rv <- if (with.id)
+        list(sample.id=ws$sample.id, snp.id=ws$snp.id)
+    else
+        list()
+    if (method == 1L)
+    {
+        rv$Fst <- d[[1L]]
+        rv$Beta <- d[[2L]]
+        colnames(rv$Beta) <- rownames(rv$Beta) <- levels(pop)
+    } else {
+        rv$Fst <- d
+    }
+    rv
+}

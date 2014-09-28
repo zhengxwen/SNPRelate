@@ -11,7 +11,8 @@ useDynLib(SNPRelate,
     gnrIBD_LogLik, gnrPairIBD, gnrPairIBDLogLik, gnrIBD_KING_Homo,
     gnrIBD_KING_Robust, gnrDiss, gnrIBDSelSampID_List1, gnrIBDSelSampID_List2,
     gnrIBSAve, gnrIBSNum, gnrLDpair, gnrLDMat, gnrLDpruning, gnrPCA,
-    gnrPCACorr, gnrPCASNPLoading, gnrPCASampLoading, gnrGRM, gnrEIGMIX
+    gnrPCACorr, gnrPCASNPLoading, gnrPCASampLoading, gnrGRM, gnrEIGMIX,
+    gnrFst
 )
 
 # Export all names
