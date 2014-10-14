@@ -188,48 +188,6 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 
 
 #######################################################################
-# Eigen-Analysis on the genetic relationship matrix (GRM)
-#
-
-snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    num.thread=1L, eigen.cnt=32, need.GRM=FALSE, GRM.only=FALSE,
-    verbose=TRUE)
-{
-    # check and initialize ...
-    ws <- .InitFile2(cmd="Genetic Relationship Matrix (GRM):",
-        gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
-        autosome.only=autosome.only, remove.monosnp=remove.monosnp,
-        maf=maf, missing.rate=missing.rate, num.thread=num.thread,
-        verbose=verbose)
-
-    stopifnot(is.numeric(eigen.cnt) & is.vector(eigen.cnt))
-    stopifnot(length(eigen.cnt) == 1)
-    eigen.cnt <- as.integer(eigen.cnt)
-    if (eigen.cnt < 1)
-        eigen.cnt <- as.integer(ws$n.samp)
-
-    stopifnot(is.logical(need.GRM) & is.vector(need.GRM))
-    stopifnot(length(need.GRM) == 1)
-
-    stopifnot(is.logical(GRM.only) & is.vector(GRM.only))
-    stopifnot(length(GRM.only) == 1)
-
-    # call GRM C function
-    rv <- .Call(gnrGRM, eigen.cnt, ws$num.thread, need.GRM,
-        GRM.only, verbose)
-
-    # return
-    rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
-        eigenval = rv$eigenval, eigenvect = rv$eigenvect,
-        GRM = rv$GRM)
-    class(rv) <- "snpgdsGRMClass"
-    return(rv)
-}
-
-
-
-#######################################################################
 # Eigen-Analysis on SNP genotypes
 #
 

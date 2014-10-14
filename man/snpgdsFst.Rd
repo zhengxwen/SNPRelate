@@ -28,7 +28,7 @@ snpgdsFst(gdsobj, pop, method=c("W&B02", "W&C84"), sample.id=NULL,
         if NaN, no missing threshold}
     \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id} and
         \code{sample.id}}
-    \item{verbose}{if TRUE, show information}
+    \item{verbose}{if \code{TRUE}, show information}
 }
 \details{
     The minor allele frequency and missing rate for each SNP passed in

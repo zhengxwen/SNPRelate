@@ -234,7 +234,12 @@
             {
                 tmp <- dt$dim - sum(snp.id)
                 if (tmp > 0)
-                    cat("Removing", tmp, "non-autosomal SNPs.\n")
+                {
+                    if (tmp > 1)
+                        cat("Removing", tmp, "SNPs on non-autosomes.\n")
+                    else
+                        cat("Removing", tmp, "SNP on non-autosomes.\n")
+                }
             }
             snp.ids <- snp.ids[snp.id]
         }
@@ -252,6 +257,8 @@
     # call allele freq. and missing rates
     if (remove.monosnp || is.finite(maf) || is.finite(missing.rate))
     {
+        t.maf <- maf; t.miss <- missing.rate
+
         if (!is.finite(maf)) maf <- -1;
         if (!is.finite(missing.rate)) missing.rate <- 2;
 
@@ -277,8 +284,16 @@
         # show
         if (verbose)
         {
-            cat("Removing", rv$out.num,
-                "SNPs (monomorphic, < MAF, or > missing rate)\n")
+            if (rv$out.num > 1)
+            {
+                cat("Removing ", rv$out.num,
+                " SNPs (monomorphic: ", remove.monosnp, ", < MAF: ", t.maf,
+                ", or > missing rate: ", t.miss, ")\n", sep="")
+            } else {
+                cat("Removing ", rv$out.num,
+                " SNP (monomorphic: ", remove.monosnp, ", < MAF: ", t.maf,
+                ", or > missing rate: ", t.miss, ")\n", sep="")
+            }
         }
     }
 

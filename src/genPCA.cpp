@@ -1467,31 +1467,18 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
 
 
 // ***********************************************************************
-// the functions for eigen-analysis for admixtures
-//
-
-struct TEigPair
-{
-	double EigVal;
-	int Index;
-	TEigPair(double e, int i) { EigVal = e; Index = i; }
-};
-
-static bool _EigComp(const TEigPair &i, const TEigPair &j)
-{
-	return (fabs(i.EigVal) >= fabs(j.EigVal));
-}
+// Genetic relationship matrix
+// ***********************************************************************
 
 /// to compute the eigenvalues and eigenvectors
-COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _EigenCnt, SEXP _NumThread,
-	SEXP _NeedIBDMat, SEXP _IBDMatOnly, SEXP _Verbose)
+COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Verbose)
 {
 	bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
 		// ******** To cache the genotype data ********
-		CachingSNPData("GRM-analysis", verbose);
+		CachingSNPData("GRM calculation", verbose);
 
 		// ******** The calculation of genetic covariance matrix ********
 
@@ -1507,102 +1494,38 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _EigenCnt, SEXP _NumThread,
 		// Calculate the genetic covariace
 		PCA::DoGRMCalc(IBD, INTEGER(_NumThread)[0], verbose);
 
-		// ******** The calculation of eigenvectors and eigenvalues ********
-
-		int nProtected = 0;
-		SEXP EigenVal=NULL, EigenVec=NULL, IBDMat=NULL;
-
-		if (LOGICAL(_NeedIBDMat)[0] == TRUE)
+		// Output
+		PROTECT(rv_ans = allocMatrix(REALSXP, n, n));
+		double *base = REAL(rv_ans);
+		double *p = IBD.get();
+		for (R_xlen_t i=0; i < n; i++)
 		{
-			PROTECT(IBDMat = allocMatrix(REALSXP, n, n));
-			nProtected ++;
-
-			double *base = REAL(IBDMat);
-			double *p = IBD.get();
-			for (R_xlen_t i=0; i < n; i++)
+			for (R_xlen_t j=i; j < n; j++)
 			{
-				for (R_xlen_t j=i; j < n; j++)
-				{
-					base[i*n + j] = base[j*n + i] = *p;
-					p ++;
-				}
+				base[i*n + j] = base[j*n + i] = *p;
+				p ++;
 			}
 		}
-
-		if (LOGICAL(_IBDMatOnly)[0] != TRUE)
-		{
-			const size_t NN = n;
-			vector<double> tmp_Work(NN*3);
-			vector<double> tmp_EigenVec(NN*NN);
-
-			vt<double>::Sub(IBD.get(), 0.0, IBD.get(), IBD.Size());
-			if (verbose)
-			{
-				Rprintf("GRM-analysis:\t%s\tBegin (eigenvalues and eigenvectors)\n",
-					NowDateToStr().c_str());
-			}
-
-			int eigencnt = INTEGER(_EigenCnt)[0];
-			if (eigencnt > n) eigencnt = n;
-
-			PROTECT(EigenVal = NEW_NUMERIC(n));
-			PROTECT(EigenVec = allocMatrix(REALSXP, n, eigencnt));
-			nProtected += 2;
-
-			{
-				int info = 0;
-				int _n = n;
-				F77_NAME(dspev)("V", "L", &_n, IBD.get(), REAL(EigenVal),
-					&tmp_EigenVec[0], &_n, &tmp_Work[0], &info);
-				if (info != 0)
-					throw "LAPACK::SPEV error!";
-			}
-
-			// sort in a decreasing order
-			vector<TEigPair> lst;
-			for (int i=0; i < n; i++)
-				lst.push_back(TEigPair(REAL(EigenVal)[i], i));
-			sort(lst.begin(), lst.end(), _EigComp);
-
-			// output eigenvalues
-			for (int i=0; i < n; i++)
-				REAL(EigenVal)[i] = - lst[i].EigVal;
-
-			// output eigenvectors
-			for (int i=0; i < eigencnt; i++)
-			{
-				double *p = &tmp_EigenVec[0] + lst[i].Index * n;
-				memmove(&(REAL(EigenVec)[i*n]), p, sizeof(double)*n);
-			}
-
-			if (verbose)
-			{
-				Rprintf("GRM-analysis:\t%s\tEnd (eigenvalues and eigenvectors)\n",
-					NowDateToStr().c_str());
-			}
-		}
-
-		PROTECT(rv_ans = NEW_LIST(3));
-		nProtected ++;
-
-		if (EigenVal != NULL)
-			SET_ELEMENT(rv_ans, 0, EigenVal);
-		if (EigenVec != NULL)
-			SET_ELEMENT(rv_ans, 1, EigenVec);
-		if (IBDMat != NULL)
-			SET_ELEMENT(rv_ans, 2, IBDMat);
-
-		SEXP tmp;
-		PROTECT(tmp = NEW_CHARACTER(3));
-		nProtected ++;
-			SET_STRING_ELT(tmp, 0, mkChar("eigenval"));
-			SET_STRING_ELT(tmp, 1, mkChar("eigenvect"));
-			SET_STRING_ELT(tmp, 2, mkChar("GRM"));
-		SET_NAMES(rv_ans, tmp);
-
-		UNPROTECT(nProtected);
+		UNPROTECT(1);
 
 	COREARRAY_CATCH
+}
+
+
+// ***********************************************************************
+// the functions for eigen-analysis for admixtures
+//
+
+struct TEigPair
+{
+	double EigVal;
+	int Index;
+	TEigPair(double e, int i) { EigVal = e; Index = i; }
+};
+
+static bool _EigComp(const TEigPair &i, const TEigPair &j)
+{
+	return (fabs(i.EigVal) >= fabs(j.EigVal));
 }
 
 /// to compute the eigenvalues and eigenvectors

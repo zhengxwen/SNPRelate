@@ -517,6 +517,38 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 
 
 #######################################################################
+# Genetic Relatedness
+#######################################################################
+
+#######################################################################
+# Genetic relationship matrix (GRM)
+#
+
+snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    num.thread=1L, with.id=TRUE, verbose=TRUE)
+{
+    # check and initialize ...
+    ws <- .InitFile2(cmd="Genetic Relationship Matrix (GRM):",
+        gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
+        autosome.only=autosome.only, remove.monosnp=remove.monosnp,
+        maf=maf, missing.rate=missing.rate, num.thread=num.thread,
+        verbose=verbose)
+    stopifnot(is.logical(with.id))
+
+    # call GRM C function
+    rv <- .Call(gnrGRM, ws$num.thread, verbose)
+
+    # return
+    if (with.id)
+        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, GRM=rv)
+
+    return(rv)
+}
+
+
+
+#######################################################################
 # F_st estimation
 #
 
@@ -555,7 +587,8 @@ snpgdsFst <- function(gdsobj, pop, method=c("W&B02", "W&C84"),
     }
     if (any(is.na(pop)))
         stop("'pop' should not have missing values!")
-    stopifnot(nlevels(pop) > 1)
+    if (nlevels(pop) <= 1)
+        stop("There should be at least two populations!")
     if (any(table(pop) < 1))
         stop("Each population should have at least one individual.")
 

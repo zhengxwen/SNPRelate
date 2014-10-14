@@ -8,10 +8,9 @@
 genotype data.
 }
 \usage{
-snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    num.thread=1L, eigen.cnt=32, need.GRM=FALSE, GRM.only=FALSE,
-    verbose=TRUE)
+snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1L,
+    with.id=TRUE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -27,20 +26,17 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
         no missing threshold}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
-    \item{eigen.cnt}{output the number of eigenvectors; if eigen.cnt <= 0, then
-        return all eigenvectors}
-    \item{need.GRM}{if TRUE, return the GRM matrix}
-    \item{GRM.only}{return the IBD matrix only, do not compute the
-        eigenvalues and eigenvectors}
-    \item{verbose}{if TRUE, show information}
+    \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id} and
+        \code{sample.id}}
+    \item{verbose}{if \code{TRUE}, show information}
 }
 \value{
-    Return a \code{snpgdsGRMClass} object, and it is a list:
-    \item{sample.id}{the sample ids used in the analysis}
-    \item{snp.id}{the SNP ids used in the analysis}
-    \item{eigenval}{eigenvalues}
-    \item{eigenvect}{eigenvactors, "# of samples" x "eigen.cnt"}
-    \item{ibdmat}{the IBD matrix}
+    Return a list if \code{with.id = TRUE}:
+        \item{sample.id}{the sample ids used in the analysis}
+        \item{snp.id}{the SNP ids used in the analysis}
+        \item{GRM}{the genetic relationship matrix}
+    If \code{with.id = FALSE}, return the genetic relationship matrix without
+    sample and SNP IDs.
 }
 \references{
     Yang, J., Lee, S. H., Goddard, M. E. & Visscher, P. M.
@@ -49,67 +45,15 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
 }
 \author{Xiuwen Zheng}
 \seealso{
-    \code{\link{snpgdsPCA}}, \code{\link{snpgdsEIGMIX}}
+    \code{\link{snpgdsIndInb}}, \code{\link{snpgdsFst}}
 }
 
 \examples{
 # open an example dataset (HapMap)
 genofile <- snpgdsOpen(snpgdsExampleFileName())
 
-# run PCA
-RV <- snpgdsGRM(genofile)
-
-####  there is no population information  ####
-
-# make a data.frame
-tab <- data.frame(sample.id = RV$sample.id,
-    EV1 = RV$eigenvect[,1],    # the first eigenvector
-    EV2 = RV$eigenvect[,2],    # the second eigenvector
-    stringsAsFactors = FALSE)
-head(tab)
-#   sample.id         EV1         EV2
-#   ...               ...         ...
-
-# draw
-plot(tab$EV2, tab$EV1, xlab="eigenvector 2", ylab="eigenvector 1")
-
-
-
-####  there are population information  ####
-
-# get population information
-#   or pop_code <- scan("pop.txt", what=character())
-#   if it is stored in a text file "pop.txt"
-pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
-
-# get sample id
-samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
-
-# assume the order of sample IDs is as the same as population codes
-cbind(samp.id, pop_code)
-#        samp.id       pop_code
-#   [1,] "NA19152"     "YRI"   
-#   [2,] "NA19139"     "YRI"   
-#   [3,] "NA18912"     "YRI"   
-#   [4,] "NA19160"     "YRI"   
-#   [5,] "NA07034"     "CEU"   
-#   ...
-
-# make a data.frame
-tab <- data.frame(sample.id = RV$sample.id,
-    pop = factor(pop_code)[match(RV$sample.id, samp.id)],
-    EV1 = RV$eigenvect[,1],    # the first eigenvector
-    EV2 = RV$eigenvect[,2],    # the second eigenvector
-    stringsAsFactors = FALSE)
-head(tab)
-#   sample.id pop         EV1         EV2
-#   ...               ...         ...
-
-# draw
-plot(tab$EV2, tab$EV1, col=as.integer(tab$pop),
-    xlab="eigenvector 2", ylab="eigenvector 1")
-legend("topleft", legend=levels(tab$pop), pch="o", col=1:4)
-
+# Genetic relationship matrix
+grm <- snpgdsGRM(genofile)
 
 # close the file
 snpgdsClose(genofile)
