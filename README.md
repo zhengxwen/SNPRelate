@@ -1,7 +1,7 @@
 SNPRelate: Parallel computing toolset for relatedness and principal component analysis of SNP data
 ===
 
-Version: 0.99.2
+Version: 1.1.0
 
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 
@@ -39,6 +39,7 @@ Genome-wide association studies are widely used to investigate the genetic basis
 
 ## Installation
 
+
 * Bioconductor repository:
 ```
 source("http://bioconductor.org/biocLite.R")
@@ -48,7 +49,8 @@ BiocInstaller::useDevel()
 biocLite("SNPRelate")
 ```
 
-* Development version from Github (v0.99.1):
+
+* Development version from Github:
 ```
 library("devtools")
 install_github("zhengxwen/gdsfmt")
@@ -56,21 +58,6 @@ install_github("zhengxwen/SNPRelate")
 ```
 The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the R FAQ for your operating system; you may also need to install dependencies manually.
 
-* Install the packages (gdsfmt and SNPRelate) from the source code (v0.99.0):
-[gdsfmt](https://codeload.github.com/zhengxwen/gdsfmt/tar.gz/v1.0.5)
-and
-[SNPRelate](https://codeload.github.com/zhengxwen/SNPRelate/tar.gz/v0.99.0)
-```
-wget https://codeload.github.com/zhengxwen/gdsfmt/tar.gz/v1.0.5 -O gdsfmt_1.0.5.tar.gz
-wget https://codeload.github.com/zhengxwen/SNPRelate/tar.gz/v0.99.0 -O SNPRelate_0.99.0.tar.gz
-** Or **
-curl https://codeload.github.com/zhengxwen/gdsfmt/tar.gz/v1.0.5 -o gdsfmt_1.0.5.tar.gz
-curl https://codeload.github.com/zhengxwen/SNPRelate/tar.gz/v0.99.0 -o SNPRelate_0.99.0.tar.gz
-
-** Install **
-R CMD INSTALL gdsfmt_1.0.5.tar.gz
-R CMD INSTALL SNPRelate_0.99.0.tar.gz
-```
 
 * Old version (v0.9.19) from r-forge repository:
 ```

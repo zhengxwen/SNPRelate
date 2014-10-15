@@ -1,7 +1,8 @@
-Version 0.99.2:
+Version 0.99.1 - 0.99.3:
 
     * an option to create an integer snp.id when converting from PLINK
     * a new function 'snpgdsFst' to estimate Fst
+    * minor fixes
 
 
 Version 0.99.0:
