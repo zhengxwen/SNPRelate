@@ -254,8 +254,8 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
-    compress.annotation="ZIP.max", option=NULL, cvt.snpid=c("auto", "int"),
-    verbose=TRUE)
+    compress.annotation="ZIP.max", option=NULL,
+    cvt.snpid=c("auto", "int"), verbose=TRUE)
 {
     # check
     stopifnot(is.character(bed.fn) & (length(bed.fn)==1))
@@ -409,6 +409,11 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 
     if (verbose)
         cat(date(), "\tDone.\n")
+
+    # optimize access efficiency
+    if (verbose)
+        cat("Optimize the access efficiency ...\n")
+    cleanup.gds(out.gdsfn, verbose=verbose)
 
     # output
     invisible(normalizePath(out.gdsfn))
@@ -889,4 +894,388 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
 
     # output
     invisible(normalizePath(out.fn))
+}
+
+
+
+
+
+#######################################################################
+# Convert a VCF (sequence) file to a GDS file (extract SNP data)
+#
+# INPUT:
+#   vcf.fn -- the file name of VCF format
+#   outfn.gds -- the output gds file
+#   nblock -- the number of lines in buffer
+#   method -- biallelic SNPs, or copy number of variants
+#   compress.annotation -- the compression method for sample and snp annotations
+#   verbose -- show information
+#
+
+snpgdsVCF2GDS_R <- function(vcf.fn, out.fn, nblock=1024,
+    method = c("biallelic.only", "copy.num.of.ref"),
+    compress.annotation="ZIP.max", snpfirstdim=FALSE, option = NULL,
+    verbose=TRUE)
+{
+    # check
+    stopifnot(is.character(vcf.fn))
+    stopifnot(is.character(out.fn))
+    stopifnot(is.logical(snpfirstdim) & (length(snpfirstdim)==1))
+
+    method <- match.arg(method)
+    if (!is.null(option) & !is.list(option))
+        stop("'option' should be NULL or an object returned by 'snpgdsOption'.")
+
+
+    ######################################################################
+    # Scan VCF file -- get sample id
+
+    scan.vcf.sampid <- function(fn)
+    {
+        # open the vcf file
+        opfile <- file(fn, open="r")
+
+        # read header
+        fmtstr <- substring(readLines(opfile, n=1), 3)
+        samp.id <- NULL
+        while (length(s <- readLines(opfile, n=1)) > 0)
+        {
+            if (substr(s, 1, 6) == "#CHROM")
+            {
+                samp.id <- scan(text=s, what=character(0), sep="\t", quiet=TRUE)[-c(1:9)]
+                break
+            }
+        }
+        if (is.null(samp.id))
+        {
+            close(opfile)
+            stop("Error VCF format: invalid sample id!")
+        }
+
+        # close the file
+        close(opfile)
+
+        return(samp.id)
+    }
+
+
+    ######################################################################
+    # Scan VCF file -- get marker information
+
+    scan.vcf.marker <- function(fn, method)
+    {
+        if (verbose)
+            cat(sprintf("\tfile: %s\n", fn))
+
+        # total number of rows and columns
+        Cnt <- count.fields(fn, sep="\t")
+        # check
+        if (any(Cnt != Cnt[1]))
+            stop(sprintf("The file (%s) has different numbers of columns.", fn))
+
+        line.cnt <- length(Cnt)
+        col.cnt <- max(Cnt)
+        if (verbose)
+            cat(sprintf("\tcontent: %d rows x %d columns\n", line.cnt, col.cnt))
+
+        # open the vcf file
+        opfile <- file(fn, open="r")
+
+        # read header
+        fmtstr <- substring(readLines(opfile, n=1), 3)
+        while (length(s <- readLines(opfile, n=1)) > 0)
+        {
+            if (substr(s, 1, 6) == "#CHROM")
+                break
+        }
+
+        # init ...
+        chr <- character(line.cnt); position <- integer(line.cnt)
+        snpidx <- integer(line.cnt); snp.rs <- character(line.cnt)
+        snp.allele <- character(line.cnt)
+        snp.cnt <- 0; var.cnt <- 0
+
+        if (method == "biallelic.only")
+        {
+            while (length(s <- readLines(opfile, n=nblock)) > 0)
+            {
+                for (i in 1:length(s))
+                {
+                    var.cnt <- var.cnt + 1
+                    ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE, n=5)
+                    if (all(ss[c(4,5)] %in% c("A", "G", "C", "T", "a", "g", "c", "t")))
+                    {
+                        snp.cnt <- snp.cnt + 1
+                        chr[snp.cnt] <- ss[1]
+                        position[snp.cnt] <- as.integer(ss[2])
+                        snpidx[snp.cnt] <- var.cnt
+                        snp.rs[snp.cnt] <- ss[3]
+                        snp.allele[snp.cnt] <- paste(ss[4], ss[5], sep="/")
+                    }
+                }
+            }
+        } else {
+            while (length(s <- readLines(opfile, n=nblock)) > 0)
+            {
+                for (i in 1:length(s))
+                {
+                    var.cnt <- var.cnt + 1
+                    ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE, n=5)
+                    snp.cnt <- snp.cnt + 1
+                    chr[snp.cnt] <- ss[1]
+                    position[snp.cnt] <- as.integer(ss[2])
+                    snpidx[snp.cnt] <- var.cnt
+                    snp.rs[snp.cnt] <- ss[3]
+                    snp.allele[snp.cnt] <- paste(ss[4], ss[5], sep="/")
+                }
+            }
+        }
+
+        # close the file
+        close(opfile)
+
+
+        # chromosomes
+        chr <- chr[1:snp.cnt]
+        if (!is.null(option))
+        {
+            flag <- match(chr, names(option$chromosome.code))
+            chr[!is.na(flag)] <- unlist(option$chromosome.code)[ flag[!is.na(flag)] ]
+            chr <- suppressWarnings(as.integer(chr))
+            chr[is.na(chr)] <- -1
+        }
+
+        snp.allele <- gsub(".", "/", snp.allele[1:snp.cnt], fixed=TRUE)
+        list(chr = chr, position = position[1:snp.cnt],
+            snpidx = snpidx[1:snp.cnt], snp.rs = snp.rs[1:snp.cnt],
+            snp.allele = snp.allele
+        )
+    }
+
+
+    ######################################################################
+    # Scan VCF file -- get marker information
+
+    scan.vcf.geno <- function(fn, gGeno, method, start)
+    {
+        # matching codes
+        geno.str <- c("0|0", "0|1", "1|0", "1|1", "0/0", "0/1", "1/0", "1/1",
+            "0", "1",
+            "0|0|0", "0|0|1", "0|1|0", "0|1|1", "1|0|0", "1|0|1", "1|1|0", "1|1|1",
+            "0/0/0", "0/0/1", "0/1/0", "0/1/1", "1/0/0", "1/0/1", "1/1/0", "1/1/1")
+        geno.code <- as.integer(c(2, 1, 1, 0, 2, 1, 1, 0,
+            1, 0,
+            2, 1, 1, 1, 1, 1, 1, 0, 
+            2, 1, 1, 1, 1, 1, 1, 0))
+
+        # open the vcf file
+        opfile <- file(fn, open="r")
+        # read header
+        fmtstr <- substring(readLines(opfile, n=1), 3)
+        while (length(s <- readLines(opfile, n=1)) > 0)
+        {
+            if (substr(s, 1, 6) == "#CHROM")
+                break
+        }
+
+        # scan
+        snp.cnt <- start
+
+        if (method == "biallelic.only")
+        {
+            while (length(s <- readLines(opfile, n=nblock)) > 0)
+            {
+                gx <- NULL
+                for (i in 1:length(s))
+                {
+                    ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE, n=5)
+                    if (all(ss[c(4,5)] %in% c("A", "G", "C", "T", "a", "g", "c", "t")))
+                    {
+                        ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE)[-c(1:9)]
+                        ss <- sapply(strsplit(ss, ":"), FUN = function(x) x[1])
+                        x <- match(ss, geno.str)
+                        x <- geno.code[x]
+                        x[is.na(x)] <- as.integer(3)
+                        gx <- cbind(gx, x)
+                    }
+                }
+                if (!is.null(gx))
+                {
+                    if (snpfirstdim)
+                        write.gdsn(gGeno, t(gx), start=c(snp.cnt,1), count=c(ncol(gx),-1))
+                    else {
+                        print(snp.cnt)
+                        write.gdsn(gGeno, gx, start=c(1,snp.cnt), count=c(-1,ncol(gx)))
+                    }
+                    snp.cnt <- snp.cnt + ncol(gx)
+                }
+            }
+        } else {
+            while (length(s <- readLines(opfile, n=nblock)) > 0)
+            {
+                gx <- NULL
+                for (i in 1:length(s))
+                {
+                    ss <- scan(text=s[i], what=character(0), sep="\t", quiet=TRUE)[-c(1:9)]
+                    x <- sapply(strsplit(ss, ":"), FUN = function(x) {
+                        a <- unlist(strsplit(x[1], ""))
+                        if (any(a == "."))
+                            NA
+                        else
+                            sum(a == "0")
+                    })
+                    x[x > 2] <- 2
+                    x[is.na(x)] <- as.integer(3)
+                    gx <- cbind(gx, x)
+                }
+                if (!is.null(gx))
+                {
+                    if (snpfirstdim)
+                        write.gdsn(gGeno, t(gx), start=c(snp.cnt,1), count=c(ncol(gx),-1))
+                    else
+                        write.gdsn(gGeno, gx, start=c(1,snp.cnt), count=c(-1,ncol(gx)))
+                    snp.cnt <- snp.cnt + ncol(gx)
+                }
+            }
+        }
+
+        # close the file
+        close(opfile)
+
+        snp.cnt - start
+    }
+
+
+
+    ######################################################################
+    ######################################################################
+    # Starting ...
+    ######################################################################
+    ######################################################################
+
+    if (verbose)
+    {
+        cat("Start snpgdsVCF2GDS ...\n")
+        if (method == "biallelic.only")
+            cat("\tExtracting bi-allelic and polymorhpic SNPs.\n")
+        else
+            cat("\tStoring dosage of the reference allele for all variant sites, including bi-allelic SNPs, multi-allelic SNPs, indels and structural variants.\n")
+        cat("\tScanning ...\n")
+    }
+
+
+    ####################################
+    # sample.id
+
+    sample.id <- NULL
+    for (fn in vcf.fn)
+    {
+        s <- scan.vcf.sampid(fn)
+        if (!is.null(sample.id))
+        {
+            if (length(sample.id) != length(s))
+                stop("All VCF files should have the same sample id.")
+            if (any(sample.id != s))
+                stop("All VCF files should have the same sample id.")
+        } else
+            sample.id <- s
+    }
+
+
+    ####################################
+    # genetic markers
+
+    all.chr <- NULL
+    all.position <- integer()
+    all.snpidx <- integer()
+    all.snp.rs <- character()
+    all.snp.allele <- character()
+
+    for (fn in vcf.fn)
+    {
+        v <- scan.vcf.marker(fn, method)
+
+        all.chr <- c(all.chr, v$chr)
+        all.position <- c(all.position, v$position)
+        all.snpidx <- c(all.snpidx, length(all.snpidx) + v$snpidx)
+        all.snp.rs <- c(all.snp.rs, v$snp.rs)
+        all.snp.allele <- c(all.snp.allele, v$snp.allele)
+    }
+
+
+    ####################################
+    # genetic variants
+
+    nSamp <- length(sample.id)
+    nSNP <- length(all.chr)
+    if (verbose)
+    {
+        cat(date(), "\tstore sample id, snp id, position, and chromosome.\n")
+        cat(sprintf("\tstart writing: %d samples, %d SNPs ...\n", nSamp, nSNP))
+    }
+
+
+    ######################################################################
+    # create GDS file
+    #
+    gfile <- createfn.gds(out.fn)
+    on.exit({ closefn.gds(gfile) })
+
+    # add "sample.id"
+    add.gdsn(gfile, "sample.id", sample.id, compress=compress.annotation, closezip=TRUE)
+    # add "snp.id"
+    add.gdsn(gfile, "snp.id", as.integer(all.snpidx), compress=compress.annotation, closezip=TRUE)
+    # add "snp.rs.id"
+    add.gdsn(gfile, "snp.rs.id", all.snp.rs, compress=compress.annotation, closezip=TRUE)
+    # add "snp.position"
+    add.gdsn(gfile, "snp.position", all.position, compress=compress.annotation, closezip=TRUE)
+    # add "snp.chromosome"
+    v.chr <- add.gdsn(gfile, "snp.chromosome", all.chr, compress=compress.annotation, closezip=TRUE)
+    # add "snp.allele"
+    add.gdsn(gfile, "snp.allele", all.snp.allele, compress=compress.annotation, closezip=TRUE)
+
+    # snp.chromosome
+    if (!is.null(option))
+    {
+        put.attr.gdsn(v.chr, "autosome.start", option$autosome.start)
+        put.attr.gdsn(v.chr, "autosome.end", option$autosome.end)
+        for (i in 1:length(option$chromosome.code))
+        {
+            put.attr.gdsn(v.chr, names(option$chromosome.code)[i],
+                option$chromosome.code[[i]])
+        }
+    }
+
+    # sync file
+    sync.gds(gfile)
+
+    # add "gonetype", 2 bits to store one genotype
+    if (snpfirstdim)
+    {
+        gGeno <- add.gdsn(gfile, "genotype", storage="bit2", valdim=c(nSNP, nSamp))
+        put.attr.gdsn(gGeno, "snp.order")
+    } else {
+        gGeno <- add.gdsn(gfile, "genotype", storage="bit2", valdim=c(nSamp, nSNP))
+        put.attr.gdsn(gGeno, "sample.order")
+    }
+    # sync file
+    sync.gds(gfile)
+
+
+    ####################################
+    # genetic genotypes
+
+    snp.start <- 1
+    for (fn in vcf.fn)
+    {
+        if (verbose)
+            cat(sprintf("\tfile: %s\n", fn))
+        s <- scan.vcf.geno(fn, gGeno, method, start=snp.start)
+        snp.start <- snp.start + s      
+        sync.gds(gfile)  # sync file
+    }
+
+    if (verbose) cat(date(), "\tDone.\n")
+
+    return(invisible(NULL))
 }

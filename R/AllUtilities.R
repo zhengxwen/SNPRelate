@@ -342,8 +342,8 @@ snpgdsOpen <- function(filename, readonly=TRUE, allow.duplicate=FALSE,
     at <- get.attr.gdsn(ans$root)
     if ("FileFormat" %in% names(at))
     {
-        # it does not throw any warning or error, but it is encouraged to add
-        # this attribute
+        # it does not throw any warning or error if FileFormat does not exist,
+        # but it is encouraged to add this attribute
         if (!identical(at$FileFormat, "SNP_ARRAY"))
             stop(err, "'FileFormat' should be 'SNP_ARRAY'.")
     }

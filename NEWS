@@ -1,3 +1,8 @@
+Version 1.1.0:
+
+    * add 'snpgdsVCF2GDS_R' for the R implementation
+
+
 Version 0.99.1 - 0.99.3:
 
     * an option to create an integer snp.id when converting from PLINK
