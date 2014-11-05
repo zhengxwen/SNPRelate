@@ -398,7 +398,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 
     if (family)
     {
-        samp.annot <- data.frame(father=famD$PatID, mother=famD$MatID,
+        samp.annot <- data.frame(family=famD$FamilyID, father=famD$PatID, mother=famD$MatID,
             sex=sex, phenotype=famD$Pheno, stringsAsFactors=FALSE)
     } else {
         samp.annot <- data.frame(sex=sex, phenotype=famD$Pheno,
@@ -406,7 +406,10 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     }
     add.gdsn(gfile, "sample.annot", samp.annot, compress=compress.annotation,
         closezip=TRUE)
-
+    
+    # sync file
+    sync.gds(gfile)
+    
     if (verbose)
         cat(date(), "\tDone.\n")
 
