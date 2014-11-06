@@ -20,12 +20,17 @@ Genome-wide association studies are widely used to investigate the genetic basis
 
 ## News v1.1.1:
 
-    * fix bug in snpgdsVCF2GDS when 'method="biallelic.only"'
-    * add 'snpgdsVCF2GDS_R' for the R implementation
-    * fix bug in snpgdsBED2GDS if 'family=TRUE'
+	* fix bug in snpgdsVCF2GDS when 'method="biallelic.only"'
+	* add 'snpgdsVCF2GDS_R' for the R implementation
+	* fix bug in snpgdsBED2GDS if 'family=TRUE'
 
+## News
+```gdsfmt_1.1.2``` should be installed immediately, if you see the error like
+```
+Invalid Zip Deflate Stream operation 'Seek'!
+```
 
-## News in Bioconductor version v1.0.0 (compared to CRAN version):
+## News in Bioconductor (v1.0.0) compared to CRAN version:
 
 	* fully support long vectors (>= R v3.0)
 	* >5x speedup in the function 'snpgdsVCF2GDS'
@@ -82,7 +87,7 @@ R CMD INSTALL SNPRelate_latest.tar.gz
 ```
 
 
-* Old version (v0.9.19) from r-forge repository:
+* Old CRAN version (v0.9.19) from r-forge repository:
 ```
 install.packages("gdsfmt", repos="http://R-Forge.R-project.org")
 install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
