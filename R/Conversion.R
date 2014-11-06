@@ -555,7 +555,13 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
     stopifnot(is.logical(verbose))
 
     if (verbose)
-        cat("VCF format ---> GDS SNP format:\n")
+    {
+        cat("VCF format --> SNP GDS format\n")
+        if (metidx == 1L)
+            cat("Method: exacting biallelic SNPs\n")
+        else
+            cat("Method: dosage (0,1,2) of reference allele for all variant sites\n")
+    }
 
 
     #######################################################################
@@ -604,6 +610,9 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
 
 
     #######################################################################
+
+    if (verbose)
+        cat(sprintf("Number of samples: %d\n", length(samp.id)))
 
     # create a GDS file
     gfile <- createfn.gds(out.fn)
@@ -658,8 +667,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
     # see https://stat.ethz.ch/pipermail/r-devel/2007-April/045264.html
     ReadLineText <- function(infile)
     {
-        # do not modify the value "n=1L"!
-        readLines(infile, n=1L)
+        readLines(infile, n=1024L)
     }
 
 
@@ -684,9 +692,9 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
         if (verbose)
         {
             if (n > 1)
-                cat(sprintf("\tImport %d variants.\n", n))
+                cat(sprintf("\timport %d variants.\n", n))
             else
-                cat(sprintf("\tImport %d variant.\n", n))
+                cat(sprintf("\timport %d variant.\n", n))
         }
 
         on.exit()
@@ -845,7 +853,7 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
     # see https://stat.ethz.ch/pipermail/r-devel/2007-April/045264.html
     ReadLineText <- function(infile)
     {
-        readLines(infile, n=512L)
+        readLines(infile, n=1024L)
     }
 
     ##################################################

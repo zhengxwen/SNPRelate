@@ -1,6 +1,8 @@
-Version 1.1.0:
+Version 1.1.1:
 
+    * fix a bug in snpgdsVCF2GDS when 'method="biallelic.only"'
     * add 'snpgdsVCF2GDS_R' for the R implementation
+    * fix a bug in snpgdsBED2GDS if 'family=TRUE'
 
 
 Version 0.99.1 - 0.99.3:

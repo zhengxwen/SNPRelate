@@ -47,7 +47,7 @@ the same samples. It is useful to combine genetic data if VCF data are
 divided by chromosomes.
 
     \code{method = "biallelic.only"}: to exact bi-allelic and polymorhpic
-SNP data (no monomorphic variant);
+SNP data (excluding monomorphic variants);
     \code{method = "copy.num.of.ref"}: to extract and store dosage (0, 1, 2)
 of the reference allele for all variant sites, including bi-allelic SNPs,
 multi-allelic SNPs, indels and structural variants.

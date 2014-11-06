@@ -2260,7 +2260,7 @@ snpgdsErrMsg <- function()
     if (sse)
     {
         packageStartupMessage(
-            "SNPRelate -- Supported by Streaming SIMD Extensions 2 (SSE2)")
+            "SNPRelate -- supported by Streaming SIMD Extensions 2 (SSE2)")
     } else {
         packageStartupMessage("SNPRelate")
     }

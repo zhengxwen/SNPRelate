@@ -633,7 +633,9 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 					sALT=="a" || sALT=="g" || sALT=="c" || sALT=="t"));
 				if (!flag)
 				{
-					RL.SkipLine();
+					// RL.SkipLine();
+					for (int i=nTotalSamp+4; i > 0; i--)
+						RL.GetCell(cell, i <= 1);
 					continue;
 				}
 			}

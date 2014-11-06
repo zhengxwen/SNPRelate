@@ -1,7 +1,7 @@
 SNPRelate: Parallel computing toolset for relatedness and principal component analysis of SNP data
 ===
 
-Version: 1.1.0
+Version: 1.1.1
 
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 
@@ -18,7 +18,14 @@ Genome-wide association studies are widely used to investigate the genetic basis
 [Development Version](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
 
-## News in Bioconductor version (compared to CRAN version):
+## News v1.1.1:
+
+    * fix bug in snpgdsVCF2GDS when 'method="biallelic.only"'
+    * add 'snpgdsVCF2GDS_R' for the R implementation
+    * fix bug in snpgdsBED2GDS if 'family=TRUE'
+
+
+## News in Bioconductor version v1.0.0 (compared to CRAN version):
 
 	* fully support long vectors (>= R v3.0)
 	* >5x speedup in the function 'snpgdsVCF2GDS'
