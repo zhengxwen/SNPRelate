@@ -406,10 +406,11 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     }
     add.gdsn(gfile, "sample.annot", samp.annot, compress=compress.annotation,
         closezip=TRUE)
-    
-    # sync file
-    sync.gds(gfile)
-    
+
+    # close the file
+    on.exit()
+    closefn.gds(gfile)
+
     if (verbose)
         cat(date(), "\tDone.\n")
 
