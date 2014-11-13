@@ -91,6 +91,17 @@ COREARRAY_DLL_LOCAL int GDS_R_Set_IfFactor(PdGDSObj Obj, SEXP val)
 	return (*func_R_Set_IfFactor)(Obj, val);
 }
 
+#ifdef GDSFMT_R_VERSION
+typedef SEXP (*Type_R_Array_Read)(PdAbstractArray, const C_Int32 *,
+	const C_Int32 *, const C_BOOL *const [], C_UInt32);
+static Type_R_Array_Read func_R_Array_Read = NULL;
+COREARRAY_DLL_LOCAL SEXP GDS_R_Array_Read(PdAbstractArray Obj,
+	const C_Int32 *Start, const C_Int32 *Length,
+	const C_BOOL *const Selection[], C_UInt32 UseMode)
+{
+	return (*func_R_Array_Read)(Obj, Start, Length, Selection, UseMode);
+}
+#else
 typedef SEXP (*Type_R_Array_Read)(PdAbstractArray, C_Int32 const *,
 	C_Int32 const *, const C_BOOL *const []);
 static Type_R_Array_Read func_R_Array_Read = NULL;
@@ -100,22 +111,7 @@ COREARRAY_DLL_LOCAL SEXP GDS_R_Array_Read(PdAbstractArray Obj,
 {
 	return (*func_R_Array_Read)(Obj, Start, Length, Selection);
 }
-
-typedef void (*Type_R_Apply)(int, PdAbstractArray [], int [],
-	const C_BOOL *const * const [],
-	void (*)(SEXP, C_Int32, PdArrayRead [], void *),
-	void (*)(SEXP, C_Int32, void *), void *, C_BOOL);
-static Type_R_Apply func_R_Apply = NULL;
-COREARRAY_DLL_LOCAL void GDS_R_Apply(int Num, PdAbstractArray ObjList[],
-	int Margins[], const C_BOOL *const * const Selection[],
-	void (*InitFunc)(SEXP Argument, C_Int32 Count, PdArrayRead ReadObjList[],
-		void *_Param),
-	void (*LoopFunc)(SEXP Argument, C_Int32 Idx, void *_Param),
-	void *Param, C_BOOL IncOrDec)
-{
-	(*func_R_Apply)(Num, ObjList, Margins, Selection, InitFunc, LoopFunc,
-		Param, IncOrDec);
-}
+#endif
 
 typedef void (*Type_R_Is_Element)(PdAbstractArray, SEXP, C_BOOL[], size_t);
 static Type_R_Is_Element func_R_Is_Element = NULL;
@@ -561,7 +557,6 @@ void Init_GDS_Routines()
 	LOAD(func_R_Is_Factor, "GDS_R_Is_Factor");
 	LOAD(func_R_Set_IfFactor, "GDS_R_Set_IfFactor");
 	LOAD(func_R_Array_Read, "GDS_R_Array_Read");
-	LOAD(func_R_Apply, "GDS_R_Apply");
 	LOAD(func_R_Is_Element, "GDS_R_Is_Element");
 
 	LOAD(func_File_Create, "GDS_File_Create");

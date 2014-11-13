@@ -696,6 +696,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
                 cat(sprintf("\timport %d variants.\n", n))
             else
                 cat(sprintf("\timport %d variant.\n", n))
+            print(nodegeno)
         }
 
         on.exit()
