@@ -139,6 +139,12 @@ snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
 snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL,
     snpfirstdim=NULL, verbose=TRUE)
 {
+    if (is.character(gdsobj))
+    {
+        gdsobj <- snpgdsOpen(gdsobj)
+        on.exit({ snpgdsClose(gdsobj) })
+    }
+
     # check
     ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id)
 

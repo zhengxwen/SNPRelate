@@ -1757,7 +1757,7 @@ snpgdsTranspose <- function(gds.fn, snpfirstdim=FALSE, compress=NULL,
 
     # open the GDS file
     gds <- snpgdsOpen(gds.fn, readonly=FALSE)
-    on.exit(snpgdsClose(gds))
+    on.exit({ snpgdsClose(gds) })
 
     # check dimension
     ns <- names(get.attr.gdsn(index.gdsn(gds, "genotype")))
@@ -1782,7 +1782,7 @@ snpgdsTranspose <- function(gds.fn, snpfirstdim=FALSE, compress=NULL,
     if (snpflag != snpfirstdim)
     {
         if (verbose)
-            cat("Being transposed ...\n")
+            cat("Genotype matrix is being transposed ...\n")
 
         # check
         dm <- rev(dm)
@@ -1821,9 +1821,20 @@ snpgdsTranspose <- function(gds.fn, snpfirstdim=FALSE, compress=NULL,
     } else {
         if (verbose)
         {
-            cat("No action taken, please set 'snpfirstdim=", !snpfirstdim,
-                "'.\n", sep="")
+            cat("No action taken, please set different 'snpfirstdim'.\n",
+                sep="")
         }
+
+        if (!is.null(compress))
+        {
+            compression.gdsn(index.gdsn(gds, "genotype"),
+                compress=compress)
+        }
+        on.exit()
+        snpgdsClose(gds)
+
+        if (optimize)
+            cleanup.gds(gds.fn, verbose=verbose)
     }
 
     invisible()
