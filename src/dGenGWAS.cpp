@@ -10,6 +10,7 @@
 // Version     : 1.0.0.0
 // Copyright   : Xiuwen Zheng (GPL v3.0)
 // Created     : 04/22/2012
+// Modified    : 12/12/2014
 // Description :
 // ===========================================================
 
@@ -19,7 +20,7 @@ using namespace std;
 using namespace GWAS;
 
 
-// ===========================================================
+// ===================================================================== //
 
 long GWAS::GENO_Get_ValidNumSNP(C_UInt8 *pGeno, long NumGeno)
 {
@@ -56,7 +57,7 @@ long GWAS::GENO_Get_Sum_ValidNumSNP(C_UInt8 *pGeno, long NumGeno,
 }
 
 
-// ===========================================================
+// ===================================================================== //
 // CdGenoWorkSpace
 
 CdGenoWorkSpace::CdGenoWorkSpace()
@@ -818,7 +819,13 @@ C_UInt8 *CdBufSpace::ReadGeno(long idx)
 C_UInt8 *CdBufSpace::ReadPackedGeno(long idx, C_UInt8 *out_buf)
 {
 	_RequireIdx(idx);
-	return PackGenotypes(_buf + (idx-fIdxStart)*fBufElmSize, fBufElmSize, out_buf);
+	return PackGeno2b(_buf + (idx-fIdxStart)*fBufElmSize, fBufElmSize, out_buf);
+}
+
+C_UInt8 *CdBufSpace::ReadPackedGeno4b(long idx, C_UInt8 *out_buf)
+{
+	_RequireIdx(idx);
+	return PackGeno2b(_buf + (idx-fIdxStart)*fBufElmSize, fBufElmSize, out_buf);
 }
 
 void CdBufSpace::_RequireIdx(long idx)
@@ -952,30 +959,52 @@ C_UInt8 CdSampGenoMem::at(int iSamp, int iSNP) const
 
 
 
-// ===========================================================
+// ===================================================================== //
 
-C_UInt8 * GWAS::PackGenotypes(const C_UInt8 *src, long cnt, C_UInt8 *dest)
+C_UInt8 *GWAS::PackGeno2b(const C_UInt8 *src, size_t cnt, C_UInt8 *dest)
 {
-	long cnt4 = cnt/4;
-	for (long i=0; i < cnt4; i++)
+	for (size_t n=(cnt >> 2); n > 0; n--)
 	{
-		*dest++ = (src[0] & 0x03) | ((src[1] & 0x03) << 2) | ((src[2] & 0x03) << 4) |
-			((src[3] & 0x03) << 6);
+		*dest++ =
+			(src[0] & 0x03) | ((src[1] & 0x03) << 2) |
+			((src[2] & 0x03) << 4) | ((src[3] & 0x03) << 6);
 		src += 4;
 	}
-	if ((cnt & 0x03) > 0)
+
+	switch (cnt & 0x03)
 	{
-		C_UInt8 val = 0xFF;
-		for (long k=(cnt & 0x03)-1; k >= 0; k--)
-			{ val <<= 2; val |= (src[k] & 0x03); }
-		src += cnt & 0x03;
-		*dest++ = val;
+		case 1:
+			*dest++ = (src[0] & 0x03) | 0xFC;
+			break;
+		case 2:
+			*dest++ = (src[0] & 0x03) | ((src[1] & 0x03) << 2) | 0xF0;
+			break;
+		case 3:
+			*dest++ = (src[0] & 0x03) | ((src[1] & 0x03) << 2) |
+				((src[2] & 0x03) << 4) | 0xC0;
+			break;
 	}
+
+	return dest;
+}
+
+C_UInt8 *GWAS::PackGeno4b(const C_UInt8 *src, size_t cnt, C_UInt8 *dest)
+{
+	for (size_t n=(cnt >> 1); n > 0; n--)
+	{
+		*dest++ = (src[0] & 0x03) | ((src[1] & 0x03) << 4);
+		src += 2;
+	}
+
+	if (cnt & 0x01)
+		*dest++ = (src[0] & 0x03) | 0x30;
+
 	return dest;
 }
 
 
-// ===========================================================
+
+// ===================================================================== //
 
 // CdProgression
 
@@ -1029,7 +1058,8 @@ void CdProgression::ShowProgress()
 }
 
 
-// ===========================================================
+
+// ===================================================================== //
 
 string GWAS::NowDateToStr()
 {
@@ -1307,7 +1337,8 @@ void IdMatTriD::reset(int n)
 }
 
 
-// ===========================================================
+
+// ===================================================================== //
 
 /// The number of SNPs in a block
 long GWAS::BlockSNP = 256;

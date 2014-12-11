@@ -1,4 +1,4 @@
-# Export all names
+# Export the following names
 useDynLib(SNPRelate,
     gnrChromParseNumeric, gnrChromRangeNumeric, gnrSNPRateFreq,
     gnrSampFreq, gnrIndInbCoef, gnrSNPFreq, gnrIndInb, gnrCopyGenoMem,

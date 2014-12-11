@@ -1,7 +1,7 @@
 SNPRelate: Parallel computing toolset for relatedness and principal component analysis of SNP data
 ===
 
-Version: 1.1.1
+Version: 1.1.2
 
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 
@@ -25,7 +25,7 @@ Genome-wide association studies are widely used to investigate the genetic basis
 	* fix bug in snpgdsBED2GDS if 'family=TRUE'
 
 ## News
-```gdsfmt_1.1.2``` should be installed immediately, if you see the error like
+```gdsfmt_1.1.3``` should be installed immediately, if you see the error like
 ```
 Invalid Zip Deflate Stream operation 'Seek'!
 ```

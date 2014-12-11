@@ -74,7 +74,8 @@ namespace IBS
 	/// The flag of use of allele frequencies
 	C_UInt8 Gen_Both_Valid[PACKED_SIZE];
 
-	/// KING robust estimator
+
+	//================    KING robust estimator    ================//
 	/// The square value of genotype difference, (X_m^{(i)} - X_m^{(j)})^2
 	C_UInt8 Gen_KING_SqDiff[PACKED_SIZE];
 	/// N1_Aa requiring both genotypes are available
@@ -111,28 +112,6 @@ namespace IBS
 		C_UInt32 IBS1;  //< the number of loci sharing only one allele
 		C_UInt32 IBS2;  //< the number of loci sharing two alleles
 		TS_IBS() { IBS0 = IBS1 = IBS2 = 0; }
-	};
-
-
-	/// The pointer to the variable 'PublicKING' in the function "DoKINGCalculate"
-	/// The structure of KING IBD estimator
-	struct TS_KINGHomo
-	{
-		C_UInt32 IBS0;       //< the number of loci sharing no allele
-		C_UInt32 SumSq;      //< \sum_m (X_m^{(i)} - X_m^{(j)})^2
-		double SumAFreq;   //< \sum_m p_m (1 - p_m)
-		double SumAFreq2;  //< \sum_m p_m^2 (1 - p_m)^2
-		TS_KINGHomo() { IBS0 = SumSq = 0; SumAFreq = SumAFreq2 = 0; }
-	};
-
-	struct TS_KINGRobust
-	{
-		C_UInt32 IBS0;       //< the number of loci sharing no allele
-		C_UInt32 nLoci;      //< the total number of loci
-		C_UInt32 SumSq;      //< \sum_m (X_m^{(i)} - X_m^{(j)})^2
-		C_UInt32 N1_Aa;      //< the number of hetet loci for the first individual
-		C_UInt32 N2_Aa;      //< the number of hetet loci for the second individual
-		TS_KINGRobust() { IBS0 = nLoci = SumSq = N1_Aa = N2_Aa = 0; }
 	};
 
 
@@ -177,12 +156,6 @@ namespace IBS
 			/// The distance in the packed genotype
 			PACKED_COND((b1 < 3) && (b2 < 3), Gen_Diss_SNP, sum += b1*(2-b2) + (2-b1)*b2);
 			PACKED_COND((b1 < 3) && (b2 < 3), Gen_Both_Valid, sum |= (1 << i));
-
-			/// \sum_m (X_m^{(i)} - X_m^{(j)})^2
-			PACKED_COND((b1 < 3) && (b2 < 3), Gen_KING_SqDiff, sum += (b1-b2)*(b1-b2));
-			PACKED_COND((b1 < 3) && (b2 < 3), Gen_KING_N1_Aa, sum += (b1==1) ? 1:0);
-			PACKED_COND((b1 < 3) && (b2 < 3), Gen_KING_N2_Aa, sum += (b2==1) ? 1:0);
-			PACKED_COND((b1 < 3) && (b2 < 3), Gen_KING_Num_Loci, sum ++);
 		}
 	} InitObj;
 
@@ -214,7 +187,7 @@ namespace IBS
 		// pack genotypes
 		for (long iSamp=0; iSamp < nSamp; iSamp++)
 		{
-			pPack = PackGenotypes(pG, SNP_Cnt, pPack);
+			pPack = PackGeno2b(pG, SNP_Cnt, pPack);
 			pG += SNP_Cnt;
 		}
 	}
@@ -298,154 +271,10 @@ namespace IBS
 	}
 
 
-	/// **********************************************************************
-	/// **  KING robust estimator  **
-	/// **********************************************************************
 
-	/// Convert the raw genotypes
-	static void _Do_KING_ReadBlock(C_UInt8 *GenoBuf, long Start,
-		long SNP_Cnt, void* Param)
-	{
-		// initialize
-		const int nSamp = MCWorkingGeno.Space.SampleNum();
-		C_UInt8 *pG = GenoBuf;
-		C_UInt8 *pPack = &GenoPacked[0];
-
-		// pack genotypes
-		for (long iSamp=0; iSamp < nSamp; iSamp++)
-		{
-			pPack = PackGenotypes(pG, SNP_Cnt, pPack);
-			pG += SNP_Cnt;
-		}
-		// calculate the allele frequencies
-		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
-		{
-			C_UInt8 *p = GenoBuf + iSNP;
-			double &Freq = GenoAlleleFreq[iSNP];
-			int n = 0; Freq = 0;
-			for (long iSamp=0; iSamp < nSamp; iSamp++)
-			{
-				if (*p < 3) { Freq += *p; n += 2; }
-				p += SNP_Cnt;
-			}
-			Freq = (n > 0) ? Freq/n : 0;
-			Freq = Freq * (1 - Freq);
-		}
-	}
-
-	/// Compute IBD estimator in KING-homo
-	static void _Do_KING_Homo_Compute(int ThreadIndex, long Start,
-		long SNP_Cnt, void* Param)
-	{
-		long Cnt = IBS_Thread_MatCnt[ThreadIndex];
-		IdMatTri I = IBS_Thread_MatIdx[ThreadIndex];
-		TS_KINGHomo *p = ((TS_KINGHomo*)Param) + I.Offset();
-		long _PackSNPLen = (SNP_Cnt / 4) + (SNP_Cnt % 4 ? 1 : 0);
-
-		for (; Cnt > 0; Cnt--, ++I, p++)
-		{
-			C_UInt8 *p1 = &GenoPacked[0] + I.Row()*_PackSNPLen;
-			C_UInt8 *p2 = &GenoPacked[0] + I.Column()*_PackSNPLen;
-			for (long k=0; k < _PackSNPLen; k++, p1++, p2++)
-			{
-				size_t t = (size_t(*p1) << 8) | (*p2);
-
-				p->IBS0 += IBS0_Num_SNP[t];
-				p->SumSq += Gen_KING_SqDiff[t];
-
-				C_UInt8 flag = Gen_Both_Valid[t];
-				if (flag & 0x01)
-				{
-					double f = GenoAlleleFreq[4*k + 0];
-					p->SumAFreq += f; p->SumAFreq2 += f*f;
-				}
-				if (flag & 0x02)
-				{
-					double f = GenoAlleleFreq[4*k + 1];
-					p->SumAFreq += f; p->SumAFreq2 += f*f;
-				}
-				if (flag & 0x04)
-				{
-					double f = GenoAlleleFreq[4*k + 2];
-					p->SumAFreq += f; p->SumAFreq2 += f*f;
-				}
-				if (flag & 0x08)
-				{
-					double f = GenoAlleleFreq[4*k + 3];
-					p->SumAFreq += f; p->SumAFreq2 += f*f;
-				}
-			}
-		}
-	}
-
-	/// Compute IBD estimator in KING-robust
-	static void _Do_KING_Robust_Compute(int ThreadIndex, long Start,
-		long SNP_Cnt, void* Param)
-	{
-		long Cnt = IBS_Thread_MatCnt[ThreadIndex];
-		IdMatTri I = IBS_Thread_MatIdx[ThreadIndex];
-		TS_KINGRobust *p = ((TS_KINGRobust*)Param) + I.Offset();
-		long _PackSNPLen = (SNP_Cnt / 4) + (SNP_Cnt % 4 ? 1 : 0);
-
-		for (; Cnt > 0; Cnt--, ++I, p++)
-		{
-			C_UInt8 *p1 = &GenoPacked[0] + I.Row()*_PackSNPLen;
-			C_UInt8 *p2 = &GenoPacked[0] + I.Column()*_PackSNPLen;
-			for (long k=0; k < _PackSNPLen; k++, p1++, p2++)
-			{
-				size_t t = (size_t(*p1) << 8) | (*p2);
-				p->IBS0 += IBS0_Num_SNP[t];
-				p->nLoci += Gen_KING_Num_Loci[t];
-				p->SumSq += Gen_KING_SqDiff[t];
-				p->N1_Aa += Gen_KING_N1_Aa[t];
-				p->N2_Aa += Gen_KING_N2_Aa[t];
-			}
-		}
-	}
-
-	/// Calculate KING IBD estimators
-	void DoKINGCalculate(CdMatTri<TS_KINGHomo> &PublicKING, int NumThread,
-		const char *Info, bool verbose)
-	{
-		// Initialize ...
-		GenoPacked.resize(BlockSNP * PublicKING.N());
-		memset(PublicKING.get(), 0, sizeof(TS_KINGHomo)*PublicKING.Size());
-		GenoAlleleFreq.resize(BlockSNP);
-
-		MCWorkingGeno.Progress.Info = Info;
-		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockSNP);
-
-		MCWorkingGeno.SplitJobs(NumThread, PublicKING.N(),
-			IBS_Thread_MatIdx, IBS_Thread_MatCnt);
-		MCWorkingGeno.Run(NumThread, &_Do_KING_ReadBlock,
-			&_Do_KING_Homo_Compute, PublicKING.get());
-	}
-
-	/// Calculate KING IBD estimators
-	void DoKINGCalculate(CdMatTri<TS_KINGRobust> &PublicKING, int NumThread,
-		const char *Info, bool verbose)
-	{
-		// Initialize ...
-		GenoPacked.resize(BlockSNP * PublicKING.N());
-		memset(PublicKING.get(), 0, sizeof(TS_KINGRobust)*PublicKING.Size());
-		GenoAlleleFreq.resize(BlockSNP);
-
-		MCWorkingGeno.Progress.Info = Info;
-		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockSNP);
-
-		MCWorkingGeno.SplitJobs(NumThread, PublicKING.N(),
-			IBS_Thread_MatIdx, IBS_Thread_MatCnt);
-		MCWorkingGeno.Run(NumThread, &_Do_KING_ReadBlock,
-			&_Do_KING_Robust_Compute, PublicKING.get());
-	}
-
-
-
-	/// **********************************************************************
-	/// **  Individual Dissimilarity  **
-	/// **********************************************************************
+	/// ======================================================================
+	/// Individual Dissimilarity
+	/// ======================================================================
 
 	/// Convert the raw genotypes
 	static void _Do_Diss_ReadBlock(C_UInt8 *GenoBuf, long Start,
@@ -459,7 +288,7 @@ namespace IBS
 		// pack genotypes
 		for (long iSamp=0; iSamp < nSamp; iSamp++)
 		{
-			pPack = PackGenotypes(pG, SNP_Cnt, pPack);
+			pPack = PackGeno2b(pG, SNP_Cnt, pPack);
 			pG += SNP_Cnt;
 		}
 		// calculate the allele frequencies
@@ -544,7 +373,7 @@ using namespace IBS;
 
 extern "C"
 {
-// ***********************************************************************
+// ======================================================================*
 // the functions for identity-by-state (IBS)
 //
 
@@ -557,10 +386,10 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// =======* To cache the genotype data =======*
 		CachingSNPData("IBS", verbose);
 
-		// ******** The calculation of IBS matrix ********
+		// =======* The calculation of IBS matrix =======*
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
@@ -605,10 +434,10 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// =======* To cache the genotype data =======*
 		CachingSNPData("IBS", verbose);
 
-		// ******** The calculation of IBS matrix ********
+		// =======* The calculation of IBS matrix =======*
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
@@ -660,7 +489,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 }
 
 
-// ***********************************************************************
+// ======================================================================*
 // the functions for identity-by-descent (IBD)
 //
 
@@ -672,7 +501,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// =======* To cache the genotype data =======*
 		CachingSNPData("PLINK IBD", verbose);
 
 		// the number of individuals
@@ -682,7 +511,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 
-		// ******** PLINK method of moment ********
+		// =======* PLINK method of moment =======*
 
 		// initialize output variables
 		SEXP dim;
@@ -735,135 +564,8 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 }
 
 
-/// to compute the IBD coefficients by KING method of moment (KING-homo)
-COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Homo(SEXP NumThread, SEXP _Verbose)
-{
-	bool verbose = SEXP_Verbose(_Verbose);
 
-	COREARRAY_TRY
-
-		// ******** To cache the genotype data ********
-		CachingSNPData("KING IBD", verbose);
-
-		// ******** The calculation of genetic covariance matrix ********
-
-		// the number of samples
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
-		// to detect the block size
-		IBS::AutoDetectSNPBlockSize(n);
-
-		// the upper-triangle IBD matrix
-		CdMatTri<IBS::TS_KINGHomo> IBD(n);
-		// Calculate the IBD matrix
-		IBS::DoKINGCalculate(IBD, INTEGER(NumThread)[0], "KING IBD:", verbose);
-
-		// initialize output variables
-		SEXP dim;
-		PROTECT(dim = NEW_INTEGER(2));
-		INTEGER(dim)[0] = n; INTEGER(dim)[1] = n;
-
-		SEXP k0    = NEW_NUMERIC(n*n);  PROTECT(k0);
-		setAttrib(k0, R_DimSymbol, dim);
-		double *out_k0 = REAL(k0);
-
-		SEXP k1    = NEW_NUMERIC(n*n);  PROTECT(k1);
-		setAttrib(k1, R_DimSymbol, dim);
-		double *out_k1 = REAL(k1);
-
-		// output
-		IBS::TS_KINGHomo *p = IBD.get();
-		for (int i=0; i < n; i++)
-		{
-			out_k0[i*n + i] = out_k1[i*n + i] = 0;
-			p ++;
-			for (int j=i+1; j < n; j++, p++)
-			{
-				double theta = 0.5 - p->SumSq / (8 * p->SumAFreq);
-				double k0 = p->IBS0 / (2 * p->SumAFreq2);
-				double k1 = 2 - 2*k0 - 4*theta;
-				out_k0[i*n + j] = out_k0[j*n + i] = k0;
-				out_k1[i*n + j] = out_k1[j*n + i] = k1;
-			}
-		}
-
-		// output
-		PROTECT(rv_ans = NEW_LIST(2));
-		SET_ELEMENT(rv_ans, 0, k0);
-		SET_ELEMENT(rv_ans, 1, k1);
-		UNPROTECT(4);
-
-	COREARRAY_CATCH
-}
-
-/// to compute the IBD coefficients by KING method of moment (KING-robust)
-COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
-	SEXP _Verbose)
-{
-	bool verbose = SEXP_Verbose(_Verbose);
-
-	COREARRAY_TRY
-
-		// ******** To cache the genotype data ********
-		CachingSNPData("KING IBD", verbose);
-
-		// ******** The calculation of genetic covariance matrix ********
-
-		// the number of samples
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
-		// to detect the block size
-		IBS::AutoDetectSNPBlockSize(n);
-
-		// IBD KING robust IBD estimator across family
-		// the upper-triangle IBD matrix
-		CdMatTri<IBS::TS_KINGRobust> IBD(n);
-		// Calculate the IBD matrix
-		IBS::DoKINGCalculate(IBD, INTEGER(NumThread)[0], "KING IBD:", verbose);
-
-		// initialize output variables
-		SEXP dim;
-		PROTECT(dim = NEW_INTEGER(2));
-		INTEGER(dim)[0] = n; INTEGER(dim)[1] = n;
-
-		SEXP IBS0    = NEW_NUMERIC(n*n);  PROTECT(IBS0);
-		setAttrib(IBS0, R_DimSymbol, dim);
-		double *out_IBS0 = REAL(IBS0);
-
-		SEXP Kinship = NEW_NUMERIC(n*n);  PROTECT(Kinship);
-		setAttrib(Kinship, R_DimSymbol, dim);
-		double *out_kinship = REAL(Kinship);
-
-		int *FamID_Ptr = INTEGER(FamilyID);
-
-		// output
-		IBS::TS_KINGRobust *p = IBD.get();
-		for (int i=0; i < n; i++)
-		{
-			out_IBS0[i*n + i] = 0; out_kinship[i*n + i] = 0.5;
-			p ++;
-			for (int j=i+1; j < n; j++, p++)
-			{
-				out_IBS0[i*n + j] = out_IBS0[j*n + i] = double(p->IBS0) / p->nLoci;
-
-				int f1 = FamID_Ptr[i];
-				int f2 = FamID_Ptr[j];
-				out_kinship[i*n + j] = out_kinship[j*n + i] =
-						((f1 == f2) && (f1 != NA_INTEGER)) ?
-					(0.5 - p->SumSq / (2.0 *(p->N1_Aa + p->N2_Aa))) :
-					(0.5 - p->SumSq / (4.0 * min(p->N1_Aa, p->N2_Aa)));
-			}
-		}
-
-		// output
-		PROTECT(rv_ans = NEW_LIST(2));
-		SET_ELEMENT(rv_ans, 0, IBS0);
-		SET_ELEMENT(rv_ans, 1, Kinship);
-		UNPROTECT(4);
-
-	COREARRAY_CATCH
-}
-
-
-// ***********************************************************************
+// =========================================================================
 // the functions for individual dissimilarity
 
 /// to compute the individual dissimilarity
@@ -873,10 +575,10 @@ COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// =======* To cache the genotype data =======*
 		CachingSNPData("Dissimilarity", verbose);
 
-		// ******** The calculation of genetic covariance matrix ********
+		// =======* The calculation of genetic covariance matrix =======*
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
