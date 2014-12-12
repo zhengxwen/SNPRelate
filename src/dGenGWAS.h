@@ -494,8 +494,10 @@ namespace GWAS
 
 	// ===================================================================== //
 
-	/// The number of SNPs in a block, the number of samples in a block
-	extern long BlockSNP, BlockSamp;
+	/// The number of SNPs in a block, optimized for memory cache
+	extern long BlockNumSNP;
+	/// The number of samples in a block
+	extern long BlockSamp;
 	/// The mutex object for the variable "Progress" and the function "RequireWork"
 	extern PdThreadMutex _Mutex;
 	/// The starting point of SNP, used in the function "RequireWork"
@@ -597,11 +599,31 @@ namespace GWAS
 	extern CMultiCoreWorkingGeno MCWorkingGeno;
 
 
-	/// detect the argument 'verbose'
+
+	/// Detect the argument 'verbose'
 	COREARRAY_DLL_LOCAL bool SEXP_Verbose(SEXP Verbose);
 
 	///
 	COREARRAY_DLL_LOCAL void CachingSNPData(const char *Msg, bool Verbose);
+
+
+	/** Detect the optimized number of SNPs in a block according to
+	 *    L2 and L3 cache memory, and the value is assigned to 'BlockNumSNP'
+	**/
+	void DetectOptimizedNumOfSNP(int nSamp, size_t need);
+
+
+	/// Thread variables
+	const int N_MAX_THREAD = 256;
+
+	extern IdMatTri Array_Thread_MatIdx[N_MAX_THREAD];
+	extern C_Int64 Array_Thread_MatCnt[N_MAX_THREAD];
+
+
+	/// The packed genotype buffer
+	extern std::vector<C_UInt8> Array_PackedGeno;
+	/// The allele frequencies
+	extern std::vector<double> Array_AlleleFreq;
 }
 
 #endif /* _HEADER_GWAS_ */

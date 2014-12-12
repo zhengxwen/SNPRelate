@@ -6,7 +6,8 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2014        Xiuwen Zheng
+# Copyright (C) 2011 - 2015        Xiuwen Zheng
+# License: GPL-3
 # Email: zhengxwen@gmail.com
 #
 
@@ -369,15 +370,6 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                 "are treated as singletons.\n")
         }
         family.id <- rep(NA, ws$n.samp)
-    }
-
-    if (verbose)
-    {
-        cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
-        if (num.thread <= 1)
-            cat("\tUsing", num.thread, "CPU core.\n")
-        else
-            cat("\tUsing", num.thread, "CPU cores.\n")
     }
 
     if (type == "KING-homo")

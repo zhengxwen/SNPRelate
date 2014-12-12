@@ -270,7 +270,7 @@ namespace PCA
 	/// the pointer to allele frequency
 	double *In_AveFreq = NULL;
 
-	/// detect the effective value for BlockSNP
+	/// detect the effective value for BlockNumSNP
 	void AutoDetectSNPBlockSize(int nSamp, bool Detect=true)
 	{
 		if (Detect)
@@ -279,10 +279,10 @@ namespace PCA
 			C_UInt64 L3Cache = GDS_Mach_GetCPULevelCache(3);
 			C_UInt64 Cache = (L2Cache > L3Cache) ? L2Cache : L3Cache;
 			if ((C_Int64)Cache <= 0) Cache = 1024*1024; // 1M
-			BlockSNP = (Cache - 8*1024) / (sizeof(double)*nSamp);
+			BlockNumSNP = (Cache - 8*1024) / (sizeof(double)*nSamp);
 		}
-		BlockSNP = (BlockSNP / 4) * 4;
-		if (BlockSNP < 16) BlockSNP = 16;
+		BlockNumSNP = (BlockNumSNP / 4) * 4;
+		if (BlockNumSNP < 16) BlockNumSNP = 16;
 	}
 
 	/// init mutex objects
@@ -413,15 +413,15 @@ namespace PCA
 		const char *Info, bool verbose)
 	{
 		// Initialize ...
-		PCA_gSum.resize(BlockSNP);
-		PCA_gNum.resize(BlockSNP);
-		PCA_Mat.Reset(PublicCov.N(), BlockSNP);
+		PCA_gSum.resize(BlockNumSNP);
+		PCA_gNum.resize(BlockNumSNP);
+		PCA_Mat.Reset(PublicCov.N(), BlockNumSNP);
 		tmpBuf.Reset(PCA_Mat.M());
 		memset(PublicCov.get(), 0, sizeof(double)*PublicCov.Size());
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockSNP);
+		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
 
 		MCWorkingGeno.SplitJobs(NumThread, PublicCov.N(), PCA_Thread_MatIdx,
 			PCA_Thread_MatCnt);
@@ -466,7 +466,7 @@ namespace PCA
 	{
 		// The number of working samples
 		const long n = MCWorkingGeno.Space.SampleNum();
-		vector<C_UInt8> GenoBlock(n * BlockSNP);
+		vector<C_UInt8> GenoBlock(n * BlockNumSNP);
 
 		long _SNPstart, _SNPlen;
 		while (RequireWork(&GenoBlock[0], _SNPstart, _SNPlen, false))
@@ -550,7 +550,7 @@ namespace PCA
 	{
 		// The number of working samples
 		const long n = MCWorkingGeno.Space.SampleNum();
-		vector<C_UInt8> GenoBlock(n * BlockSNP);
+		vector<C_UInt8> GenoBlock(n * BlockNumSNP);
 		TdAlignPtr<double> NormalGeno(n);
 
 		long _SNPstart, _SNPlen;
@@ -892,11 +892,11 @@ namespace PCA
 		// initialize ...
 		const long n = OutIBD.N();  // the number of individuals
 
-		PCA_gSum.resize(BlockSNP);
-		PCA_gNum.resize(BlockSNP);
-		PCA_Mat.Reset(n, BlockSNP);
+		PCA_gSum.resize(BlockNumSNP);
+		PCA_gNum.resize(BlockNumSNP);
+		PCA_Mat.Reset(n, BlockNumSNP);
 		tmpBuf.Reset(PCA_Mat.M());
-		Admix_Missing_Flag.resize(BlockSNP * n);
+		Admix_Missing_Flag.resize(BlockNumSNP * n);
 		Admix_Adj_Geno.resize(n);
 
 		memset(OutIBD.get(), 0, sizeof(double)*OutIBD.Size());
@@ -904,7 +904,7 @@ namespace PCA
 
 		MCWorkingGeno.Progress.Info = "Eigen-analysis:";
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockSNP);
+		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
 
 		CdMatTri<double> AFreqProd(n);
 		memset(AFreqProd.get(), 0, sizeof(double)*AFreqProd.Size());
@@ -1067,11 +1067,11 @@ namespace PCA
 		// initialize ...
 		const long n = OutIBD.N();  // the number of individuals
 
-		PCA_gSum.resize(BlockSNP);
-		PCA_gNum.resize(BlockSNP);
-		PCA_Mat.Reset(n, BlockSNP);
+		PCA_gSum.resize(BlockNumSNP);
+		PCA_gNum.resize(BlockNumSNP);
+		PCA_Mat.Reset(n, BlockNumSNP);
 		tmpBuf.Reset(PCA_Mat.M());
-		Admix_Missing_Flag.resize(BlockSNP * n);
+		Admix_Missing_Flag.resize(BlockNumSNP * n);
 		Admix_Adj_Geno.resize(n);
 
 		memset(OutIBD.get(), 0, sizeof(double)*OutIBD.Size());
@@ -1079,7 +1079,7 @@ namespace PCA
 
 		MCWorkingGeno.Progress.Info = "Eigen-analysis:";
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockSNP);
+		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
 
 		CdMatTri<int> NumValid(n);
 		memset(NumValid.get(), 0, sizeof(int)*NumValid.Size());
@@ -1220,11 +1220,11 @@ namespace PCA
 		// initialize ...
 		const long n = OutIBD.N();  // the number of individuals
 
-		PCA_gSum.resize(BlockSNP);
-		PCA_gNum.resize(BlockSNP);
-		PCA_Mat.Reset(n, BlockSNP);
+		PCA_gSum.resize(BlockNumSNP);
+		PCA_gNum.resize(BlockNumSNP);
+		PCA_Mat.Reset(n, BlockNumSNP);
 		tmpBuf.Reset(PCA_Mat.M());
-		Admix_Missing_Flag.resize(BlockSNP * n);
+		Admix_Missing_Flag.resize(BlockNumSNP * n);
 		Admix_Adj_Geno.resize(n);
 
 		memset(OutIBD.get(), 0, sizeof(double)*OutIBD.Size());
@@ -1232,7 +1232,7 @@ namespace PCA
 
 		MCWorkingGeno.Progress.Info = "GRM-analysis:";
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockSNP);
+		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
 
 		CdMatTri<int> NumValid(n);
 		memset(NumValid.get(), 0, sizeof(int)*NumValid.Size());

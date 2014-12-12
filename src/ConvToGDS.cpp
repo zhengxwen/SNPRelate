@@ -525,16 +525,17 @@ COREARRAY_DLL_EXPORT SEXP gnr_Init_Parse_VCF4()
  *  \param vcf_fn            the file names of VCF format
  *  \param gds_root          the root of GDS file
  *  \param method            the method index: 1 -- biallelic.only
- *  \param ReadLineFun       the calling
- *  \param ReadLine_Param    the parameter for calling function
+ *  \param ReadLineFun       calling function
+ *  \param ReadLine_File     the parameter of 'con' in 'readLines'
+ *  \param ReadLine_N        the parameter of 'n' in 'readLines'
  *  \param RefAllele         the reference alleles
  *  \param rho               the environment
  *  \param Verbose           print out information
  *  \return                  the number of variants
 **/
 COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
-	SEXP method, SEXP ReadLineFun, SEXP ReadLine_Param, SEXP RefAllele,
-	SEXP rho, SEXP Verbose)
+	SEXP method, SEXP ReadLineFun, SEXP ReadLine_File, SEXP ReadLine_N,
+	SEXP RefAllele, SEXP rho, SEXP Verbose)
 {
 	const char *fn = CHAR(STRING_ELT(vcf_fn, 0));
 	int met_idx = INTEGER(method)[0];
@@ -588,9 +589,11 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 		// *********************************************************
 		// initialize external calling for reading stream
 
+		// 'readLine(con, n)'
 		SEXP R_Read_Call;
 		PROTECT(R_Read_Call =
-			LCONS(ReadLineFun, LCONS(ReadLine_Param, R_NilValue)));
+			LCONS(ReadLineFun, LCONS(ReadLine_File,
+			LCONS(ReadLine_N, R_NilValue))));
 		RL.Init(R_Read_Call, rho);
 		RL.SplitByTab();
 
@@ -866,15 +869,16 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 /** Oxford GEN --> SNP GDS
  *  \param vcf_fn            the file names of VCF format
  *  \param gds_root          the root of GDS file
- *  \param ReadLineFun       the calling
- *  \param ReadLine_Param    the parameter for calling function
+ *  \param ReadLineFun       calling function
+ *  \param ReadLine_File     the parameter of 'con' in 'readLines'
+ *  \param ReadLine_N        the parameter of 'n' in 'readLines'
  *  \param rho               the environment
  *  \param Verbose           print out information
  *  \return                  the number of variants
 **/
 COREARRAY_DLL_EXPORT SEXP gnr_Parse_GEN(SEXP gen_fn, SEXP gds_root,
-	SEXP ChrCode, SEXP CallThreshold, SEXP ReadLineFun, SEXP ReadLine_Param,
-	SEXP rho, SEXP Verbose)
+	SEXP ChrCode, SEXP CallThreshold, SEXP ReadLineFun, SEXP ReadLine_File,
+	SEXP ReadLine_N, SEXP rho, SEXP Verbose)
 {
 	const char *fn = CHAR(STRING_ELT(gen_fn, 0));
 	int verbose = asLogical(Verbose);
@@ -934,9 +938,11 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_GEN(SEXP gen_fn, SEXP gds_root,
 		// *********************************************************
 		// initialize external calling for reading stream
 
+		// 'readLine(con, n)'
 		SEXP R_Read_Call;
 		PROTECT(R_Read_Call =
-			LCONS(ReadLineFun, LCONS(ReadLine_Param, R_NilValue)));
+			LCONS(ReadLineFun, LCONS(ReadLine_File,
+			LCONS(ReadLine_N, R_NilValue))));
 		RL.Init(R_Read_Call, rho);
 		RL.SplitBySpaceTab();
 

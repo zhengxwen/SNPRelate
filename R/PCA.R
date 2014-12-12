@@ -6,7 +6,8 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2014        Xiuwen Zheng
+# Copyright (C) 2011 - 2015        Xiuwen Zheng
+# License: GPL-3
 # Email: zhengxwen@gmail.com
 #
 
@@ -85,9 +86,9 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
         cat("SNP correlations:\n")
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
         if (num.thread <= 1)
-            cat("\tUsing", num.thread, "CPU core.\n")
+            cat("\tUsing", num.thread, "(CPU) core.\n")
         else
-            cat("\tUsing", num.thread, "CPU cores.\n")
+            cat("\tUsing", num.thread, "(CPU) cores.\n")
         cat("\tUsing the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
     }
 
@@ -118,9 +119,9 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
         cat("SNP loading:\n")
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
         if (num.thread <= 1)
-            cat("\tUsing", num.thread, "CPU core.\n")
+            cat("\tUsing", num.thread, "(CPU) core.\n")
         else
-            cat("\tUsing", num.thread, "CPU cores.\n")
+            cat("\tUsing", num.thread, "(CPU) cores.\n")
         cat("\tUsing the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
     }
 
@@ -165,9 +166,9 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
         cat("Sample loading:\n")
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
         if (num.thread <= 1)
-            cat("\tUsing", num.thread, "CPU core.\n")
+            cat("\tUsing", num.thread, "(CPU) core.\n")
         else
-            cat("\tUsing", num.thread, "CPU cores.\n")
+            cat("\tUsing", num.thread, "(CPU) cores.\n")
         cat("\tUsing the top", eigcnt, "eigenvectors.\n")
     }
 

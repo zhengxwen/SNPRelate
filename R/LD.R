@@ -6,7 +6,8 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2014        Xiuwen Zheng
+# Copyright (C) 2011 - 2015        Xiuwen Zheng
+# License: GPL-3
 # Email: zhengxwen@gmail.com
 #
 

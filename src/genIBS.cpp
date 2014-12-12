@@ -160,7 +160,7 @@ namespace IBS
 	} InitObj;
 
 
-	/// detect the effective value for BlockSNP
+	/// detect the effective value for BlockNumSNP
 	void AutoDetectSNPBlockSize(int nSamp, bool Detect=true)
 	{
 		if (Detect)
@@ -169,10 +169,10 @@ namespace IBS
 			C_UInt64 L3Cache = GDS_Mach_GetCPULevelCache(3);
 			C_UInt64 Cache = (L2Cache > L3Cache) ? L2Cache : L3Cache;
 			if ((C_Int64)Cache <= 0) Cache = 1024*1024; // 1M
-			BlockSNP = (Cache - 3*256*256 - 8*1024) / nSamp * 4;
+			BlockNumSNP = (Cache - 3*256*256 - 8*1024) / nSamp * 4;
 		}
-		BlockSNP = (BlockSNP / 4) * 4;
-		if (BlockSNP < 16) BlockSNP = 16;
+		BlockNumSNP = (BlockNumSNP / 4) * 4;
+		if (BlockNumSNP < 16) BlockNumSNP = 16;
 	}
 
 	/// Convert the raw genotypes
@@ -243,12 +243,12 @@ namespace IBS
 		const char *Info, bool verbose)
 	{
 		// Initialize ...
-		GenoPacked.resize(BlockSNP * PublicIBS.N());
+		GenoPacked.resize(BlockNumSNP * PublicIBS.N());
 		memset(PublicIBS.get(), 0, sizeof(TS_IBS)*PublicIBS.Size());
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockSNP);
+		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
 
 		MCWorkingGeno.SplitJobs(NumThread, PublicIBS.N(), PLINKIBS_Thread_MatIdx, PLINKIBS_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_PLINKIBS_Compute, PublicIBS.get());
@@ -259,12 +259,12 @@ namespace IBS
 		const char *Info, bool verbose)
 	{
 		// Initialize ...
-		GenoPacked.resize(BlockSNP * PublicIBS.N());
+		GenoPacked.resize(BlockNumSNP * PublicIBS.N());
 		memset(PublicIBS.get(), 0, sizeof(TS_IBS)*PublicIBS.Size());
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockSNP);
+		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
 
 		MCWorkingGeno.SplitJobs(NumThread, PublicIBS.N(), IBS_Thread_MatIdx, IBS_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_IBS_Compute, PublicIBS.get());
@@ -343,13 +343,13 @@ namespace IBS
 		const char *Info, bool verbose)
 	{
 		// Initialize ...
-		GenoPacked.resize(BlockSNP * PublicDiss.N());
+		GenoPacked.resize(BlockNumSNP * PublicDiss.N());
 		memset(PublicDiss.get(), 0, sizeof(TS_Dissimilarity)*PublicDiss.Size());
-		GenoAlleleFreq.resize(BlockSNP);
+		GenoAlleleFreq.resize(BlockNumSNP);
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockSNP);
+		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
 
 		MCWorkingGeno.SplitJobs(NumThread, PublicDiss.N(),
 			IBS_Thread_MatIdx, IBS_Thread_MatCnt);

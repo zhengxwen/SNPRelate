@@ -6,7 +6,8 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2014        Xiuwen Zheng
+# Copyright (C) 2011 - 2015        Xiuwen Zheng
+# License: GPL-3
 # Email: zhengxwen@gmail.com
 #
 
@@ -669,16 +670,6 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
 
 
     ##################################################
-    # define wrapping R function for the C code 'gnr_Parse_VCF4'
-    #   because 'getConnection' in Rconnections.h is hidden
-    # see https://stat.ethz.ch/pipermail/r-devel/2007-April/045264.html
-    ReadLineText <- function(infile)
-    {
-        readLines(infile, n=1024L)
-    }
-
-
-    ##################################################
     # initialize the internal data
     .Call(gnr_Init_Parse_VCF4)
 
@@ -694,7 +685,8 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
 
         # call C function
         n <- .Call(gnr_Parse_VCF4, vcf.fn[i], gfile$root, metidx,
-            ReadLineText, opfile, ref.allele, new.env(), verbose)
+            readLines, opfile, 1024L,  # "readLines(opfile, 1024L)"
+            ref.allele, new.env(), verbose)
 
         if (verbose)
         {
@@ -856,15 +848,6 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
 
 
     ##################################################
-    # define wrapping R function for the C code 'gnr_Parse_GEN'
-    #   because 'getConnection' in Rconnections.h is hidden
-    # see https://stat.ethz.ch/pipermail/r-devel/2007-April/045264.html
-    ReadLineText <- function(infile)
-    {
-        readLines(infile, n=1024L)
-    }
-
-    ##################################################
     # for-loop each file
     for (i in 1:length(gen.fn))
     {
@@ -876,8 +859,9 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
 
         # call C function
         n <- .Call(gnr_Parse_GEN, gen.fn[i], gfile$root, chr.code[i],
-            as.double(call.threshold), ReadLineText, opfile, new.env(),
-            verbose)
+            as.double(call.threshold),
+            readLines, opfile, 1024L,  # "readLines(opfile, 1024L)"
+            new.env(), verbose)
 
         if (verbose)
         {

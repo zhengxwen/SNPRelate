@@ -6,7 +6,8 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2014        Xiuwen Zheng
+# Copyright (C) 2011 - 2015        Xiuwen Zheng
+# License: GPL-3
 # Email: zhengxwen@gmail.com
 #
 
@@ -236,9 +237,9 @@
                 if (tmp > 0)
                 {
                     if (tmp > 1)
-                        cat("Removing", tmp, "SNPs on non-autosomes.\n")
+                        cat("Removing", tmp, "SNPs on non-autosomes\n")
                     else
-                        cat("Removing", tmp, "SNP on non-autosomes.\n")
+                        cat("Removing", tmp, "SNP on non-autosomes\n")
                 }
             }
             snp.ids <- snp.ids[snp.id]

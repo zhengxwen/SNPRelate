@@ -1341,7 +1341,7 @@ void IdMatTriD::reset(int n)
 // ===================================================================== //
 
 /// The number of SNPs in a block
-long GWAS::BlockSNP = 256;
+long GWAS::BlockNumSNP = 256;
 /// The number of samples in a block
 long GWAS::BlockSamp = 32;
 /// The mutex object for the variable "Progress" and the function "RequireWork"
@@ -1359,7 +1359,7 @@ bool GWAS::RequireWork(C_UInt8 *buf, long &_SNPstart, long &_SNPlen,
 
 	long Cnt = MCWorkingGeno.Space.SNPNum() - SNPStart;
 	if (Cnt <= 0) return false;
-	if (Cnt > BlockSNP) Cnt = BlockSNP;
+	if (Cnt > BlockNumSNP) Cnt = BlockNumSNP;
 
 	MCWorkingGeno.Space.snpRead(SNPStart, Cnt, buf, SNPOrder);
 	_SNPstart = SNPStart; _SNPlen = Cnt;
@@ -1372,7 +1372,7 @@ bool GWAS::RequireWork_NoMutex(C_UInt8 *buf, long &_SNPstart, long &_SNPlen,
 {
 	long Cnt = MCWorkingGeno.Space.SNPNum() - SNPStart;
 	if (Cnt <= 0) return false;
-	if (Cnt > BlockSNP) Cnt = BlockSNP;
+	if (Cnt > BlockNumSNP) Cnt = BlockNumSNP;
 
 	MCWorkingGeno.Space.snpRead(SNPStart, Cnt, buf, SNPOrder);
 	_SNPstart = SNPStart; _SNPlen = Cnt;
@@ -1620,3 +1620,25 @@ void GWAS::CachingSNPData(const char *Msg, bool Verbose)
 				Msg, GenoSum);
 	}
 }
+
+void GWAS::DetectOptimizedNumOfSNP(int nSamp, size_t need)
+{
+	C_UInt64 L2Cache = GDS_Mach_GetCPULevelCache(2);
+	C_UInt64 L3Cache = GDS_Mach_GetCPULevelCache(3);
+	C_UInt64 Cache = (L2Cache > L3Cache) ? L2Cache : L3Cache;
+	if ((C_Int64)Cache <= 0)
+		Cache = 1024*1024; // 1MiB
+
+	BlockNumSNP = (Cache - need - 8*1024) / nSamp * 2;
+	BlockNumSNP = (BlockNumSNP / 8) * 8;
+	if (BlockNumSNP < 16) BlockNumSNP = 16;
+}
+
+
+IdMatTri GWAS::Array_Thread_MatIdx[N_MAX_THREAD];
+
+C_Int64 GWAS::Array_Thread_MatCnt[N_MAX_THREAD];
+
+vector<C_UInt8> GWAS::Array_PackedGeno;
+
+vector<double> GWAS::Array_AlleleFreq;
