@@ -17,7 +17,9 @@ snpgdsSelectSNP(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         if \code{NULL}, all samples will be used}
     \item{snp.id}{a vector of snp id specifying selected SNPs;
         if \code{NULL}, all SNPs will be used}
-    \item{autosome.only}{if \code{TRUE}, use autosomal SNPs only}
+    \item{autosome.only}{if \code{TRUE}, use autosomal SNPs only; if it is a
+        numeric or character value, keep SNPs according to the specified
+        chromosome}
     \item{remove.monosnp}{if \code{TRUE}, remove monomorphic SNPs}
     \item{maf}{to use the SNPs with ">= maf" only; if \code{NaN},
         no any MAF threshold}

@@ -104,7 +104,8 @@
     stopifnot(is.null(sample.id) | is.vector(sample.id) | is.factor(sample.id))
     stopifnot(is.null(snp.id) | is.vector(snp.id) | is.factor(snp.id))
 
-    stopifnot(is.logical(autosome.only))
+    stopifnot(is.logical(autosome.only) | is.numeric(autosome.only) |
+        is.character(autosome.only))
     stopifnot(is.vector(autosome.only))
     stopifnot(length(autosome.only) == 1)
 
@@ -169,6 +170,8 @@
     snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
     if (!is.null(snp.id))
     {
+        # specify 'snp.id'
+
         n.tmp <- length(snp.id)
         if (!is.null(allele.freq))
         {
@@ -183,26 +186,39 @@
         if (n.snp <= 0)
             stop("No SNP in the working dataset.")
 
-        if (autosome.only)
+        if (!identical(autosome.only, FALSE))
         {
             nt <- index.gdsn(gdsobj, "snp.chromosome")
-            dt <- objdesp.gdsn(nt)
-            if (dt$type == "String")
+            if (identical(autosome.only, TRUE))
             {
-                snp.id <- snp.id & .Call(gnrChromParseNumeric, nt)
+                dt <- objdesp.gdsn(nt)
+                if (dt$type == "String")
+                {
+                    snp.id <- snp.id & .Call(gnrChromParseNumeric, nt)
+                } else {
+                    opt <- snpgdsOption(gdsobj)
+                    snp.id <- snp.id & .Call(gnrChromRangeNumeric, nt,
+                        as.integer(opt$autosome.start),
+                        as.integer(opt$autosome.end))
+                }
             } else {
-                opt <- snpgdsOption(gdsobj)
-                snp.id <- snp.id & .Call(gnrChromRangeNumeric, nt,
-                    as.integer(opt$autosome.start),
-                    as.integer(opt$autosome.end))
+                snp.id <- snp.id & (read.gdsn(nt) == autosome.only)
+                snp.id[is.na(snp.id)] <- FALSE
             }
+
             if (!is.null(allele.freq))
                 allele.freq <- allele.freq[match(snp.ids[snp.id], tmp.id)]
             if (verbose)
             {
-                tmp <- n.snp - sum(snp.id)
-                if (tmp > 0)
-                    cat("Removing", tmp, "non-autosomal SNPs.\n")
+                if (identical(autosome.only, TRUE))
+                {
+                    cat("Removing", dt$dim - sum(snp.id),
+                        "SNP(s) on non-autosomes\n")
+                } else {
+                    cat("Keeping ", sum(snp.id),
+                        " SNP(s) according to chromosome ", autosome.only,
+                        "\n", sep="")
+                }
             }
         } else {
             if (!is.null(allele.freq))
@@ -211,35 +227,46 @@
         snp.ids <- snp.ids[snp.id]
 
     } else {
+        # not specify 'snp.id'
+
         if (!is.null(allele.freq))
         {
             if (length(allele.freq) != length(snp.ids))
                 stop("'length(allele.freq)' should be the number of SNPs.")
         }
-        if (autosome.only)
+
+        if (!identical(autosome.only, FALSE))
         {
             nt <- index.gdsn(gdsobj, "snp.chromosome")
-            dt <- objdesp.gdsn(nt)
-            if (dt$type == "String")
+            if (identical(autosome.only, TRUE))
             {
-                snp.id <- .Call(gnrChromParseNumeric, nt)
+                dt <- objdesp.gdsn(nt)
+                if (dt$type == "String")
+                {
+                    snp.id <- .Call(gnrChromParseNumeric, nt)
+                } else {
+                    opt <- snpgdsOption(gdsobj)
+                    snp.id <- .Call(gnrChromRangeNumeric, nt,
+                        as.integer(opt$autosome.start),
+                        as.integer(opt$autosome.end))
+                }
             } else {
-                opt <- snpgdsOption(gdsobj)
-                snp.id <- .Call(gnrChromRangeNumeric, nt,
-                    as.integer(opt$autosome.start),
-                    as.integer(opt$autosome.end))
+                snp.id <- (read.gdsn(nt) == autosome.only)
+                snp.id[is.na(snp.id)] <- FALSE
             }
+
             if (!is.null(allele.freq))
                 allele.freq <- allele.freq[snp.id]
             if (verbose)
             {
-                tmp <- dt$dim - sum(snp.id)
-                if (tmp > 0)
+                if (identical(autosome.only, TRUE))
                 {
-                    if (tmp > 1)
-                        cat("Removing", tmp, "SNPs on non-autosomes\n")
-                    else
-                        cat("Removing", tmp, "SNP on non-autosomes\n")
+                    cat("Removing", dt$dim - sum(snp.id),
+                        "SNP(s) on non-autosomes\n")
+                } else {
+                    cat("Keeping ", sum(snp.id),
+                        " SNP(s) according to chromosome ", autosome.only,
+                        "\n", sep="")
                 }
             }
             snp.ids <- snp.ids[snp.id]
@@ -2161,7 +2188,7 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1L, autosome.end=22L, ...)
 
 snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     FUN=NULL, winsize=100000L, shift=10000L, unit=c("basepair", "locus"),
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    autosome.only=FALSE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
     with.id=c("snp.id", "snp.id.in.window", "none"),
     num.thread=1, verbose=TRUE, ...)
 {

@@ -19,7 +19,9 @@ snpgdsLDpruning(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
         if NULL, all samples are used}
     \item{snp.id}{a vector of snp id specifying selected SNPs;
         if NULL, all SNPs are used}
-    \item{autosome.only}{if TRUE, use autosomal SNPs only}
+    \item{autosome.only}{if \code{TRUE}, use autosomal SNPs only; if it is a
+        numeric or character value, keep SNPs according to the specified
+        chromosome}
     \item{remove.monosnp}{if TRUE, remove monomorphic SNPs}
     \item{maf}{to use the SNPs with ">= maf" only; if NaN, no MAF threshold}
     \item{missing.rate}{to use the SNPs with "<= missing.rate" only;
