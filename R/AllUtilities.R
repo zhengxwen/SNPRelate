@@ -2156,80 +2156,138 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1L, autosome.end=22L, ...)
 
 
 #############################################################
-# Sliding Windows
+# Sliding Windows Analysis
 #
 
-snpgdsSlidingWindow <- function(snp.id, position, chromosome=NULL,
-    win.size, shift, FUN,
-    param=c("id", "index+id", "index+id+pos"),
-    verbose=TRUE, ...)
+snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
+    FUN=NULL, winsize=100000L, shift=10000L, unit=c("basepair", "locus"),
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    with.id=c("snp.id", "snp.id.in.window", "none"),
+    num.thread=1, verbose=TRUE, ...)
 {
     # check
-    stopifnot(is.vector(snp.id))
-    stopifnot(is.vector(position) & is.numeric(position))
-    stopifnot(length(snp.id) == length(position))
-    stopifnot(is.numeric(win.size) & (length(win.size)==1))
-    stopifnot(is.numeric(shift) & (length(shift)==1))
-    stopifnot(shift > 0)
-    param <- match.arg(param)
-    stopifnot(is.logical(verbose))
+    ws <- .InitFile2(
+        cmd="Sliding Windows Analysis:",
+        gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
+        autosome.only=autosome.only, remove.monosnp=remove.monosnp,
+        maf=maf, missing.rate=missing.rate, num.thread=num.thread,
+        verbose=verbose)
 
-    FUN <- match.fun(FUN)
+    stopifnot(is.character(FUN) | is.function(FUN))
+    stopifnot(is.numeric(winsize))
+    stopifnot(is.numeric(shift))
+    unit <- match.arg(unit)
+    with.id <- match.arg(with.id)
+    winsize <- as.integer(winsize)[1]
+    shift <- as.integer(shift)[1]
+    stopifnot(is.finite(winsize) & is.finite(shift))
 
-    if (is.null(chromosome))
+    if (is.function(FUN))
+        FUN <- match.fun(FUN)
+
+    if (verbose)
     {
-        if (is.unsorted(position))
-            stop("'position' should be in increasing order.")
-
-        if (win.size > length(snp.id))
-        {
-            win.size <- length(snp.id)
-            warning("'win.size' should not be greater than length(snp.id).",
-                immediate.=TRUE)
-        }
-
-        L <- length(snp.id) - win.size + 1L
-        n <- L %/% shift
-        if ((L %% shift) > 0) n <- n + 1L
-        ans <- vector("list", n)
-
-        x <- 1L
-        idx <- 1L
-        if (param == "id")
-        {
-            while (x <= L)
-            {
-                ans[[idx]] <- FUN(snp.id[seq.int(x, x+win.size-1L)], ...)
-                x <- x + shift
-                idx <- idx + 1L
-            }
-        } else if (param == "index+id")
-        {
-            while (x <= L)
-            {
-                ans[[idx]] <- FUN(x, snp.id[seq.int(x, x+win.size-1L)], ...)
-                x <- x + shift
-                idx <- idx + 1L
-            }
-        } else if (param == "index+id+pos")
-        {
-            while (x <= L)
-            {
-                i <- seq.int(x, x+win.size-1L)
-                ans[[idx]] <- FUN(x, snp.id[i], position[i], ...)
-                x <- x + shift
-                idx <- idx + 1L
-            }
-        }
-
-        return(ans)
-
-    } else {
-        stopifnot(is.vector(chromosome))
-        stopifnot(length(chromosome) == length(snp.id))
-
-
+        cat("\tWindow size: ", winsize, ", shift: ", shift, sep="")
+        cat(if (unit == "basepair") " (basepair)\n" else " (locus index)\n")
     }
+
+    # return value
+    ans <- list(sample.id = ws$sample.id)
+    if (with.id %in% c("snp.id", "snp.id.in.window"))
+        ans$snp.id <- ws$snp.id
+
+    total.snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+    snp.flag <- total.snp.ids %in% ws$snp.id
+
+    chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
+    snp.flag[is.na(chr)] <- FALSE
+
+    position <- read.gdsn(index.gdsn(gdsobj, "snp.position"))
+    snp.flag[!is.finite(position)] <- FALSE
+    snp.flag[position <= 0] <- FALSE
+
+    if (is.numeric(chr))
+        chrset <- setdiff(unique(chr[snp.flag]), c(0, NA))
+    else if (is.character(chr))
+        chrset <- setdiff(unique(chr[snp.flag]), c("", NA))
+    else
+        stop("Unknown format of 'snp.chromosome'!")
+
+
+    # for-loop each chromosome
+    for (ch in chrset)
+    {
+        # specific mask for this chromosome
+        chflag <- snp.flag & (chr==ch)
+        sid <- total.snp.ids[chflag]
+        chpos <- position[chflag]
+
+        if (verbose)
+        {
+            cat(date(), ", Chromosome ", ch,
+                " (", length(chpos), " SNPs)", sep="")
+        }
+
+        # calculate how many blocks according to sliding windows
+        if (unit == "basepair")
+        {
+            rg <- range(chpos)
+            L <- (rg[2] - rg[1] + 1) - winsize + 1L
+            n <- L %/% shift
+            if ((L %% shift) > 0) n <- n + 1L
+            rvlist <- vector("list", n)
+            nlist <- integer(n)
+            if (with.id == "snp.id.in.window")
+                sidlist <- vector("list", n)
+            
+            x <- rg[1]; i <- 1L
+            while (x <= rg[2])
+            {
+                k <- (x <= chpos) & (chpos < x+winsize)
+                ssid <- sid[k]
+                ppos <- chpos[k]
+                rvlist[[i]] <- FUN(ans$sample.id, ssid, ppos, ...)
+                nlist[i] <- length(ppos)
+                if (with.id == "snp.id.in.window")
+                    sidlist[[i]] <- ssid
+                x <- x + shift
+                i <- i + 1L
+            }
+        } else {
+            L <- length(sid) - winsize + 1L
+            n <- L %/% shift
+            if ((L %% shift) > 0) n <- n + 1L
+            rvlist <- vector("list", n)
+            nlist <- integer(n)
+            if (with.id == "snp.id.in.window")
+                sidlist <- vector("list", n)
+
+            x <- 1L; i <- 1L
+            while (x <= L)
+            {
+                k <- seq.int(x, x+winsize-1L)
+                ssid <- sid[k]
+                ppos <- chpos[k]
+                rvlist[[i]] <- FUN(ans$sample.id, ssid, ppos, ...)
+                nlist[i] <- length(ppos)
+                if (with.id == "snp.id.in.window")
+                    sidlist[[i]] <- ssid
+                x <- x + shift
+                i <- i + 1L
+            }
+        }
+
+        ans[[paste("chr", ch, sep="")]] <- rvlist
+        ans[[paste("chr", ch, ".num", sep="")]] <- nlist
+        if (with.id == "snp.id.in.window")
+            ans[[paste("chr", ch, ".snpid", sep="")]] <- sidlist
+
+        if (verbose)
+            cat(sprintf(", %d Windows.\n", length(nlist)))
+    }
+
+    # output
+    ans
 }
 
 
