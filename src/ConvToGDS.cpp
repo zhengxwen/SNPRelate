@@ -513,7 +513,7 @@ static C_Int32 GDS_Variant_Index = 0;
 static C_Int32 GDS_Global_Variant_Index = 0;
 
 /// return true, if matching
-inline static bool strncasecmp(const char *prefix, const char *txt)
+inline static bool StrCaseCmp(const char *prefix, const char *txt)
 {
 	while (*prefix && *txt)
 	{
@@ -686,7 +686,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 				vector<string>::iterator it = ChrPref.begin();
 				for (; it != ChrPref.end(); it++)
 				{
-					if (strncasecmp(it->c_str(), s))
+					if (StrCaseCmp(it->c_str(), s))
 					{
 						sCHROM.erase(0, it->size());
 						break;
