@@ -10,7 +10,7 @@
 snpgdsSlidingWindow(gdsobj, sample.id=NULL, snp.id=NULL,
     FUN=NULL, winsize=100000L, shift=10000L, unit=c("basepair", "locus"),
     autosome.only=FALSE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    with.id=c("snp.id", "snp.id.in.window", "none"),
+    as.is=c("list", "numeric"), with.id=c("snp.id", "snp.id.in.window", "none"),
     num.thread=1, verbose=TRUE, ...)
 }
 \arguments{
@@ -33,6 +33,8 @@ snpgdsSlidingWindow(gdsobj, sample.id=NULL, snp.id=NULL,
     \item{maf}{to use the SNPs with ">= maf" only; if NaN, no MAF threshold}
     \item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN,
         no missing threshold}
+    \item{as.is}{save the value returned from \code{FUN} as \code{list} or
+        \code{double}}
     \item{with.id}{"snp.id", "snp.id.in.window" or "none"}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}

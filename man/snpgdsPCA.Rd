@@ -73,7 +73,7 @@ RV$eigenval
 
 # variance proportion
 head(RV$eigenval / sum(RV$eigenval))
-# [1] 0.122251756 0.058397767 0.010111423 0.009475002 0.008437720 0.007363588
+# [1] 0.122251756 0.058397767 0.010111423 0.009475002 ...
 
 
 ####  there is no population information  ####

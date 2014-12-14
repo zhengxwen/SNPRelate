@@ -341,7 +341,8 @@
     # output
     list(sample.id = sample.ids, snp.id = snp.ids,
         n.snp = node$n.snp, n.samp = node$n.samp,
-        allele.freq = allele.freq, num.thread = num.thread)
+        allele.freq = allele.freq, num.thread = num.thread,
+        verbose = verbose)
 }
 
 
@@ -2189,7 +2190,7 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1L, autosome.end=22L, ...)
 snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     FUN=NULL, winsize=100000L, shift=10000L, unit=c("basepair", "locus"),
     autosome.only=FALSE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    with.id=c("snp.id", "snp.id.in.window", "none"),
+    as.is=c("list", "numeric"), with.id=c("snp.id", "snp.id.in.window", "none"),
     num.thread=1, verbose=TRUE, ...)
 {
     # check
@@ -2200,23 +2201,48 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
         verbose=verbose)
 
-    stopifnot(is.character(FUN) | is.function(FUN))
     stopifnot(is.numeric(winsize))
     stopifnot(is.numeric(shift))
     unit <- match.arg(unit)
+    as.is <- match.arg(as.is)
     with.id <- match.arg(with.id)
     winsize <- as.integer(winsize)[1]
     shift <- as.integer(shift)[1]
     stopifnot(is.finite(winsize) & is.finite(shift))
 
     if (is.function(FUN))
+    {
         FUN <- match.fun(FUN)
+        FunIdx <- 0L
+    } else if (is.character(FUN))
+    {
+        stopifnot(is.vector(FUN))
+        stopifnot(length(FUN) == 1)
+        FunList <- c("snpgdsFst")
+        FunIdx <- match(FUN, FunList)
+        if (is.na(FunIdx))
+            stop("'FUN' should be one of ", paste(FunList, collapse=","), ".")
+    } else {
+        stop("'FUN' should be a function, or a character.")
+    }
 
     if (verbose)
     {
         cat("\tWindow size: ", winsize, ", shift: ", shift, sep="")
         cat(if (unit == "basepair") " (basepair)\n" else " (locus index)\n")
     }
+
+    # check function
+    if (FunIdx > 0)
+    {
+        pm <- list(...)
+        param <- switch(EXPR = FUN,
+            snpgdsFst = .paramFst(sample.id, pm$population, pm$method, ws)
+        )
+    }
+
+
+    ########    ########
 
     # return value
     ans <- list(sample.id = ws$sample.id)
@@ -2255,62 +2281,105 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                 " (", length(chpos), " SNPs)", sep="")
         }
 
-        # calculate how many blocks according to sliding windows
-        if (unit == "basepair")
+        if (is.function(FUN))
         {
-            rg <- range(chpos)
-            L <- (rg[2] - rg[1] + 1) - winsize + 1L
-            n <- L %/% shift
-            if ((L %% shift) > 0) n <- n + 1L
-            rvlist <- vector("list", n)
-            nlist <- integer(n)
-            if (with.id == "snp.id.in.window")
-                sidlist <- vector("list", n)
+            ####  the user-defined function
+
+            # calculate how many blocks according to sliding windows
+            if (unit == "basepair")
+            {
+                rg <- range(chpos)
+                L <- (rg[2] - rg[1] + 1) - winsize + 1L
+                n <- L %/% shift
+                if ((L %% shift) > 0) n <- n + 1L
+
+                if (as.is == "list")
+                    rvlist <- vector("list", n)
+                else
+                    rvlist <- double(n)
+                nlist <- integer(n)
+                poslist <- double(n)
+                if (with.id == "snp.id.in.window")
+                    sidlist <- vector("list", n)
             
-            x <- rg[1]; i <- 1L
-            while (x <= rg[2])
-            {
-                k <- (x <= chpos) & (chpos < x+winsize)
-                ssid <- sid[k]
-                ppos <- chpos[k]
-                rvlist[[i]] <- FUN(ans$sample.id, ssid, ppos, ...)
-                nlist[i] <- length(ppos)
+                x <- rg[1]; i <- 1L
+                while (x <= rg[2])
+                {
+                    k <- (x <= chpos) & (chpos < x+winsize)
+                    ssid <- sid[k]
+                    ppos <- chpos[k]
+                    v <- FUN(ans$sample.id, ssid, ppos, ...)
+                    if (as.is == "list")
+                        rvlist[[i]] <- v
+                    else
+                        rvlist[i] <- as.double(v)[1]
+                    nlist[i] <- length(ppos)
+                    poslist[i] <- mean(ppos)
+                    if (with.id == "snp.id.in.window")
+                        sidlist[[i]] <- ssid
+                    x <- x + shift
+                    i <- i + 1L
+                    if (i > n) break
+                }
+            } else {
+                L <- length(sid) - winsize + 1L
+                n <- L %/% shift
+                if ((L %% shift) > 0) n <- n + 1L
+
+                if (as.is == "list")
+                    rvlist <- vector("list", n)
+                else
+                    rvlist <- double(n)
+                nlist <- integer(n)
+                poslist <- double(n)
                 if (with.id == "snp.id.in.window")
-                    sidlist[[i]] <- ssid
-                x <- x + shift
-                i <- i + 1L
+                    sidlist <- vector("list", n)
+
+                x <- 1L; i <- 1L
+                while (x <= L)
+                {
+                    k <- seq.int(x, x+winsize-1L)
+                    ssid <- sid[k]
+                    ppos <- chpos[k]
+                    v <- FUN(ans$sample.id, ssid, ppos, ...)
+                    if (as.is == "list")
+                        rvlist[[i]] <- v
+                    else
+                        rvlist[i] <- as.double(v)[1]
+                    nlist[i] <- length(ppos)
+                    poslist[i] <- mean(ppos)
+                    if (with.id == "snp.id.in.window")
+                        sidlist[[i]] <- ssid
+                    x <- x + shift
+                    i <- i + 1L
+                    if (i > n) break
+                }
             }
-        } else {
-            L <- length(sid) - winsize + 1L
-            n <- L %/% shift
-            if ((L %% shift) > 0) n <- n + 1L
-            rvlist <- vector("list", n)
-            nlist <- integer(n)
+
+            ans[[paste("chr", ch, sep="")]] <- rvlist
+            ans[[paste("chr", ch, ".num", sep="")]] <- nlist
+            ans[[paste("chr", ch, ".pos", sep="")]] <- poslist
+            ans[[paste("chr", ch, ".posrange", sep="")]] <- range(chpos)
             if (with.id == "snp.id.in.window")
-                sidlist <- vector("list", n)
+                ans[[paste("chr", ch, ".snpid", sep="")]] <- sidlist
 
-            x <- 1L; i <- 1L
-            while (x <= L)
-            {
-                k <- seq.int(x, x+winsize-1L)
-                ssid <- sid[k]
-                ppos <- chpos[k]
-                rvlist[[i]] <- FUN(ans$sample.id, ssid, ppos, ...)
-                nlist[i] <- length(ppos)
-                if (with.id == "snp.id.in.window")
-                    sidlist[[i]] <- ssid
-                x <- x + shift
-                i <- i + 1L
-            }
+            if (verbose)
+                cat(sprintf(", %d Windows.\n", length(nlist)))
+
+        } else {
+            ####  specific functions
+
+            v <- .Call(gnrSlidingWindow, FunIdx, winsize, shift, unit, as.is,
+                chflag, chpos, param)
+
+            ans[[paste("chr", ch, sep="")]] <- v[[1]]
+            ans[[paste("chr", ch, ".num", sep="")]] <- v[[2]]
+            ans[[paste("chr", ch, ".pos", sep="")]] <- v[[3]]
+            ans[[paste("chr", ch, ".posrange", sep="")]] <- v[[4]]
+
+            if (verbose)
+                cat(sprintf(", %d Windows.\n", length(v[[2]])))
         }
-
-        ans[[paste("chr", ch, sep="")]] <- rvlist
-        ans[[paste("chr", ch, ".num", sep="")]] <- nlist
-        if (with.id == "snp.id.in.window")
-            ans[[paste("chr", ch, ".snpid", sep="")]] <- sidlist
-
-        if (verbose)
-            cat(sprintf(", %d Windows.\n", length(nlist)))
     }
 
     # output

@@ -544,9 +544,45 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 # F_st estimation
 #
 
-snpgdsFst <- function(gdsobj, pop, method=c("W&B02", "W&C84"),
+.paramFst <- function(sample.id, population, method=c("W&B02", "W&C84"), ws)
+{
+    method <- match.arg(method)
+    stopifnot(is.factor(population))
+
+    if (is.null(sample.id))
+    {
+        if (length(population) != ws$n.samp)
+        {
+            stop("The length of 'population' should be the number of samples ",
+                "in the GDS file.")
+        }
+    } else {
+        if (length(population) != length(sample.id))
+        {
+            stop("The length of 'population' should be the same as ",
+                "the length of 'sample.id'.")
+        }
+        population <- population[match(ws$sample.id, sample.id)]
+    }
+    if (any(is.na(population)))
+        stop("'population' should not have missing values!")
+    if (nlevels(population) <= 1)
+        stop("There should be at least two populations!")
+    if (any(table(population) < 1))
+        stop("Each population should have at least one individual.")
+
+    if (ws$verbose)
+    {
+        cat("# of Populations: ", nlevels(population), ", ",
+            paste(levels(population), collapse=" "), "\n", sep="")
+    }
+
+    list(population=population, npop=nlevels(population), method=method)
+}
+
+snpgdsFst <- function(gdsobj, population, method=c("W&B02", "W&C84"),
     sample.id=NULL, snp.id=NULL, autosome.only=TRUE, remove.monosnp=TRUE,
-    maf=NaN, missing.rate=NaN, with.id=TRUE, verbose=TRUE)
+    maf=NaN, missing.rate=NaN, with.id=FALSE, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -556,55 +592,22 @@ snpgdsFst <- function(gdsobj, pop, method=c("W&B02", "W&C84"),
         maf=maf, missing.rate=missing.rate, num.thread=1L,
         verbose=verbose)
 
-    # method
-    method <- match.arg(method)
-    method <- match(method, c("W&B02", "W&C84"))
-
-    # population assignment
-    stopifnot(is.factor(pop))
-    if (is.null(sample.id))
-    {
-        if (length(pop) != ws$n.samp)
-        {
-            stop("The length of 'pop' should be the number of samples ",
-                "in the GDS file.")
-        }
-    } else {
-        if (length(pop) != length(sample.id))
-        {
-            stop("The length of 'pop' should be the same as ",
-                "the length of 'sample.id'.")
-        }
-        pop <- pop[match(ws$sample.id, sample.id)]
-    }
-    if (any(is.na(pop)))
-        stop("'pop' should not have missing values!")
-    if (nlevels(pop) <= 1)
-        stop("There should be at least two populations!")
-    if (any(table(pop) < 1))
-        stop("Each population should have at least one individual.")
-
-    if (verbose)
-    {
-        cat("# of Populations: ", nlevels(pop), ", ",
-            paste(levels(pop), collapse=" "), "\n", sep="")
-    }
+    # check
+    v <- .paramFst(sample.id, population, method, ws)
 
     # call C function
-    d <- .Call(gnrFst, pop, nlevels(pop), method)
+    d <- .Call(gnrFst, v$population, v$npop, v$method)
 
     # return
     rv <- if (with.id)
         list(sample.id=ws$sample.id, snp.id=ws$snp.id)
     else
         list()
-    if (method == 1L)
+    rv$Fst <- d[[1L]]
+    if (method == "W&B02")
     {
-        rv$Fst <- d[[1L]]
         rv$Beta <- d[[2L]]
-        colnames(rv$Beta) <- rownames(rv$Beta) <- levels(pop)
-    } else {
-        rv$Fst <- d
+        colnames(rv$Beta) <- rownames(rv$Beta) <- levels(population)
     }
     rv
 }
