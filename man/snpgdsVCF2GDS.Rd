@@ -7,7 +7,7 @@
 \usage{
 snpgdsVCF2GDS(vcf.fn, out.fn, method=c("biallelic.only", "copy.num.of.ref"),
     snpfirstdim=FALSE, compress.annotation="ZIP.max", compress.geno="",
-    ref.allele=NULL, ignore.chr.prefix=character(), verbose=TRUE)
+    ref.allele=NULL, ignore.chr.prefix="chr", verbose=TRUE)
 }
 \arguments{
     \item{vcf.fn}{the file name of VCF format, \code{vcf.fn} can be a vector,
@@ -29,7 +29,8 @@ snpgdsVCF2GDS(vcf.fn, out.fn, method=c("biallelic.only", "copy.num.of.ref"),
         The length of character vector should be the total number of variants
         in the VCF file(s).}
     \item{ignore.chr.prefix}{a vector of character, indicating the prefix of
-        chromosome which should be ignored, like "chr"}
+        chromosome which should be ignored, like "chr"; it is not
+        case-sensitive}
     \item{verbose}{if \code{TRUE}, show information}
 }
 \value{

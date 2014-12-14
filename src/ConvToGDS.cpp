@@ -512,6 +512,18 @@ extern "C"
 static C_Int32 GDS_Variant_Index = 0;
 static C_Int32 GDS_Global_Variant_Index = 0;
 
+/// return true, if matching
+inline static bool strncasecmp(const char *prefix, const char *txt)
+{
+	while (*prefix && *txt)
+	{
+		if (toupper(*prefix) != toupper(*txt))
+			return false;
+		prefix ++; txt ++;
+	}
+	return (*prefix == 0);
+}
+
 /// Initialize 'GDS_Variant_Index'
 COREARRAY_DLL_EXPORT SEXP gnr_Init_Parse_VCF4()
 {
@@ -674,7 +686,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 				vector<string>::iterator it = ChrPref.begin();
 				for (; it != ChrPref.end(); it++)
 				{
-					if (strncmp(it->c_str(), s, it->size()) == 0)
+					if (strncasecmp(it->c_str(), s))
 					{
 						sCHROM.erase(0, it->size());
 						break;

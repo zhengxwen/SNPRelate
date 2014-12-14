@@ -720,7 +720,7 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
 snpgdsVCF2GDS <- function(vcf.fn, out.fn,
     method = c("biallelic.only", "copy.num.of.ref"),
     snpfirstdim=FALSE, compress.annotation="ZIP.max", compress.geno="",
-    ref.allele=NULL, ignore.chr.prefix=character(), verbose=TRUE)
+    ref.allele=NULL, ignore.chr.prefix="chr", verbose=TRUE)
 {
     # check
     stopifnot(is.character(vcf.fn) & is.vector(vcf.fn))
