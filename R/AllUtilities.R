@@ -2303,7 +2303,7 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                     sidlist <- vector("list", n)
             
                 x <- rg[1]; i <- 1L
-                while (x <= rg[2])
+                while (i <= n)
                 {
                     k <- (x <= chpos) & (chpos < x+winsize)
                     ssid <- sid[k]
@@ -2319,7 +2319,6 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                         sidlist[[i]] <- ssid
                     x <- x + shift
                     i <- i + 1L
-                    if (i > n) break
                 }
             } else {
                 L <- length(sid) - winsize + 1L
@@ -2336,7 +2335,7 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                     sidlist <- vector("list", n)
 
                 x <- 1L; i <- 1L
-                while (x <= L)
+                while (i <= n)
                 {
                     k <- seq.int(x, x+winsize-1L)
                     ssid <- sid[k]
@@ -2352,7 +2351,6 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                         sidlist[[i]] <- ssid
                     x <- x + shift
                     i <- i + 1L
-                    if (i > n) break
                 }
             }
 

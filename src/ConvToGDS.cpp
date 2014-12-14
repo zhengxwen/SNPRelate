@@ -529,13 +529,14 @@ COREARRAY_DLL_EXPORT SEXP gnr_Init_Parse_VCF4()
  *  \param ReadLine_File     the parameter of 'con' in 'readLines'
  *  \param ReadLine_N        the parameter of 'n' in 'readLines'
  *  \param RefAllele         the reference alleles
+ *  \param ChrPrefix         chr prefix could be ignored
  *  \param rho               the environment
  *  \param Verbose           print out information
  *  \return                  the number of variants
 **/
 COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 	SEXP method, SEXP ReadLineFun, SEXP ReadLine_File, SEXP ReadLine_N,
-	SEXP RefAllele, SEXP rho, SEXP Verbose)
+	SEXP RefAllele, SEXP ChrPrefix, SEXP rho, SEXP Verbose)
 {
 	const char *fn = CHAR(STRING_ELT(vcf_fn, 0));
 	int met_idx = INTEGER(method)[0];
@@ -553,7 +554,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 
 	COREARRAY_TRY
 
-		// *********************************************************
+		// =========================================================
 		// initialize variables		
 
 		const bool RaiseError = true;
@@ -585,8 +586,13 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 		vector<C_UInt8> U8s;
 		U8s.resize(nTotalSamp);
 
+		// chr prefix
+		vector<string> ChrPref;
+		for (size_t i=0; i < XLENGTH(ChrPrefix); i++)
+			ChrPref.push_back(CHAR(STRING_ELT(ChrPrefix, i)));
 
-		// *********************************************************
+
+		// =========================================================
 		// initialize external calling for reading stream
 
 		// 'readLine(con, n)'
@@ -606,7 +612,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 		}
 
 
-		// *********************************************************
+		// =========================================================
 		// parse the context
 
 		string sCHROM, sPOS, sID, sREF, sALT;
@@ -663,6 +669,18 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 			GDS_Variant_Index ++;
 
 			// column 1: CHROM
+			{
+				const char *s = sCHROM.c_str();
+				vector<string>::iterator it = ChrPref.begin();
+				for (; it != ChrPref.end(); it++)
+				{
+					if (strncmp(it->c_str(), s, it->size()) == 0)
+					{
+						sCHROM.erase(0, it->size());
+						break;
+					}
+				}
+			}
 			GDS_Seq_AppendString(varChr, sCHROM.c_str());
 
 			// column 2: POS
@@ -896,7 +914,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_GEN(SEXP gen_fn, SEXP gds_root,
 
 	COREARRAY_TRY
 
-		// *********************************************************
+		// =========================================================
 		// initialize variables		
 
 		const bool RaiseError = true;
@@ -935,7 +953,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_GEN(SEXP gen_fn, SEXP gds_root,
 		string AlleleA, AlleleB;
 
 
-		// *********************************************************
+		// =========================================================
 		// initialize external calling for reading stream
 
 		// 'readLine(con, n)'
@@ -946,7 +964,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_GEN(SEXP gen_fn, SEXP gds_root,
 		RL.Init(R_Read_Call, rho);
 		RL.SplitBySpaceTab();
 
-		// *********************************************************
+		// =========================================================
 		// parse the context
 
 		int LN = 0;

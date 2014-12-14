@@ -1217,29 +1217,40 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	nProtected ++;
 
 	// for-loop parameters
-	int PosMin=0, PosMax=-1;
+	int PosMin=INT_MAX, PosMax=-INT_MAX;
 	// the number of sliding windows
 	int nWin=0;
 
+	// get the range of chpos
+	const int *p = pPos;
+	for (size_t n=nChr; n > 0; n--)
+	{
+		if (*p < PosMin) PosMin = *p;
+		if (*p > PosMax) PosMax = *p;
+		p ++;
+	}
+	if ((PosMin == NA_INTEGER) || (PosMax == NA_INTEGER))
+		error("Internal error in 'gnrSlidingWindow': invalid position.");
+
+	// posrange
+	SEXP posrange = PROTECT(NEW_INTEGER(2));
+	INTEGER(posrange)[0] = PosMin;
+	INTEGER(posrange)[1] = PosMax;
+	SET_ELEMENT(ans_rv, 3, posrange);
+	nProtected ++;
+
+	// calculate nWin
 	if (is_basepair)
 	{
-		// get the range of chpos
-		PosMin = INT_MAX;
-		PosMax = -INT_MAX;
-		const int *p = pPos;
-		for (size_t n=nChr; n > 0; n--)
-		{
-			if (*p < PosMin) PosMin = *p;
-			if (*p > PosMax) PosMax = *p;
-			p ++;
-		}
-		if ((PosMin == NA_INTEGER) || (PosMax == NA_INTEGER))
-			error("Internal error in 'gnrSlidingWindow': invalid position.");
-		
-		// calculate
-		int L = (PosMax - PosMin + 1) - winsize + 1;
+		long L = (PosMax - PosMin + 1) - winsize + 1;
 		nWin = L / shift;
 		if (L % shift) nWin ++;
+	} else {
+		long L = (long)nChr - winsize + 1;
+		nWin = L / shift;
+		if (L % shift) nWin ++;
+		PosMin = 0;
+		PosMax = (long)nChr - 1;
 	}
 
 	// rvlist
@@ -1262,13 +1273,6 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	SET_ELEMENT(ans_rv, 2, poslist);
 	nProtected ++;
 
-	// posrange
-	SEXP posrange = PROTECT(NEW_INTEGER(2));
-	INTEGER(posrange)[0] = PosMin;
-	INTEGER(posrange)[1] = PosMax;
-	SET_ELEMENT(ans_rv, 3, posrange);
-	nProtected ++;
-
 	// get the parameter
 	SEXP PL[64];
 	switch (FunIdx)
@@ -1282,7 +1286,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 
 	// for-loop
 	int x = PosMin, iWin = 0;
-	while (x <= PosMax)
+	while (iWin < nWin)
 	{
 		C_BOOL *pb = MCWorkingGeno.Space.SNPSelection();
 		size_t n=XLENGTH(chflag), ip = 0;
@@ -1300,6 +1304,21 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 					if ((x <= P) && (P < x+winsize))
 					{
 						pos_sum += P;
+						val = 1; num ++;
+					}
+					ip ++;
+				}
+				*pb++ = val;
+			}
+		} else {
+			for (size_t i=0; i < n; i++)
+			{
+				C_BOOL val = 0;
+				if (pFlag[i])
+				{
+					if ((x <= (int)ip) && ((int)ip < x+winsize))
+					{
+						pos_sum += pPos[ip];
 						val = 1; num ++;
 					}
 					ip ++;
@@ -1336,7 +1355,6 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 
 		// poslist[i] <- median(ppos)
 		x += shift; iWin ++;
-		if (iWin >= nWin) break;
 	}
 
 	UNPROTECT(nProtected);

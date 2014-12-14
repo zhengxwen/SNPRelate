@@ -536,194 +536,6 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL,
 
 
 #######################################################################
-# Convert a VCF (sequence) file to a GDS file (extract SNP data)
-#
-
-snpgdsVCF2GDS <- function(vcf.fn, out.fn,
-    method = c("biallelic.only", "copy.num.of.ref"),
-    snpfirstdim=FALSE, compress.annotation="ZIP.max", compress.geno="",
-    ref.allele=NULL, verbose=TRUE)
-{
-    # check
-    stopifnot(is.character(vcf.fn) & is.vector(vcf.fn))
-    stopifnot(length(vcf.fn) > 0)
-
-    stopifnot(is.character(out.fn) & is.vector(out.fn))
-    stopifnot(length(out.fn) == 1)
-
-    method <- match.arg(method)
-    metidx <- match(method, c("biallelic.only", "copy.num.of.ref"))
-
-    stopifnot(is.character(compress.annotation))
-    stopifnot(is.logical(snpfirstdim))
-    stopifnot(is.character(compress.geno))
-    stopifnot(is.null(ref.allele) || is.character(ref.allele))
-    if (is.character(ref.allele))
-        stopifnot(is.vector(ref.allele))
-    stopifnot(is.logical(verbose))
-
-    if (verbose)
-    {
-        cat("VCF format --> SNP GDS format\n")
-        if (metidx == 1L)
-            cat("Method: exacting biallelic SNPs\n")
-        else
-            cat("Method: dosage (0,1,2) of reference allele for all variant sites\n")
-    }
-
-
-    #######################################################################
-
-    # get sample id from a VCF file
-    VCF_SampID <- function(vcf.fn)
-    {
-        # open the vcf file
-        opfile <- file(vcf.fn, open="rt")
-        on.exit(close(opfile))
-
-        # read header
-        samp.id <- NULL
-        while (length(s <- readLines(opfile, n=1)) > 0)
-        {
-            if (substr(s, 1, 6) == "#CHROM")
-            {
-                samp.id <- scan(text=s, what=character(0),
-                    quiet=TRUE)[-c(1:9)]
-                break
-            }
-        }
-        if (is.null(samp.id))
-            stop("Error VCF format: invalid sample id!")
-
-        samp.id
-    }
-
-    # read sample id
-    samp.id <- NULL
-    for (i in 1:length(vcf.fn))
-    {
-        if (is.null(samp.id))
-        {
-            samp.id <- VCF_SampID(vcf.fn[i])
-            if (length(samp.id) <= 0)
-                stop("No sample in the VCF file!")
-        } else {
-            tmp <- VCF_SampID(vcf.fn[i])
-            if (length(samp.id) != length(tmp))
-                stop(sprintf("'%s' has different sample id.", vcf.fn[i]))
-            if (!identical(samp.id, tmp))
-                stop(sprintf("'%s' has different sample id.", vcf.fn[i]))
-        }
-    }
-
-
-    #######################################################################
-
-    if (verbose)
-        cat(sprintf("Number of samples: %d\n", length(samp.id)))
-
-    # create a GDS file
-    gfile <- createfn.gds(out.fn)
-
-    # close the file at the end
-    on.exit(closefn.gds(gfile))
-
-    # add a flag
-    put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
-
-    # add sample id
-    add.gdsn(gfile, "sample.id", samp.id, compress=compress.annotation,
-        closezip=TRUE)
-
-    # add snp.id
-    add.gdsn(gfile, "snp.id", storage="int32", valdim=c(0),
-        compress=compress.annotation)
-
-    # add snp.rs.id
-    add.gdsn(gfile, "snp.rs.id", storage="string", valdim=c(0),
-        compress=compress.annotation)
-
-    # add position
-    add.gdsn(gfile, "snp.position", storage="int32", valdim=c(0),
-        compress=compress.annotation)
-
-    # add chromosome
-    add.gdsn(gfile, "snp.chromosome", storage="string", valdim=c(0),
-        compress=compress.annotation)
-
-    # add allele
-    add.gdsn(gfile, "snp.allele", storage="string", valdim=c(0),
-        compress=compress.annotation)
-
-    # add SNP genotypes
-    cmp <- if (snpfirstdim) "" else compress.geno
-    nodegeno <- add.gdsn(gfile, "genotype", storage="bit2",
-        valdim=c(length(samp.id), 0), compress=cmp)
-    put.attr.gdsn(nodegeno, "sample.order")
-
-    # add a folder for SNP annotation
-    varAnnot <- add.gdsn(gfile, "snp.annot", storage="folder")
-    add.gdsn(varAnnot, "qual", storage="float", valdim=c(0),
-        compress=compress.annotation)
-    add.gdsn(varAnnot, "filter", storage="string", valdim=c(0),
-        compress=compress.annotation)
-
-
-    ##################################################
-    # initialize the internal data
-    .Call(gnr_Init_Parse_VCF4)
-
-    ##################################################
-    # for-loop each file
-    for (i in 1:length(vcf.fn))
-    {
-        opfile <- file(vcf.fn[i], open="rt")
-        on.exit({ closefn.gds(gfile); close(opfile) })
-
-        if (verbose)
-            cat("Parsing \"", vcf.fn[i], "\" ...\n", sep="")
-
-        # call C function
-        n <- .Call(gnr_Parse_VCF4, vcf.fn[i], gfile$root, metidx,
-            readLines, opfile, 1024L,  # "readLines(opfile, 1024L)"
-            ref.allele, new.env(), verbose)
-
-        if (verbose)
-        {
-            if (n > 1)
-                cat(sprintf("\timport %d variants.\n", n))
-            else
-                cat(sprintf("\timport %d variant.\n", n))
-            print(nodegeno)
-        }
-
-        on.exit()
-        close(opfile)
-    }
-
-    closefn.gds(gfile)
-
-    if (snpfirstdim)
-    {
-        snpgdsTranspose(out.fn, snpfirstdim=TRUE, compress=compress.geno,
-            optimize=FALSE, verbose=verbose)
-    }
-
-
-    ##################################################
-    # optimize access efficiency
-
-    if (verbose)
-        cat("Optimize the access efficiency ...\n")
-    cleanup.gds(out.fn, verbose=verbose)
-
-    # output
-    invisible(normalizePath(out.fn))
-}
-
-
-
-#######################################################################
 # Convert an Oxford GEN file to a GDS file
 # http://www.stats.ox.ac.uk/%7Emarchini/software/gwas/file_format.html
 # http://www.well.ox.ac.uk/~gav/bgen_format/bgen_format.html
@@ -901,6 +713,193 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
 
 
 
+#######################################################################
+# Convert a VCF (sequence) file to a GDS file (extract SNP data)
+#
+
+snpgdsVCF2GDS <- function(vcf.fn, out.fn,
+    method = c("biallelic.only", "copy.num.of.ref"),
+    snpfirstdim=FALSE, compress.annotation="ZIP.max", compress.geno="",
+    ref.allele=NULL, ignore.chr.prefix=character(), verbose=TRUE)
+{
+    # check
+    stopifnot(is.character(vcf.fn) & is.vector(vcf.fn))
+    stopifnot(length(vcf.fn) > 0)
+
+    stopifnot(is.character(out.fn) & is.vector(out.fn))
+    stopifnot(length(out.fn) == 1)
+
+    method <- match.arg(method)
+    metidx <- match(method, c("biallelic.only", "copy.num.of.ref"))
+
+    stopifnot(is.character(compress.annotation))
+    stopifnot(is.logical(snpfirstdim))
+    stopifnot(is.character(compress.geno))
+    stopifnot(is.null(ref.allele) || is.character(ref.allele))
+    if (is.character(ref.allele))
+        stopifnot(is.vector(ref.allele))
+    stopifnot(is.character(ignore.chr.prefix))
+    stopifnot(is.logical(verbose))
+
+    if (verbose)
+    {
+        cat("VCF format --> SNP GDS format\n")
+        if (metidx == 1L)
+            cat("Method: exacting biallelic SNPs\n")
+        else
+            cat("Method: dosage (0,1,2) of reference allele for all variant sites\n")
+    }
+
+
+    #######################################################################
+
+    # get sample id from a VCF file
+    VCF_SampID <- function(vcf.fn)
+    {
+        # open the vcf file
+        opfile <- file(vcf.fn, open="rt")
+        on.exit(close(opfile))
+
+        # read header
+        samp.id <- NULL
+        while (length(s <- readLines(opfile, n=1)) > 0)
+        {
+            if (substr(s, 1, 6) == "#CHROM")
+            {
+                samp.id <- scan(text=s, what=character(0),
+                    quiet=TRUE)[-c(1:9)]
+                break
+            }
+        }
+        if (is.null(samp.id))
+            stop("Error VCF format: invalid sample id!")
+
+        samp.id
+    }
+
+    # read sample id
+    samp.id <- NULL
+    for (i in 1:length(vcf.fn))
+    {
+        if (is.null(samp.id))
+        {
+            samp.id <- VCF_SampID(vcf.fn[i])
+            if (length(samp.id) <= 0)
+                stop("No sample in the VCF file!")
+        } else {
+            tmp <- VCF_SampID(vcf.fn[i])
+            if (length(samp.id) != length(tmp))
+                stop(sprintf("'%s' has different sample id.", vcf.fn[i]))
+            if (!identical(samp.id, tmp))
+                stop(sprintf("'%s' has different sample id.", vcf.fn[i]))
+        }
+    }
+
+
+    #######################################################################
+
+    if (verbose)
+        cat(sprintf("Number of samples: %d\n", length(samp.id)))
+
+    # create a GDS file
+    gfile <- createfn.gds(out.fn)
+
+    # close the file at the end
+    on.exit(closefn.gds(gfile))
+
+    # add a flag
+    put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
+
+    # add sample id
+    add.gdsn(gfile, "sample.id", samp.id, compress=compress.annotation,
+        closezip=TRUE)
+
+    # add snp.id
+    add.gdsn(gfile, "snp.id", storage="int32", valdim=c(0),
+        compress=compress.annotation)
+
+    # add snp.rs.id
+    add.gdsn(gfile, "snp.rs.id", storage="string", valdim=c(0),
+        compress=compress.annotation)
+
+    # add position
+    add.gdsn(gfile, "snp.position", storage="int32", valdim=c(0),
+        compress=compress.annotation)
+
+    # add chromosome
+    add.gdsn(gfile, "snp.chromosome", storage="string", valdim=c(0),
+        compress=compress.annotation)
+
+    # add allele
+    add.gdsn(gfile, "snp.allele", storage="string", valdim=c(0),
+        compress=compress.annotation)
+
+    # add SNP genotypes
+    cmp <- if (snpfirstdim) "" else compress.geno
+    nodegeno <- add.gdsn(gfile, "genotype", storage="bit2",
+        valdim=c(length(samp.id), 0), compress=cmp)
+    put.attr.gdsn(nodegeno, "sample.order")
+
+    # add a folder for SNP annotation
+    varAnnot <- add.gdsn(gfile, "snp.annot", storage="folder")
+    add.gdsn(varAnnot, "qual", storage="float", valdim=c(0),
+        compress=compress.annotation)
+    add.gdsn(varAnnot, "filter", storage="string", valdim=c(0),
+        compress=compress.annotation)
+
+
+    ##################################################
+    # initialize the internal data
+    .Call(gnr_Init_Parse_VCF4)
+
+    ##################################################
+    # for-loop each file
+    for (i in 1:length(vcf.fn))
+    {
+        opfile <- file(vcf.fn[i], open="rt")
+        on.exit({ closefn.gds(gfile); close(opfile) })
+
+        if (verbose)
+            cat("Parsing \"", vcf.fn[i], "\" ...\n", sep="")
+
+        # call C function
+        n <- .Call(gnr_Parse_VCF4, vcf.fn[i], gfile$root, metidx,
+            readLines, opfile, 1024L,  # "readLines(opfile, 1024L)"
+            ref.allele, ignore.chr.prefix, new.env(), verbose)
+
+        if (verbose)
+        {
+            if (n > 1)
+                cat(sprintf("\timport %d variants.\n", n))
+            else
+                cat(sprintf("\timport %d variant.\n", n))
+            print(nodegeno)
+        }
+
+        on.exit()
+        close(opfile)
+    }
+
+    closefn.gds(gfile)
+
+    if (snpfirstdim)
+    {
+        snpgdsTranspose(out.fn, snpfirstdim=TRUE, compress=compress.geno,
+            optimize=FALSE, verbose=verbose)
+    }
+
+
+    ##################################################
+    # optimize access efficiency
+
+    if (verbose)
+        cat("Optimize the access efficiency ...\n")
+    cleanup.gds(out.fn, verbose=verbose)
+
+    # output
+    invisible(normalizePath(out.fn))
+}
+
 
 
 #######################################################################
@@ -917,7 +916,7 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
 
 snpgdsVCF2GDS_R <- function(vcf.fn, out.fn, nblock=1024,
     method = c("biallelic.only", "copy.num.of.ref"),
-    compress.annotation="ZIP.max", snpfirstdim=FALSE, option = NULL,
+    compress.annotation="ZIP.max", snpfirstdim=FALSE, option=NULL,
     verbose=TRUE)
 {
     # check

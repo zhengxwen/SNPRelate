@@ -57,8 +57,8 @@ multi-allelic SNPs, indels and structural variants.
 For humans there are 22 autosomes (from 1 to 22), but dogs have 38 autosomes.
 Note that the default settings are used for humans. The user could call
 \code{option = snpgdsOption(autosome.end=38)} for importing the VCF file of dog.
-It also allow define new chromosome coding, e.g.,
-\code{option = snpgdsOption(Z=27)}.
+It also allows defining new chromosome coding, e.g.,
+\code{option = snpgdsOption(Z=27)}, then "Z" will be replaced by the number 27.
 }
 \references{
     The variant call format and VCFtools.

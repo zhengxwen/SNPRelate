@@ -1,6 +1,7 @@
 Version 1.1.2:
 
-	*
+	* improve 'snpgdsSlidingWindow'
+	* add an option 'ignore.chr.prefix' to the function 'snpgdsVCF2GDS'
 
 
 Version 1.1.1:

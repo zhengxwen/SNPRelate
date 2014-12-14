@@ -7,7 +7,7 @@
 \usage{
 snpgdsVCF2GDS(vcf.fn, out.fn, method=c("biallelic.only", "copy.num.of.ref"),
     snpfirstdim=FALSE, compress.annotation="ZIP.max", compress.geno="",
-    ref.allele=NULL, verbose=TRUE)
+    ref.allele=NULL, ignore.chr.prefix=character(), verbose=TRUE)
 }
 \arguments{
     \item{vcf.fn}{the file name of VCF format, \code{vcf.fn} can be a vector,
@@ -28,6 +28,8 @@ snpgdsVCF2GDS(vcf.fn, out.fn, method=c("biallelic.only", "copy.num.of.ref"),
         \code{NA} to use the original reference allele in the VCF file(s).
         The length of character vector should be the total number of variants
         in the VCF file(s).}
+    \item{ignore.chr.prefix}{a vector of character, indicating the prefix of
+        chromosome which should be ignored, like "chr"}
     \item{verbose}{if \code{TRUE}, show information}
 }
 \value{
@@ -55,6 +57,13 @@ multi-allelic SNPs, indels and structural variants.
     Haploid and triploid calls are allowed in the transfer, the variable
 \code{snp.id} stores the original the row index of variants, and the
 variable \code{snp.rs.id} stores the rs id.
+
+	When \code{snp.chromosome} in the GDS file is character, SNPRelate treats
+a chromosome as autosome only if it can be converted to a numeric value (
+like "1", "22"). It uses "X" and "Y" for non-autosomes instead of numeric
+codes. However, some software format chromosomes in VCF files with a prefix
+"chr". Users should remove that prefix when importing VCF files by setting
+\code{ignore.chr.prefix = "chr"}.
 }
 \references{
     The variant call format and VCFtools.
