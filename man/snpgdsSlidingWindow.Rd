@@ -9,9 +9,10 @@
 \usage{
 snpgdsSlidingWindow(gdsobj, sample.id=NULL, snp.id=NULL,
     FUN=NULL, winsize=100000L, shift=10000L, unit=c("basepair", "locus"),
-    autosome.only=FALSE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    as.is=c("list", "numeric"), with.id=c("snp.id", "snp.id.in.window", "none"),
-    num.thread=1, verbose=TRUE, ...)
+    winstart=NULL, autosome.only=FALSE, remove.monosnp=TRUE, maf=NaN,
+    missing.rate=NaN, as.is=c("list", "numeric"),
+    with.id=c("snp.id", "snp.id.in.window", "none"), num.thread=1,
+    verbose=TRUE, ...)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -22,10 +23,14 @@ snpgdsSlidingWindow(gdsobj, sample.id=NULL, snp.id=NULL,
         all SNPs are used}
     \item{FUN}{the user-defined function}
     \item{winsize}{the size of sliding window}
-    \item{shift}{the shift of sliding window}
+    \item{shift}{the amount of shifting the sliding window}
     \item{unit}{\code{"basepair"} -- \code{winsize} and \code{shift} are
         applied with SNP coordinate of basepair; \code{"locus"} --
-        \code{winsize} and \code{shift} are applied with SNP index}
+        \code{winsize} and \code{shift} are applied according to the SNP order
+        in the GDS file}
+    \item{winstart}{\code{NULL} -- no specific starting position; an integer
+    	-- a starting position for all chromosomes; or a vector of integer
+    	-- the starting positions for each chromosome}
     \item{autosome.only}{if \code{TRUE}, use autosomal SNPs only; if it is a
         numeric or character value, keep SNPs according to the specified
         chromosome}

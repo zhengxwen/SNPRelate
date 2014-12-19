@@ -9,7 +9,7 @@
 // SNPRelate.cpp: Relatedness, Linkage Disequilibrium and
 //                Principal Component Analysis
 //
-// Copyright (C) 2011 - 2014	Xiuwen Zheng [zhengxwen@gmail.com]
+// Copyright (C) 2011 - 2015	Xiuwen Zheng [zhengxwen@gmail.com]
 //
 // This file is part of SNPRelate.
 //
@@ -1196,7 +1196,8 @@ extern SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method);
 
 /// get an error message
 COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
-	SEXP Shift, SEXP Unit, SEXP AsIs, SEXP chflag, SEXP ChrPos, SEXP Param)
+	SEXP Shift, SEXP Unit, SEXP WinStart, SEXP AsIs, SEXP chflag,
+	SEXP ChrPos, SEXP Param)
 {
 	const int FunIdx   = asInteger(FUNIdx);
 	const int winsize  = asInteger(WinSize);
@@ -1242,16 +1243,15 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	// calculate nWin
 	if (is_basepair)
 	{
-		long L = (PosMax - PosMin + 1) - winsize + 1;
-		nWin = L / shift;
-		if (L % shift) nWin ++;
+		if (Rf_isInteger(WinStart))
+			PosMin = asInteger(WinStart);
 	} else {
-		long L = (long)nChr - winsize + 1;
-		nWin = L / shift;
-		if (L % shift) nWin ++;
-		PosMin = 0;
 		PosMax = (long)nChr - 1;
+		PosMin = Rf_isInteger(WinStart) ? asInteger(WinStart) : 0;
 	}
+	long TempL = (PosMax - PosMin + 1) - winsize + 1;
+	nWin = TempL / shift;
+	if (TempL % shift) nWin ++;
 
 	// rvlist
 	SEXP rvlist;

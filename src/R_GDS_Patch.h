@@ -8,7 +8,7 @@
 //
 // R_GDS2.h/R_GDS.c: C interface to gdsfmt dynamic library
 //
-// Copyright (C) 2014	Xiuwen Zheng [zhengx@u.washington.edu]
+// Copyright (C) 2014 - 2015	Xiuwen Zheng [zhengx@u.washington.edu]
 //
 // This file is part of CoreArray.
 //

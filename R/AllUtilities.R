@@ -2189,9 +2189,10 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1L, autosome.end=22L, ...)
 
 snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     FUN=NULL, winsize=100000L, shift=10000L, unit=c("basepair", "locus"),
-    autosome.only=FALSE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    as.is=c("list", "numeric"), with.id=c("snp.id", "snp.id.in.window", "none"),
-    num.thread=1, verbose=TRUE, ...)
+    winstart=NULL, autosome.only=FALSE, remove.monosnp=TRUE, maf=NaN,
+    missing.rate=NaN, as.is=c("list", "numeric"),
+    with.id=c("snp.id", "snp.id.in.window", "none"), num.thread=1,
+    verbose=TRUE, ...)
 {
     # check
     ws <- .InitFile2(
@@ -2209,6 +2210,8 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     winsize <- as.integer(winsize)[1]
     shift <- as.integer(shift)[1]
     stopifnot(is.finite(winsize) & is.finite(shift))
+
+    stopifnot(is.null(winstart) | (is.numeric(winstart) & is.vector(winstart)))
 
     if (is.function(FUN))
     {
@@ -2266,6 +2269,22 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     else
         stop("Unknown format of 'snp.chromosome'!")
 
+    if (!is.null(winstart))
+    {
+        winstart <- as.integer(winstart)
+        stopifnot(all(is.finite(winstart)))
+        if (length(winstart) != 1)
+        {
+            if (length(winstart) != length(chrset))
+            {
+                stop("'winstart' should be specified according to ",
+                    "the chromosome set (", paste(chrset, collapse =","), ")")
+            }
+        }
+    }
+
+    if (verbose)
+        cat("Chromosome Set: ", paste(chrset, collapse =","), "\n", sep="")
 
     # for-loop each chromosome
     for (ch in chrset)
@@ -2274,6 +2293,14 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         chflag <- snp.flag & (chr==ch)
         sid <- total.snp.ids[chflag]
         chpos <- position[chflag]
+
+        winst <- NULL
+        if (!is.null(winstart))
+        {
+            winst <- winstart[1]
+            if (length(winstart) > 1)
+                winstart <- winstart[-1]
+        }
 
         if (verbose)
         {
@@ -2289,7 +2316,8 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             if (unit == "basepair")
             {
                 rg <- range(chpos)
-                L <- (rg[2] - rg[1] + 1) - winsize + 1L
+                if (is.null(winst)) winst <- rg[1]
+                L <- (rg[2] - winst + 1) - winsize + 1L
                 n <- L %/% shift
                 if ((L %% shift) > 0) n <- n + 1L
 
@@ -2321,7 +2349,8 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                     i <- i + 1L
                 }
             } else {
-                L <- length(sid) - winsize + 1L
+                if (is.null(winst)) winst <- 1L
+                L <- (length(sid) - winst + 1L) - winsize + 1L
                 n <- L %/% shift
                 if ((L %% shift) > 0) n <- n + 1L
 
@@ -2367,8 +2396,8 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         } else {
             ####  specific functions
 
-            v <- .Call(gnrSlidingWindow, FunIdx, winsize, shift, unit, as.is,
-                chflag, chpos, param)
+            v <- .Call(gnrSlidingWindow, FunIdx, winsize, shift, unit, winst,
+                as.is, chflag, chpos, param)
 
             ans[[paste("chr", ch, sep="")]] <- v[[1]]
             ans[[paste("chr", ch, ".num", sep="")]] <- v[[2]]

@@ -8,7 +8,7 @@
 //
 // ConvVCF2GDS.cpp: the C++ code for the conversion from VCF to GDS
 //
-// Copyright (C) 2013 - 2014	Xiuwen Zheng [zhengxwen@gmail.com]
+// Copyright (C) 2013 - 2015	Xiuwen Zheng [zhengxwen@gmail.com]
 //
 // This file is part of SeqArray.
 //

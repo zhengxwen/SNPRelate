@@ -8,7 +8,7 @@
 //
 // genLD.cpp: Linkage Disequilibrium (LD) analysis on GWAS
 //
-// Copyright (C) 2011 - 2014	Xiuwen Zheng [zhengxwen@gmail.com]
+// Copyright (C) 2011 - 2015	Xiuwen Zheng [zhengxwen@gmail.com]
 //
 // This file is part of SNPRelate.
 //

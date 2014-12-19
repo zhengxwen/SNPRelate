@@ -8,7 +8,7 @@
 //
 // R_SNPRelate.c: link to R_GDS.c
 //
-// Copyright (C) 2014	Xiuwen Zheng
+// Copyright (C) 2014 - 2015	Xiuwen Zheng
 //
 // This file is part of CoreArray.
 //

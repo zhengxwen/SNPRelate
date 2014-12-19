@@ -8,7 +8,7 @@
 //
 // genIBD.cpp: Identity by descent (IBD) analysis on GWAS
 //
-// Copyright (C) 2011 - 2014	Xiuwen Zheng [zhengxwen@gmail.com]
+// Copyright (C) 2011 - 2015	Xiuwen Zheng [zhengxwen@gmail.com]
 //
 // This file is part of SNPRelate.
 //
@@ -30,9 +30,9 @@
 #define _HEADER_IBD_
 
 // CoreArray library header
-#include <dGenGWAS.h>
-#include <dGWASMath.h>
-#include <dVect.h>
+#include "dGenGWAS.h"
+#include "dGWASMath.h"
+#include "dVect.h"
 
 // Standard library header
 #include <vector>

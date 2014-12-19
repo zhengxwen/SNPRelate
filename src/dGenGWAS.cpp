@@ -14,7 +14,7 @@
 // Description :
 // ===========================================================
 
-#include <dGenGWAS.h>
+#include "dGenGWAS.h"
 
 using namespace std;
 using namespace GWAS;

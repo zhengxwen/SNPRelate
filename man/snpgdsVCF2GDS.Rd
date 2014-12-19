@@ -1,8 +1,8 @@
 \name{snpgdsVCF2GDS}
 \alias{snpgdsVCF2GDS}
-\title{Reformat a VCF file}
+\title{Reformat VCF file(s)}
 \description{
-    Reformat a Variant Call Format (VCF) file
+    Reformat Variant Call Format (VCF) file(s)
 }
 \usage{
 snpgdsVCF2GDS(vcf.fn, out.fn, method=c("biallelic.only", "copy.num.of.ref"),
@@ -46,8 +46,8 @@ snpgdsVCF2GDS(vcf.fn, out.fn, method=c("biallelic.only", "copy.num.of.ref"),
 
     If there are more than one file name in \code{vcf.fn},
 \code{snpgdsVCF2GDS} will merge all dataset together once they all contain
-the same samples. It is useful to combine genetic data if VCF data are
-divided by chromosomes.
+the same samples. It is useful to combine genetic/genomic data together if
+VCF data are divided by chromosomes.
 
     \code{method = "biallelic.only"}: to exact bi-allelic and polymorhpic
 SNP data (excluding monomorphic variants);

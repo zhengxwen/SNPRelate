@@ -8,7 +8,7 @@
 //
 // genIBS.cpp: Identity by state (IBS) analysis on GWAS
 //
-// Copyright (C) 2011 - 2014	Xiuwen Zheng [zhengxwen@gmail.com]
+// Copyright (C) 2011 - 2015	Xiuwen Zheng [zhengxwen@gmail.com]
 //
 // This file is part of SNPRelate.
 //
@@ -30,8 +30,8 @@
 #define _HEADER_IBS_
 
 // CoreArray library header
-#include <dGenGWAS.h>
-#include <dVect.h>
+#include "dGenGWAS.h"
+#include "dVect.h"
 
 // Standard library header
 #include <cmath>
