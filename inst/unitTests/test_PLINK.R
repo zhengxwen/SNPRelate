@@ -21,7 +21,7 @@ library(SNPRelate)
 # test function
 #
 
-test.PLINK.MoM <- function()
+.test.PLINK.MoM <- function()
 {
     valid.dta <- get(load(system.file(
         "unitTests", "valid", "Validate.MoM.RData", package="SNPRelate")))

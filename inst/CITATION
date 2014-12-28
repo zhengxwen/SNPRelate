@@ -11,7 +11,6 @@ citEntry(entry="Article",
     volume = "28",
     number = "24",
     pages = "3326-3328",
-    url = "http://bioinformatics.oxfordjournals.org/content/early/2012/10/11/bioinformatics.bts606.abstract",
 
     textVersion =
         paste("Xiuwen Zheng, David Levine, Jess Shen, Stephanie M. Gogarten, Cathy Laurie, Bruce S. Weir.",

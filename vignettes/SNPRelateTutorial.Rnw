@@ -1,35 +1,28 @@
-%\VignetteIndexEntry{A Tutorial for the R Package SNPRelate}
+%\VignetteIndexEntry{A Tutorial for the R/Bioconductor Package SNPRelate}
 %\VignetteDepends{gdsfmt, SNPRelate}
 %\VignetteKeywords{GWAS, SNP, GDS}
 %\VignettePackage{SNPRelate}
 
 \documentclass[12pt]{article}
-\usepackage{fullpage}
-\usepackage{indentfirst}
+
+<<style-Sweave, eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
+
 \usepackage{amsmath}  
 \usepackage{graphicx}
-\usepackage[pdftex,plainpages=false, letterpaper, bookmarks, bookmarksnumbered,
-    colorlinks, linkcolor=blue, citecolor=blue, filecolor=blue,
-    urlcolor=blue]{hyperref}
-\usepackage{hyperref}
 \usepackage{url}
 \usepackage{Sweave}
-
-% Different font in captions
-\newcommand{\captionfonts}{\footnotesize}
-\newcommand{\hn}[1]{\textsf{#1}}
-\newcommand{\fn}[1]{\textbf{#1}}
-\newcommand{\vr}[1]{\textbf{#1}}
 
 
 \begin{document}
 
-\title{A Tutorial for the R Package SNPRelate}
+\title{A Tutorial for the R/Bioconductor Package SNPRelate}
 \author{Xiuwen Zheng \\
     Department of Biostatistics \\
     University of Washington
 }
-\date{April 17, 2014}
+\date{Nov 12, 2014}
 
 
 \maketitle
@@ -42,23 +35,24 @@
 
 Genome-wide association studies (GWAS) are widely used to help determine the
 genetic basis of diseases and traits, but they pose many computational
-challenges. We developed \hn{gdsfmt} and \hn{SNPRelate} (high-performance
-computing R packages for multi-core symmetric multiprocessing computer
-architectures) to accelerate two key computations in GWAS: principal component
-analysis (PCA) and relatedness analysis using identity-by-descent (IBD)
-measures$^1$. The kernels of our algorithms are written in C/C++ and have been
-highly optimized. The calculations of the genetic covariance matrix in PCA and
-pairwise IBD coefficients are split into non-overlapping parts and assigned to
-multiple cores for performance acceleration, as shown in Figure~1. Benchmarks
-show the uniprocessor implementations of PCA and IBD are $\sim$8 to 50 times
-faster than the implementations provided in the popular \hn{EIGENSTRAT} (v3.0)
-and \hn{PLINK} (v1.07) programs respectively, and can be sped up to 30$\sim$300
-folds by utilizing multiple cores.
+challenges. We developed \Githubpkg{zhengxwen/gdsfmt} and \Biocpkg{SNPRelate}
+(high-performance computing R packages for multi-core symmetric multiprocessing
+computer architectures) to accelerate two key computations in GWAS: principal
+component analysis (PCA) and relatedness analysis using identity-by-descent
+(IBD) measures$^1$. The kernels of our algorithms are written in C/C++ and have
+been highly optimized. The calculations of the genetic covariance matrix in PCA
+and pairwise IBD coefficients are split into non-overlapping parts and assigned
+to multiple cores for performance acceleration, as shown in Figure~1.
+Benchmarks show the uniprocessor implementations of PCA and IBD are $\sim$8 to
+50 times faster than the implementations provided in the popular
+\software{EIGENSTRAT} (v3.0) and \software{PLINK} (v1.07) programs
+respectively, and can be sped up to 30$\sim$300 folds by utilizing multiple
+cores.
 
-GDS is also used by an R/Bioconductor package \hn{GWASTools} as one of its data
-storage formats$^{2,3}$. \hn{GWASTools} provides many functions for quality
-control and analysis of GWAS, including statistics by SNP or scan, batch
-quality, chromosome anomalies, association tests, etc.
+GDS is also used by an R/Bioconductor package \Biocpkg{GWASTools} as one of its
+data storage formats$^{2,3}$. \Biocpkg{GWASTools} provides many functions for
+quality control and analysis of GWAS, including statistics by SNP or scan,
+batch quality, chromosome anomalies, association tests, etc.
 
 
 % -------- BEGIN FIGURE --------
@@ -75,10 +69,10 @@ typically optimized for high performance or parallel computing which would
 ease the burden of large-scale GWAS calculations. To overcome these limitations
 we have developed a project named CoreArray
 (\url{http://corearray.sourceforge.net/}) that includes two R packages:
-\hn{gdsfmt} to provide efficient, platform independent memory and file
-management for genome-wide numerical data, and \hn{SNPRelate} to solve
-large-scale, numerically intensive GWAS calculations (i.e., PCA and IBD) on
-multi-core symmetric multiprocessing (SMP) computer architectures.
+\Githubpkg{zhengxwen/gdsfmt} to provide efficient, platform independent memory
+and file management for genome-wide numerical data, and \Biocpkg{SNPRelate} to
+solve large-scale, numerically intensive GWAS calculations (i.e., PCA and IBD)
+on multi-core symmetric multiprocessing (SMP) computer architectures.
 
 This vignette takes the user through the relatedness and principal component
 analysis used for genome wide association data. The methods in these vignettes
@@ -98,13 +92,13 @@ purpose other than this tutorial.
 \subsection{Data formats used in SNPRelate}
 
 To support efficient memory management for genome-wide numerical data, the
-\hn{gdsfmt} package provides the genomic data structure (GDS) file format for
-array-oriented bioinformatic data, which is a container for storing annotation
-data and SNP genotypes. In this format each byte encodes up to four SNP
-genotypes thereby reducing file size and access time. The GDS format supports
-data blocking so that only the subset of data that is being processed needs to
-reside in memory. GDS formatted data is also designed for efficient random
-access to large data sets.
+\Githubpkg{zhengxwen/gdsfmt} package provides the genomic data structure (GDS)
+file format for array-oriented bioinformatic data, which is a container for
+storing annotation data and SNP genotypes. In this format each byte encodes up
+to four SNP genotypes thereby reducing file size and access time. The GDS
+format supports data blocking so that only the subset of data that is being
+processed needs to reside in memory. GDS formatted data is also designed for
+efficient random access to large data sets.
 
 <<>>=
 # Load the R packages: gdsfmt and SNPRelate
@@ -116,63 +110,65 @@ Here is a typical GDS file:
 <<>>=
 snpgdsSummary(snpgdsExampleFileName())
 @
-\fn{snpgdsExampleFileName()} returns the file name of a GDS file used as an
-example in \hn{SNPRelate}, and it is a subset of data from the HapMap project
-and the samples were genotyped by the Center for Inherited Disease Research
-(CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard
-University (Broad). \fn{snpgdsSummary()} summarizes the genotypes stored in the
-GDS file. ``Individual-major mode'' indicates listing all SNPs for an
-individual before listing the SNPs for the next individual, etc. Conversely,
-``SNP-major mode'' indicates listing all individuals for the first SNP before
-listing all individuals for the second SNP, etc. Sometimes ``SNP-major mode''
-is more computationally efficient than ``individual-major model''. For example,
-the calculation of genetic covariance matrix deals with genotypic data SNP by
-SNP, and then ``SNP-major mode'' should be more efficient.
+\Rfunction{snpgdsExampleFileName()} returns the file name of a GDS file used as
+an example in \Biocpkg{SNPRelate}, and it is a subset of data from the HapMap
+project and the samples were genotyped by the Center for Inherited Disease
+Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and
+Harvard University (Broad). \Rfunction{snpgdsSummary()} summarizes the genotypes
+stored in the GDS file. ``Individual-major mode'' indicates listing all SNPs
+for an individual before listing the SNPs for the next individual, etc.
+Conversely, ``SNP-major mode'' indicates listing all individuals for the first
+SNP before listing all individuals for the second SNP, etc. Sometimes
+``SNP-major mode'' is more computationally efficient than ``individual-major
+model''. For example, the calculation of genetic covariance matrix deals with
+genotypic data SNP by SNP, and then ``SNP-major mode'' should be more efficient.
 <<>>=
 # Open a GDS file
 (genofile <- snpgdsOpen(snpgdsExampleFileName()))
 @
 
 The output lists all variables stored in the GDS file. At the first level, it
-stores variables \vr{sample.id}, \vr{snp.id}, etc. The additional information
-are displayed in the braces indicating data type, size, compressed or
-not + compression ratio. The second-level variables \vr{sex} and \vr{pop.group}
-are both stored in the folder of \vr{sample.annot}. All of the functions in
-\hn{SNPRelate} require a minimum set of variables in the annotation data.
-The minimum required variables are
+stores variables \Robject{sample.id}, \Robject{snp.id}, etc. The additional
+information are displayed in the braces indicating data type, size, compressed
+or not + compression ratio. The second-level variables \Robject{sex} and
+\Robject{pop.group} are both stored in the folder of \Robject{sample.annot}.
+All of the functions in \Biocpkg{SNPRelate} require a minimum set of variables
+in the annotation data. The minimum required variables are
 \begin{itemize}
-    \item{\vr{sample.id}, a unique identifier for each sample.}
-    \item{\vr{snp.id}, a unique identifier for each SNP.}
-    \item{\vr{snp.position}, the base position of each SNP on the chromosome,
-        and 0 for unknown position; it does not allow NA.}
-    \item{\vr{snp.chromosome}, an integer or character mapping for each
+    \item{\Robject{sample.id}, a unique identifier for each sample.}
+    \item{\Robject{snp.id}, a unique identifier for each SNP.}
+    \item{\Robject{snp.position}, the base position of each SNP on the
+        chromosome, and 0 for unknown position; it does not allow NA.}
+    \item{\Robject{snp.chromosome}, an integer or character mapping for each
         chromosome. Integer: numeric values 1-26, mapped in order from 1-22,
         23=X,24=XY (the pseudoautosomal region), 25=Y, 26=M (the mitochondrial
         probes), and 0 for probes with unknown positions; it does not allow NA.
         Character: ``X'', ``XY'', ``Y'' and ``M'' can be used here, and a blank
         string indicating unknown position.}
-    \item{\vr{genotype}, a SNP genotypic matrix. SNP-major mode: $n_{sample}
-        \times n_{snp}$, individual-major mode: $n_{snp} \times n_{sample}$.}
+    \item{\Robject{genotype}, a SNP genotypic matrix. SNP-major mode:
+        $n_{sample} \times n_{snp}$, individual-major mode: $n_{snp}
+        \times n_{sample}$.}
 \end{itemize}
 
 Users can define the numeric chromosome codes which are stored with the
-variable \vr{snp.chromosome} as its attributes when \vr{snp.chromosome} is
-numeric only. For example, \vr{snp.chromosome} has the attributes of chromosome
-coding:
+variable \Robject{snp.chromosome} as its attributes when
+\Robject{snp.chromosome} is numeric only. For example, \Robject{snp.chromosome}
+has the attributes of chromosome coding:
 <<>>=
 # Get the attributes of chromosome coding
 get.attr.gdsn(index.gdsn(genofile, "snp.chromosome"))
 @
-\vr{autosome.start} is the starting numeric code of autosomes, and
-\vr{autosome.end} is the last numeric code of autosomes. \fn{put.attr.gdsn}
-can be used to add a new attribute or modify an existing attribute.
+\Robject{autosome.start} is the starting numeric code of autosomes, and
+\Robject{autosome.end} is the last numeric code of autosomes.
+\Rfunction{put.attr.gdsn} can be used to add a new attribute or modify an
+existing attribute.
 
-There are four possible values stored in the variable \vr{genotype}: 0, 1, 2
-and 3. For bi-allelic SNP sites, ``0'' indicates two B alleles, ``1'' indicates
-one A allele and one B allele, ``2'' indicates two A alleles, and ``3'' is a
-missing genotype. For multi-allelic sites, it is a count of the reference
-allele (3 meaning no call). ``Bit2'' indicates that each byte encodes up to
-four SNP genotypes since one byte consists of eight bits.
+There are four possible values stored in the variable \Robject{genotype}:
+0, 1, 2 and 3. For bi-allelic SNP sites, ``0'' indicates two B alleles, ``1''
+indicates one A allele and one B allele, ``2'' indicates two A alleles, and
+``3'' is a missing genotype. For multi-allelic sites, it is a count of the
+reference allele (3 meaning no call). ``Bit2'' indicates that each byte encodes
+up to four SNP genotypes since one byte consists of eight bits.
 <<>>=
 # Take out genotype data for the first 3 samples and the first 5 SNPs
 (g <- read.gdsn(index.gdsn(genofile, "genotype"), start=c(1,1), count=c(5,3)))
@@ -198,17 +194,17 @@ head(read.gdsn(index.gdsn(genofile, "snp.rs.id")))
 @
 There are two additional variables:
 \begin{itemize}
-    \item{\vr{snp.rs.id}, a character string for reference SNP ID that may not
-        be unique.}
-    \item{\vr{snp.allele}, it is not necessary for the analysis, but it is
+    \item{\Robject{snp.rs.id}, a character string for reference SNP ID that
+        may not be unique.}
+    \item{\Robject{snp.allele}, it is not necessary for the analysis, but it is
         necessary when merging genotypes from different platforms. The format
-        of \vr{snp.allele} is ``A allele/B allele'', like ``T/G'' where T is A
-        allele and G is B allele.}
+        of \Robject{snp.allele} is ``A allele/B allele'', like ``T/G'' where T
+        is A allele and G is B allele.}
 \end{itemize}
 
 The information of sample annotation can be obtained by the same function
-\fn{read.gdsn}. For example, population information. ``FStr8'' indicates a
-character-type variable.
+\Rfunction{read.gdsn}. For example, population information. ``FStr8'' indicates
+a character-type variable.
 <<>>=
 # Read population information
 pop <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"))
@@ -226,13 +222,13 @@ snpgdsClose(genofile)
 %%%%%%%%
 \subsubsection{snpgdsCreateGeno}
 
-The function \fn{snpgdsCreateGeno} can be used to create a GDS file. The
-first argument should be a numeric matrix for SNP genotypes. There are
+The function \Rfunction{snpgdsCreateGeno} can be used to create a GDS file.
+The first argument should be a numeric matrix for SNP genotypes. There are
 possible values stored in the input genotype matrix: 0, 1, 2 and other
 values. ``0'' indicates two B alleles, ``1'' indicates one A allele and one
 B allele, ``2'' indicates two A alleles, and other values indicate a missing
 genotype. The SNP matrix can be either $n_{sample} \times n_{snp}$
-(snpfirstdim=FALSE, the argument in \fn{snpgdsCreateGeno}) or
+(snpfirstdim=FALSE, the argument in \Rfunction{snpgdsCreateGeno}) or
 $n_{snp} \times n_{sample}$ (snpfirstdim=TRUE).
 
 For example,
@@ -257,11 +253,11 @@ snpgdsClose(genofile)
 
 
 %%%%%%%%
-\subsubsection{Uses of the Functions in the gdsfmt Package}
+\subsubsection{Uses of the Functions in the Package gdsfmt}
 
-In the following code, the functions \fn{createfn.gds}, \fn{add.gdsn},
-\fn{put.attr.gdsn}, \fn{write.gdsn} and \fn{index.gdsn} are defined in the
-gdsfmt package:
+In the following code, the functions \Rfunction{createfn.gds},
+\Rfunction{add.gdsn}, \Rfunction{put.attr.gdsn}, \Rfunction{write.gdsn} and
+\Rfunction{index.gdsn} are defined in the package \Githubpkg{zhengxwen/gdsfmt}:
 
 \begin{Schunk}
 \begin{Soutput}
@@ -350,8 +346,8 @@ closefn.gds(newfile)
 % -------- Format conversion from PLINK binary files --------
 \subsection{Format conversion from PLINK binary files}
 
-The \hn{SNPRelate} package provides a function \fn{snpgdsBED2GDS} for
-converting a PLINK binary file to a GDS file:
+The \Biocpkg{SNPRelate} package provides a function \Rfunction{snpgdsBED2GDS}
+for converting a PLINK binary file to a GDS file:
 
 <<>>=
 # The PLINK BED file, using the example in the SNPRelate package
@@ -377,12 +373,12 @@ snpgdsSummary("test.gds")
 % -------- Format conversion from VCF files --------
 \subsection{Format conversion from VCF files}
 
-The \hn{SNPRelate} package provides a function \fn{snpgdsVCF2GDS} to reformat
-a VCF file. There are two options for extracting markers from a VCF file for
-downstream analyses:  (1) to extract and store dosage of the reference allele
-only for biallelic SNPs and (2) to extract and store dosage of the reference
-allele for all variant sites, including bi-allelic SNPs, multi-allelic SNPs,
-indels and structural variants.
+The \Biocpkg{SNPRelate} package provides a function \Rfunction{snpgdsVCF2GDS}
+to reformat a VCF file. There are two options for extracting markers from a VCF
+file for downstream analyses:  (1) to extract and store dosage of the reference
+allele only for biallelic SNPs and (2) to extract and store dosage of the
+reference allele for all variant sites, including bi-allelic SNPs,
+multi-allelic SNPs, indels and structural variants.
 
 <<>>=
 # The VCF file, using the example in the SNPRelate package
@@ -405,10 +401,11 @@ snpgdsSummary("test.gds")
 % ---- Data Analysis ----
 \section{Data Analysis}
 
-We developed \hn{gdsfmt} and \hn{SNPRelate} (high-performance computing R
-packages for multi-core symmetric multiprocessing computer architectures) to
-accelerate two key computations in GWAS: principal component analysis (PCA)
-and relatedness analysis using identity-by-descent (IBD) measures.
+We developed \Githubpkg{zhengxwen/gdsfmt} and \Biocpkg{SNPRelate}
+(high-performance computing R packages for multi-core symmetric multiprocessing
+computer architectures) to accelerate two key computations in GWAS: principal
+component analysis (PCA) and relatedness analysis using identity-by-descent
+(IBD) measures.
 
 <<>>=
 # Open the GDS file
@@ -449,7 +446,7 @@ snpset.id <- unlist(snpset)
 % -------- Principal Component Analysis --------
 \subsection{Principal Component Analysis}
 
-The functions in \hn{SNPRelate} for PCA include calculating the genetic
+The functions in \Biocpkg{SNPRelate} for PCA include calculating the genetic
 covariance matrix from genotypes, computing the correlation coefficients
 between sample loadings and genotypes for each SNP, calculating SNP
 eigenvectors (loadings), and estimating the sample loadings of a new dataset
@@ -538,7 +535,7 @@ for (i in 1:3)
 \subsection{Relatedness Analysis}
 
 For relatedness analysis, identity-by-descent (IBD) estimation in
-\hn{SNPRelate} can be done by either the method of moments (MoM)
+\Biocpkg{SNPRelate} can be done by either the method of moments (MoM)
 (Purcell et al., 2007) or maximum likelihood estimation (MLE)
 (Milligan, 2003; Choi et al., 2009). Although MLE estimates are more reliable
 than MoM, MLE is significantly more computationally intensive. For both of
@@ -620,8 +617,8 @@ plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
 % -------- Identity-By-State Analysis --------
 \subsection{Identity-By-State Analysis}
 
-For the $n$ individuals in a sample, \fn{snpgdsIBS} can be used to create a
-$n \times n$ matrix of genome-wide average IBS pairwise identities:
+For the $n$ individuals in a sample, \Rfunction{snpgdsIBS} can be used to
+create a $n \times n$ matrix of genome-wide average IBS pairwise identities:
 
 <<>>=
 ibs <- snpgdsIBS(genofile, num.thread=2)
@@ -683,16 +680,16 @@ snpgdsClose(genofile)
 \section{Resources}
 
 \begin{enumerate}
-    \item \hn{CoreArray} project: \url{http://corearray.sourceforge.net/}
-    \item \hn{gdsfmt} R package:
-    \url{http://cran.r-project.org/web/packages/gdsfmt/index.html}
-    \item \hn{SNPRelate} R package:
-    \url{http://cran.r-project.org/web/packages/SNPRelate/index.html}
-    \item \hn{GENEVA} R package:
+    \item \software{CoreArray} project: \url{http://corearray.sourceforge.net/}
+    \item \Githubpkg{zhengxwen/gdsfmt} R package:
+    \url{https://github.com/zhengxwen/gdsfmt}
+    \item \Biocpkg{SNPRelate} R package:
+    \url{http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html}
+    \item GENEVA software:
     \url{https://www.genevastudy.org/Accomplishments/software}
-    \item \hn{GWASTools}: an R/Bioconductor package for quality control
+    \item \Biocpkg{GWASTools}: an R/Bioconductor package for quality control
     and analysis of Genome-Wide Association Studies
-    \url{http://www.bioconductor.org/packages/2.11/bioc/html/GWASTools.html}
+    \url{http://www.bioconductor.org/packages/devel/bioc/html/GWASTools.html}
 \end{enumerate}
 
 
@@ -727,6 +724,6 @@ snpgdsClose(genofile)
 \section{Acknowledgements}
 The author would like to thank members of the GENEVA consortium
 (\url{http://www.genevastudy.org}) for access to the data used for
-testing the \hn{gdsfmt} and \hn{SNPRelate} packages.
+testing the \Githubpkg{zhengxwen/gdsfmt} and \Biocpkg{SNPRelate} packages.
 
 \end{document}

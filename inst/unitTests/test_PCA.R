@@ -21,7 +21,7 @@ library(SNPRelate)
 # test function
 #
 
-test.PCA <- function()
+.test.PCA <- function()
 {
     valid.dta <- get(load(system.file(
         "unitTests", "valid", "Validate.PCA.RData", package="SNPRelate")))

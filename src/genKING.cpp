@@ -6,7 +6,7 @@
 // _/_/_/   _/_/_/  _/_/_/_/_/     _/     _/_/_/   _/_/
 // ===========================================================
 //
-// snpKING.cpp: KINK Identity-by-descent (IBD) analysis on GWAS
+// genKING.cpp: KINK Identity-by-descent (IBD) analysis on GWAS
 //
 // Copyright (C) 2011 - 2015	Xiuwen Zheng [zhengxwen@gmail.com]
 //

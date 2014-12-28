@@ -21,7 +21,7 @@ library(SNPRelate)
 # test function
 #
 
-test.IBS <- function()
+.test.IBS <- function()
 {
     valid.dta <- get(load(system.file(
         "unitTests", "valid", "Validate.IBS.RData", package="SNPRelate")))
