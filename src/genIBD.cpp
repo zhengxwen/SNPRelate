@@ -149,9 +149,6 @@ namespace IBD
 			double x = 2*AA[i] + AB[i], y = 2*BB[i] + AB[i];
 			double a00, a01, a02, a11, a12;
 
-			//
-			// The following codes are from PLINK/genome.cpp
-			//
 			if (CorrectFactor)
 			{
 				a00 =
@@ -182,10 +179,6 @@ namespace IBD
 				a11 = 2*p*p*q + 2*p*q*q;
 				a12 = p*p*p + q*q*q + p*p*q + p*q*q;
 			}
-
-			//
-			// End: PLINK/genome.cpp
-			//
 
 			if (R_FINITE(a00) && R_FINITE(a01) &&
 				R_FINITE(a02) && R_FINITE(a11) && R_FINITE(a12))

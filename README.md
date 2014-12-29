@@ -10,12 +10,12 @@ Version: 1.1.2
 
 Genome-wide association studies are widely used to investigate the genetic basis of diseases and traits, but they pose many computational challenges. We developed SNPRelate (R package for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations on SNP data: principal component analysis (PCA) and relatedness analysis using identity-by-descent measures. The kernels of our algorithms are written in C/C++ and highly optimized.
 
-## Wiki
-[Wiki Page](https://github.com/zhengxwen/SNPRelate/wiki)
 
 ## Bioconductor:
 
-Development Version: [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
+Development Version:
+
+[http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
 
 ## News v1.1.1:
@@ -48,6 +48,11 @@ Invalid Zip Deflate Stream operation 'Seek'!
 	* add estimating nine Jacquard's coefficients in 'snpgdsIBDMLE'
 	* fix the memory issues reported by valgrind
 	
+
+## Tutorial
+
+[Tutorial Page](http://corearray.sourceforge.net/tutorials/SNPRelate/)
+
 
 ## Installation
 
