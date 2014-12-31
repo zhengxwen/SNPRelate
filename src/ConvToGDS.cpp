@@ -164,6 +164,20 @@ public:
 					_cur_char ++;
 			}
 		}
+
+		if (str_end > str_begin+1)
+		{
+			if ((str_begin[0] == '\"') && (str_end[-1] == '\"'))
+			{
+				str_begin ++;
+				str_end --;
+			} else if ((str_begin[0] == '\'') && (str_end[-1] == '\''))
+			{
+				str_begin ++;
+				str_end --;
+			}
+		}
+
 		buffer.assign(str_begin, str_end);
 	}
 

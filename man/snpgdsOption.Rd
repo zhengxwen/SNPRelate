@@ -16,10 +16,11 @@ snpgdsOption(gdsobj=NULL, autosome.start=1L, autosome.end=22L, ...)
     \item{autosome.end}{the ending index of autosome}
     \item{...}{optional arguments for new chromosome coding}
 }
+\value{A list}
+
 \author{Xiuwen Zheng}
 
 \examples{
-
 # define the new chromosomes 'Z' and 'W'
 snpgdsOption(Z=27L, W=28L)
 

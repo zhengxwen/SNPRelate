@@ -5,7 +5,7 @@
 
 \documentclass[12pt]{article}
 
-<<style-Sweave, eval=TRUE, echo=FALSE, results=tex>>=
+<<style, eval=TRUE, echo=FALSE, results=tex>>=
 BiocStyle::latex()
 @
 

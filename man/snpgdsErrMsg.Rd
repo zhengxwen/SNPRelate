@@ -9,6 +9,8 @@
 \usage{
 snpgdsErrMsg()
 }
+\value{Characters}
+
 \author{Xiuwen Zheng}
 
 \examples{

@@ -1,7 +1,7 @@
 SNPRelate: Parallel computing toolset for relatedness and principal component analysis of SNP data
 ===
 
-Version: 1.1.2
+Version: 1.1.3
 
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 
@@ -18,40 +18,18 @@ Development Version:
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
 
-## News v1.1.1:
-
-	* fix bug in snpgdsVCF2GDS when 'method="biallelic.only"'
-	* add 'snpgdsVCF2GDS_R' for the R implementation
-	* fix bug in snpgdsBED2GDS if 'family=TRUE'
-
 ## News
 ```gdsfmt_1.1.3``` should be installed immediately, if you see the error like
 ```
 Invalid Zip Deflate Stream operation 'Seek'!
 ```
-
-## News in Bioconductor (v1.0.0) compared to CRAN version:
-
-	* fully support long vectors (>= R v3.0)
-	* >5x speedup in the function 'snpgdsVCF2GDS'
-	* SNP GDS format allows character-type chromosome codes
-	* add a new argument 'ref.allele' in 'snpgdsVCF2GDS'
-	* add new functions 'snpgdsOpen' and 'snpgdsClose'
-	* add a new function 'snpgdsTranspose' to transpose the genotypic matrix
-	* add a new function 'snpgdsAlleleSwitch' to switch alleles if needed
-	* add a new function 'snpgdsApartSelection'
-	* add a new function 'snpgdsGEN2GDS' to import Oxford GEN data
-	* use NA instead of 3 as missing value in 'snpgdsGetGeno'
-	* add a new argument 'snpfirstdim' in the function 'snpgdsGDS2BED'
-	* add a new argument 'with.id' in the functions 'snpgdsSNPRateFreq' and 'snpgdsSampMissRate'
-	* return a numeric vector instead of data.frame in 'snpgdsLDpair'
-	* add estimating nine Jacquard's coefficients in 'snpgdsIBDMLE'
-	* fix the memory issues reported by valgrind
 	
 
 ## Tutorial
 
-[Tutorial Page](http://corearray.sourceforge.net/tutorials/SNPRelate/)
+Tutorial Page:
+
+[http://corearray.sourceforge.net/tutorials/SNPRelate](http://corearray.sourceforge.net/tutorials/SNPRelate)
 
 
 ## Installation
@@ -68,7 +46,7 @@ biocLite("SNPRelate")
 
 
 * Development version from Github:
-```
+```R
 library("devtools")
 install_github("zhengxwen/gdsfmt")
 install_github("zhengxwen/SNPRelate")
@@ -93,7 +71,7 @@ R CMD INSTALL SNPRelate_latest.tar.gz
 
 
 * Old CRAN version (v0.9.19) from r-forge repository:
-```
+```R
 install.packages("gdsfmt", repos="http://R-Forge.R-project.org")
 install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
 ```

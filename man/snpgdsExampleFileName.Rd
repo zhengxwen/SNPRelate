@@ -11,6 +11,8 @@ snpgdsExampleFileName()
     A GDS genotype file was created from a subset of HapMap Phase II dataset
 consisting of 270 individuals and duplicates.
 }
+\value{Characters}
+
 \author{Xiuwen Zheng}
 
 \examples{

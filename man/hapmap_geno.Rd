@@ -18,4 +18,5 @@
     \code{genotype} -- a ``# of SNPs'' X ``# of samples'' genotype matrix.
 }
 \usage{hapmap_geno}
+\value{A list}
 \keyword{datasets}

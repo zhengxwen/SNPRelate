@@ -1,15 +1,11 @@
-Version 1.1.2:
-
-	* improve 'snpgdsSlidingWindow'
-	* add an option 'ignore.chr.prefix' to the function 'snpgdsVCF2GDS'
-
-
-Version 1.1.1:
+Version 1.1.0 - 1.1.3:
 
     * fix a bug in snpgdsVCF2GDS when 'method="biallelic.only"'
     * add 'snpgdsVCF2GDS_R' for the R implementation
     * fix a bug in snpgdsBED2GDS if 'family=TRUE'
     * 'snpgdsGDS2BED' allows the file name of GDS
+    * improve 'snpgdsSlidingWindow'
+    * add an option 'ignore.chr.prefix' to the function 'snpgdsVCF2GDS'
 
 
 Version 0.99.1 - 0.99.3:
