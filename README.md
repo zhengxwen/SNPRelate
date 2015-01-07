@@ -19,31 +19,26 @@ Development Version:
 
 
 ## News
-```gdsfmt_1.1.3``` should be installed immediately, if you see the error like
+```>= gdsfmt_1.1.3``` should be installed immediately, if you see the error like
 ```
 Invalid Zip Deflate Stream operation 'Seek'!
 ```
 	
 
-## Tutorial
-
-Tutorial Page:
+## Tutorials
 
 [http://corearray.sourceforge.net/tutorials/SNPRelate](http://corearray.sourceforge.net/tutorials/SNPRelate)
+
+[http://www.bioconductor.org/packages/devel/bioc/vignettes/SNPRelate/inst/doc/SNPRelateTutorial.pdf](http://www.bioconductor.org/packages/devel/bioc/vignettes/SNPRelate/inst/doc/SNPRelateTutorial.pdf)
 
 
 ## Installation
 
-
 * Bioconductor repository:
 ```
 source("http://bioconductor.org/biocLite.R")
-library(BiocInstaller)
-BiocInstaller::useDevel()
-
 biocLite("SNPRelate")
 ```
-
 
 * Development version from Github:
 ```R

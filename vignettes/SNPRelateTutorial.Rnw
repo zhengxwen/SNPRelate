@@ -1,17 +1,17 @@
-%\VignetteIndexEntry{A Tutorial for the R/Bioconductor Package SNPRelate}
-%\VignetteDepends{gdsfmt, SNPRelate}
+%\VignetteIndexEntry{SNPRelate Tutorial}
+%\VignetteDepends{gdsfmt}
 %\VignetteKeywords{GWAS, SNP, GDS}
 %\VignettePackage{SNPRelate}
+%\VignetteEngine{knitr::knitr}
 
 \documentclass[12pt]{article}
 
-<<style, eval=TRUE, echo=FALSE, results=tex>>=
+<<style, eval=TRUE, echo=FALSE, results="asis">>=
 BiocStyle::latex()
-@
+@ 
 
 \usepackage{amsmath}  
 \usepackage{graphicx}
-\usepackage{Sweave}
 
 
 \begin{document}
@@ -21,13 +21,11 @@ BiocStyle::latex()
     Department of Biostatistics \\
     University of Washington
 }
-\date{Nov 12, 2014}
+\date{Jan 5, 2015}
 
 
 \maketitle
 \tableofcontents
-
-\SweaveOpts{keep.source=TRUE, eps=FALSE}
 
 % ---- Overview ----
 \section{Overview}
@@ -258,8 +256,7 @@ In the following code, the functions \Rfunction{createfn.gds},
 \Rfunction{add.gdsn}, \Rfunction{put.attr.gdsn}, \Rfunction{write.gdsn} and
 \Rfunction{index.gdsn} are defined in the package \Githubpkg{zhengxwen/gdsfmt}:
 
-\begin{Schunk}
-\begin{Soutput}
+<<eval=FALSE>>=
 # Create a new GDS file
 newfile <- createfn.gds("your_gds_file.gds")
 
@@ -336,9 +333,6 @@ add.gdsn(newfile, "snp.annot", snp.annot)
 # Close the GDS file
 closefn.gds(newfile)
 @
-\end{Soutput}
-\end{Schunk}
-
 
 
 
@@ -467,7 +461,7 @@ pc.percent
 @
 
 In the case of no prior population information,
-<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+<<fig.width=5, fig.height=5, fig.align='center'>>=
 # make a data.frame
 tab <- data.frame(sample.id = pca$sample.id,
     EV1 = pca$eigenvect[,1],    # the first eigenvector
@@ -493,7 +487,7 @@ pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 head(cbind(sample.id, pop_code))
 @
 
-<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+<<fig.width=5, fig.height=5, fig.align='center'>>=
 # Make a data.frame
 tab <- data.frame(sample.id = pca$sample.id,
     pop = factor(pop_code)[match(pca$sample.id, sample.id)],
@@ -509,13 +503,13 @@ legend("topleft", legend=levels(tab$pop), pch="o", col=1:nlevels(tab$pop))
 @
 
 Plot the principal component pairs for the first four PCs:
-<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+<<fig.width=5, fig.height=5, fig.align='center'>>=
 lbls <- paste("PC", 1:4, "\n", format(pc.percent[1:4], digits=2), "%", sep="")
 pairs(pca$eigenvect[,1:4], col=tab$pop, labels=lbls)
 @
 
 To calculate the SNP correlations between eigenvactors and SNP genotypes:
-<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+<<fig.width=5, fig.height=5, fig.align='center'>>=
 # Get chromosome index
 chr <- read.gdsn(index.gdsn(genofile, "snp.chromosome"))
 CORR <- snpgdsPCACorr(pca, genofile, eig.which=1:4)
@@ -558,7 +552,7 @@ ibd.coeff <- snpgdsIBDSelection(ibd)
 head(ibd.coeff)
 @
 
-<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+<<fig.width=5, fig.height=5, fig.align='center'>>=
 plot(ibd.coeff$k0, ibd.coeff$k1, xlim=c(0,1), ylim=c(0,1),
     xlab="k0", ylab="k1", main="YRI samples (MoM)")
 lines(c(0,1), c(1,0), col="red", lty=2)
@@ -584,7 +578,9 @@ plot(ibd.coeff$k0, ibd.coeff$k1, xlim=c(0,1), ylim=c(0,1),
     xlab="k0", ylab="k1", main="YRI samples (MLE)")
 lines(c(0,1), c(1,0), col="red", lty=2)
 @
-\includegraphics{SNPRelateTutorial-IBDMLE.png}
+\begin{center}
+\includegraphics[width=0.7\columnwidth]{SNPRelateTutorial-IBDMLE.png}
+\end{center}
 
 
 \subsubsection{Relationship inference Using KING method of moments}
@@ -606,7 +602,7 @@ dat <- snpgdsIBDSelection(ibd.robust)
 head(dat)
 @
 
-<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+<<fig.width=5, fig.height=5, fig.align='center'>>=
 plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
     ylab="Estimated Kinship Coefficient (KING-robust)")
 @
@@ -623,7 +619,7 @@ create a $n \times n$ matrix of genome-wide average IBS pairwise identities:
 ibs <- snpgdsIBS(genofile, num.thread=2)
 @
 The heat map is shown:
-<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+<<fig.width=5, fig.height=5, fig.align='center'>>=
 library(lattice)
 
 L <- order(pop_code)
@@ -638,7 +634,7 @@ x <- loc[, 1]; y <- loc[, 2]
 race <- as.factor(pop_code)
 @
 
-<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+<<fig.width=5, fig.height=5, fig.align='center'>>=
 plot(x, y, col=race, xlab = "", ylab = "",
     main = "Multidimensional Scaling Analysis (IBS Distance)")
 legend("topleft", legend=levels(race), text.col=1:nlevels(race))
@@ -647,7 +643,7 @@ legend("topleft", legend=levels(race), text.col=1:nlevels(race))
 To perform cluster analysis on the $n \times n$ matrix of genome-wide IBS
 pairwise distances, and determine the groups by a permutation score:
 
-<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+<<fig.width=5, fig.height=5, fig.align='center'>>=
 set.seed(100)
 ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, num.thread=2))
 
@@ -663,7 +659,7 @@ Here is the population information we have known:
 rv2 <- snpgdsCutTree(ibs.hc, samp.group=as.factor(pop_code))
 @
 
-<<fig=TRUE, pdf=FALSE, png=TRUE, resolution=100>>=
+<<fig.width=5, fig.height=5, fig.align='center'>>=
 plot(rv2$dendrogram, leaflab="none", main="HapMap Phase II")
 legend("topright", legend=levels(race), col=1:nlevels(race), pch=19, ncol=4)
 @
@@ -695,7 +691,7 @@ snpgdsClose(genofile)
 
 % ---- Session Info ----
 \section{Session Info}
-<<sessioninfo, results=tex, print=TRUE>>=
+<<sessioninfo, results="asis">>=
 toLatex(sessionInfo())
 @
 
@@ -729,6 +725,7 @@ toLatex(sessionInfo())
 
 
 \section{Acknowledgements}
+
 The author would like to thank members of the GENEVA consortium
 (\url{http://www.genevastudy.org}) for access to the data used for
 testing the \Githubpkg{zhengxwen/gdsfmt} and \Biocpkg{SNPRelate} packages.
