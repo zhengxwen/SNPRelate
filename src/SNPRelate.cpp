@@ -1275,6 +1275,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 
 	// get the parameter
 	SEXP PL[64];
+	for (int i=0; i < 64; i++) PL[i] = R_NilValue;
 	switch (FunIdx)
 	{
 	case 1:  // snpgdsFst
