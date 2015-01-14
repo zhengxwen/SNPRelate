@@ -261,7 +261,7 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
-    compress.annotation="ZIP.max", option=NULL,
+    compress.annotation="ZIP_RA.max", option=NULL,
     cvt.snpid=c("auto", "int"), verbose=TRUE)
 {
     # check
@@ -543,8 +543,8 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL,
 
 snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
     call.threshold=0.9, version=c(">=2.0", "<=1.1.5"),
-    snpfirstdim=FALSE, compress.annotation="ZIP.max", compress.geno="",
-    verbose=TRUE)
+    snpfirstdim=FALSE, compress.annotation="ZIP_RA.max",
+    compress.geno="", verbose=TRUE)
 {
     #######################################################################
     # check
@@ -718,8 +718,8 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
 #
 
 snpgdsVCF2GDS <- function(vcf.fn, out.fn,
-    method = c("biallelic.only", "copy.num.of.ref"),
-    snpfirstdim=FALSE, compress.annotation="ZIP.max", compress.geno="",
+    method = c("biallelic.only", "copy.num.of.ref"), snpfirstdim=FALSE,
+    compress.annotation="ZIP_RA.max", compress.geno="",
     ref.allele=NULL, ignore.chr.prefix="chr", verbose=TRUE)
 {
     # check
@@ -743,7 +743,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
 
     if (verbose)
     {
-        cat("VCF format --> SNP GDS format\n")
+        cat("VCF Format --> SNP GDS Format\n")
         if (metidx == 1L)
             cat("Method: exacting biallelic SNPs\n")
         else
@@ -916,7 +916,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
 
 snpgdsVCF2GDS_R <- function(vcf.fn, out.fn, nblock=1024,
     method = c("biallelic.only", "copy.num.of.ref"),
-    compress.annotation="ZIP.max", snpfirstdim=FALSE, option=NULL,
+    compress.annotation="ZIP_RA.max", snpfirstdim=FALSE, option=NULL,
     verbose=TRUE)
 {
     # check

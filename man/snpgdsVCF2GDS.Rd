@@ -6,7 +6,7 @@
 }
 \usage{
 snpgdsVCF2GDS(vcf.fn, out.fn, method=c("biallelic.only", "copy.num.of.ref"),
-    snpfirstdim=FALSE, compress.annotation="ZIP.max", compress.geno="",
+    snpfirstdim=FALSE, compress.annotation="ZIP_RA.max", compress.geno="",
     ref.allele=NULL, ignore.chr.prefix="chr", verbose=TRUE)
 }
 \arguments{

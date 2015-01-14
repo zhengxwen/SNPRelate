@@ -6,7 +6,7 @@
 }
 \usage{
 snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
-    compress.annotation="ZIP.max", option=NULL, cvt.snpid=c("auto", "int"),
+    compress.annotation="ZIP_RA.max", option=NULL, cvt.snpid=c("auto", "int"),
     verbose=TRUE)
 }
 \arguments{

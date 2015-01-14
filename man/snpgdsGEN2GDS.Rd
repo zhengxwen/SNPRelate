@@ -7,7 +7,7 @@
 \usage{
 snpgdsGEN2GDS(gen.fn, sample.fn, out.fn, chr.code=NULL,
     call.threshold=0.9, version=c(">=2.0", "<=1.1.5"),
-    snpfirstdim=FALSE, compress.annotation="ZIP.max", compress.geno="",
+    snpfirstdim=FALSE, compress.annotation="ZIP_RA.max", compress.geno="",
     verbose=TRUE)
 }
 \arguments{

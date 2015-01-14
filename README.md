@@ -1,7 +1,7 @@
 SNPRelate: Parallel computing toolset for relatedness and principal component analysis of SNP data
 ===
 
-Version: 1.1.3
+Version: 1.1.4
 
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 
@@ -35,7 +35,7 @@ Invalid Zip Deflate Stream operation 'Seek'!
 ## Installation
 
 * Bioconductor repository:
-```
+```R
 source("http://bioconductor.org/biocLite.R")
 biocLite("SNPRelate")
 ```
