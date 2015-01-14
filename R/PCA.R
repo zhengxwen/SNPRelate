@@ -47,6 +47,7 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     # return
     rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
         eigenval = rv[[3]], eigenvect = rv[[4]],
+        varprop = rv[[3]] / rv[[5]],
         TraceXTX = rv[[1]], Bayesian = bayesian, genmat = rv[[2]])
     class(rv) <- "snpgdsPCAClass"
     return(rv)

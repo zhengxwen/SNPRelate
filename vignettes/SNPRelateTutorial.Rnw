@@ -21,7 +21,7 @@ BiocStyle::latex()
     Department of Biostatistics \\
     University of Washington
 }
-\date{Jan 5, 2015}
+\date{Jan 13, 2015}
 
 
 \maketitle
@@ -456,8 +456,9 @@ first two eigenvectors hold the largest percentage of variance among the
 population, although the total variance accounted for is still less the
 one-quarter of the total.
 <<>>=
-pc.percent <- 100 * pca$eigenval[1:16]/sum(pca$eigenval)
-pc.percent
+# variance proportion (%)
+pc.percent <- pca$varprop*100
+head(round(pc.percent, 2))
 @
 
 In the case of no prior population information,

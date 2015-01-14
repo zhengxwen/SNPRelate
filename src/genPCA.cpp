@@ -1288,25 +1288,25 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
 
 		// Calculate the genetic covariace
 		PCA::DoCovCalculate(Cov, INTEGER(NumThread)[0], "PCA:", verbose);
+
 		// Normalize
 		double TraceXTX = Cov.Trace();
 		double scale = double(n-1) / TraceXTX;
 		vt<double, av16Align>::Mul(Cov.get(), Cov.get(), scale, Cov.Size());
+		double TraceVal = Cov.Trace();
 
 		// ******** output ********
 
 		int nProtected = 0;
-		PROTECT(rv_ans = NEW_LIST(4));
+		PROTECT(rv_ans = NEW_LIST(5));
 		nProtected ++;
 
-		SEXP tmp;
-		PROTECT(tmp = NEW_NUMERIC(1));
-		nProtected ++;
-		REAL(tmp)[0] = TraceXTX;
-		SET_ELEMENT(rv_ans, 0, tmp);
+		SET_ELEMENT(rv_ans, 0, ScalarReal(TraceXTX));
+		SET_ELEMENT(rv_ans, 4, ScalarReal(TraceVal));
 
 		if (LOGICAL(NeedGenMat)[0] == TRUE)
 		{
+			SEXP tmp;
 			PROTECT(tmp = allocMatrix(REALSXP, n, n));
 			nProtected ++;
 			SET_ELEMENT(rv_ans, 1, tmp);

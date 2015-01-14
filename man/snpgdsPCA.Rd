@@ -47,6 +47,7 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{snp.id}{the SNP ids used in the analysis}
     \item{eigenval}{eigenvalues}
     \item{eigenvect}{eigenvactors, "# of samples" x "eigen.cnt"}
+    \item{varprop}{variance proportion for each PC}
     \item{TraceXTX}{the trace of the genetic covariance matrix}
     \item{Bayesian}{whether use bayerisan normalization}
     \item{genmat}{the genetic covariance matrix}
@@ -71,9 +72,9 @@ RV <- snpgdsPCA(genofile)
 # eigenvalues
 RV$eigenval
 
-# variance proportion
-head(RV$eigenval / sum(RV$eigenval))
-# [1] 0.122251756 0.058397767 0.010111423 0.009475002 ...
+# variance proportion (%)
+head(round(RV$varprop*100, 2))
+# [1] 12.23  5.84  1.01  0.95  0.84  0.74
 
 
 ####  there is no population information  ####
