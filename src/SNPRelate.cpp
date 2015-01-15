@@ -1180,8 +1180,11 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParseNumeric(SEXP gdsobj)
 
 			// whether val is numeric
 			char *endptr = (char*)(val.c_str());
-			strtol(val.c_str(), &endptr, 10);
-			rv_ptr[i] = (endptr != val.c_str()) ? TRUE : FALSE;
+			long int v = strtol(val.c_str(), &endptr, 10);
+			if (v == 0)
+				rv_ptr[i] = (endptr != val.c_str()) ? TRUE : FALSE;
+			else
+				rv_ptr[i] = TRUE;
 		}
 
 		UNPROTECT(1);

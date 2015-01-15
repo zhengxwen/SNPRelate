@@ -1,123 +1,124 @@
 Version 1.1.0 - 1.1.4:
 
-    * fix a bug in snpgdsVCF2GDS when 'method="biallelic.only"'
-    * add 'snpgdsVCF2GDS_R' for the R implementation
-    * fix a bug in snpgdsBED2GDS if 'family=TRUE'
-    * 'snpgdsGDS2BED' allows the file name of GDS
-    * improve 'snpgdsSlidingWindow'
-    * add an option 'ignore.chr.prefix' to the function 'snpgdsVCF2GDS'
+    o fix a bug in snpgdsVCF2GDS when 'method="biallelic.only"'
+    o add 'snpgdsVCF2GDS_R' for the R implementation
+    o fix a bug in snpgdsBED2GDS if 'family=TRUE'
+    o 'snpgdsGDS2BED' allows the file name of GDS
+    o improve 'snpgdsSlidingWindow'
+    o add an option 'ignore.chr.prefix' to the function 'snpgdsVCF2GDS'
 
 
 Version 0.99.1 - 0.99.3:
 
-    * an option to create an integer snp.id when converting from PLINK
-    * a new function 'snpgdsFst' to estimate Fst
-    * minor fixes
+    o an option to create an integer snp.id when converting from PLINK
+    o a new function 'snpgdsFst' to estimate Fst
+    o minor fixes
 
 
 Version 0.99.0:
 
-    * initial submission to Bioconductor
-    * moving from CRAN to Bioconductor
+    o initial submission to Bioconductor
+    o moving from CRAN to Bioconductor
 
-    * fully support long vectors (>= R v3.0)
-    * >5x speedup in the function 'snpgdsVCF2GDS'
-    * SNP GDS format allows character-type chromosome codes
-    * add a new argument 'ref.allele' in 'snpgdsVCF2GDS'
-    * add new functions 'snpgdsOpen' and 'snpgdsClose'
-    * add a new function 'snpgdsTranspose' to transpose the genotypic matrix
-    * add a new function 'snpgdsAlleleSwitch' to switch alleles if needed
-    * add a new function 'snpgdsApartSelection'
-    * add a new function 'snpgdsGEN2GDS' to import Oxford GEN data
-    * use NA instead of 3 as missing value in 'snpgdsGetGeno'
-    * add a new argument 'snpfirstdim' in the function 'snpgdsGDS2BED'
-    * add a new argument 'with.id' in the functions 'snpgdsSNPRateFreq' and 'snpgdsSampMissRate'
-    * return a numeric vector instead of data.frame in 'snpgdsLDpair'
-    * add estimating nine Jacquard's coefficients in 'snpgdsIBDMLE'
-    * fix the memory issues reported by valgrind
+    o fully support long vectors (>= R v3.0)
+    o >5x speedup in the function 'snpgdsVCF2GDS'
+    o SNP GDS format allows character-type chromosome codes
+    o add a new argument 'ref.allele' in 'snpgdsVCF2GDS'
+    o add new functions 'snpgdsOpen' and 'snpgdsClose'
+    o add a new function 'snpgdsTranspose' to transpose the genotypic matrix
+    o add a new function 'snpgdsAlleleSwitch' to switch alleles if needed
+    o add a new function 'snpgdsApartSelection'
+    o add a new function 'snpgdsGEN2GDS' to import Oxford GEN data
+    o use NA instead of 3 as missing value in 'snpgdsGetGeno'
+    o add a new argument 'snpfirstdim' in the function 'snpgdsGDS2BED'
+    o add a new argument 'with.id' in the functions 'snpgdsSNPRateFreq' and 'snpgdsSampMissRate'
+    o return a numeric vector instead of data.frame in 'snpgdsLDpair'
+    o add estimating nine Jacquard's coefficients in 'snpgdsIBDMLE'
+    o fix the memory issues reported by valgrind
 
 
 Changes in 0.9.16 - 0.9.19:
 
-    * avoid compiler issues when the version of R < v3.0
-    * minor fixes in 'snpgdsIBDSelection': allow non-character-type sample IDs and missing IBD coefficients
+    o avoid compiler issues when the version of R < v3.0
+    o minor fixes in 'snpgdsIBDSelection': allow non-character-type sample IDs and missing IBD coefficients
 
 
 Changes in 0.9.15:
 
-    * improve 'snpgdsIBDKING' to avoid misleading arguments and examples
-    * improve 'snpgdsIBDSelection'
-    * the names of column 'sample1', 'sample2' and 'kinshipcoeff' are changed to 'ID1', 'ID2' and 'kinship' in the output of 'snpgdsIBDSelection'
+    o improve 'snpgdsIBDKING' to avoid misleading arguments and examples
+    o improve 'snpgdsIBDSelection'
+    o the names of column 'sample1', 'sample2' and 'kinshipcoeff' are changed to 'ID1', 'ID2' and 'kinship' in the output of 'snpgdsIBDSelection'
 
 
 Changes in 0.9.14:
 
-    * 'snpgdsGDS2BED' gives a warning if the allele information is missing
-    * add 'snpgdsIBDKING' (KING robust relationship inference in genome-wide association studies)
-    * bug fixes in 'snpgdsIBS' and 'snpgdsIBSNum'
-    * some warnings in 'snpgdsSummary' are replaced by hints
-    * bug fix in 'snpgdsVCF2GDS': duplicate SNP id when importing multiple VCF files
-    * improve hint information in 'snpgdsGDS2BED'
+    o 'snpgdsGDS2BED' gives a warning if the allele information is missing
+    o add 'snpgdsIBDKING' (KING robust relationship inference in genome-wide association studies)
+    o bug fixes in 'snpgdsIBS' and 'snpgdsIBSNum'
+    o some warnings in 'snpgdsSummary' are replaced by hints
+    o bug fix in 'snpgdsVCF2GDS': duplicate SNP id when importing multiple VCF files
+    o improve hint information in 'snpgdsGDS2BED'
 
 
 Changes in 0.9.13:
 
-    * disable parallel functions in the Windows version of SNPRelate, until the internal multi-thread funcitons are replaced by the functions in win-pthreads
-    * fix compiling issues in the Windows version of SNPRelate
+    o disable parallel functions in the Windows version of SNPRelate, until the internal multi-thread funcitons are replaced by the functions in win-pthreads
+    o fix compiling issues in the Windows version of SNPRelate
 
 
 Changes in 0.9.12:
 
-    * add 'GetRNGstate' and 'PutRNGstate' to the C function 'gnrDistPerm'
-    * remove the upper limit of 200 chromosomes in 'snpgdsVCF2GDS' according to scaffolds/contigs from a de novo assembly not chromosomes
-    * improve 'snpgdsSummary'
+    o add 'GetRNGstate' and 'PutRNGstate' to the C function 'gnrDistPerm'
+    o remove the upper limit of 200 chromosomes in 'snpgdsVCF2GDS' according to scaffolds/contigs from a de novo assembly not chromosomes
+    o improve 'snpgdsSummary'
 
 
 Changes in 0.9.10 - 0.9.11:
 
-    * bug fixes in 'snpgdsPairIBD'
-    * bug fix in 'snpgdsVCF2GDS': to use "\t" as the field separator character
-    * bug fixes according to gdsfmt v0.9.11
-    * improve the vignette
+    o bug fixes in 'snpgdsPairIBD'
+    o bug fix in 'snpgdsVCF2GDS': to use "\t" as the field separator character
+    o bug fixes according to gdsfmt v0.9.11
+    o improve the vignette
 
 
 Changes in 0.9.9:
 
-    * adds a new argument 'family' to 'snpgdsBED2GDS'
-    * improves 'snpgdsCutTree'
-    * adds a new function 'snpgdsDrawTree'
-    * adds an argument 'option' to the function 'snpgdsBED2GDS'
-    * outputs chromosome codes according to 'snpgdsOption' in 'snpgdsGDS2BED'
+    o adds a new argument 'family' to 'snpgdsBED2GDS'
+    o improves 'snpgdsCutTree'
+    o adds a new function 'snpgdsDrawTree'
+    o adds an argument 'option' to the function 'snpgdsBED2GDS'
+    o outputs chromosome codes according to 'snpgdsOption' in 'snpgdsGDS2BED'
 
 
 Changes in 0.9.8:
 
-    * add an alternative method extracting variants from a VCF file in 'snpgdsVCF2GDS'
-    * supports multiple files in 'snpgdsVCF2GDS'
-    * add 'snpgdsOption'
-    * add 'snpgdsHCluster'
-    * add 'snpgdsCutTree'
-    * add 'snpgdsDiss'
+    o add an alternative method extracting variants from a VCF file in 'snpgdsVCF2GDS'
+    o supports multiple files in 'snpgdsVCF2GDS'
+    o add 'snpgdsOption'
+    o add 'snpgdsHCluster'
+    o add 'snpgdsCutTree'
+    o add 'snpgdsDiss'
 
 
 Changes in 0.9.7:
 
-    * bug fix: an important bug of missing genotypes in 'snpgdsVCF2GDS'
-    * bug fix: a bug in 'snpgdsGDS2BED' (output 23, 24, ..., instead of X, Y, XY)
-    * bug fix: a bug in 'snpgdsCombineGeno' (due to duplicate SNPs)
-    * 'snpgdsLDpair' provides haplotype frequency estimates
-    * 'snpgdsLDMat' allows specifying sliding window size
-    * add RUnit tests
-    * add a vignette
+    o bug fix: an important bug of missing genotypes in 'snpgdsVCF2GDS'
+    o bug fix: a bug in 'snpgdsGDS2BED' (output 23, 24, ..., instead of X, Y, XY)
+    o bug fix: a bug in 'snpgdsCombineGeno' (due to duplicate SNPs)
+    o 'snpgdsLDpair' provides haplotype frequency estimates
+    o 'snpgdsLDMat' allows specifying sliding window size
+    o add RUnit tests
+    o add a vignette
 
 
 Changes in 0.9.1-0.9.6:
 
-    * bug fixes
-    * add functions to 'snpgdsIBDMLE' and 'snpgdsIBDMoM'
-    * add a new function 'snpgdsVCF2GDS'
+    o bug fixes
+    o add functions to 'snpgdsIBDMLE' and 'snpgdsIBDMoM'
+    o add a new function 'snpgdsVCF2GDS'
 
 
-Version 0.9.0   03-Aug-2011 Xiuwen Zheng <zhengx@u.washington.edu>
+CHANGES IN VERSION 0.9.0 (03-Aug-2011)
+-------------------------
 
-    * first public release of SNPRelate
+    o first public release of SNPRelate
