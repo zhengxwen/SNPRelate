@@ -33,11 +33,15 @@
 {
     if (!inherits(gdsobj, "gds.class"))
         stop("`gdsobj' should be a GDS file.")
+
     if (!inherits(gdsobj, "SNPGDSFileClass"))
     {
-        message("Hint: ",
-            "it is suggested to call `snpgdsOpen' to open a GDS file ",
-            "instead of `openfn.gds'.")
+        if (!inherits(gdsobj, "SeqVarGDSClass"))
+        {
+            message("Hint: ",
+                "it is suggested to call `snpgdsOpen' to open a SNP GDS file ",
+                "instead of `openfn.gds'.")
+        }
     }
 }
 
@@ -96,7 +100,8 @@
 
 .InitFile2 <- function(cmd=NULL, gdsobj, sample.id, snp.id,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    allele.freq=NULL, num.thread=1L, verbose=TRUE, verbose.work=TRUE)
+    allele.freq=NULL, num.thread=1L, verbose=TRUE, verbose.work=TRUE,
+    verbose.numthread=TRUE)
 {
     # check
     stopifnot(is.null(cmd) | is.character(cmd))
@@ -331,11 +336,14 @@
 
     if (verbose && verbose.work)
     {
-        cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n");
-        if (num.thread <= 1)
-            cat("\tUsing", num.thread, "(CPU) core\n")
-        else
-            cat("\tUsing", num.thread, "(CPU) cores\n")
+        cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n")
+        if (verbose.numthread)
+        {
+            if (num.thread <= 1)
+                cat("\tUsing", num.thread, "(CPU) core\n")
+            else
+                cat("\tUsing", num.thread, "(CPU) cores\n")
+        }
     }
 
     # output

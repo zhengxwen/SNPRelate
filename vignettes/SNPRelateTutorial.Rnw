@@ -10,9 +10,7 @@
 BiocStyle::latex()
 @ 
 
-\usepackage{amsmath}  
-\usepackage{graphicx}
-
+\usepackage{amsmath}
 
 \begin{document}
 
@@ -21,7 +19,7 @@ BiocStyle::latex()
     Department of Biostatistics \\
     University of Washington
 }
-\date{Jan 13, 2015}
+\date{Jan 22, 2015}
 
 
 \maketitle
@@ -32,7 +30,7 @@ BiocStyle::latex()
 
 Genome-wide association studies (GWAS) are widely used to help determine the
 genetic basis of diseases and traits, but they pose many computational
-challenges. We developed \Githubpkg{zhengxwen/gdsfmt} and \Biocpkg{SNPRelate}
+challenges. We developed \Biocpkg{gdsfmt} and \Biocpkg{SNPRelate}
 (high-performance computing R packages for multi-core symmetric multiprocessing
 computer architectures) to accelerate two key computations in GWAS: principal
 component analysis (PCA) and relatedness analysis using identity-by-descent
@@ -66,7 +64,7 @@ typically optimized for high performance or parallel computing which would
 ease the burden of large-scale GWAS calculations. To overcome these limitations
 we have developed a project named CoreArray
 (\url{http://corearray.sourceforge.net/}) that includes two R packages:
-\Githubpkg{zhengxwen/gdsfmt} to provide efficient, platform independent memory
+\Biocpkg{gdsfmt} to provide efficient, platform independent memory
 and file management for genome-wide numerical data, and \Biocpkg{SNPRelate} to
 solve large-scale, numerically intensive GWAS calculations (i.e., PCA and IBD)
 on multi-core symmetric multiprocessing (SMP) computer architectures.
@@ -81,6 +79,28 @@ Harvard University (Broad). The data supplied here should not be used for any
 purpose other than this tutorial.
 
 
+% ---- Installation ----
+\section{Installation of the package SNPRelate}
+
+To install the package \Biocpkg{SNPRelate}, you need a current version
+($>=2.14.0$) of \R{} (\url{www.r-project.org}) and the R package
+\Biocpkg{gdsfmt}. After installing \R{} you can run the following commands
+from the \R{} command shell to install the R package \Biocpkg{SNPRelate}.
+
+Install the package from Bioconductor repository:
+<<installation-BioC, eval=FALSE>>=
+source("http://bioconductor.org/biocLite.R")
+biocLite("gdsfmt")
+biocLite("SNPRelate")
+@
+
+Install the development version from Github:
+<<installation-github, eval=FALSE>>=
+library("devtools")
+install_github("zhengxwen/gdsfmt")
+install_github("zhengxwen/SNPRelate")
+@
+
 
 % ---- Preparing Data ----
 \section{Preparing Data}
@@ -89,13 +109,15 @@ purpose other than this tutorial.
 \subsection{Data formats used in SNPRelate}
 
 To support efficient memory management for genome-wide numerical data, the
-\Githubpkg{zhengxwen/gdsfmt} package provides the genomic data structure (GDS)
+\Biocpkg{gdsfmt} package provides the genomic data structure (GDS)
 file format for array-oriented bioinformatic data, which is a container for
 storing annotation data and SNP genotypes. In this format each byte encodes up
 to four SNP genotypes thereby reducing file size and access time. The GDS
 format supports data blocking so that only the subset of data that is being
 processed needs to reside in memory. GDS formatted data is also designed for
-efficient random access to large data sets.
+efficient random access to large data sets. A tutorial for the R/Bioconductor
+package \Biocpkg{gdsfmt} can be found:
+\url{http://corearray.sourceforge.net/tutorials/gdsfmt/}.
 
 <<>>=
 # Load the R packages: gdsfmt and SNPRelate
@@ -254,7 +276,7 @@ snpgdsClose(genofile)
 
 In the following code, the functions \Rfunction{createfn.gds},
 \Rfunction{add.gdsn}, \Rfunction{put.attr.gdsn}, \Rfunction{write.gdsn} and
-\Rfunction{index.gdsn} are defined in the package \Githubpkg{zhengxwen/gdsfmt}:
+\Rfunction{index.gdsn} are defined in the package \Biocpkg{gdsfmt}:
 
 <<eval=FALSE>>=
 # Create a new GDS file
@@ -394,7 +416,7 @@ snpgdsSummary("test.gds")
 % ---- Data Analysis ----
 \section{Data Analysis}
 
-We developed \Githubpkg{zhengxwen/gdsfmt} and \Biocpkg{SNPRelate}
+We developed \Biocpkg{gdsfmt} and \Biocpkg{SNPRelate}
 (high-performance computing R packages for multi-core symmetric multiprocessing
 computer architectures) to accelerate two key computations in GWAS: principal
 component analysis (PCA) and relatedness analysis using identity-by-descent
@@ -462,7 +484,7 @@ head(round(pc.percent, 2))
 @
 
 In the case of no prior population information,
-<<fig.width=5, fig.height=5, fig.align='center'>>=
+<<PCA, fig.width=5, fig.height=5, fig.align='center'>>=
 # make a data.frame
 tab <- data.frame(sample.id = pca$sample.id,
     EV1 = pca$eigenvect[,1],    # the first eigenvector
@@ -488,7 +510,7 @@ pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 head(cbind(sample.id, pop_code))
 @
 
-<<fig.width=5, fig.height=5, fig.align='center'>>=
+<<PCA-Color, fig.width=5, fig.height=5, fig.align='center'>>=
 # Make a data.frame
 tab <- data.frame(sample.id = pca$sample.id,
     pop = factor(pop_code)[match(pca$sample.id, sample.id)],
@@ -504,23 +526,60 @@ legend("topleft", legend=levels(tab$pop), pch="o", col=1:nlevels(tab$pop))
 @
 
 Plot the principal component pairs for the first four PCs:
-<<fig.width=5, fig.height=5, fig.align='center'>>=
+<<PCA-Pair, fig.width=5, fig.height=5, fig.align='center'>>=
 lbls <- paste("PC", 1:4, "\n", format(pc.percent[1:4], digits=2), "%", sep="")
 pairs(pca$eigenvect[,1:4], col=tab$pop, labels=lbls)
 @
 
 To calculate the SNP correlations between eigenvactors and SNP genotypes:
-<<fig.width=5, fig.height=5, fig.align='center'>>=
+<<PCA-CORR, fig.width=5, fig.height=5, fig.align='center'>>=
 # Get chromosome index
 chr <- read.gdsn(index.gdsn(genofile, "snp.chromosome"))
 CORR <- snpgdsPCACorr(pca, genofile, eig.which=1:4)
 
-par( mfrow=c(3,1))
+savepar <- par(mfrow=c(3,1), mai=c(0.3, 0.55, 0.1, 0.25))
 for (i in 1:3)
 {
-    plot(abs(CORR$snpcorr[i,]), ylim=c(0,1), xlab="SNP Index",
-        ylab=paste("PC", i), col=chr, pch="+")
+    plot(abs(CORR$snpcorr[i,]), ylim=c(0,1), xlab="", ylab=paste("PC", i),
+        col=chr, pch="+")
 }
+par(savepar)
+@
+
+
+
+% -------- Fst Estimation --------
+\subsection{$F_{st}$ Estimation}
+
+Given two or more populations, $F_{st}$ can be estimated by the method of
+Weir \& Cockerham (1984).
+
+<<>>=
+# Get sample id
+sample.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
+
+# Get population information
+#   or pop_code <- scan("pop.txt", what=character())
+#   if it is stored in a text file "pop.txt"
+pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
+
+# Two populations: HCB and JPT
+flag <- pop_code %in% c("HCB", "JPT")
+samp.sel <- sample.id[flag]
+pop.sel <- pop_code[flag]
+snpgdsFst(genofile, sample.id=samp.sel, population=as.factor(pop.sel),
+    method="W&C84")
+
+
+# Multiple populations: CEU HCB JPT YRI
+#   we should remove offsprings
+father <- read.gdsn(index.gdsn(genofile, "sample.annot/father.id"))
+mother <- read.gdsn(index.gdsn(genofile, "sample.annot/mother.id"))
+flag <- (father=="") & (mother=="")
+samp.sel <- sample.id[flag]
+pop.sel <- pop_code[flag]
+snpgdsFst(genofile, sample.id=samp.sel, population=as.factor(pop.sel),
+    method="W&C84")
 @
 
 
@@ -553,7 +612,7 @@ ibd.coeff <- snpgdsIBDSelection(ibd)
 head(ibd.coeff)
 @
 
-<<fig.width=5, fig.height=5, fig.align='center'>>=
+<<IBD-MoM, fig.width=5, fig.height=5, fig.align='center'>>=
 plot(ibd.coeff$k0, ibd.coeff$k1, xlim=c(0,1), ylim=c(0,1),
     xlab="k0", ylab="k1", main="YRI samples (MoM)")
 lines(c(0,1), c(1,0), col="red", lty=2)
@@ -561,27 +620,22 @@ lines(c(0,1), c(1,0), col="red", lty=2)
 
 \subsubsection{Estimating IBD Using Maximum Likelihood Estimation (MLE)}
 
-<<eval=FALSE>>=
+<<>>=
 # Estimate IBD coefficients
 set.seed(1000)
 snp.id <- sample(snpset.id, 5000)  # random 5000 SNPs
 ibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snp.id,
     maf=0.05, missing.rate=0.05)
-@
 
-<<eval=FALSE>>=
 # Make a data.frame
 ibd.coeff <- snpgdsIBDSelection(ibd)
 @
 
-<<eval=FALSE>>=
+<<IBD-MLE, fig.width=5, fig.height=5, fig.align='center'>>=
 plot(ibd.coeff$k0, ibd.coeff$k1, xlim=c(0,1), ylim=c(0,1),
     xlab="k0", ylab="k1", main="YRI samples (MLE)")
 lines(c(0,1), c(1,0), col="red", lty=2)
 @
-\begin{center}
-\includegraphics[width=0.7\columnwidth]{SNPRelateTutorial-IBDMLE.png}
-\end{center}
 
 
 \subsubsection{Relationship inference Using KING method of moments}
@@ -603,7 +657,7 @@ dat <- snpgdsIBDSelection(ibd.robust)
 head(dat)
 @
 
-<<fig.width=5, fig.height=5, fig.align='center'>>=
+<<IBD-KING, fig.width=5, fig.height=5, fig.align='center'>>=
 plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
     ylab="Estimated Kinship Coefficient (KING-robust)")
 @
@@ -620,7 +674,7 @@ create a $n \times n$ matrix of genome-wide average IBS pairwise identities:
 ibs <- snpgdsIBS(genofile, num.thread=2)
 @
 The heat map is shown:
-<<fig.width=5, fig.height=5, fig.align='center'>>=
+<<IBS, fig.width=5, fig.height=5, fig.align='center'>>=
 library(lattice)
 
 L <- order(pop_code)
@@ -635,7 +689,7 @@ x <- loc[, 1]; y <- loc[, 2]
 race <- as.factor(pop_code)
 @
 
-<<fig.width=5, fig.height=5, fig.align='center'>>=
+<<IBS-MDS, fig.width=5, fig.height=5, fig.align='center'>>=
 plot(x, y, col=race, xlab = "", ylab = "",
     main = "Multidimensional Scaling Analysis (IBS Distance)")
 legend("topleft", legend=levels(race), text.col=1:nlevels(race))
@@ -644,7 +698,7 @@ legend("topleft", legend=levels(race), text.col=1:nlevels(race))
 To perform cluster analysis on the $n \times n$ matrix of genome-wide IBS
 pairwise distances, and determine the groups by a permutation score:
 
-<<fig.width=5, fig.height=5, fig.align='center'>>=
+<<IBS-Tree, fig.width=5, fig.height=5, fig.align='center'>>=
 set.seed(100)
 ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, num.thread=2))
 
@@ -660,7 +714,7 @@ Here is the population information we have known:
 rv2 <- snpgdsCutTree(ibs.hc, samp.group=as.factor(pop_code))
 @
 
-<<fig.width=5, fig.height=5, fig.align='center'>>=
+<<IBS-Dendrogram, fig.width=5, fig.height=5, fig.align='center'>>=
 plot(rv2$dendrogram, leaflab="none", main="HapMap Phase II")
 legend("topright", legend=levels(race), col=1:nlevels(race), pch=19, ncol=4)
 @
@@ -677,7 +731,7 @@ snpgdsClose(genofile)
 
 \begin{enumerate}
     \item \software{CoreArray} project: \url{http://corearray.sourceforge.net/}
-    \item \Githubpkg{zhengxwen/gdsfmt} R package:
+    \item \Biocpkg{gdsfmt} R package:
     \url{https://github.com/zhengxwen/gdsfmt}
     \item \Biocpkg{SNPRelate} R package:
     \url{http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html}
@@ -692,8 +746,13 @@ snpgdsClose(genofile)
 
 % ---- Session Info ----
 \section{Session Info}
+
 <<sessioninfo, results="asis">>=
 toLatex(sessionInfo())
+@
+
+<<echo=FALSE>>=
+unlink("test.gds", force=TRUE)
 @
 
 
@@ -729,6 +788,6 @@ toLatex(sessionInfo())
 
 The author would like to thank members of the GENEVA consortium
 (\url{http://www.genevastudy.org}) for access to the data used for
-testing the \Githubpkg{zhengxwen/gdsfmt} and \Biocpkg{SNPRelate} packages.
+testing the \Biocpkg{gdsfmt} and \Biocpkg{SNPRelate} packages.
 
 \end{document}

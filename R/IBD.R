@@ -573,8 +573,10 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
     if (ws$verbose)
     {
-        cat("# of Populations: ", nlevels(population), ", ",
-            paste(levels(population), collapse=" "), "\n", sep="")
+        x <- table(population)
+        cat("# of Populations: ", nlevels(population), "\n\t",
+            paste(sprintf("%s (%d)", names(x), x), collapse=", "),
+            "\n", sep="")
     }
 
     list(population=population, npop=nlevels(population), method=method)
@@ -590,7 +592,7 @@ snpgdsFst <- function(gdsobj, population, method=c("W&B02", "W&C84"),
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=1L,
-        verbose=verbose)
+        verbose=verbose, verbose.numthread=FALSE)
 
     # check
     v <- .paramFst(sample.id, population, method, ws)
