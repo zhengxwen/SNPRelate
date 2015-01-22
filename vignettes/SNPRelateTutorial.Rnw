@@ -622,8 +622,8 @@ lines(c(0,1), c(1,0), col="red", lty=2)
 
 <<>>=
 # Estimate IBD coefficients
-set.seed(1000)
-snp.id <- sample(snpset.id, 5000)  # random 5000 SNPs
+set.seed(100)
+snp.id <- sample(snpset.id, 1500)  # random 1500 SNPs
 ibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snp.id,
     maf=0.05, missing.rate=0.05)
 
