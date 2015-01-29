@@ -132,7 +132,8 @@
     num.thread <- as.integer(num.thread)
     if (is.na(num.thread))
     {
-        library(parallel)
+        if (!requireNamespace("parallel", quietly=TRUE))
+            stop("The 'parallel' package fails to load.")
         num.thread <- parallel::detectCores()
         if (is.na(num.thread))
             stop("parallel::detectCores fails to detect the number of cores.")

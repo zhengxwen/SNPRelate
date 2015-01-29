@@ -562,15 +562,18 @@ sample.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
 #   or pop_code <- scan("pop.txt", what=character())
 #   if it is stored in a text file "pop.txt"
 pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
+@
 
+<<>>=
 # Two populations: HCB and JPT
 flag <- pop_code %in% c("HCB", "JPT")
 samp.sel <- sample.id[flag]
 pop.sel <- pop_code[flag]
 snpgdsFst(genofile, sample.id=samp.sel, population=as.factor(pop.sel),
     method="W&C84")
+@
 
-
+<<>>=
 # Multiple populations: CEU HCB JPT YRI
 #   we should remove offsprings
 father <- read.gdsn(index.gdsn(genofile, "sample.annot/father.id"))

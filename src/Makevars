@@ -7,3 +7,10 @@ PKG_CPPFLAGS = -DUSING_R -I.
 
 # to set flags for the linker
 PKG_LIBS = $(FLIBS) $(BLAS_LIBS) $(LAPACK_LIBS)
+
+
+all: $(SHLIB)
+
+clean:
+	rm -f ../.travis.yml
+	rm -f ../.gitignore
