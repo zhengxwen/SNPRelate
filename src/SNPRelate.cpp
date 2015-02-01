@@ -1,13 +1,13 @@
 // ===========================================================
-//     _/_/_/   _/_/_/  _/_/_/_/    _/_/_/_/  _/_/_/   _/_/_/
-//      _/    _/       _/             _/    _/    _/   _/   _/
-//     _/    _/       _/_/_/_/       _/    _/    _/   _/_/_/
-//    _/    _/       _/             _/    _/    _/   _/
-// _/_/_/   _/_/_/  _/_/_/_/_/     _/     _/_/_/   _/_/
+//	   _/_/_/	_/_/_/	_/_/_/_/	_/_/_/_/  _/_/_/   _/_/_/
+//		_/	  _/	   _/			  _/	_/	  _/   _/	_/
+//	   _/	 _/		  _/_/_/_/		 _/	   _/	 _/	  _/_/_/
+//	  _/	_/		 _/				_/	  _/	_/	 _/
+// _/_/_/	_/_/_/	_/_/_/_/_/	   _/	  _/_/_/   _/_/
 // ===========================================================
 //
 // SNPRelate.cpp: Relatedness, Linkage Disequilibrium and
-//                Principal Component Analysis
+//				  Principal Component Analysis
 //
 // Copyright (C) 2011 - 2015	Xiuwen Zheng [zhengxwen@gmail.com]
 //
@@ -19,7 +19,7 @@
 //
 // SNPRelate is distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License along
@@ -71,15 +71,14 @@ static SEXP GetListElement(SEXP list, const char *str)
 }
 
 
+
 // ===========================================================
 // the public functions
 // ===========================================================
 
 /// initialize the package, return the flag of SSE2
-COREARRAY_DLL_EXPORT SEXP gnrInit()
+COREARRAY_DLL_EXPORT SEXP gnrSSEFlag()
 {
-	Init_GDS_Routines();
-
 	SEXP rv_ans = NEW_LOGICAL(1);
 #ifdef COREARRAY_SIMD_SSE2
 	LOGICAL(rv_ans)[0] = TRUE;
@@ -90,50 +89,62 @@ COREARRAY_DLL_EXPORT SEXP gnrInit()
 }
 
 
-
 // the functions for the SNP genotype working space
 
 /// set the genotype node
-COREARRAY_DLL_EXPORT void gnrSetGenoSpace(PdSequenceX *Node,
-	LongBool *SelSamp, LongBool *SelSampFlag, LongBool *SelSNP,
-	LongBool *SelSNPFlag, int *out_nsnp, int *out_nsamp,
-	LongBool *out_err)
+COREARRAY_DLL_EXPORT SEXP gnrSetGenoSpace(SEXP Node, SEXP SelSamp, SEXP SelSNP)
 {
-	CORE_TRY
-		MCWorkingGeno.Space.SetGeno(*Node, false);
-		if (*SelSampFlag)
+	COREARRAY_TRY
+
+		PdGDSObj Obj = GDS_R_SEXP2Obj(Node);
+		MCWorkingGeno.Space.SetGeno(Obj, false);
+		if (!Rf_isNull(SelSamp))
 		{
-			for (int i=0; i < MCWorkingGeno.Space.TotalSampleNum(); i++)
+			int n = MCWorkingGeno.Space.TotalSampleNum();
+			if (XLENGTH(SelSamp) != n)
+				throw ErrCoreArray("'SelSamp' is invalid.");
+			int *p = LOGICAL(SelSamp);
+			for (int i=0; i < n; i++)
 			{
-				MCWorkingGeno.Space.SampleSelection()[i] = (SelSamp[i] != 0);
+				MCWorkingGeno.Space.SampleSelection()[i] = (*p++ == TRUE);
 			}
 		}
-		if (*SelSNPFlag)
+		if (!Rf_isNull(SelSNP))
 		{
-			for (int i=0; i < MCWorkingGeno.Space.TotalSNPNum(); i++)
+			int n = MCWorkingGeno.Space.TotalSNPNum();
+			if (XLENGTH(SelSNP) != n)
+				throw ErrCoreArray("'SelSNP' is invalid.");
+			int *p = LOGICAL(SelSNP);
+			for (int i=0; i < n; i++)
 			{
-				MCWorkingGeno.Space.SNPSelection()[i] = (SelSNP[i] != 0);
+				MCWorkingGeno.Space.SNPSelection()[i] = (*p++ == TRUE);
 			}
 		}
 		MCWorkingGeno.Space.InitSelection();
 
-		*out_nsnp = MCWorkingGeno.Space.SNPNum();
-		if (*out_nsnp <= 0)
+		if (MCWorkingGeno.Space.SNPNum() <= 0)
 			throw ErrCoreArray("There is no SNP!");
-		*out_nsamp = MCWorkingGeno.Space.SampleNum();
-		if (*out_nsamp <= 0)
+		if (MCWorkingGeno.Space.SampleNum() <= 0)
 			throw ErrCoreArray("There is no sample!");
 
-		*out_err = 0;
-	CORE_CATCH(*out_err = 1)
+		rv_ans = NEW_INTEGER(2);
+		INTEGER(rv_ans)[0] = MCWorkingGeno.Space.SNPNum();
+		INTEGER(rv_ans)[1] = MCWorkingGeno.Space.SampleNum();
+
+	COREARRAY_CATCH
 }
 
+
 /// get the dimension of SNP genotypes
-COREARRAY_DLL_EXPORT void gnrGetGenoDim(int *out_nsnp, int *out_nsamp)
+COREARRAY_DLL_EXPORT SEXP gnrGetGenoDim()
 {
-	*out_nsnp = MCWorkingGeno.Space.SNPNum();
-	*out_nsamp = MCWorkingGeno.Space.SampleNum();
+	COREARRAY_TRY
+		rv_ans = NEW_INTEGER(2);
+		INTEGER(rv_ans)[0] = MCWorkingGeno.Space.SNPNum();
+		INTEGER(rv_ans)[1] = MCWorkingGeno.Space.SampleNum();
+	COREARRAY_CATCH
 }
+
 
 /// set the SNP selection on the genotype node
 COREARRAY_DLL_EXPORT void gnrSetGenoSelSNP(LongBool SNP_Flag[], LongBool *out_err)
@@ -147,41 +158,67 @@ COREARRAY_DLL_EXPORT void gnrSetGenoSelSNP(LongBool SNP_Flag[], LongBool *out_er
 	CORE_CATCH(*out_err = 1)
 }
 
-/** to compute allele freq., minor allele freq. and missing rates
- *  \param remove_mono    whether remove monomorphic snps or not
- *  \param maf            the threshold of minor allele frequencies, keeping ">= maf"
- *  \param missrate       the threshold of missing rates, keeping "<= missing.rate"
+
+/// select SNPs based on minor allele freq. and missing rates
+/**
+ *	\param remove_mono	  whether remove monomorphic snps or not
+ *	\param maf			  the threshold of minor allele frequencies, keeping ">= maf"
+ *	\param missrate		  the threshold of missing rates, keeping "<= missing.rate"
 **/
-COREARRAY_DLL_EXPORT void gnrSelSNP_Base(LongBool *remove_mono, double *maf, double *missrate,
-	int *out_num, LongBool *out_selection, LongBool *out_err)
+COREARRAY_DLL_EXPORT SEXP gnrSelSNP_Base(SEXP remove_mono, SEXP maf,
+	SEXP missrate)
 {
-	CORE_TRY
+	int RM_MONO  = Rf_asLogical(remove_mono);
+	double MAF   = Rf_asReal(maf);
+	double MRATE = Rf_asReal(missrate);
+
+	COREARRAY_TRY
 		const R_xlen_t n = MCWorkingGeno.Space.SNPNum();
 		vector<C_BOOL> sel(n);
-		*out_num = MCWorkingGeno.Space.Select_SNP_Base((*remove_mono) != 0,
-			*maf, *missrate, &sel[0]);
-		for (int i=0; i < n; i++) out_selection[i] = sel[i];
-		*out_err = 0;
-	CORE_CATCH(*out_err = 1)
+		int OutNum = MCWorkingGeno.Space.Select_SNP_Base(
+			RM_MONO == TRUE, MAF, MRATE, &sel[0]);
+
+		rv_ans = PROTECT(NEW_LIST(2));
+		SET_ELEMENT(rv_ans, 0, ScalarInteger(OutNum));
+		SEXP Flag = PROTECT(NEW_LOGICAL(n));
+		SET_ELEMENT(rv_ans, 1, Flag);
+
+		int *pFlag = LOGICAL(Flag);
+		for (int i=0; i < n; i++) pFlag[i] = sel[i];
+		UNPROTECT(2);
+	COREARRAY_CATCH
 }
 
-/** to compute missing rates, and specify allele frequency
- *  \param afreq          specifying the allele frequencies
- *  \param remove_mono    whether remove monomorphic snps or not
- *  \param maf            the threshold of minor allele frequencies, keeping ">= maf"
- *  \param missrate       the threshold of missing rates, keeping "<= missing.rate"
+
+/// select SNPs based on minor allele freq. and missing rates
+/**	\param afreq		  specifying the allele frequencies
+ *	\param remove_mono	  whether remove monomorphic snps or not
+ *	\param maf			  the threshold of minor allele frequencies, keeping ">= maf"
+ *	\param missrate		  the threshold of missing rates, keeping "<= missing.rate"
 **/
-COREARRAY_DLL_EXPORT void gnrSelSNP_Base_Ex(double *afreq, LongBool *remove_mono, double *maf,
-	double *missrate, int *out_num, LongBool *out_selection, LongBool *out_err)
+COREARRAY_DLL_EXPORT SEXP gnrSelSNP_Base_Ex(SEXP afreq, SEXP remove_mono,
+	SEXP maf, SEXP missrate)
 {
-	CORE_TRY
+	double *pFreq = REAL(afreq);
+	int RM_MONO   = Rf_asLogical(remove_mono);
+	double MAF    = Rf_asReal(maf);
+	double MRATE  = Rf_asReal(missrate);
+
+	COREARRAY_TRY
 		const R_xlen_t n = MCWorkingGeno.Space.SNPNum();
 		vector<C_BOOL> sel(n);
-		*out_num = MCWorkingGeno.Space.Select_SNP_Base_Ex(afreq, (*remove_mono) != 0,
-			*maf, *missrate, &sel[0]);
-		for (int i=0; i < n; i++) out_selection[i] = sel[i];
-		*out_err = 0;
-	CORE_CATCH(*out_err = 1)
+		int OutNum = MCWorkingGeno.Space.Select_SNP_Base_Ex(
+			pFreq, RM_MONO == TRUE, MAF, MRATE, &sel[0]);
+
+		rv_ans = PROTECT(NEW_LIST(2));
+		SET_ELEMENT(rv_ans, 0, ScalarInteger(OutNum));
+		SEXP Flag = PROTECT(NEW_LOGICAL(n));
+		SET_ELEMENT(rv_ans, 1, Flag);
+
+		int *pFlag = LOGICAL(Flag);
+		for (int i=0; i < n; i++) pFlag[i] = sel[i];
+		UNPROTECT(2);
+	COREARRAY_CATCH
 }
 
 
@@ -189,26 +226,22 @@ COREARRAY_DLL_EXPORT void gnrSelSNP_Base_Ex(double *afreq, LongBool *remove_mono
 COREARRAY_DLL_EXPORT SEXP gnrSNPRateFreq()
 {
 	COREARRAY_TRY
-
 		R_xlen_t L = MCWorkingGeno.Space.SNPNum();
 		SEXP AF, MF, MR;
 		PROTECT(rv_ans = NEW_LIST(3));
+		PROTECT(AF = NEW_NUMERIC(L));
+		SET_ELEMENT(rv_ans, 0, AF);
+		PROTECT(MF = NEW_NUMERIC(L));
+		SET_ELEMENT(rv_ans, 1, MF);
+		PROTECT(MR = NEW_NUMERIC(L));
+		SET_ELEMENT(rv_ans, 2, MR);
 
-			PROTECT(AF = NEW_NUMERIC(L));
-			SET_ELEMENT(rv_ans, 0, AF);
-			PROTECT(MF = NEW_NUMERIC(L));
-			SET_ELEMENT(rv_ans, 1, MF);
-			PROTECT(MR = NEW_NUMERIC(L));
-			SET_ELEMENT(rv_ans, 2, MR);
-
-			MCWorkingGeno.Space.GetAlleleFreqs(REAL(AF));
-			double *pAF = REAL(AF), *pMF = REAL(MF);
-			for (R_xlen_t i=0; i < L; i++)
-				pMF[i] = min(pAF[i], 1 - pAF[i]);
-			MCWorkingGeno.Space.GetMissingRates(REAL(MR));
-
+		MCWorkingGeno.Space.GetAlleleFreqs(REAL(AF));
+		double *pAF = REAL(AF), *pMF = REAL(MF);
+		for (R_xlen_t i=0; i < L; i++)
+			pMF[i] = min(pAF[i], 1 - pAF[i]);
+		MCWorkingGeno.Space.GetMissingRates(REAL(MR));
 		UNPROTECT(4);
-
 	COREARRAY_CATCH
 }
 
@@ -257,6 +290,7 @@ COREARRAY_DLL_EXPORT void gnrInitGenoBuffer(LongBool *SNPorSamp, int *AF, int *o
 	CORE_CATCH(*out_err = 1)
 }
 
+
 /// done genotype buffer
 COREARRAY_DLL_EXPORT void gnrDoneGenoBuffer(int *buf_obj, LongBool *out_err)
 {
@@ -303,7 +337,7 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGeno(SEXP Node, SEXP snpfirstorder)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
 				C_Int32 st[2] = { (C_Int32)i, 0 };
-				GDS_Seq_wData(obj, st, cnt, p, svUInt8);
+				GDS_Array_WriteData(obj, st, cnt, p, svUInt8);
 			}
 		} else {
 			C_Int32 cnt[2] = { 1, MCWorkingGeno.Space.SampleNum() };
@@ -312,7 +346,7 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGeno(SEXP Node, SEXP snpfirstorder)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
 				C_Int32 st[2] = { (C_Int32)i, 0 };
-				GDS_Seq_wData(obj, st, cnt, p, svUInt8);
+				GDS_Array_WriteData(obj, st, cnt, p, svUInt8);
 			}
 		}
 
@@ -364,12 +398,16 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGenoMem(SEXP snpfirstdim)
 
 
 /// Append genotypes with switch strand
-COREARRAY_DLL_EXPORT void gnrAppendGenoSpaceStrand(PdSequenceX *Node,
-	LongBool *snpfirstorder, LongBool StrandFlag[], LongBool *out_err)
+COREARRAY_DLL_EXPORT SEXP gnrAppendGenoSpaceStrand(SEXP Node,
+	SEXP snpfirstorder, SEXP StrandFlag)
 {
-	CORE_TRY
-		*out_err = 1;
-		if (*snpfirstorder)
+	int firstorder = Rf_asLogical(snpfirstorder);
+	int *pFlag = LOGICAL(StrandFlag);
+
+	COREARRAY_TRY
+
+		PdGDSObj Obj = GDS_R_SEXP2Obj(Node);
+		if (firstorder == TRUE)
 		{
 			const R_xlen_t n = MCWorkingGeno.Space.SNPNum();
 			CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
@@ -377,8 +415,8 @@ COREARRAY_DLL_EXPORT void gnrAppendGenoSpaceStrand(PdSequenceX *Node,
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
 				for (int k=0; k < n; k++)
-					if (StrandFlag[k] && (p[k]<=2)) p[k] = 2 - p[k];
-				GDS_Seq_AppendData(*Node, n, p, svUInt8);
+					if (pFlag[k] && (p[k]<=2)) p[k] = 2 - p[k];
+				GDS_Array_AppendData(Obj, n, p, svUInt8);
 			}
 		} else {
 			const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
@@ -386,16 +424,16 @@ COREARRAY_DLL_EXPORT void gnrAppendGenoSpaceStrand(PdSequenceX *Node,
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
-				if (StrandFlag[i])
+				if (pFlag[i])
 				{
 					for (int k=0; k < n; k++)
 						if (p[k] <= 2) p[k] = 2 - p[k];
 				}
-				GDS_Seq_AppendData(*Node, n, p, svUInt8);
+				GDS_Array_AppendData(Obj, n, p, svUInt8);
 			}
 		}
-		*out_err = 0;
-	CORE_CATCH(*out_err = 1)
+
+	COREARRAY_CATCH
 }
 
 
@@ -414,12 +452,12 @@ static void _ParseAlleleString(const char *str, string &A1, string &A2)
 }
 
 /// Strand-switching according to A alleles
-/** \param Node             the GDS node 'genotype'
- *  \param AlleleNode       the GDS node 'snp.allele'
- *  \param NewAlleleNode    the GDS node '!snp.allele'
- *  \param SNP_First_Dim    TRUE/FALSE
- *  \param A_Allele         characters of A allele
- *  \return a logical vector with 'TRUE' for switching alleles and NA for being unable to determine
+/** \param Node				the GDS node 'genotype'
+ *	\param AlleleNode		the GDS node 'snp.allele'
+ *	\param NewAlleleNode	the GDS node '!snp.allele'
+ *	\param SNP_First_Dim	TRUE/FALSE
+ *	\param A_Allele			characters of A allele
+ *	\return a logical vector with 'TRUE' for switching alleles and NA for being unable to determine
 **/
 COREARRAY_DLL_EXPORT SEXP gnrStrandSwitch(SEXP Node, SEXP AlleleNode,
 	SEXP NewAlleleNode, SEXP SNP_First_Dim, SEXP A_Allele)
@@ -436,8 +474,8 @@ COREARRAY_DLL_EXPORT SEXP gnrStrandSwitch(SEXP Node, SEXP AlleleNode,
 		GDS_R_NodeValid(NewAObj, FALSE);
 
 		int NDim[2];
-		GDS_Seq_GetDim(GenoObj, NDim, 2);
-		long n_snp  = (snpfirstdim ? NDim[1] : NDim[0]);
+		GDS_Array_GetDim(GenoObj, NDim, 2);
+		long n_snp	= (snpfirstdim ? NDim[1] : NDim[0]);
 		long n_samp = (snpfirstdim ? NDim[0] : NDim[1]);
 		string val, A, B;
 
@@ -448,7 +486,7 @@ COREARRAY_DLL_EXPORT SEXP gnrStrandSwitch(SEXP Node, SEXP AlleleNode,
 		for (long i=0; i < n_snp; i++)
 		{
 			C_Int32 st=i, cnt=1;
-			GDS_Seq_rData(AlleleObj, &st, &cnt, &val, svStrUTF8);
+			GDS_Array_ReadData(AlleleObj, &st, &cnt, &val, svStrUTF8);
 
 			SEXP str = STRING_ELT(A_Allele, i);
 			if (str != NA_STRING)
@@ -466,9 +504,9 @@ COREARRAY_DLL_EXPORT SEXP gnrStrandSwitch(SEXP Node, SEXP AlleleNode,
 				ll_ans[i] = NA_LOGICAL;
 
 			if (ll_ans[i] == TRUE)
-				GDS_Seq_AppendString(NewAObj, (B + "/" + A).c_str());
+				GDS_Array_AppendString(NewAObj, (B + "/" + A).c_str());
 			else
-				GDS_Seq_AppendString(NewAObj, val.c_str());
+				GDS_Array_AppendString(NewAObj, val.c_str());
 		}
 
 		// strand-switching
@@ -481,7 +519,7 @@ COREARRAY_DLL_EXPORT SEXP gnrStrandSwitch(SEXP Node, SEXP AlleleNode,
 			for (long i=0; i < n_samp; i++)
 			{
 				st[0] = i;
-				GDS_Seq_rData(GenoObj, st, cnt, &buffer[0], svUInt8);
+				GDS_Array_ReadData(GenoObj, st, cnt, &buffer[0], svUInt8);
 				for (long j=0; j < n_snp; j++)
 				{
 					if (ll_ans[j] == TRUE)
@@ -490,7 +528,7 @@ COREARRAY_DLL_EXPORT SEXP gnrStrandSwitch(SEXP Node, SEXP AlleleNode,
 						if (g <= 2) g = 2 - g;
 					}
 				}
-				GDS_Seq_wData(GenoObj, st, cnt, &buffer[0], svUInt8);
+				GDS_Array_WriteData(GenoObj, st, cnt, &buffer[0], svUInt8);
 			}
 		} else {
 			vector<C_UInt8> buffer(n_samp);
@@ -502,13 +540,13 @@ COREARRAY_DLL_EXPORT SEXP gnrStrandSwitch(SEXP Node, SEXP AlleleNode,
 				if (ll_ans[i] == TRUE)
 				{
 					st[0] = i;
-					GDS_Seq_rData(GenoObj, st, cnt, &buffer[0], svUInt8);
+					GDS_Array_ReadData(GenoObj, st, cnt, &buffer[0], svUInt8);
 					for (long j=0; j < n_samp; j++)
 					{
 						C_UInt8 &g = buffer[j];
 						if (g <= 2) g = 2 - g;
 					}
-					GDS_Seq_wData(GenoObj, st, cnt, &buffer[0], svUInt8);
+					GDS_Array_WriteData(GenoObj, st, cnt, &buffer[0], svUInt8);
 				}
 			}
 		}
@@ -546,7 +584,7 @@ static inline int _RandomNum(int Range)
 static void _RunDissZ(double *dist, int n_dist, int I[], int N1, int N2,
 	double OutD[], int nOut)
 {
-	const int N  = N1 + N2;
+	const int N	 = N1 + N2;
 	const int NSub1 = (N1 < N2) ? N1 : N2;
 	const int NSub2 = N - NSub1;
 	vector<int> I_Idx(&I[0], &I[N]);
@@ -681,26 +719,33 @@ COREARRAY_DLL_EXPORT void gnrDistPerm(int *n_dist, double *dist, int *merge,
 // conversion
 
 /// to convert from GDS to PLINK PED
-COREARRAY_DLL_EXPORT void gnrConvGDS2PED(char **pedfn, char *SampID[], char *Allele[],
-	int *fmt_code, LongBool *verbose, LongBool *out_err)
+COREARRAY_DLL_EXPORT SEXP gnrConvGDS2PED(SEXP pedfn, SEXP SampID, SEXP Allele,
+	SEXP fmt_code, SEXP verbose)
 {
-	CORE_TRY
+	const char *fn = CHAR(STRING_ELT(pedfn, 0));
+	int fmt = asInteger(fmt_code);
+	int if_verbose = asLogical(verbose);
+	if (if_verbose == NA_LOGICAL)
+		error("'verbose' must be TRUE or FALSE.");
+
+	COREARRAY_TRY
+
 		MCWorkingGeno.Progress.Info = "\t\tOutput: ";
-		MCWorkingGeno.Progress.Show() = *verbose;
+		MCWorkingGeno.Progress.Show() = if_verbose;
 		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SampleNum());
 
-		ofstream file(*pedfn);
+		ofstream file(fn);
 		if (!file.good())
-			throw ErrCoreArray("Fail to create the file '%s'.", *pedfn);
+			throw ErrCoreArray("Fail to create the file '%s'.", fn);
+
+		CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 
 		const char *s;
 		string s1, s2;
-		const int fmt = fmt_code[0];
-		CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
 
 		for (long i=0; i < buf.IdxCnt(); i++)
 		{
-			file << "0\t" << SampID[i] << "\t0\t0\t0\t-9";
+			file << "0\t" << CHAR(STRING_ELT(SampID, i)) << "\t0\t0\t0\t-9";
 			C_UInt8 *g = buf.ReadGeno(i);
 
 			for (long j=0; j < MCWorkingGeno.Space.SNPNum(); j++, g++)
@@ -710,7 +755,7 @@ COREARRAY_DLL_EXPORT void gnrConvGDS2PED(char **pedfn, char *SampID[], char *All
 				case 1:
 					// SNP alleles: allelic codes
 					s1.clear(); s2.clear();
-					s = Allele[j];
+					s = CHAR(STRING_ELT(Allele, j));
 					while ((*s != 0) && (*s != '/'))
 					{
 						s1.push_back(*s);
@@ -754,8 +799,8 @@ COREARRAY_DLL_EXPORT void gnrConvGDS2PED(char **pedfn, char *SampID[], char *All
 			file << endl;
 			MCWorkingGeno.Progress.Forward(1);
 		}
-		*out_err = 0;
-	CORE_CATCH(*out_err = 1)
+
+	COREARRAY_CATCH
 }
 
 
@@ -817,16 +862,23 @@ COREARRAY_DLL_EXPORT SEXP gnrConvGDS2BED(SEXP bedfn, SEXP SNPOrder, SEXP Verbose
 
 
 /// to convert from GDS to EIGENSOFT
-COREARRAY_DLL_EXPORT void gnrConvGDS2EIGEN(char **pedfn, LongBool *verbose, LongBool *out_err)
+COREARRAY_DLL_EXPORT SEXP gnrConvGDS2EIGEN(SEXP pedfn, SEXP verbose)
 {
-	CORE_TRY
+	const char *fn = CHAR(STRING_ELT(pedfn, 0));
+	int if_verbose = asLogical(verbose);
+	if (if_verbose == NA_LOGICAL)
+		error("'verbose' must be TRUE or FALSE.");
+
+	COREARRAY_TRY
+
 		MCWorkingGeno.Progress.Info = "\tOutput: ";
-		MCWorkingGeno.Progress.Show() = *verbose;
+		MCWorkingGeno.Progress.Show() = if_verbose;
 		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SNPNum());
 
-		ofstream file(*pedfn);
+		ofstream file(fn);
 		if (!file.good())
-			throw ErrCoreArray("Fail to create the file '%s'.", *pedfn);
+			throw ErrCoreArray("Fail to create the file '%s'.", fn);
+
 		CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
 		for (long i=0; i < buf.IdxCnt(); i++)
 		{
@@ -839,8 +891,8 @@ COREARRAY_DLL_EXPORT void gnrConvGDS2EIGEN(char **pedfn, LongBool *verbose, Long
 			file << endl;
 			MCWorkingGeno.Progress.Forward(1);
 		}
-		*out_err = 0;
-	CORE_CATCH(*out_err = 1)
+
+	COREARRAY_CATCH
 }
 
 
@@ -874,7 +926,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP bedfn, SEXP Node, SEXP verbose)
 		PdSequenceX Seq = GDS_R_SEXP2Obj(Node);
 
 		int DLen[2];
-		GDS_Seq_GetDim(Seq, DLen, 2);
+		GDS_Array_GetDim(Seq, DLen, 2);
 
 		MCWorkingGeno.Progress.Info = " ";
 		MCWorkingGeno.Progress.Show() = (LOGICAL(verbose)[0] == TRUE);
@@ -918,7 +970,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP bedfn, SEXP Node, SEXP verbose)
 			}
 			// write
 			st[0] = i;
-			GDS_Seq_wData(Seq, st, cnt, &dstgeno[0], svUInt8);
+			GDS_Array_WriteData(Seq, st, cnt, &dstgeno[0], svUInt8);
 			MCWorkingGeno.Progress.Forward(1);
 		}
 
@@ -985,9 +1037,9 @@ COREARRAY_DLL_EXPORT void gnrAlleleStrand(
 			bool switch_flag = false;
 
 			// if true, need to compare the allele frequencies
-			//   0 -- no switch detect
-			//   1 -- detect whether switch or not for stand ambiguity
-			//   2 -- detect whether switch or not for mismatching alleles
+			//	 0 -- no switch detect
+			//	 1 -- detect whether switch or not for stand ambiguity
+			//	 2 -- detect whether switch or not for mismatching alleles
 			int switch_freq_detect = 0;
 
 			// ``ref / nonref alleles''
@@ -1041,11 +1093,11 @@ COREARRAY_DLL_EXPORT void gnrAlleleStrand(
 				if ((s1 == p1) && (s2 == p2))
 				{
 					if (s1 == s2)
-						switch_freq_detect = 1;  // ambiguous
+						switch_freq_detect = 1;	 // ambiguous
 				} else if ((s1 == p2) && (s2 == p1))
 				{
 					if (s1 == s2)
-						switch_freq_detect = 1;  // ambiguous
+						switch_freq_detect = 1;	 // ambiguous
 					else
 						switch_flag = true;
 				} else
@@ -1079,7 +1131,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParse(SEXP gdsobj)
 		GDS_R_NodeValid(Obj, TRUE);
 
 		C_Int32 st, cnt, TotalCnt;
-		GDS_Seq_GetDim(Obj, &TotalCnt, 1);
+		GDS_Array_GetDim(Obj, &TotalCnt, 1);
 
 		set<string> set_val;
 		string val;
@@ -1088,7 +1140,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParse(SEXP gdsobj)
 		for (int i=0; i < TotalCnt; i++)
 		{
 			st = i; cnt = 1;
-			GDS_Seq_rData(Obj, &st, &cnt, &val, svStrUTF8);
+			GDS_Array_ReadData(Obj, &st, &cnt, &val, svStrUTF8);
 
 			// whether val is numeric
 			char *endptr = (char*)(val.c_str());
@@ -1139,7 +1191,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromRangeNumeric(SEXP gdsobj, SEXP ChrMin,
 		GDS_R_NodeValid(Obj, TRUE);
 
 		C_Int32 st, cnt, TotalCnt;
-		GDS_Seq_GetDim(Obj, &TotalCnt, 1);
+		GDS_Array_GetDim(Obj, &TotalCnt, 1);
 
 		PROTECT(rv_ans = NEW_LOGICAL(TotalCnt));
 		int *rv_ptr = LOGICAL(rv_ans);
@@ -1148,7 +1200,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromRangeNumeric(SEXP gdsobj, SEXP ChrMin,
 		{
 			C_Int32 val;
 			st = i; cnt = 1;
-			GDS_Seq_rData(Obj, &st, &cnt, &val, svInt32);
+			GDS_Array_ReadData(Obj, &st, &cnt, &val, svInt32);
 			rv_ptr[i] = ((CMin<=val) && (val<=CMax)) ? TRUE : FALSE;
 		}
 
@@ -1167,7 +1219,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParseNumeric(SEXP gdsobj)
 		GDS_R_NodeValid(Obj, TRUE);
 
 		C_Int32 st, cnt, TotalCnt;
-		GDS_Seq_GetDim(Obj, &TotalCnt, 1);
+		GDS_Array_GetDim(Obj, &TotalCnt, 1);
 
 		PROTECT(rv_ans = NEW_LOGICAL(TotalCnt));
 		int *rv_ptr = LOGICAL(rv_ans);
@@ -1176,7 +1228,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParseNumeric(SEXP gdsobj)
 		for (int i=0; i < TotalCnt; i++)
 		{
 			st = i; cnt = 1;
-			GDS_Seq_rData(Obj, &st, &cnt, &val, svStrUTF8);
+			GDS_Array_ReadData(Obj, &st, &cnt, &val, svStrUTF8);
 
 			// whether val is numeric
 			char *endptr = (char*)(val.c_str());
@@ -1194,22 +1246,22 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParseNumeric(SEXP gdsobj)
 
 
 
-/// to compute Fst
-extern SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method);
-
 /// get an error message
 COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	SEXP Shift, SEXP Unit, SEXP WinStart, SEXP AsIs, SEXP chflag,
 	SEXP ChrPos, SEXP Param)
 {
+	/// to compute Fst
+	extern SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method);
+
 	const int FunIdx   = asInteger(FUNIdx);
 	const int winsize  = asInteger(WinSize);
-	const int shift    = asInteger(Shift);
+	const int shift	   = asInteger(Shift);
 	const char *c_Unit = CHAR(STRING_ELT(Unit, 0));
 	const char *c_AsIs = CHAR(STRING_ELT(AsIs, 0));
 
 	const size_t nChr  = XLENGTH(ChrPos);
-	const int *pPos    = INTEGER(ChrPos);
+	const int *pPos	   = INTEGER(ChrPos);
 	const int *pFlag   = LOGICAL(chflag);
 	const bool is_basepair = (strcmp(c_Unit, "basepair") == 0);
 
@@ -1281,7 +1333,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	for (int i=0; i < 64; i++) PL[i] = R_NilValue;
 	switch (FunIdx)
 	{
-	case 1:  // snpgdsFst
+	case 1:	 // snpgdsFst
 		PL[0] = GetListElement(Param, "population");
 		PL[1] = GetListElement(Param, "npop");
 		PL[2] = GetListElement(Param, "method");
@@ -1339,7 +1391,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 			SEXP rv = R_NilValue;
 			switch (FunIdx)
 			{
-			case 1:  // snpgdsFst
+			case 1:	 // snpgdsFst
 				rv = gnrFst(PL[0], PL[1], PL[2]);
 				if (!is_list) rv = VECTOR_ELT(rv, 0);
 				break;
@@ -1379,12 +1431,87 @@ COREARRAY_DLL_EXPORT SEXP gnrErrMsg()
 /// initialize the package
 COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 {
-	static R_CallMethodDef callMethods[]  = {
-		{"gnrInit", (DL_FUNC)&gnrInit, 0},
-		{NULL, NULL, 0}
+	extern SEXP gnrDiss(SEXP, SEXP);
+	extern SEXP gnrEIGMIX(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrFst(SEXP, SEXP, SEXP);
+	extern SEXP gnrGRM(SEXP, SEXP);
+	extern SEXP gnrIBD_KING_Homo(SEXP, SEXP);
+	extern SEXP gnrIBD_KING_Robust(SEXP, SEXP, SEXP);
+	extern SEXP gnrIBD_LogLik(SEXP, SEXP, SEXP);
+	extern SEXP gnrIBD_LogLik_k01(SEXP, SEXP, SEXP);
+	extern SEXP gnrIBD_MLE(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrIBD_MLE_Jacquard(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrIBD_PLINK(SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrIBDSelSampID_List1(SEXP, SEXP);
+	extern SEXP gnrIBDSelSampID_List2(SEXP, SEXP);
+	extern SEXP gnrIBSAve(SEXP, SEXP);
+	extern SEXP gnrIBSNum(SEXP, SEXP);
+	extern SEXP gnrIndInb(SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrIndInbCoef(SEXP, SEXP, SEXP);
+	extern SEXP gnrLDMat(SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrLDpair(SEXP, SEXP, SEXP);
+	extern SEXP gnrLDpruning(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrPairIBD(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrPairIBDLogLik(SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrPCA(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrPCACorr(SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrPCASampLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrPCASNPLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrPCASNPLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrParseVCF4Init();
+	extern SEXP gnrParseGEN(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrParseVCF4(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+
+
+	#define CALL(name, num)	   { #name, (DL_FUNC)&name, num }
+
+	static R_CallMethodDef callMethods[] =
+	{
+		// gnrAlleleStrand,
+		CALL(gnrAppendGenoSpaceStrand, 3),
+		CALL(gnrStrandSwitch, 5),
+
+		CALL(gnrBEDFlag, 1),             CALL(gnrChromParse, 1),
+		CALL(gnrChromParseNumeric, 1),   CALL(gnrChromRangeNumeric, 3),
+		CALL(gnrConvBED2GDS, 3),         CALL(gnrConvGDS2BED, 3),
+		CALL(gnrConvGDS2EIGEN, 2),       CALL(gnrConvGDS2PED, 5),
+
+		CALL(gnrDiss, 2),
+		// CALL(gnrDistPerm, ),
+		CALL(gnrEIGMIX, 7),              CALL(gnrErrMsg, 0),
+		CALL(gnrFst, 3),
+
+		CALL(gnrGRM, 2),
+		CALL(gnrIBD_KING_Homo, 2),       CALL(gnrIBD_KING_Robust, 3),
+		CALL(gnrIBD_LogLik, 3),          CALL(gnrIBD_LogLik_k01, 3),
+		CALL(gnrIBD_MLE, 9),             CALL(gnrIBD_MLE_Jacquard, 8),
+		CALL(gnrIBD_PLINK, 5),
+		CALL(gnrIBDSelSampID_List1, 2),  CALL(gnrIBDSelSampID_List2, 2),
+		CALL(gnrIBSAve, 2),              CALL(gnrIBSNum, 2),
+		CALL(gnrIndInb, 4),              CALL(gnrIndInbCoef, 3),
+		CALL(gnrSSEFlag, 0),             CALL(gnrLDMat, 4),
+		CALL(gnrLDpair, 3),              CALL(gnrLDpruning, 6),
+		CALL(gnrPairIBD, 8),             CALL(gnrPairIBDLogLik, 5),
+		CALL(gnrPCA, 6),                 CALL(gnrPCACorr, 4),
+		CALL(gnrPCASampLoading, 9),      CALL(gnrPCASNPLoading, 7),
+
+		CALL(gnrParseVCF4Init, 0),       CALL(gnrParseGEN, 9),
+		CALL(gnrParseVCF4, 10),
+
+		CALL(gnrCopyGeno, 2),            CALL(gnrCopyGenoMem, 1),
+		CALL(gnrGetGenoDim, 0),          CALL(gnrSelSNP_Base, 3),
+		CALL(gnrSelSNP_Base_Ex, 4),      CALL(gnrSetGenoSpace, 3),
+
+		CALL(gnrSlidingWindow, 9),
+		CALL(gnrSampFreq, 0),            CALL(gnrSNPFreq, 0),
+		CALL(gnrSNPRateFreq, 0),
+
+		{ NULL, NULL, 0 }
 	};
 
 	R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+
+	Init_GDS_Routines();
 }
 
 } // extern "C"

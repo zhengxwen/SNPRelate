@@ -26,6 +26,12 @@
 # Internal Functions
 #######################################################################
 
+.plural <- function(num)
+{
+    if (num > 1) "s" else ""
+}
+
+
 #######################################################################
 # Check whether SNP GDS file or not
 
@@ -78,19 +84,12 @@
             stop("No SNP in the working dataset.")
     }
 
-    # call C codes
     # set genotype working space
-    rv <- .C(gnrSetGenoSpace, as.integer(index.gdsn(gdsobj, "genotype")),
-        as.logical(sample.id), as.logical(!is.null(sample.id)),
-        as.logical(snp.id), as.logical(!is.null(snp.id)),
-        n.snp=integer(1), n.samp=integer(1),
-        err=integer(1), NAOK=TRUE)
-    if (rv$err != 0)
-        stop(snpgdsErrMsg())
+    v <- .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
+        sample.id, snp.id)
 
     # output
-    list(n.snp = rv$n.snp, n.samp = rv$n.samp,
-        samp.flag = sample.id, snp.flag = snp.id)
+    list(n.snp=v[1], n.samp=v[2], samp.flag=sample.id, snp.flag=snp.id)
 }
 
 
@@ -218,12 +217,13 @@
             {
                 if (identical(autosome.only, TRUE))
                 {
-                    cat("Removing", dt$dim - sum(snp.id),
-                        "SNP(s) on non-autosomes\n")
+                    m <- dt$dim - sum(snp.id)
+                    cat("Removing ", m, " SNP", .plural(m),
+                        " on non-autosomes\n", sep="")
                 } else {
-                    cat("Keeping ", sum(snp.id),
-                        " SNP(s) according to chromosome ", autosome.only,
-                        "\n", sep="")
+                    m <- sum(snp.id)
+                    cat("Keeping ", m, " SNP", .plural(m),
+                        " according to chromosome ", autosome.only, "\n", sep="")
                 }
             }
         } else {
@@ -267,26 +267,22 @@
             {
                 if (identical(autosome.only, TRUE))
                 {
-                    cat("Removing", dt$dim - sum(snp.id),
-                        "SNP(s) on non-autosomes\n")
+                    m <- dt$dim - sum(snp.id)
+                    cat("Removing ", m, " SNP", .plural(m),
+                        " on non-autosomes\n", sep="")
                 } else {
-                    cat("Keeping ", sum(snp.id),
-                        " SNP(s) according to chromosome ", autosome.only,
-                        "\n", sep="")
+                    m <- sum(snp.id)
+                    cat("Keeping ", m, " SNP", .plural(m),
+                        " according to chromosome ", autosome.only, "\n", sep="")
                 }
             }
             snp.ids <- snp.ids[snp.id]
         }
     }
 
-    # call C codes
     # set genotype working space
-    node <- .C(gnrSetGenoSpace, as.integer(index.gdsn(gdsobj, "genotype")),
-        as.logical(sample.id), as.logical(!is.null(sample.id)),
-        as.logical(snp.id), as.logical(!is.null(snp.id)),
-        n.snp=integer(1), n.samp=integer(1),
-        err=integer(1), NAOK=TRUE)
-    if (node$err != 0) stop(snpgdsErrMsg())
+    .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
+        sample.id, snp.id)
 
     # call allele freq. and missing rates
     if (remove.monosnp || is.finite(maf) || is.finite(missing.rate))
@@ -296,62 +292,49 @@
         if (!is.finite(maf)) maf <- -1;
         if (!is.finite(missing.rate)) missing.rate <- 2;
 
+        maf <- as.double(maf)
+        missing.rate <- as.double(missing.rate)
+
         # call
         if (is.null(allele.freq))
         {
-            rv <- .C(gnrSelSNP_Base, as.logical(remove.monosnp),
-                as.double(maf), as.double(missing.rate),
-                out.num=integer(1), out.snpflag = logical(node$n.snp),
-                err=integer(1), NAOK=TRUE)
+            rv <- .Call(gnrSelSNP_Base, remove.monosnp, maf, missing.rate)
         } else {
-            rv <- .C(gnrSelSNP_Base_Ex, as.double(allele.freq),
-                as.logical(remove.monosnp),
-                as.double(maf), as.double(missing.rate),
-                out.num=integer(1), out.snpflag = logical(node$n.snp),
-                err=integer(1), NAOK=TRUE)
+            rv <- .Call(gnrSelSNP_Base_Ex, as.double(allele.freq),
+                remove.monosnp, maf, missing.rate)
         }
-        if (rv$err != 0) stop(snpgdsErrMsg())
-        snp.ids <- snp.ids[rv$out.snpflag]
+        snp.ids <- snp.ids[rv[[2]]]
         if (!is.null(allele.freq))
-            allele.freq <- allele.freq[rv$out.snpflag]
+            allele.freq <- allele.freq[rv[[2]]]
 
         # show
         if (verbose)
         {
-            if (rv$out.num > 1)
-            {
-                cat("Removing ", rv$out.num,
-                " SNPs (monomorphic: ", remove.monosnp, ", < MAF: ", t.maf,
+            cat("Removing ", rv[[1]], " SNP", .plural(rv[[1]]),
+                " (monomorphic: ", remove.monosnp, ", < MAF: ", t.maf,
                 ", or > missing rate: ", t.miss, ")\n", sep="")
-            } else {
-                cat("Removing ", rv$out.num,
-                " SNP (monomorphic: ", remove.monosnp, ", < MAF: ", t.maf,
-                ", or > missing rate: ", t.miss, ")\n", sep="")
-            }
         }
     }
 
     # get the dimension of SNP genotypes
-    node <- .C(gnrGetGenoDim, n.snp=integer(1), n.samp=integer(1),
-        NAOK=TRUE)
+    # dm[1] -- # of SNPs, dm[2] -- # of samples
+    dm <- .Call(gnrGetGenoDim)
 
     if (verbose && verbose.work)
     {
-        cat("Working space:", node$n.samp, "samples,", node$n.snp, "SNPs\n")
+        cat("Working space: ", dm[2], " sample", .plural(dm[2]), ", ",
+            dm[1], " SNP", .plural(dm[1]), "\n", sep="")
         if (verbose.numthread)
         {
-            if (num.thread <= 1)
-                cat("\tUsing", num.thread, "(CPU) core\n")
-            else
-                cat("\tUsing", num.thread, "(CPU) cores\n")
+            cat("\tUsing ", num.thread, " (CPU) core",
+                .plural(num.thread), "\n", sep="")
         }
     }
 
     # output
     list(sample.id = sample.ids, snp.id = snp.ids,
-        n.snp = node$n.snp, n.samp = node$n.samp,
-        allele.freq = allele.freq, num.thread = num.thread,
-        verbose = verbose)
+        n.snp = dm[1], n.samp = dm[2], allele.freq = allele.freq,
+        num.thread = num.thread, verbose = verbose)
 }
 
 
@@ -1740,21 +1723,13 @@ snpgdsCombineGeno <- function(gds.fn, out.fn,
         }
 
         # set genotype working space
-        rv <- .C(gnrSetGenoSpace, as.integer(index.gdsn(gdsobj, "genotype")),
-            as.logical(sampid), as.integer(!is.null(sampid)),
-            as.logical(!is.na(L)), as.integer(TRUE),
-            n.snp=integer(1), n.samp=integer(1),
-            err=integer(1), NAOK=TRUE)
-
-        # check
-        if (rv$err != 0) stop(snpgdsErrMsg())
-        if (rv$n.snp != length(snpobj$position))
+        rv <- .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
+            sampid, !is.na(L))
+        if (rv[1] != length(snpobj$position))
             stop("Invalid snp alleles.")
 
         # write genotypes
-        rv <- .C(gnrAppendGenoSpaceStrand, as.integer(node.geno), snpfirstdim,
-            L[!is.na(L)], err=integer(1), NAOK=TRUE)
-        if (rv$err != 0) stop(snpgdsErrMsg())
+        .Call(gnrAppendGenoSpaceStrand, node.geno, snpfirstdim, L[!is.na(L)])
 
         # close the file
         snpgdsClose(gdsobj)
@@ -2456,7 +2431,7 @@ snpgdsErrMsg <- function()
 .onAttach <- function(lib, pkg)
 {
     # initialize SNPRelate
-    sse <- .Call(gnrInit)
+    sse <- .Call(gnrSSEFlag)
 
     # information
     if (sse)

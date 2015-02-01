@@ -184,12 +184,8 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         if (n.tmp > 0)
         {
             # set genotype working space
-            node <- .C(gnrSetGenoSpace,
-                as.integer(index.gdsn(gdsobj, "genotype")),
-                samp.flag, TRUE,
-                flag, TRUE, n.snp=integer(1), n.samp=integer(1),
-                err=integer(1), NAOK=TRUE)
-            if (node$err != 0) stop(snpgdsErrMsg())
+            .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
+                samp.flag, flag)
 
             # call LD prune for this chromosome
             startidx <- sample(1:n.tmp, 1)

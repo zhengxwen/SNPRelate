@@ -114,18 +114,11 @@ snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
         cat("\tOutput a PED file ...\n");
 
     # set genotype working space
-    node <- .C(gnrSetGenoSpace, as.integer(index.gdsn(gdsobj, "genotype")),
-        as.logical(sample.id), as.logical(!is.null(sample.id)),
-        as.logical(snp.id), as.logical(!is.null(snp.id)),
-        n.snp=integer(1), n.samp=integer(1),
-        err=integer(1), NAOK=TRUE)
-    if (node$err != 0) stop(snpgdsErrMsg())
+    .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"), sample.id, snp.id)
 
     # run the C code
-    rv <- .C(gnrConvGDS2PED, paste(ped.fn, ".ped", sep=""),
-        as.character(sample.ids), al, fmt.code, as.logical(verbose),
-        err=integer(1), NAOK=TRUE)
-    if (rv$err != 0) stop(snpgdsErrMsg())
+    .Call(gnrConvGDS2PED, paste(ped.fn, ".ped", sep=""),
+        as.character(sample.ids), al, fmt.code, verbose)
 
     # return
     invisible()
@@ -517,16 +510,11 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL,
     # making the "*.eigenstratgeno" file ...
 
     # set genotype working space
-    node <- .C(gnrSetGenoSpace, as.integer(index.gdsn(gdsobj, "genotype")),
-        as.logical(sample.id), as.logical(!is.null(sample.id)),
-        as.logical(snp.id), as.logical(!is.null(snp.id)),
-        n.snp=integer(1), n.samp=integer(1),
-        err=integer(1), NAOK=TRUE)
-    if (node$err != 0) stop(snpgdsErrMsg())
+    .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"), sample.id, snp.id)
 
-    rv <- .C(gnrConvGDS2EIGEN, paste(eigen.fn, ".eigenstratgeno", sep=""),
-        as.logical(verbose), err=integer(1), NAOK=TRUE)
-    if (rv$err != 0) stop(snpgdsErrMsg())
+    # call C function
+    .Call(gnrConvGDS2EIGEN, paste(eigen.fn, ".eigenstratgeno", sep=""),
+        verbose)
 
     if (verbose) cat("Done.\n")
 
@@ -670,7 +658,7 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
             cat("Parsing \"", gen.fn[i], "\" ...\n", sep="")
 
         # call C function
-        n <- .Call(gnr_Parse_GEN, gen.fn[i], gfile$root, chr.code[i],
+        n <- .Call(gnrParseGEN, gen.fn[i], gfile$root, chr.code[i],
             as.double(call.threshold),
             readLines, opfile, 1024L,  # "readLines(opfile, 1024L)"
             new.env(), verbose)
@@ -850,7 +838,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
 
     ##################################################
     # initialize the internal data
-    .Call(gnr_Init_Parse_VCF4)
+    .Call(gnrParseVCF4Init)
 
     ##################################################
     # for-loop each file
@@ -863,7 +851,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
             cat("Parsing \"", vcf.fn[i], "\" ...\n", sep="")
 
         # call C function
-        n <- .Call(gnr_Parse_VCF4, vcf.fn[i], gfile$root, metidx,
+        n <- .Call(gnrParseVCF4, vcf.fn[i], gfile$root, metidx,
             readLines, opfile, 1024L,  # "readLines(opfile, 1024L)"
             ref.allele, ignore.chr.prefix, new.env(), verbose)
 

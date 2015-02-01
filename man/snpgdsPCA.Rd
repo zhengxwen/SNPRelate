@@ -70,7 +70,7 @@ genofile <- snpgdsOpen(snpgdsExampleFileName())
 RV <- snpgdsPCA(genofile)
 
 # eigenvalues
-RV$eigenval
+head(RV$eigenval)
 
 # variance proportion (%)
 head(round(RV$varprop*100, 2))

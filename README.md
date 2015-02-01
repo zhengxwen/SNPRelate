@@ -1,7 +1,7 @@
 SNPRelate: Parallel computing toolset for relatedness and principal component analysis of SNP data
 ===
 
-Version: 1.1.5
+Version: 1.1.6
 
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 
@@ -17,13 +17,6 @@ Development Version:
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
-
-## News
-```>= gdsfmt_1.1.3``` should be installed immediately, if you see the error like
-```
-Invalid Zip Deflate Stream operation 'Seek'!
-```
-	
 
 ## Tutorials
 

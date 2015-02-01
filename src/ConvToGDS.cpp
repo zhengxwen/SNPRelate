@@ -352,7 +352,7 @@ struct TVCF_Field_Format
 				for (vector< vector<C_Int32> >::iterator it = I32ss.begin();
 					it != I32ss.end(); it ++)
 				{
-					GDS_Seq_AppendData(data_obj, number, &((*it)[0]), svInt32);
+					GDS_Array_AppendData(data_obj, number, &((*it)[0]), svInt32);
 				}
 				break;
 
@@ -360,7 +360,7 @@ struct TVCF_Field_Format
 				for (vector< vector<float> >::iterator it = F32ss.begin();
 					it != F32ss.end(); it ++)
 				{
-					GDS_Seq_AppendData(data_obj, number, &((*it)[0]), svFloat32);
+					GDS_Array_AppendData(data_obj, number, &((*it)[0]), svFloat32);
 				}
 				break;
 
@@ -369,7 +369,7 @@ struct TVCF_Field_Format
 					it != UTF8ss.end(); it ++)
 				{
 					for (int j=0; j < (int)(*it).size(); j ++)
-						GDS_Seq_AppendString(data_obj, (*it)[j].c_str());
+						GDS_Array_AppendString(data_obj, (*it)[j].c_str());
 				}
 				break;
 
@@ -401,7 +401,7 @@ struct TVCF_Field_Format
 						vector<C_Int32> &B = I32ss[j];
 						I32s[j] = (i < (int)B.size()) ? B[i] : NA_INTEGER;
 					}
-					GDS_Seq_AppendData(data_obj, nTotalSample, &(I32s[0]), svInt32);
+					GDS_Array_AppendData(data_obj, nTotalSample, &(I32s[0]), svInt32);
 				}
 				break;
 
@@ -419,7 +419,7 @@ struct TVCF_Field_Format
 						vector<float> &B = F32ss[j];
 						F32s[j] = (i < (int)B.size()) ? B[i] : (float)R_NaN;
 					}
-					GDS_Seq_AppendData(data_obj, nTotalSample, &(F32s[0]), svFloat32);
+					GDS_Array_AppendData(data_obj, nTotalSample, &(F32s[0]), svFloat32);
 				}
 				break;
 
@@ -434,7 +434,7 @@ struct TVCF_Field_Format
 					for (int j=0; j < nTotalSample; j++)
 					{
 						vector<string> &B = UTF8ss[j];
-						GDS_Seq_AppendString(data_obj,
+						GDS_Array_AppendString(data_obj,
 							(i < (int)B.size()) ? B[i].c_str() : "");
 					}
 				}
@@ -539,7 +539,7 @@ inline static bool StrCaseCmp(const char *prefix, const char *txt)
 }
 
 /// Initialize 'GDS_Variant_Index'
-COREARRAY_DLL_EXPORT SEXP gnr_Init_Parse_VCF4()
+COREARRAY_DLL_EXPORT SEXP gnrParseVCF4Init()
 {
 	GDS_Variant_Index = 1;
 	GDS_Global_Variant_Index = 0;
@@ -560,7 +560,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Init_Parse_VCF4()
  *  \param Verbose           print out information
  *  \return                  the number of variants
 **/
-COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
+COREARRAY_DLL_EXPORT SEXP gnrParseVCF4(SEXP vcf_fn, SEXP gds_root,
 	SEXP method, SEXP ReadLineFun, SEXP ReadLine_File, SEXP ReadLine_N,
 	SEXP RefAllele, SEXP ChrPrefix, SEXP rho, SEXP Verbose)
 {
@@ -599,7 +599,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 		int nTotalSamp;
 		{
 			int D[2];
-			GDS_Seq_GetDim(varGeno, D, 2);
+			GDS_Array_GetDim(varGeno, D, 2);
 			nTotalSamp = D[1];
 		}
 
@@ -691,7 +691,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 			// #####################################################
 
 			// variant id
-			GDS_Seq_AppendData(varIdx, 1, &GDS_Variant_Index, svInt32);
+			GDS_Array_AppendData(varIdx, 1, &GDS_Variant_Index, svInt32);
 			GDS_Variant_Index ++;
 
 			// column 1: CHROM
@@ -707,15 +707,15 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 					}
 				}
 			}
-			GDS_Seq_AppendString(varChr, sCHROM.c_str());
+			GDS_Array_AppendString(varChr, sCHROM.c_str());
 
 			// column 2: POS
 			I32 = getInt32(sPOS, RaiseError);
-			GDS_Seq_AppendData(varPos, 1, &I32, svInt32);
+			GDS_Array_AppendData(varPos, 1, &I32, svInt32);
 
 			// column 3: ID
 			if (sID == ".") sID.clear();
-			GDS_Seq_AppendString(varRSID, sID.c_str());
+			GDS_Array_AppendString(varRSID, sID.c_str());
 
 			// column 4 & 5: REF + ALT
 			int ref_allele_index = 0;
@@ -780,17 +780,17 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 					sREF.append(sALT);
 				}
 			}
-			GDS_Seq_AppendString(varAllele, sREF.c_str());
+			GDS_Array_AppendString(varAllele, sREF.c_str());
 
 			// column 6: QUAL
 			RL.GetCell(cell, false);
 			F32 = getFloat(cell, RaiseError);
-			GDS_Seq_AppendData(varQual, 1, &F32, svFloat32);
+			GDS_Array_AppendData(varQual, 1, &F32, svFloat32);
 
 			// column 7: FILTER
 			RL.GetCell(cell, false);
 			if (cell == ".") cell.clear();
-			GDS_Seq_AppendString(varFilter, cell.c_str());
+			GDS_Array_AppendString(varFilter, cell.c_str());
 
 			// column 8: INFO, skip
 			RL.GetCell(cell, false);
@@ -882,7 +882,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
 			}
 
 			// write genotypes
-			GDS_Seq_AppendData(varGeno, nTotalSamp, &U8s[0], svUInt8);
+			GDS_Array_AppendData(varGeno, nTotalSamp, &U8s[0], svUInt8);
 		}
 
 		UNPROTECT(1);
@@ -920,7 +920,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_VCF4(SEXP vcf_fn, SEXP gds_root,
  *  \param Verbose           print out information
  *  \return                  the number of variants
 **/
-COREARRAY_DLL_EXPORT SEXP gnr_Parse_GEN(SEXP gen_fn, SEXP gds_root,
+COREARRAY_DLL_EXPORT SEXP gnrParseGEN(SEXP gen_fn, SEXP gds_root,
 	SEXP ChrCode, SEXP CallThreshold, SEXP ReadLineFun, SEXP ReadLine_File,
 	SEXP ReadLine_N, SEXP rho, SEXP Verbose)
 {
@@ -957,7 +957,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_GEN(SEXP gen_fn, SEXP gds_root,
 		int nTotalSamp;
 		{
 			int D[2];
-			GDS_Seq_GetDim(varGeno, D, 2);
+			GDS_Array_GetDim(varGeno, D, 2);
 			nTotalSamp = D[1];
 		}
 
@@ -1001,26 +1001,26 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_GEN(SEXP gen_fn, SEXP gds_root,
 
 			// column 1: SNP ID
 			RL.GetCell(cell, false);
-			GDS_Seq_AppendString(varIdx, cell.c_str());
+			GDS_Array_AppendString(varIdx, cell.c_str());
 
 			// column 2: RS ID
 			RL.GetCell(cell, false);
-			GDS_Seq_AppendString(varRSID, cell.c_str());
+			GDS_Array_AppendString(varRSID, cell.c_str());
 
 			// column 3: Base-pair position of the SNP
 			RL.GetCell(cell, false);
 			I32 = getInt32(cell, RaiseError);
-			GDS_Seq_AppendData(varPos, 1, &I32, svInt32);
+			GDS_Array_AppendData(varPos, 1, &I32, svInt32);
 
 			// column 4, 5: A allele, B allele
 			RL.GetCell(AlleleA, false);
 			RL.GetCell(AlleleB, false);
-			GDS_Seq_AppendString(varAllele, (AlleleA + "/" + AlleleB).c_str());
+			GDS_Array_AppendString(varAllele, (AlleleA + "/" + AlleleB).c_str());
 
 			if (IS_CHARACTER(ChrCode))
-				GDS_Seq_AppendString(varChr, ChrValue2.c_str());
+				GDS_Array_AppendString(varChr, ChrValue2.c_str());
 			else
-				GDS_Seq_AppendData(varChr, 1, &ChrValue1, svInt32);
+				GDS_Array_AppendData(varChr, 1, &ChrValue1, svInt32);
 
 			// *****************************************************
 			// columns for samples
@@ -1054,7 +1054,7 @@ COREARRAY_DLL_EXPORT SEXP gnr_Parse_GEN(SEXP gen_fn, SEXP gds_root,
 			}
 
 			// write genotypes
-			GDS_Seq_AppendData(varGeno, nTotalSamp, &U8s[0], svUInt8);
+			GDS_Array_AppendData(varGeno, nTotalSamp, &U8s[0], svUInt8);
 			LN ++;
 		}
 

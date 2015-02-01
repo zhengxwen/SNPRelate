@@ -75,7 +75,7 @@ void CdGenoWorkSpace::SetGeno(PdSequenceX vGeno, bool _InitSelection)
 	if (vGeno)
 	{
 		// checking
-		if (GDS_Seq_DimCnt(vGeno) != 2)
+		if (GDS_Array_DimCnt(vGeno) != 2)
 			throw ErrCoreArray("Invalid dimension of genotype dataset.");
 
 		// determine sample or snp order
@@ -92,7 +92,7 @@ void CdGenoWorkSpace::SetGeno(PdSequenceX vGeno, bool _InitSelection)
 
 		// determine numbers of samples and snps
 		int DLen[2];
-		GDS_Seq_GetDim(vGeno, DLen, 2);
+		GDS_Array_GetDim(vGeno, DLen, 2);
 		if (fSNPOrder)
 		{
 			fTotalSampleNum = DLen[0]; fTotalSNPNum = DLen[1];
@@ -222,10 +222,10 @@ void CdGenoWorkSpace::snpRead(C_Int32 SnpStart,
 				{ &fSampleSelection[st[0]], &fSNPSelection[ st[1] ] };
 			if (SnpOrder || (SnpCount==1))
 			{
-				GDS_Seq_rDataEx(fGeno, st, cnt, Sel, (void*)OutBuf, svUInt8);
+				GDS_Array_ReadDataEx(fGeno, st, cnt, Sel, (void*)OutBuf, svUInt8);
 			} else {
 				_NeedBuffer(fSampleNum*SnpCount);
-				GDS_Seq_rDataEx(fGeno, st, cnt, Sel, &vBuf[0], svUInt8);
+				GDS_Array_ReadDataEx(fGeno, st, cnt, Sel, &vBuf[0], svUInt8);
 				// transpose
 				for (int i1=0; i1 < SnpCount; i1++)
 				{
@@ -244,7 +244,7 @@ void CdGenoWorkSpace::snpRead(C_Int32 SnpStart,
 			if (SnpOrder && (SnpCount>1))
 			{
 				_NeedBuffer(fSampleNum*SnpCount);
-				GDS_Seq_rDataEx(fGeno, st, cnt, Sel, &vBuf[0], svUInt8);
+				GDS_Array_ReadDataEx(fGeno, st, cnt, Sel, &vBuf[0], svUInt8);
 				// transpose
 				for (int i1=0; i1 < fSampleNum; i1++)
 				{
@@ -252,7 +252,7 @@ void CdGenoWorkSpace::snpRead(C_Int32 SnpStart,
 						*OutBuf++ = vBuf[i0*fSampleNum+i1];
                 }
 			} else {
-				GDS_Seq_rDataEx(fGeno, st, cnt, Sel, OutBuf, svUInt8);
+				GDS_Array_ReadDataEx(fGeno, st, cnt, Sel, OutBuf, svUInt8);
             }
 		}
 	}
@@ -276,10 +276,10 @@ void CdGenoWorkSpace::sampleRead(C_Int32 SampStart, C_Int32 SampCount,
 			C_BOOL *Sel[2] =
 				{ &fSampleSelection[st[0]], &fSNPSelection[st[1]] };
 			if (SnpOrder || (SampCount==1))
-				GDS_Seq_rDataEx(fGeno, st, cnt, Sel, OutBuf, svUInt8);
+				GDS_Array_ReadDataEx(fGeno, st, cnt, Sel, OutBuf, svUInt8);
 			else {
                 _NeedBuffer(SampCount*fSNPNum);
-				GDS_Seq_rDataEx(fGeno, st, cnt, Sel, &vBuf[0], svUInt8);
+				GDS_Array_ReadDataEx(fGeno, st, cnt, Sel, &vBuf[0], svUInt8);
 				// transpose
 				for (int i1=0; i1 < fSNPNum; i1++)
 					for (int i0=0; i0 < SampCount; i0++)
@@ -296,13 +296,13 @@ void CdGenoWorkSpace::sampleRead(C_Int32 SampStart, C_Int32 SampCount,
 			if (SnpOrder && (SampCount>1))
 			{
 				_NeedBuffer(SampCount*fSNPNum);
-				GDS_Seq_rDataEx(fGeno, st, cnt, Sel, &vBuf[0], svUInt8);
+				GDS_Array_ReadDataEx(fGeno, st, cnt, Sel, &vBuf[0], svUInt8);
 				// transpose
 				for (int i1=0; i1 < SampCount; i1++)
 					for (int i0=0; i0 < fSNPNum; i0++)
 						*OutBuf++ = vBuf[i0*SampCount + i1];
 			} else
-				GDS_Seq_rDataEx(fGeno, st, cnt, Sel, OutBuf, svUInt8);
+				GDS_Array_ReadDataEx(fGeno, st, cnt, Sel, OutBuf, svUInt8);
 		}
 	}
 }
@@ -772,7 +772,7 @@ void CdGenoWorkSpace::_CheckGeno()
 	if (fGeno == NULL)
     	throw ErrCoreArray("No genotype dataset.");
     int DLen[2];
-    GDS_Seq_GetDim(fGeno, DLen, 2);
+    GDS_Array_GetDim(fGeno, DLen, 2);
 	if ((DLen[0]<=0) || (DLen[1]<=0))
     	throw ErrCoreArray("No genotype dataset.");
 }
