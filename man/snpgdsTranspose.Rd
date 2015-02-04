@@ -13,8 +13,8 @@ snpgdsTranspose(gds.fn, snpfirstdim=FALSE, compress=NULL, optimize=TRUE,
 \arguments{
     \item{gds.fn}{the file name of SNP GDS format}
     \item{snpfirstdim}{if \code{TRUE}, genotypes are stored in snp-by-sample;
-        if \code{FALSE}, sample-by-snp mode; if \code{NA}, transpose the
-        SNP matrix}
+        if \code{FALSE}, sample-by-snp mode; if \code{NA}, force to transpose
+        the SNP matrix}
     \item{compress}{the compression mode for SNP genotypes, optional values
         are defined in the function of \code{add.gdsn}; if \code{NULL}, to use
         the compression mode}
@@ -38,7 +38,7 @@ file.copy(fn, "test.gds", overwrite=TRUE)
 snpgdsSummary("test.gds")
 
 # transpose the SNP matrix
-snpgdsTranspose("test.gds")
+snpgdsTranspose("test.gds", snpfirstdim=TRUE)
 
 # summary
 snpgdsSummary("test.gds")

@@ -1811,10 +1811,8 @@ snpgdsTranspose <- function(gds.fn, snpfirstdim=FALSE, compress=NULL,
             storage=desp$storage, valdim=dm, compress=compress)
 
         # write data
-        apply.gdsn(node, margin=1, as.is="none", FUN=function(g) {
-            append.gdsn(newnode, g)
-        })
-
+        apply.gdsn(node, margin=1, FUN=`c`, as.is="gdsnode",
+            target.node=newnode, .useraw=TRUE)
         readmode.gdsn(newnode)
 
         if (snpfirstdim)
