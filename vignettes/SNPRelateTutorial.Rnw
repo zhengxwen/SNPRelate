@@ -522,7 +522,7 @@ head(tab)
 # Draw
 plot(tab$EV2, tab$EV1, col=as.integer(tab$pop),
     xlab="eigenvector 2", ylab="eigenvector 1")
-legend("topleft", legend=levels(tab$pop), pch="o", col=1:nlevels(tab$pop))
+legend("bottomright", legend=levels(tab$pop), pch="o", col=1:nlevels(tab$pop))
 @
 
 Plot the principal component pairs for the first four PCs:

@@ -1,9 +1,9 @@
 // ===========================================================
-//	   _/_/_/	_/_/_/	_/_/_/_/	_/_/_/_/  _/_/_/   _/_/_/
-//		_/	  _/	   _/			  _/	_/	  _/   _/	_/
-//	   _/	 _/		  _/_/_/_/		 _/	   _/	 _/	  _/_/_/
-//	  _/	_/		 _/				_/	  _/	_/	 _/
-// _/_/_/	_/_/_/	_/_/_/_/_/	   _/	  _/_/_/   _/_/
+//     _/_/_/   _/_/_/  _/_/_/_/    _/_/_/_/  _/_/_/   _/_/_/
+//      _/    _/       _/             _/    _/    _/   _/   _/
+//     _/    _/       _/_/_/_/       _/    _/    _/   _/_/_/
+//    _/    _/       _/             _/    _/    _/   _/
+// _/_/_/   _/_/_/  _/_/_/_/_/     _/     _/_/_/   _/_/
 // ===========================================================
 //
 // SNPRelate.cpp: Relatedness, Linkage Disequilibrium and
@@ -1427,7 +1427,6 @@ COREARRAY_DLL_EXPORT SEXP gnrErrMsg()
 	return ans_rv;
 }
 
-
 /// initialize the package
 COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 {
@@ -1453,7 +1452,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrLDpruning(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPairIBD(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPairIBDLogLik(SEXP, SEXP, SEXP, SEXP, SEXP);
-	extern SEXP gnrPCA(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrPCA(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCACorr(SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCASampLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCASNPLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1492,7 +1491,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrSSEFlag, 0),             CALL(gnrLDMat, 4),
 		CALL(gnrLDpair, 3),              CALL(gnrLDpruning, 6),
 		CALL(gnrPairIBD, 8),             CALL(gnrPairIBDLogLik, 5),
-		CALL(gnrPCA, 6),                 CALL(gnrPCACorr, 4),
+		CALL(gnrPCA, 7),                 CALL(gnrPCACorr, 4),
 		CALL(gnrPCASampLoading, 9),      CALL(gnrPCASNPLoading, 7),
 
 		CALL(gnrParseVCF4Init, 0),       CALL(gnrParseGEN, 9),

@@ -1,4 +1,5 @@
-CHANGES IN VERSION 1.1.0-1.1.6
+CHANGES IN VERSION 1.1.0-1.1.7
+-------------------------
 
     o fix a bug in snpgdsVCF2GDS when 'method="biallelic.only"'
 
@@ -16,6 +17,10 @@ CHANGES IN VERSION 1.1.0-1.1.6
 
     o v1.1.6: bug fix if 'requireNamespace("SNPRelate")' is called from
       other packages
+
+    o v1.1.7: snpgdsPCA uses 'DSPEVX' to compute eigenvalues and eigenvectors
+      instead of 'DSPEV' if top eigenvalues are required only (performance
+      improvement)
 
 
 CHANGES IN VERSION 0.99.1-0.99.3

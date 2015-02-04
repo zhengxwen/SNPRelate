@@ -22,8 +22,8 @@
 
 snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    eigen.cnt=32, num.thread=1L, bayesian=FALSE, need.genmat=FALSE,
-    genmat.only=FALSE, verbose=TRUE)
+    eigen.cnt=32L, num.thread=1L, bayesian=FALSE, need.genmat=FALSE,
+    genmat.only=FALSE, eigen.method=c("DSPEVX", "DSPEV"), verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -38,11 +38,13 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.logical(need.genmat))
     stopifnot(is.logical(genmat.only))
     if (genmat.only) need.genmat <- TRUE
-    if (eigen.cnt <= 0) eigen.cnt <- ws$n.samp
+    if (eigen.cnt <= 0L) eigen.cnt <- ws$n.samp
+
+	eigen.method <- match.arg(eigen.method)
 
     # call parallel PCA
-    rv <- .Call(gnrPCA, as.integer(eigen.cnt), ws$num.thread,
-        bayesian, need.genmat, genmat.only, verbose)
+    rv <- .Call(gnrPCA, eigen.cnt, ws$num.thread,
+        bayesian, need.genmat, genmat.only, eigen.method, verbose)
 
     # return
     rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,

@@ -305,7 +305,7 @@ namespace PCA
 	IdMatTri PCA_Thread_MatIdx[N_MAX_THREAD];
 	C_Int64 PCA_Thread_MatCnt[N_MAX_THREAD];
 
-	// ****************** PCA covariate matrix ******************
+	// ================== PCA covariate matrix ==================
 
 	/// The temparory variables used in computing
 	static vector<int> PCA_gSum, PCA_gNum;
@@ -430,7 +430,7 @@ namespace PCA
 	}
 
 
-	// ****************** SNP coefficients ******************
+	// ================== SNP coefficients ==================
 
 	// Correlation
 	static double SNP_PC_Corr(double *pX, C_UInt8 *pY, long n)
@@ -493,7 +493,7 @@ namespace PCA
 	}
 
 	/// Calculate the SNP coefficients
-	void DoSNPCoeffCalculate(int EigCnt, double *EigenVect, double *out_snpcorr,
+	void DoSNPCoeffCalculate(int nEig, double *EigenVect, double *out_snpcorr,
 		int NumThread, bool verbose, const char *Info)
 	{
 		// initialize mutex objects
@@ -504,7 +504,7 @@ namespace PCA
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SNPNum());
 		SNPStart = 0;
-		OutputEigenDim = EigCnt;
+		OutputEigenDim = nEig;
 		Out_Buffer = out_snpcorr; In_EigenVect = EigenVect;
 
 		// Threads
@@ -515,7 +515,7 @@ namespace PCA
 	}
 
 
-	// ****************** SNP loadings ******************
+	// ================== SNP loadings ==================
 
 	/// Normalize the genotype
 	/** \tparam tfloat    template type, it should be floating number type
@@ -644,7 +644,7 @@ namespace PCA
 	}
 
 	/// Calculate the SNP loadings
-	void DoSNPLoadingCalculate(double *EigenVal, int EigCnt, double *EigenVect,
+	void DoSNPLoadingCalculate(double *EigenVal, int nEig, double *EigenVect,
 		double TraceXTX, double *out_snploading, int NumThread, bool verbose,
 		const char *Info)
 	{
@@ -656,7 +656,7 @@ namespace PCA
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SNPNum());
 		SNPStart = 0;
-		OutputEigenDim = EigCnt;
+		OutputEigenDim = nEig;
 		Out_Buffer = out_snploading;
 
 		// Array of eigenvectors
@@ -679,7 +679,7 @@ namespace PCA
 	}
 
 
-	// ****************** Sample loadings ******************
+	// ================== Sample loadings ==================
 
 	/// The thread entry for the calculation of genetic covariace matrix
 	void Entry_SampLoadingCalc(PdThread Thread, int ThreadIndex, void *Param)
@@ -769,7 +769,7 @@ namespace PCA
 	// Admixture Analyses
 	// ---------------------------------------------------------------------
 
-	// ****************** Relative IBD matrix ******************
+	// ================== Relative IBD matrix ==================
 
 	/// Missing genotypic flags:
 	//      0 -- missing value, other value -- valid genotype
@@ -929,7 +929,7 @@ namespace PCA
 	}
 
 
-	// ************************************ //
+	// ==================================== //
 
 	/// Convert the raw genotypes to the mean-adjusted genotypes
 	static void _Do_Admix_AvgOfRatio_ReadBlock(C_UInt8 *GenoBuf,
@@ -1104,7 +1104,7 @@ namespace PCA
 	}
 
 
-	// ************************************ //
+	// ==================================== //
 
 	/// Convert the raw genotypes to the mean-adjusted genotypes
 	static void _Do_GRM_AvgOfRatio_ReadBlock(C_UInt8 *GenoBuf,
@@ -1261,22 +1261,24 @@ using namespace PCA;
 
 extern "C"
 {
-// ************************************************************************
+// ========================================================================
 // the functions for Principal Component Analysis (PCA)
-// ************************************************************************
+// ========================================================================
 
 /// to compute the eigenvalues and eigenvectors
 COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
-	SEXP _BayesianNormal, SEXP NeedGenMat, SEXP GenMat_Only, SEXP _Verbose)
+	SEXP _BayesianNormal, SEXP NeedGenMat, SEXP GenMat_Only,
+	SEXP EigenMethod, SEXP _Verbose)
 {
 	bool verbose = SEXP_Verbose(_Verbose);
+	const char *EigMethod = CHAR(STRING_ELT(EigenMethod, 0));
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// ======== To cache the genotype data ========
 		CachingSNPData("PCA", verbose);
 
-		// ******** The calculation of genetic covariance matrix ********
+		// ======== The calculation of genetic covariance matrix ========
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
@@ -1287,7 +1289,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
 		CdMatTri<double> Cov(n);
 
 		// Calculate the genetic covariace
-		PCA::DoCovCalculate(Cov, INTEGER(NumThread)[0], "PCA:", verbose);
+		PCA::DoCovCalculate(Cov, Rf_asInteger(NumThread), "PCA:", verbose);
 
 		// Normalize
 		double TraceXTX = Cov.Trace();
@@ -1295,7 +1297,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
 		vt<double, av16Align>::Mul(Cov.get(), Cov.get(), scale, Cov.Size());
 		double TraceVal = Cov.Trace();
 
-		// ******** output ********
+		// ======== output ========
 
 		int nProtected = 0;
 		PROTECT(rv_ans = NEW_LIST(5));
@@ -1313,51 +1315,103 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
 			Cov.SaveTo(REAL(tmp));
 		}
 
-		// ******** eigenvectors and eigenvalues ********
+		// ======== eigenvectors and eigenvalues ========
 
 		if (LOGICAL(GenMat_Only)[0] != TRUE)
 		{
-			const size_t NN = n;
-			vector<double> tmp_Work(NN*3);
-			vector<double> tmp_EigenVec(NN*NN);
-
-			vt<double>::Sub(Cov.get(), 0.0, Cov.get(), Cov.Size());
 			if (verbose)
 			{
 				Rprintf("PCA:\t%s\tBegin (eigenvalues and eigenvectors)\n",
 					NowDateToStr().c_str());
 			}
 
-			SEXP EigVal;
-			PROTECT(EigVal = NEW_NUMERIC(n));
-			nProtected ++;
-			SET_ELEMENT(rv_ans, 2, EigVal);
+			vt<double>::Sub(Cov.get(), 0.0, Cov.get(), Cov.Size());
 
+			int nEig = Rf_asInteger(EigenCnt);
+			if (nEig <= 0)
+				throw ErrCoreArray("Invalid 'eigen.cnt'.");
+			if (nEig > n) nEig = n;
+
+			// the method to compute eigenvalues and eigenvectors
+			if (strcmp(EigMethod, "DSPEV") == 0)
 			{
+				vector<double> tmp_Work(n*3);
+				vector<double> tmp_EigenVec(n*n);
+
+				SEXP EigVal = PROTECT(NEW_NUMERIC(n));
+				nProtected ++;
+				SET_ELEMENT(rv_ans, 2, EigVal);
+
+				// DSPEV -- computes all the eigenvalues and, optionally,
+				// eigenvectors of a real symmetric matrix A in packed storage
+
 				int info = 0;
 				int _n = n;
 				F77_NAME(dspev)("V", "L", &_n, Cov.get(), REAL(EigVal),
 					&tmp_EigenVec[0], &_n, &tmp_Work[0], &info);
 				if (info != 0)
-					throw "LAPACK::SPEV error!";
-			}
+				{
+					throw ErrCoreArray(
+						"LAPACK::DSPEV error (INFO: %d)!", info);
+				}
 
-			// output eigenvalues
-			vt<double>::Sub(REAL(EigVal), 0.0, REAL(EigVal), n);
+				// output eigenvalues
+				vt<double>::Sub(REAL(EigVal), 0.0, REAL(EigVal), n);
 
-			int EigCnt = INTEGER(EigenCnt)[0];
+				// output eigenvectors
+				SEXP EigVect = PROTECT(allocMatrix(REALSXP, n, nEig));
+				nProtected ++;
+				SET_ELEMENT(rv_ans, 3, EigVect);
 
-			// output eigenvectors
-			SEXP EigVect;
-			PROTECT(EigVect = allocMatrix(REALSXP, n, EigCnt));
-			nProtected ++;
-			SET_ELEMENT(rv_ans, 3, EigVect);
+				for (int i=0; i < nEig; i++)
+				{
+					memmove(REAL(EigVect) + n*i,
+						&tmp_EigenVec[0] + n*i, sizeof(double)*n);
+				}
 
-			for (int i=0; i < EigCnt; i++)
+			} else if (strcmp(EigMethod, "DSPEVX") == 0)
 			{
-				memmove(REAL(EigVect) + n*i,
-					&tmp_EigenVec[0] + n*i, sizeof(double)*n);
-			}
+				vector<double> tmp_Work(n*8);
+				vector<int>    tmp_IWork(n*5);
+				vector<double> tmp_Eigen(n);
+
+				SEXP EigVal = PROTECT(NEW_NUMERIC(nEig));
+				SET_ELEMENT(rv_ans, 2, EigVal);
+				SEXP EigVect = PROTECT(allocMatrix(REALSXP, n, nEig));
+				SET_ELEMENT(rv_ans, 3, EigVect);
+				nProtected += 2;
+
+				// memset(&tmp_Eigen[0], 0, sizeof(double)*n);
+				// memset(REAL(EigVect), 0, sizeof(double)*size_t(n)*nEig);
+
+				// DSPEVX -- compute selected eigenvalues and, optionally,
+				// eigenvectors of a real symmetric matrix A in packed storage
+
+				int _n = n;
+				int IL = 1, IU = nEig, LDZ = n;
+				double VL = 0, VU = 0;
+				int M = 0;
+				// it is suggested: ABSTOL is set to twice the underflow threshold, not zero
+				double ABSTOL = 2 * F77_NAME(dlamch)("S");
+				vector<int> ifail(n);
+				int info = 0;
+
+				F77_NAME(dspevx)("V", "I", "L", &_n, Cov.get(),
+					&VL, &VU, &IL, &IU, &ABSTOL,
+					&M, &tmp_Eigen[0], REAL(EigVect), &LDZ,
+					&tmp_Work[0], &tmp_IWork[0], &ifail[0], &info);
+				if (info != 0)
+				{
+					throw ErrCoreArray(
+						"LAPACK::DSPEVX error (INFO: %d)!", info);
+				}
+
+				// output eigenvalues
+				for (int i=0; i < nEig; i++)
+					REAL(EigVal)[i] = -tmp_Eigen[i];
+			} else
+				throw ErrCoreArray("Unknown 'eigen.method'.");
+
 			if (verbose)
 			{
 				Rprintf("PCA:\t%s\tEnd (eigenvalues and eigenvectors)\n",
@@ -1379,10 +1433,10 @@ COREARRAY_DLL_EXPORT SEXP gnrPCACorr(SEXP LenEig, SEXP EigenVect,
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// ======== To cache the genotype data ========
 		CachingSNPData("SNP Correlation", verbose);
 
-		// ******** To compute the snp correlation ********
+		// ======== To compute the snp correlation ========
 		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space.SampleNum());
 
 		PROTECT(rv_ans = allocMatrix(REALSXP, INTEGER(LenEig)[0],
@@ -1406,10 +1460,10 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP DimCnt,
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// ======== To cache the genotype data ========
 		CachingSNPData("SNP Loading", verbose);
 
-		// ******** To compute the snp correlation ********
+		// ======== To compute the snp correlation ========
 		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space.SampleNum());
 		PCA::BayesianNormal = (LOGICAL(Bayesian)[0] == TRUE);
 
@@ -1447,13 +1501,13 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// ======== To cache the genotype data ========
 		CachingSNPData("Sample Loading", verbose);
 
 		PROTECT(rv_ans = allocMatrix(REALSXP,
 			MCWorkingGeno.Space.SampleNum(), INTEGER(EigenCnt)[0]));
 
-		// ******** To compute the snp correlation ********
+		// ======== To compute the snp correlation ========
 		PCA::DoSampLoadingCalculate(REAL(AveFreq), REAL(Scale),
 			INTEGER(EigenCnt)[0], REAL(SNPLoadings),
 			REAL(EigenVal), INTEGER(Num)[0], REAL(TraceXTX)[0],
@@ -1466,9 +1520,9 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
 }
 
 
-// ***********************************************************************
+// ======================================================================*
 // Genetic relationship matrix
-// ***********************************************************************
+// ======================================================================*
 
 /// to compute the eigenvalues and eigenvectors
 COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Verbose)
@@ -1477,10 +1531,10 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Verbose)
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// ======== To cache the genotype data ========
 		CachingSNPData("GRM calculation", verbose);
 
-		// ******** The calculation of genetic covariance matrix ********
+		// ======== The calculation of genetic covariance matrix ========
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
@@ -1512,7 +1566,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Verbose)
 }
 
 
-// ***********************************************************************
+// ======================================================================*
 // the functions for eigen-analysis for admixtures
 //
 
@@ -1537,10 +1591,10 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// ======== To cache the genotype data ========
 		CachingSNPData("Eigen-analysis", verbose);
 
-		// ******** The calculation of genetic covariance matrix ********
+		// ======== The calculation of genetic covariance matrix ========
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
@@ -1566,7 +1620,7 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
 				throw "Invalid method.";
 		}
 
-		// ******** The calculation of eigenvectors and eigenvalues ********
+		// ======== The calculation of eigenvectors and eigenvalues ========
 
 		int nProtected = 0;
 		SEXP EigenVal=NULL, EigenVec=NULL, IBDMat=NULL;

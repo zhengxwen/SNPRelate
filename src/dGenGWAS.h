@@ -600,6 +600,8 @@ namespace GWAS
 
 
 
+	// ===================================================================== //
+
 	/// Detect the argument 'verbose'
 	COREARRAY_DLL_LOCAL bool SEXP_Verbose(SEXP Verbose);
 

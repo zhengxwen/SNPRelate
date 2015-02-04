@@ -11,7 +11,7 @@ analysis in GWAS.
 snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, eigen.cnt=32,
     num.thread=1L, bayesian=FALSE, need.genmat=FALSE, genmat.only=FALSE,
-    verbose = TRUE)
+    eigen.method=c("DSPEVX", "DSPEV"), verbose = TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -35,6 +35,9 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{need.genmat}{if TRUE, return the genetic covariance matrix}
     \item{genmat.only}{return the genetic covariance matrix only, do not
         compute the eigenvalues and eigenvectors}
+    \item{eigen.method}{"DSPEVX" -- compute the top \code{eigen.cnt}
+        eigenvalues and eigenvectors; "DSPEV" -- ro be compatible with
+        SNPRelate_1.1.6 or earlier}
     \item{verbose}{if TRUE, show information}
 }
 \details{
@@ -136,7 +139,7 @@ head(tab)
 # draw
 plot(tab$EV2, tab$EV1, col=as.integer(tab$pop),
     xlab="eigenvector 2", ylab="eigenvector 1")
-legend("topleft", legend=levels(tab$pop), pch="o", col=1:4)
+legend("bottomright", legend=levels(tab$pop), pch="o", col=1:4)
 
 
 # close the file
