@@ -1,14 +1,8 @@
 // ===========================================================
-//     _/_/_/   _/_/_/  _/_/_/_/    _/_/_/_/  _/_/_/   _/_/_/
-//      _/    _/       _/             _/    _/    _/   _/   _/
-//     _/    _/       _/_/_/_/       _/    _/    _/   _/_/_/
-//    _/    _/       _/             _/    _/    _/   _/
-// _/_/_/   _/_/_/  _/_/_/_/_/     _/     _/_/_/   _/_/
-// ===========================================================
 //
-// ConvVCF2GDS.cpp: the C++ code for the conversion from VCF to GDS
+// ConvVCF2GDS.cpp: the conversion from VCF to GDS
 //
-// Copyright (C) 2013 - 2015	Xiuwen Zheng [zhengxwen@gmail.com]
+// Copyright (C) 2013-2015    Xiuwen Zheng
 //
 // This file is part of SeqArray.
 //

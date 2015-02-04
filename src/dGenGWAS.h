@@ -1,18 +1,23 @@
 // ===========================================================
-//     _/_/_/   _/_/_/  _/_/_/_/    _/_/_/_/  _/_/_/   _/_/_/
-//      _/    _/       _/             _/    _/    _/   _/   _/
-//     _/    _/       _/_/_/_/       _/    _/    _/   _/_/_/
-//    _/    _/       _/             _/    _/    _/   _/
-// _/_/_/   _/_/_/  _/_/_/_/_/     _/     _/_/_/   _/_/
-// ===========================================================
-// Name        : dGenGWAS
-// Author      : Xiuwen Zheng
-// Version     : 1.0.0.0
-// Copyright   : Xiuwen Zheng (GPL v3.0)
-// Created     : 04/22/2012
-// Modified    : 12/12/2014
-// Description :
-// ===========================================================
+//
+// dGenGWAS.h: Workspace of genome-wide association studies
+//
+// Copyright (C) 2011-2015    Xiuwen Zheng
+//
+// This file is part of SNPRelate.
+//
+// SNPRelate is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License Version 3 as published
+// by the Free Software Foundation.
+//
+// SNPRelate is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with SNPRelate.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef _HEADER_GWAS_
 #define _HEADER_GWAS_
@@ -25,7 +30,7 @@
 #include <memory>
 
 #ifndef NO_COREARRAY_VECTORIZATION
-#  include <dVect.h>
+#   include <dVect.h>
 #endif
 
 

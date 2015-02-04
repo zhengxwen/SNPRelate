@@ -36,8 +36,8 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{genmat.only}{return the genetic covariance matrix only, do not
         compute the eigenvalues and eigenvectors}
     \item{eigen.method}{"DSPEVX" -- compute the top \code{eigen.cnt}
-        eigenvalues and eigenvectors; "DSPEV" -- ro be compatible with
-        SNPRelate_1.1.6 or earlier}
+        eigenvalues and eigenvectors using LAPACK::DSPEVX; "DSPEV" -- to be
+        compatible with SNPRelate_1.1.6 or earlier, using LAPACK::DSPEV}
     \item{verbose}{if TRUE, show information}
 }
 \details{
@@ -89,12 +89,12 @@ tab <- data.frame(sample.id = RV$sample.id,
     stringsAsFactors = FALSE)
 head(tab)
 #   sample.id         EV1         EV2
-# 1   NA19152  0.08411287  0.01226860
-# 2   NA19139  0.08360644  0.01085849
-# 3   NA18912  0.08110808  0.01184524
-# 4   NA19160  0.08680864  0.01447106
-# 5   NA07034 -0.03109761 -0.07709255
-# 6   NA07055 -0.03228450 -0.08155730
+# 1   NA19152 -0.08411287 -0.01226860
+# 2   NA19139 -0.08360644 -0.01085849
+# 3   NA18912 -0.08110808 -0.01184524
+# 4   NA19160 -0.08680864 -0.01447106
+# 5   NA07034  0.03109761  0.07709255
+# 6   NA07055  0.03228450  0.08155730
 
 # draw
 plot(tab$EV2, tab$EV1, xlab="eigenvector 2", ylab="eigenvector 1")
@@ -129,12 +129,12 @@ tab <- data.frame(sample.id = RV$sample.id,
     stringsAsFactors = FALSE)
 head(tab)
 #   sample.id pop         EV1         EV2
-# 1   NA19152 YRI  0.08411287  0.01226860
-# 2   NA19139 YRI  0.08360644  0.01085849
-# 3   NA18912 YRI  0.08110808  0.01184524
-# 4   NA19160 YRI  0.08680864  0.01447106
-# 5   NA07034 CEU -0.03109761 -0.07709255
-# 6   NA07055 CEU -0.03228450 -0.08155730
+# 1   NA19152 YRI -0.08411287 -0.01226860
+# 2   NA19139 YRI -0.08360644 -0.01085849
+# 3   NA18912 YRI -0.08110808 -0.01184524
+# 4   NA19160 YRI -0.08680864 -0.01447106
+# 5   NA07034 CEU  0.03109761  0.07709255
+# 6   NA07055 CEU  0.03228450  0.08155730
 
 # draw
 plot(tab$EV2, tab$EV1, col=as.integer(tab$pop),
