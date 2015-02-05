@@ -19,8 +19,8 @@ CHANGES IN VERSION 1.1.0-1.1.7
       other packages
 
     o v1.1.7: snpgdsPCA uses 'DSPEVX' to compute eigenvalues and eigenvectors
-      instead of 'DSPEV' if top eigenvalues are required only (performance
-      improvement)
+      instead of 'DSPEV' if top eigenvalues are required only (significant
+      improvement on computing speed)
 
 
 CHANGES IN VERSION 0.99.1-0.99.3

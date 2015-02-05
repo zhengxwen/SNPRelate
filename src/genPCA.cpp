@@ -1255,6 +1255,83 @@ using namespace PCA;
 
 extern "C"
 {
+
+/// get the eigenvalues and eigenvectors, return 'nProtect'
+static int GetEigen(double *pMat, int n, int nEig, const char *EigMethod,
+	SEXP &EigVal, SEXP &EigVect)
+{
+	int nProtected = 0;
+
+	// the method to compute eigenvalues and eigenvectors
+	if (strcmp(EigMethod, "DSPEV") == 0)
+	{
+		vector<double> tmp_Work(n*3);
+		vector<double> tmp_EigenVec(n*n);
+
+		EigVal = PROTECT(NEW_NUMERIC(n));
+		nProtected ++;
+
+		// DSPEV -- computes all the eigenvalues and, optionally,
+		// eigenvectors of a real symmetric matrix A in packed storage
+
+		int info = 0;
+		F77_NAME(dspev)("V", "L", &n, pMat, REAL(EigVal),
+			&tmp_EigenVec[0], &n, &tmp_Work[0], &info);
+		if (info != 0)
+			throw ErrCoreArray("LAPACK::DSPEV error (INFO: %d)!", info);
+
+		// output eigenvalues
+		vt<double>::Sub(REAL(EigVal), 0.0, REAL(EigVal), n);
+
+		// output eigenvectors
+		EigVect = PROTECT(allocMatrix(REALSXP, n, nEig));
+		nProtected ++;
+
+		for (size_t i=0; i < (size_t)nEig; i++)
+		{
+			memmove(REAL(EigVect) + n*i,
+				&tmp_EigenVec[0] + n*i, sizeof(double)*n);
+		}
+
+	} else if (strcmp(EigMethod, "DSPEVX") == 0)
+	{
+		vector<double> tmp_Work(n*8);
+		vector<int>    tmp_IWork(n*5);
+		vector<double> tmp_Eigen(n);
+
+		EigVal = PROTECT(NEW_NUMERIC(nEig));
+		EigVect = PROTECT(allocMatrix(REALSXP, n, nEig));
+		nProtected += 2;
+
+		// DSPEVX -- compute selected eigenvalues and, optionally,
+		// eigenvectors of a real symmetric matrix A in packed storage
+
+		int IL = 1, IU = nEig, LDZ = n;
+		double VL = 0, VU = 0;
+		int M = 0;
+		// it is suggested: ABSTOL is set to twice the underflow threshold, not zero
+		double ABSTOL = 2 * F77_NAME(dlamch)("S");
+		vector<int> ifail(n);
+		int info = 0;
+
+		F77_NAME(dspevx)("V", "I", "L", &n, pMat,
+			&VL, &VU, &IL, &IU, &ABSTOL,
+			&M, &tmp_Eigen[0], REAL(EigVect), &LDZ,
+			&tmp_Work[0], &tmp_IWork[0], &ifail[0], &info);
+		if (info != 0)
+			throw ErrCoreArray("LAPACK::DSPEVX error (INFO: %d)!", info);
+
+		// output eigenvalues
+		for (int i=0; i < nEig; i++)
+			REAL(EigVal)[i] = -tmp_Eigen[i];
+	} else
+		throw ErrCoreArray("Unknown 'eigen.method'.");
+
+	return nProtected;
+}
+
+
+
 // ========================================================================
 // the functions for Principal Component Analysis (PCA)
 // ========================================================================
@@ -1265,7 +1342,6 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
 	SEXP EigenMethod, SEXP _Verbose)
 {
 	bool verbose = SEXP_Verbose(_Verbose);
-	const char *EigMethod = CHAR(STRING_ELT(EigenMethod, 0));
 
 	COREARRAY_TRY
 
@@ -1326,85 +1402,12 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
 				throw ErrCoreArray("Invalid 'eigen.cnt'.");
 			if (nEig > n) nEig = n;
 
-			// the method to compute eigenvalues and eigenvectors
-			if (strcmp(EigMethod, "DSPEV") == 0)
-			{
-				vector<double> tmp_Work(n*3);
-				vector<double> tmp_EigenVec(n*n);
-
-				SEXP EigVal = PROTECT(NEW_NUMERIC(n));
-				nProtected ++;
-				SET_ELEMENT(rv_ans, 2, EigVal);
-
-				// DSPEV -- computes all the eigenvalues and, optionally,
-				// eigenvectors of a real symmetric matrix A in packed storage
-
-				int info = 0;
-				int _n = n;
-				F77_NAME(dspev)("V", "L", &_n, Cov.get(), REAL(EigVal),
-					&tmp_EigenVec[0], &_n, &tmp_Work[0], &info);
-				if (info != 0)
-				{
-					throw ErrCoreArray(
-						"LAPACK::DSPEV error (INFO: %d)!", info);
-				}
-
-				// output eigenvalues
-				vt<double>::Sub(REAL(EigVal), 0.0, REAL(EigVal), n);
-
-				// output eigenvectors
-				SEXP EigVect = PROTECT(allocMatrix(REALSXP, n, nEig));
-				nProtected ++;
-				SET_ELEMENT(rv_ans, 3, EigVect);
-
-				for (int i=0; i < nEig; i++)
-				{
-					memmove(REAL(EigVect) + n*i,
-						&tmp_EigenVec[0] + n*i, sizeof(double)*n);
-				}
-
-			} else if (strcmp(EigMethod, "DSPEVX") == 0)
-			{
-				vector<double> tmp_Work(n*8);
-				vector<int>    tmp_IWork(n*5);
-				vector<double> tmp_Eigen(n);
-
-				SEXP EigVal = PROTECT(NEW_NUMERIC(nEig));
-				SET_ELEMENT(rv_ans, 2, EigVal);
-				SEXP EigVect = PROTECT(allocMatrix(REALSXP, n, nEig));
-				SET_ELEMENT(rv_ans, 3, EigVect);
-				nProtected += 2;
-
-				// memset(&tmp_Eigen[0], 0, sizeof(double)*n);
-				// memset(REAL(EigVect), 0, sizeof(double)*size_t(n)*nEig);
-
-				// DSPEVX -- compute selected eigenvalues and, optionally,
-				// eigenvectors of a real symmetric matrix A in packed storage
-
-				int _n = n;
-				int IL = 1, IU = nEig, LDZ = n;
-				double VL = 0, VU = 0;
-				int M = 0;
-				// it is suggested: ABSTOL is set to twice the underflow threshold, not zero
-				double ABSTOL = 2 * F77_NAME(dlamch)("S");
-				vector<int> ifail(n);
-				int info = 0;
-
-				F77_NAME(dspevx)("V", "I", "L", &_n, Cov.get(),
-					&VL, &VU, &IL, &IU, &ABSTOL,
-					&M, &tmp_Eigen[0], REAL(EigVect), &LDZ,
-					&tmp_Work[0], &tmp_IWork[0], &ifail[0], &info);
-				if (info != 0)
-				{
-					throw ErrCoreArray(
-						"LAPACK::DSPEVX error (INFO: %d)!", info);
-				}
-
-				// output eigenvalues
-				for (int i=0; i < nEig; i++)
-					REAL(EigVal)[i] = -tmp_Eigen[i];
-			} else
-				throw ErrCoreArray("Unknown 'eigen.method'.");
+			SEXP EigVal  = R_NilValue;
+			SEXP EigVect = R_NilValue;
+			nProtected += GetEigen(Cov.get(), n, nEig,
+				CHAR(STRING_ELT(EigenMethod, 0)), EigVal, EigVect);
+			SET_ELEMENT(rv_ans, 2, EigVal);
+			SET_ELEMENT(rv_ans, 3, EigVect);
 
 			if (verbose)
 			{

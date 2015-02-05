@@ -37,7 +37,9 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         compute the eigenvalues and eigenvectors}
     \item{eigen.method}{"DSPEVX" -- compute the top \code{eigen.cnt}
         eigenvalues and eigenvectors using LAPACK::DSPEVX; "DSPEV" -- to be
-        compatible with SNPRelate_1.1.6 or earlier, using LAPACK::DSPEV}
+        compatible with SNPRelate_1.1.6 or earlier, using LAPACK::DSPEV;
+        "DSPEVX" is significantly faster than "DSPEV" if only top principal
+        components are of interest}
     \item{verbose}{if TRUE, show information}
 }
 \details{
