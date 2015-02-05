@@ -1,9 +1,32 @@
+## See https://github.com/metacran/r-builder for details.
+
 language: cpp
-script: ./travis-tool.sh run_tests
-before_script:
-  - curl -OL http://raw.github.com/craigcitro/r-travis/master/scripts/travis-tool.sh
-  - chmod 755 ./travis-tool.sh
-  - ./travis-tool.sh bootstrap
-  - ./travis-tool.sh github_package zhengxwen/gdsfmt
-  - ./travis-tool.sh install_deps
-  - ./travis-tool.sh bioc_install BiocStyle BiocGenerics
+
+before_install:
+  - curl -OL https://raw.githubusercontent.com/metacran/r-builder/master/pkg-build.sh
+  - chmod 755 pkg-build.sh
+  - ./pkg-build.sh bootstrap
+
+install:
+  - ./pkg-build.sh install_github zhengxwen/gdsfmt
+  - ./pkg-build.sh install_deps
+  - ./pkg-build.sh install_bioc_deps
+
+script:
+  - ./pkg-build.sh run_tests
+
+after_failure:
+  - ./pkg-build.sh dump_logs
+
+notifications:
+  email:
+    on_success: change
+    on_failure: change
+
+env:
+  matrix:
+    - RVERSION=3.0.3
+    - RVERSION=3.1.1
+    - RVERSION=3.1.2
+    - RVERSION=devel
+

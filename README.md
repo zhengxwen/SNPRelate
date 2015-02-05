@@ -1,8 +1,6 @@
 SNPRelate: Parallel computing toolset for relatedness and principal component analysis of SNP data
 ====
 
-Version: 1.1.7
-
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 
 
@@ -13,7 +11,11 @@ Genome-wide association studies are widely used to investigate the genetic basis
 
 ## Bioconductor:
 
-Development Version:
+Release Version: v1.0.1
+
+[http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
+
+Development Version: v1.1.7
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
