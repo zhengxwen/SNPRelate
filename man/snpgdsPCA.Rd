@@ -52,14 +52,14 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{snp.id}{the SNP ids used in the analysis}
     \item{eigenval}{eigenvalues}
     \item{eigenvect}{eigenvactors, "# of samples" x "eigen.cnt"}
-    \item{varprop}{variance proportion for each PC}
+    \item{varprop}{variance proportion for each principal component}
     \item{TraceXTX}{the trace of the genetic covariance matrix}
     \item{Bayesian}{whether use bayerisan normalization}
     \item{genmat}{the genetic covariance matrix}
 }
 \references{
-    Patterson N, Price AL, Reich D (2006)
-    Population structure and eigenanalysis. PLoS Genetics 2:e190.
+    Patterson, N., Price, A. L. & Reich, D.
+    Population structure and eigenanalysis. PLoS Genet. 2, e190 (2006).
 }
 \author{Xiuwen Zheng}
 \seealso{

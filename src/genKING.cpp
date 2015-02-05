@@ -405,6 +405,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
 
 	COREARRAY_CATCH
 }
+
 }
 
 #endif  /* _H_IBD_KING_ */

@@ -540,6 +540,36 @@ snpgdsSampMissRate <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 }
 
 
+#######################################################################
+# To calculate the p-value for the test of Hardy-Weinberg Equilibrium
+#
+
+snpgdsHWE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
+    with.id=FALSE)
+{
+    # check
+    ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id)
+    stopifnot(is.logical(with.id))
+
+    # call C function
+    rv <- .Call(gnrHWE)
+
+    if (with.id)
+    {
+        rv <- list(pvalue = rv)
+
+        rv$sample.id <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
+        if (!is.null(ws$samp.flag))
+            rv$sample.id <- rv$sample.id[ws$samp.flag]
+
+        rv$snp.id <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+        if (!is.null(ws$snp.flag))
+            rv$snp.id <- rv$snp.id[ws$snp.flag]
+    }
+
+    rv
+}
+
 
 #######################################################################
 # Return a list of candidate SNPs

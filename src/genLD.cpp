@@ -145,7 +145,8 @@ namespace LD
 			/// The sum of X*Y for a pair of SNPs in the packed genotypes
 			PACKED_COND((b1 < 3) && (b2 < 3), Sum_XY_SNP, sum += b1*b2);
 
-			static int IncArray[9][5] = {
+			static int IncArray[9][5] =
+			{
 				{ 0, 0, 0, 2, 0 }, // BB, BB
 				{ 0, 0, 1, 1, 0 }, // BB, AB
 				{ 0, 0, 2, 0, 0 }, // BB, AA
@@ -757,7 +758,7 @@ using namespace LD;
 
 extern "C"
 {
-// ***********************************************************************
+// =======================================================================
 // the functions for linkage disequilibrium (LD)
 //
 

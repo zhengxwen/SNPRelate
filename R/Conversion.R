@@ -196,7 +196,7 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL,
         # XY   Pseudo-autosomal region of X    -> 25
         # MT   Mitochondrial                   -> 26
 
-        xchr[xchr=="X"] <- "23"; xchr[xchr=="Y"] <- "24"
+        xchr[xchr=="X"]  <- "23"; xchr[xchr=="Y"] <- "24"
         xchr[xchr=="XY"] <- "25"; xchr[xchr=="M"] <- "26"
         xchr[xchr=="MT"] <- "26"
     }

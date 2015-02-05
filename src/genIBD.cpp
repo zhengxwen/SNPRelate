@@ -295,7 +295,7 @@ namespace IBD
 
 
 
-	// **************************************************************** //
+	// ================================================================ //
 
 	/// Output the probability of IBS given by IBD
 	/** \param g1  the first genotype (0 -- BB, 1 -- AB, 2 -- AA, other missing)
@@ -365,7 +365,7 @@ namespace IBD
 		}
 
 
-	// ****************** MLE - EM algorithm ******************
+	// ==================  MLE - EM algorithm  ==================
 
 	static void EM_Prepare(double *PrIBD, C_UInt8 *p1, C_UInt8 *p2)
 	{
@@ -510,7 +510,7 @@ namespace IBD
 	}
 
 
-	// ****************** MLE - downhill simplex algorithm ******************
+	// ================== MLE - downhill simplex algorithm ==================
 
 	static void NM_Prepare(double *pr, C_UInt8 *p1, C_UInt8 *p2)
 	{
@@ -707,7 +707,7 @@ namespace IBD
 	}
 
 
-	// *************** MLE - EM algorithm for Jacquard's IBD ***************
+	// =============== MLE - EM algorithm for Jacquard's IBD ===============
 
 	/// Output the probability of IBS given by IBD
 	/** \param g1  the first genotype (0 -- BB, 1 -- AB, 2 -- AA, other missing)
@@ -1352,10 +1352,10 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE(SEXP AlleleFreq, SEXP KinshipConstraint,
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// ========  To cache the genotype data  ========
 		CachingSNPData("MLE IBD", verbose);
 
-		// ******** MLE IBD ********
+		// ======== MLE IBD ========
 
 		vector<int> tmp_buffer;
 		vector<double> tmp_AF;
@@ -1439,10 +1439,10 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE_Jacquard(SEXP AlleleFreq, SEXP MaxIterCnt,
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// ======== To cache the genotype data ========
 		CachingSNPData("MLE IBD", verbose);
 
-		// ******** MLE IBD ********
+		// ======== MLE IBD ========
 
 		vector<int> tmp_buffer;
 		vector<double> tmp_AF;
@@ -1588,7 +1588,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_LogLik(SEXP AlleleFreq, SEXP k0, SEXP k1)
 		vector<double> tmp_AF;
 		IBD_Init_Buffer(tmp_buffer, tmp_AF);
 
-		// ******** MLE IBD ********
+		// ======== MLE IBD ========
 		// initialize the packed genotypes
 		IBD::InitPackedGeno(&(tmp_buffer[0]));
 
@@ -1612,7 +1612,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_LogLik_k01(SEXP AlleleFreq, SEXP k0, SEXP k1)
 		vector<double> tmp_AF;
 		IBD_Init_Buffer(tmp_buffer, tmp_AF);
 
-		// ******** MLE IBD ********
+		// ======== MLE IBD ========
 		// initialize the packed genotypes
 		IBD::InitPackedGeno(&(tmp_buffer[0]));
 

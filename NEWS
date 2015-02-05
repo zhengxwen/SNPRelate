@@ -13,6 +13,8 @@ CHANGES IN VERSION 1.1.0-1.1.7
 
     o add an option 'ignore.chr.prefix' to the function 'snpgdsVCF2GDS'
 
+    o a new function 'snpgdsHWE'
+
     o v1.1.5: add 'Fst estimation' to the vignette
 
     o v1.1.6: bug fix if 'requireNamespace("SNPRelate")' is called from
