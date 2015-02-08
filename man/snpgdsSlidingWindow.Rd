@@ -10,7 +10,7 @@
 snpgdsSlidingWindow(gdsobj, sample.id=NULL, snp.id=NULL,
     FUN=NULL, winsize=100000L, shift=10000L, unit=c("basepair", "locus"),
     winstart=NULL, autosome.only=FALSE, remove.monosnp=TRUE, maf=NaN,
-    missing.rate=NaN, as.is=c("list", "numeric"),
+    missing.rate=NaN, as.is=c("list", "numeric", "array"),
     with.id=c("snp.id", "snp.id.in.window", "none"), num.thread=1,
     verbose=TRUE, ...)
 }
@@ -38,13 +38,23 @@ snpgdsSlidingWindow(gdsobj, sample.id=NULL, snp.id=NULL,
     \item{maf}{to use the SNPs with ">= maf" only; if NaN, no MAF threshold}
     \item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN,
         no missing threshold}
-    \item{as.is}{save the value returned from \code{FUN} as \code{list} or
-        \code{double}}
+    \item{as.is}{save the value returned from \code{FUN} as "list" or
+        "numeric"; "array" is equivalent to "numeric" except some cases,
+        see details}
     \item{with.id}{"snp.id", "snp.id.in.window" or "none"}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
     \item{verbose}{if TRUE, show information}
     \item{...}{optional arguments to \code{FUN}}
+}
+\details{
+    If \code{FUN="snpgdsFst"}, two additional arguments \code{"population"} and
+\code{"method"} should be specified. \code{"population"} and \code{"method"}
+are defined in \code{\link{snpgdsFst}}. \code{"as.is"} could be "list" (returns
+a list of the values from \code{\link{snpgdsFst}}), "numeric" (
+population-average Fst, returns a vector) or "array" (population-average and
+-specific Fst, returns a `# of pop + 1'-by-`# of windows' matrix, and the first
+row is population-average Fst).
 }
 \value{
     Return a list

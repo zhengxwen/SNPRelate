@@ -27,7 +27,7 @@ otherwise, return a list with three components "pvalue", "sample.id" and
 \references{
     Wigginton, J. E., Cutler, D. J. & Abecasis, G. R.
     A note on exact tests of Hardy-Weinberg equilibrium.
-    Am. J. Hum. Genet. 76, 887–93 (2005).
+    Am. J. Hum. Genet. 76, 887-93 (2005).
 }
 \author{Xiuwen Zheng, Janis E. Wigginton}
 \seealso{

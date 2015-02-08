@@ -1308,13 +1308,47 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	nWin = TempL / shift;
 	if (TempL % shift) nWin ++;
 
+	// get the parameter
+	SEXP PL[64];
+	for (int i=0; i < 64; i++) PL[i] = R_NilValue;
+	switch (FunIdx)
+	{
+	case 1:	 // snpgdsFst
+		PL[0] = GetListElement(Param, "population");
+		PL[1] = GetListElement(Param, "npop");
+		PL[2] = GetListElement(Param, "method");
+		break;
+	}
+
 	// rvlist
-	SEXP rvlist;
-	bool is_list = (strcmp(c_AsIs, "list") == 0);
-	if (is_list)
+	SEXP rvlist = R_NilValue;
+	int as_i = -1;
+	if (strcmp(c_AsIs, "list") == 0)
+	{
+		as_i = 0;
 		rvlist = PROTECT(NEW_LIST(nWin));
-	else
+	} else if (strcmp(c_AsIs, "numeric") == 0)
+	{
+		as_i = 1;
 		rvlist = PROTECT(NEW_NUMERIC(nWin));
+	} else if (strcmp(c_AsIs, "array") == 0)
+	{
+		switch (FunIdx)
+		{
+		case 1:	 // snpgdsFst
+			rvlist = PROTECT(allocMatrix(REALSXP, Rf_asInteger(PL[1])+1, nWin));
+			break;
+		default:
+			rvlist = PROTECT(NEW_NUMERIC(nWin));
+		}
+		as_i = 2;
+	}
+	if (Rf_isNumeric(rvlist))
+	{
+		double *p = REAL(rvlist);
+		size_t n = XLENGTH(rvlist);
+		for (size_t i=0; i < n; i++) p[i] = R_NaN;
+	}
 	SET_ELEMENT(ans_rv, 0, rvlist);
 	nProtected ++;
 
@@ -1327,18 +1361,6 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	SEXP poslist = PROTECT(NEW_NUMERIC(nWin));
 	SET_ELEMENT(ans_rv, 2, poslist);
 	nProtected ++;
-
-	// get the parameter
-	SEXP PL[64];
-	for (int i=0; i < 64; i++) PL[i] = R_NilValue;
-	switch (FunIdx)
-	{
-	case 1:	 // snpgdsFst
-		PL[0] = GetListElement(Param, "population");
-		PL[1] = GetListElement(Param, "npop");
-		PL[2] = GetListElement(Param, "method");
-		break;
-	}
 
 	// for-loop
 	int x = PosMin, iWin = 0;
@@ -1388,24 +1410,33 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 		INTEGER(nlist)[iWin] = num;
 		if (num > 0)
 		{
-			SEXP rv = R_NilValue;
+			SEXP rv;
 			switch (FunIdx)
 			{
 			case 1:	 // snpgdsFst
 				rv = gnrFst(PL[0], PL[1], PL[2]);
-				if (!is_list) rv = VECTOR_ELT(rv, 0);
-				break;
+				switch (as_i)
+				{
+					case 0:  // list
+						SET_ELEMENT(rvlist, iWin, rv);
+						break;
+					case 1:  // numeric
+						REAL(rvlist)[iWin] = Rf_asReal(VECTOR_ELT(rv, 0));
+						break;
+					case 2:  // array
+						int m  = Rf_asInteger(PL[1]);
+						int mk = m + 1;
+						double *p = REAL(rvlist);
+						double *s = REAL(VECTOR_ELT(rv, 1));
+						p[iWin*mk + 0] = Rf_asReal(VECTOR_ELT(rv, 0));
+						for (int k=0; k < m; k++)
+							p[iWin*mk + k + 1] = s[k*m + k];
+						break;
+				}
 			}
 
-			// save to rvlist
-			if (is_list)
-				SET_ELEMENT(rvlist, iWin, rv);
-			else
-				REAL(rvlist)[iWin] = asReal(rv);
 			REAL(poslist)[iWin] = pos_sum / num;
 		} else {
-			if (!is_list)
-				REAL(rvlist)[iWin] = R_NaN;
 			REAL(poslist)[iWin] = R_NaN;
 		}
 

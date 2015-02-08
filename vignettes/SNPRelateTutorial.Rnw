@@ -4,7 +4,7 @@
 %\VignettePackage{SNPRelate}
 %\VignetteEngine{knitr::knitr}
 
-\documentclass[12pt]{article}
+\documentclass[11pt]{article}
 
 <<style, eval=TRUE, echo=FALSE, results="asis">>=
 BiocStyle::latex()

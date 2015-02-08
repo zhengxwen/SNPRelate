@@ -8,7 +8,7 @@
 }
 \usage{
 snpgdsCreateGenoSet(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
-    snpfirstdim=NULL, compress.annotation="ZIP.max", compress.geno="",
+    snpfirstdim=NULL, compress.annotation="ZIP_RA.max", compress.geno="",
     verbose=TRUE)
 }
 \arguments{

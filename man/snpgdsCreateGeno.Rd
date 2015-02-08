@@ -9,7 +9,7 @@
 \usage{
 snpgdsCreateGeno(gds.fn, genmat, sample.id=NULL, snp.id=NULL, snp.rs.id=NULL,
     snp.chromosome=NULL, snp.position=NULL, snp.allele=NULL, snpfirstdim=TRUE,
-    compress.annotation="ZIP.max", compress.geno="", other.vars=NULL)
+    compress.annotation="ZIP_RA.max", compress.geno="", other.vars=NULL)
 }
 \arguments{
     \item{gds.fn}{the file name of gds}

@@ -1334,7 +1334,7 @@ snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
 snpgdsCreateGeno <- function(gds.fn, genmat, sample.id=NULL, snp.id=NULL,
     snp.rs.id=NULL, snp.chromosome=NULL, snp.position=NULL, snp.allele=NULL,
-    snpfirstdim=TRUE, compress.annotation="ZIP.max", compress.geno="",
+    snpfirstdim=TRUE, compress.annotation="ZIP_RA.max", compress.geno="",
     other.vars=NULL)
 {
     # check
@@ -1445,7 +1445,7 @@ snpgdsCreateGeno <- function(gds.fn, genmat, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
-    snpfirstdim=NULL, compress.annotation="ZIP.max", compress.geno="",
+    snpfirstdim=NULL, compress.annotation="ZIP_RA.max", compress.geno="",
     verbose=TRUE)
 {
     # check
@@ -1586,7 +1586,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 
 snpgdsCombineGeno <- function(gds.fn, out.fn,
     sample.id=NULL, snpobj=NULL, name.prefix=NULL,
-    snpfirstdim=TRUE, compress.annotation="ZIP.MAX", compress.geno="",
+    snpfirstdim=TRUE, compress.annotation="ZIP_RA.MAX", compress.geno="",
     other.vars=NULL, verbose=TRUE)
 {
     # check
@@ -1841,7 +1841,7 @@ snpgdsTranspose <- function(gds.fn, snpfirstdim=FALSE, compress=NULL,
             storage=desp$storage, valdim=dm, compress=compress)
 
         # write data
-        apply.gdsn(node, margin=1, FUN=`c`, as.is="gdsnode",
+        apply.gdsn(node, margin=1, FUN=c, as.is="gdsnode",
             target.node=newnode, .useraw=TRUE)
         readmode.gdsn(newnode)
 
@@ -1924,7 +1924,7 @@ snpgdsAlleleSwitch <- function(gdsobj, A.allele, verbose=TRUE)
 
     # new alleles
     newnode <- add.gdsn(gdsobj, "!snp.allele", storage="string", valdim=c(0),
-        compress="ZIP.max")
+        compress="ZIP_RA.max")
 
     snpfirstdim <- TRUE
     rd <- names(get.attr.gdsn(geno.node))
@@ -2202,7 +2202,7 @@ snpgdsOption <- function(gdsobj=NULL, autosome.start=1L, autosome.end=22L, ...)
 snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     FUN=NULL, winsize=100000L, shift=10000L, unit=c("basepair", "locus"),
     winstart=NULL, autosome.only=FALSE, remove.monosnp=TRUE, maf=NaN,
-    missing.rate=NaN, as.is=c("list", "numeric"),
+    missing.rate=NaN, as.is=c("list", "numeric", "array"),
     with.id=c("snp.id", "snp.id.in.window", "none"), num.thread=1,
     verbose=TRUE, ...)
 {
@@ -2252,7 +2252,22 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     {
         pm <- list(...)
         param <- switch(EXPR = FUN,
-            snpgdsFst = .paramFst(sample.id, pm$population, pm$method, ws)
+            snpgdsFst = {
+                v <- .paramFst(sample.id, pm$population, pm$method, ws)
+                if (is.null(pm$type))
+                    v$type <- "Fst"
+                else if (is.character(pm$type))
+                {
+                    v$type <- pm$type[1]
+                    if (!(v$type %in% c("Fst", "PopFst", "list")))
+                    {
+                        stop("'type' should be a character ",
+                            "\"Fst\", \"PopFst\" or \"list\".")
+                    }
+                } else
+                    stop("'type' should be a character or NULL.")
+                v
+            }
         )
     }
 
