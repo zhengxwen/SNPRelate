@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.1.0-1.1.7
+CHANGES IN VERSION 1.1.0-1.1.8
 -------------------------
 
     o fix a bug in snpgdsVCF2GDS when 'method="biallelic.only"'
@@ -23,6 +23,8 @@ CHANGES IN VERSION 1.1.0-1.1.7
     o v1.1.7: snpgdsPCA uses 'DSPEVX' to compute eigenvalues and eigenvectors
       instead of 'DSPEV' if top eigenvalues are required only (significant
       improvement on computing speed)
+
+    o v1.1.8: the original Rnw vignette is replaced by a R Markdown vignette
 
 
 CHANGES IN VERSION 0.99.1-0.99.3

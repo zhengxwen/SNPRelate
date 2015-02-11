@@ -2070,11 +2070,11 @@ snpgdsDrawTree <- function(obj, clust.count=NULL, dend.idx=NULL,
             h1 <- (1 - 0.5)*y.kinship.baseline
             abline(h=h1, lty=2, col="gray")
 
-            # parent–child / full-siblings
+            # parent-child / full-siblings
             h2 <- (1 - 0.25)*y.kinship.baseline
             abline(h=h2, lty=2, col="gray")
 
-            # parent–child / full-siblings
+            # parent-child / full-siblings
             h3 <- (1 - 1/8)*y.kinship.baseline
             abline(h=h3, lty=2, col="gray")
 

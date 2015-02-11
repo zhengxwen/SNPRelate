@@ -26,7 +26,7 @@ written in C/C++ and highly optimized.
     Webpage: \url{http://github.com/zhengxwen/SNPRelate},
         \url{http://corearray.sourceforge.net/}
 
-    Tutorial: \url{http://corearray.sourceforge.net/materials/SNPRelate/}
+    Tutorial: \url{http://corearray.sourceforge.net/tutorials/SNPRelate/}
 }
 \references{
     Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS.
