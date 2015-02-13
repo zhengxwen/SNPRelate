@@ -3,10 +3,10 @@ Type: Package
 Title: Parallel computing toolset for relatedness and principal
         component analysis of SNP data
 Version: 1.1.8
-Date: 2015-02-11
+Date: 2015-02-12
 Depends: R (>= 2.14), gdsfmt (>= 1.2.2)
 LinkingTo: gdsfmt
-Suggests: parallel, RUnit, lattice, BiocStyle, BiocGenerics, knitr
+Suggests: parallel, RUnit, knitr, MASS, BiocGenerics
 Authors@R: c(person("Xiuwen", "Zheng", role=c("aut", "cre"),
         email="zhengx@u.washington.edu"),
         person("Stephanie", "Gogarten", role="ctb"),

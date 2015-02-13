@@ -7,7 +7,7 @@
     Calculate relatedness measures (like Fst) for specified populations
 }
 \usage{
-snpgdsFst(gdsobj, population, method=c("W&B02", "W&C84"), sample.id=NULL,
+snpgdsFst(gdsobj, population, method=c("W&H02", "W&C84"), sample.id=NULL,
     snp.id=NULL, autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN,
     missing.rate=NaN, with.id=FALSE, verbose=TRUE)
 }
@@ -16,7 +16,7 @@ snpgdsFst(gdsobj, population, method=c("W&B02", "W&C84"), sample.id=NULL,
         a SNP GDS file}
     \item{population}{a factor, indicating population information for each
         individual}
-    \item{method}{\code{"W&B02"} -- relative beta estimator in Weir&Hill 2002,
+    \item{method}{\code{"W&H02"} -- relative beta estimator in Weir&Hill 2002,
         \code{"W&C84"} -- Fst estimator in Weir&Cockerham 1984}
     \item{sample.id}{a vector of sample id specifying selected samples;
         if NULL, all samples are used}
@@ -62,7 +62,7 @@ group <- as.factor(read.gdsn(index.gdsn(
     genofile, "sample.annot/pop.group")))
 
 # Fst estimation
-snpgdsFst(genofile, population=group, method="W&B02")
+snpgdsFst(genofile, population=group, method="W&H02")
 
 # or
 snpgdsFst(genofile, population=group, method="W&C84")

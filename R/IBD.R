@@ -544,7 +544,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 # F_st estimation
 #
 
-.paramFst <- function(sample.id, population, method=c("W&B02", "W&C84"), ws)
+.paramFst <- function(sample.id, population, method=c("W&H02", "W&C84"), ws)
 {
     method <- match.arg(method)
     stopifnot(is.factor(population))
@@ -582,7 +582,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     list(population=population, npop=nlevels(population), method=method)
 }
 
-snpgdsFst <- function(gdsobj, population, method=c("W&B02", "W&C84"),
+snpgdsFst <- function(gdsobj, population, method=c("W&H02", "W&C84"),
     sample.id=NULL, snp.id=NULL, autosome.only=TRUE, remove.monosnp=TRUE,
     maf=NaN, missing.rate=NaN, with.id=FALSE, verbose=TRUE)
 {
@@ -606,7 +606,7 @@ snpgdsFst <- function(gdsobj, population, method=c("W&B02", "W&C84"),
     else
         list()
     rv$Fst <- d[[1L]]
-    if (method == "W&B02")
+    if (method == "W&H02")
     {
         rv$Beta <- d[[2L]]
         colnames(rv$Beta) <- rownames(rv$Beta) <- levels(population)

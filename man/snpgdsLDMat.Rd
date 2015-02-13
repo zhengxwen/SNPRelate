@@ -60,8 +60,6 @@ sliding window.
 }
 
 \examples{
-library(lattice)
-
 # open an example dataset (HapMap)
 genofile <- snpgdsOpen(snpgdsExampleFileName())
 
@@ -73,12 +71,12 @@ length(snpset)
 # LD matrix without sliding window
 ld.noslide <- snpgdsLDMat(genofile, snp.id=snpset, slide=-1, method="composite")
 # plot
-levelplot(t(ld.noslide$LD^2), col.regions = terrain.colors)
+image(t(ld.noslide$LD^2), col=terrain.colors(16))
 
 # LD matrix with a sliding window
 ld.slide <- snpgdsLDMat(genofile, snp.id=snpset, method="composite")
 # plot
-levelplot(t(ld.slide$LD^2), col.regions = terrain.colors)
+image(t(ld.slide$LD^2), col=terrain.colors(16))
 
 
 # close the genotype file

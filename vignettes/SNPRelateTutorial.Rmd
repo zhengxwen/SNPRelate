@@ -1,5 +1,5 @@
 ---
-title: "Tutorial for the R/Bioconductor Package SNPRelate"
+title: "Tutorials for the R/Bioconductor Package SNPRelate"
 author: "Xiuwen Zheng (Department of Biostatistics, University of Washington, Seattle)"
 date: "Feb 11, 2015"
 output:
@@ -18,7 +18,7 @@ vignette: >
 
 # Overview
 
-Genome-wide association studies (GWAS) are widely used to help determine the genetic basis of diseases and traits, but they pose many computational challenges. We developed [gdsfmt](http://www.bioconductor.org/packages/release/bioc/html/gdsfmt.html) and [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html) (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures^1^. The kernels of our algorithms are written in C/C++ and have been highly optimized. The calculations of the genetic covariance matrix in PCA and pairwise IBD coefficients are split into non-overlapping parts and assigned to multiple cores for performance acceleration, as shown in Figure 1. Benchmarks show the uniprocessor implementations of PCA and IBD are ~8 to 50 times faster than the implementations provided in **EIGENSTRAT** (v3.0) and [**PLINK**](http://pngu.mgh.harvard.edu/~purcell/plink/) (v1.07) programs respectively, and can be sped up to 30~300 folds by utilizing multiple cores.
+Genome-wide association studies (GWAS) are widely used to help determine the genetic basis of diseases and traits, but they pose many computational challenges. We developed [gdsfmt](http://www.bioconductor.org/packages/release/bioc/html/gdsfmt.html) and [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html) (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures^1^. The kernels of our algorithms are written in C/C++ and have been highly optimized. The calculations of the genetic covariance matrix in PCA and pairwise IBD coefficients are split into non-overlapping parts and assigned to multiple cores for performance acceleration, as shown in Figure 1.
 
 GDS is also used by an R/Bioconductor package [GWASTools](http://www.bioconductor.org/packages/release/bioc/html/GWASTools.html) as one of its data storage formats^2,3^. [GWASTools](http://www.bioconductor.org/packages/release/bioc/html/GWASTools.html) provides many functions for quality control and analysis of GWAS, including statistics by SNP or scan, batch quality, chromosome anomalies, association tests, etc.
 
@@ -52,6 +52,7 @@ library("devtools")
 install_github("zhengxwen/gdsfmt")
 install_github("zhengxwen/SNPRelate")
 ```
+The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the [R FAQ](http://cran.r-project.org/faqs.html) for your operating system; you may also need to install dependencies manually.
 
 
 
@@ -93,7 +94,7 @@ Users can define the numeric chromosome codes which are stored with the variable
 # Get the attributes of chromosome coding
 get.attr.gdsn(index.gdsn(genofile, "snp.chromosome"))
 ```
-*autosome.start* is the starting numeric code of autosomes, and *autosome.end* is the last numeric code of autosomes. `put.attr.gdsn` can be used to add a new attribute or modify an existing attribute.
+*autosome.start* is the starting numeric code of autosomes, and *autosome.end* is the last numeric code of autosomes. `put.attr.gdsn()` can be used to add a new attribute or modify an existing attribute.
 
 There are four possible values stored in the variable *genotype*: 0, 1, 2 and 3. For bi-allelic SNP sites, "0" indicates two B alleles, "1" indicates one A allele and one B allele, "2" indicates two A alleles, and "3" is a missing genotype. For multi-allelic sites, it is a count of the reference allele (3 meaning no call). "Bit2" indicates that each byte encodes up to four SNP genotypes since one byte consists of eight bits.
 ```{r}
@@ -119,10 +120,11 @@ head(read.gdsn(index.gdsn(genofile, "snp.rs.id")))
 ```
 
 There are two additional and optional variables:
-* *snp.rs.id*, a character string for reference SNP ID that may not be unique.
-* *snp.allele*, it is not necessary for the analysis, but it is necessary when merging genotypes from different platforms. The format of *snp.allele* is "A allele/B allele", like "T/G" where T is A allele and G is B allele.
 
-The information of sample annotation can be obtained by the same function `read.gdsn`. For example, population information. "FStr8" indicates a character-type variable.
+1. *snp.rs.id*, a character string for reference SNP ID that may not be unique.
+2. *snp.allele*, it is not necessary for the analysis, but it is necessary when merging genotypes from different platforms. The format of *snp.allele* is "A allele/B allele", like "T/G" where T is A allele and G is B allele.
+
+The information of sample annotation can be obtained by the same function `read.gdsn()`. For example, population information. "FStr8" indicates a character-type variable.
 ```{r}
 # Read population information
 pop <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"))
@@ -302,6 +304,8 @@ genofile <- snpgdsOpen(snpgdsExampleFileName())
 #   if it is stored in a text file "pop.txt"
 pop_code <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"))
 
+table(pop_code)
+
 # Display the first six values
 head(pop_code)
 ```
@@ -324,16 +328,16 @@ snpset.id <- unlist(snpset)
 ```
 
 
-## Principal Component Analysis
+## Principal Component Analysis (PCA)
 
 The functions in [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html) for PCA include calculating the genetic covariance matrix from genotypes, computing the correlation coefficients between sample loadings and genotypes for each SNP, calculating SNP eigenvectors (loadings), and estimating the sample loadings of a new dataset from specified SNP eigenvectors.
 
 ```{r}
 # Run PCA
-pca <- snpgdsPCA(genofile)
+pca <- snpgdsPCA(genofile, snp.id=snpset.id, num.thread=2)
 ```
 
-The code below shows how to calculate the percent of variation is accounted for by the principal component for the first 16 PCs. It is clear to see the first two eigenvectors hold the largest percentage of variance among the population, although the total variance accounted for is still less the one-quarter of the total.
+The code below shows how to calculate the percent of variation is accounted for by the top principal components. It is clear to see the first two eigenvectors hold the largest percentage of variance among the population, although the total variance accounted for is still less the one-quarter of the total.
 ```{r}
 # variance proportion (%)
 pc.percent <- pca$varprop*100
@@ -377,8 +381,7 @@ tab <- data.frame(sample.id = pca$sample.id,
 head(tab)
 
 # Draw
-plot(tab$EV2, tab$EV1, col=as.integer(tab$pop),
-    xlab="eigenvector 2", ylab="eigenvector 1")
+plot(tab$EV2, tab$EV1, col=as.integer(tab$pop), xlab="eigenvector 2", ylab="eigenvector 1")
 legend("bottomright", legend=levels(tab$pop), pch="o", col=1:nlevels(tab$pop))
 ```
 
@@ -387,6 +390,15 @@ Plot the principal component pairs for the first four PCs:
 lbls <- paste("PC", 1:4, "\n", format(pc.percent[1:4], digits=2), "%", sep="")
 pairs(pca$eigenvect[,1:4], col=tab$pop, labels=lbls)
 ```
+
+Parallel coordinates plot for the top principal components:
+```{r fig.width=8, fig.height=5, fig.align='center'}
+library(MASS)
+
+datpop <- factor(pop_code)[match(pca$sample.id, sample.id)]
+parcoord(pca$eigenvect[,1:16], col=datpop)
+```
+
 
 To calculate the SNP correlations between eigenvactors and SNP genotypes:
 ```{r fig.width=8, fig.height=5, fig.align='center'}
@@ -452,7 +464,7 @@ YRI.id <- sample.id[pop_code == "YRI"]
 ```{r fig.width=5, fig.height=5, fig.align='center'}
 # Estimate IBD coefficients
 ibd <- snpgdsIBDMoM(genofile, sample.id=YRI.id, snp.id=snpset.id,
-    maf=0.05, missing.rate=0.05)
+    maf=0.05, missing.rate=0.05, num.thread=2)
 
 # Make a data.frame
 ibd.coeff <- snpgdsIBDSelection(ibd)
@@ -470,7 +482,7 @@ lines(c(0,1), c(1,0), col="red", lty=2)
 set.seed(100)
 snp.id <- sample(snpset.id, 1500)  # random 1500 SNPs
 ibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snp.id,
-    maf=0.05, missing.rate=0.05)
+    maf=0.05, missing.rate=0.05, num.thread=2)
 
 # Make a data.frame
 ibd.coeff <- snpgdsIBDSelection(ibd)
@@ -489,7 +501,8 @@ family.id <- read.gdsn(index.gdsn(genofile, "sample.annot/family.id"))
 family.id <- family.id[match(YRI.id, sample.id)]
 table(family.id)
 
-ibd.robust <- snpgdsIBDKING(genofile, sample.id=YRI.id, family.id=family.id)
+ibd.robust <- snpgdsIBDKING(genofile, sample.id=YRI.id,
+    family.id=family.id, num.thread=2)
 names(ibd.robust)
 
 # Pairs of individuals
@@ -511,10 +524,10 @@ ibs <- snpgdsIBS(genofile, num.thread=2)
 ```
 The heat map is shown:
 ```{r fig.width=5, fig.height=5, fig.align='center'}
-library(lattice)
+# individulas in the same population are clustered together
+pop.idx <- order(pop_code)
 
-L <- order(pop_code)
-levelplot(ibs$ibs[L, L], col.regions = terrain.colors)
+image(ibs$ibs[pop.idx, pop.idx], col=terrain.colors(16))
 ```
 
 To perform multidimensional scaling analysis on the $n \times n$ matrix of genome-wide IBS pairwise distances:
@@ -578,7 +591,7 @@ unlink("test.gds", force=TRUE)
 # References
 
 1. A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. Xiuwen Zheng; David Levine; Jess Shen; Stephanie M. Gogarten; Cathy Laurie; Bruce S. Weir. Bioinformatics 2012; doi: 10.1093/bioinformatics/bts606.
-2. GWASTools: an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies. Stephanie M. Gogarten, Tushar Bhangale, Matthew P. Conomos, Cecelia A. Laurie, Caitlin P. McHugh, Ian Painter, Xiuwen Zheng, David R. Crosslin, David Levine, Thomas Lumley, Sarah C. Nelson, Kenneth Rice, Jess Shen, Rohit Swarnkar, Bruce S. Weir, and Cathy C. Laurie. Bioinformatics 2012; doi:10.1093/bioinformatics/bts610.
+2. GWASTools: an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies. Stephanie M. Gogarten, Tushar Bhangale, Matthew P. Conomos, Cecelia A. Laurie, Caitlin P. McHugh, Ian Painter, Xiuwen Zheng, David R. Crosslin, David Levine, Thomas Lumley, Sarah C. Nelson, Kenneth Rice, Jess Shen, Rohit Swarnkar, Bruce S. Weir, and Cathy C. Laurie. Bioinformatics 2012.
 3. Quality control and quality assurance in genotypic data for genome-wide association studies. Laurie CC, Doheny KF, Mirel DB, Pugh EW, Bierut LJ, Bhangale T, Boehm F, Caporaso NE, Cornelis MC, Edenberg HJ, Gabriel SB, Harris EL, Hu FB, Jacobs KB, Kraft P, Landi MT, Lumley T, Manolio TA, McHugh C, Painter I, Paschall J, Rice JP, Rice KM, Zheng X, Weir BS; GENEVA Investigators. Genet Epidemiol. 2010 Sep;34(6):591-602.
 
 
