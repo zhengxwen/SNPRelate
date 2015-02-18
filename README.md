@@ -15,7 +15,7 @@ Release Version: v1.0.1
 
 [http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 
-Development Version: v1.1.8
+Development Version: v1.1.9
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
@@ -60,7 +60,7 @@ R CMD INSTALL SNPRelate_latest.tar.gz
 ```
 
 
-* Old CRAN version (v0.9.19) from r-forge repository:
+* Old version (<=v0.9.19) from [R-Forge](http://R-Forge.R-project.org) repository:
 ```R
 install.packages("gdsfmt", repos="http://R-Forge.R-project.org")
 install.packages("SNPRelate", repos="http://R-Forge.R-project.org")

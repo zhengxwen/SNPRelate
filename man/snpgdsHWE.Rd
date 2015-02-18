@@ -38,8 +38,23 @@ otherwise, return a list with three components "pvalue", "sample.id" and
 # open an example dataset (HapMap)
 genofile <- snpgdsOpen(snpgdsExampleFileName())
 
-RV <- snpgdsHWE(genofile)
-summary(RV)
+# Japanese samples
+sample.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
+pop <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
+(samp.sel <- sample.id[pop=="JPT"])
+samp.sel <- samp.sel[nchar(samp.sel) == 7]
+
+# chromosome 1
+snp.id <- snpgdsSelectSNP(genofile, sample.id=samp.sel, autosome.only=1L)
+
+# HWE test
+p <- snpgdsHWE(genofile, sample.id=samp.sel, snp.id=snp.id)
+summary(p)
+
+# QQ plot
+plot(-log10((1:length(p))/length(p)), -log10(p[order(p)]),
+	xlab="-log10(expected P)", ylab="-log10(observed P)", main="QQ plot")
+abline(a=0, b=1, col="blue")
 
 # close the genotype file
 snpgdsClose(genofile)

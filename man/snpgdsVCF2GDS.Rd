@@ -44,8 +44,8 @@ snpgdsVCF2GDS(vcf.fn, out.fn, method=c("biallelic.only", "copy.num.of.ref"),
         storing DNA polymorphism data such as SNPs, insertions, deletions
         and structural variants, together with rich annotations.
 
-    If there are more than one file name in \code{vcf.fn},
-\code{snpgdsVCF2GDS} will merge all dataset together once they all contain
+    If there are more than one file names in \code{vcf.fn},
+\code{snpgdsVCF2GDS} will merge all dataset together if they all contain
 the same samples. It is useful to combine genetic/genomic data together if
 VCF data are divided by chromosomes.
 

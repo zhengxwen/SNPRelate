@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// ConvVCF2GDS.cpp: the conversion from VCF to GDS
+// ConvToGDS.cpp: PED/VCF to GDS format
 //
 // Copyright (C) 2013-2015    Xiuwen Zheng
 //
@@ -22,6 +22,7 @@
 #include <R_GDS_CPP.h>
 #include <string>
 #include <vector>
+#include <map>
 #include <algorithm>
 
 
@@ -47,19 +48,19 @@ COREARRAY_INLINE static string SHORT_TEXT(const char *p, int MaxNum=16)
 }
 
 
-// ###########################################################
+// ======================================================================
 // define 
-// ###########################################################
+// ======================================================================
 
 static const string BlackString;
 
 
-// ###########################################################
+// ======================================================================
 // the structure of read line
-// ###########################################################
+// ======================================================================
 
 /// a class of parsing text
-class CReadLine
+class COREARRAY_DLL_LOCAL CReadLine
 {
 public:
 	/// constructor
@@ -257,9 +258,9 @@ protected:
 
 
 
-// ###########################################################
+// ======================================================================
 // VCF strcture
-// ###########################################################
+// ======================================================================
 
 const static int FIELD_TYPE_INT      = 1;
 const static int FIELD_TYPE_FLOAT    = 2;
@@ -269,7 +270,7 @@ const static int FIELD_TYPE_STRING   = 4;
 
 
 /// the structure of FORMAT field
-struct TVCF_Field_Format
+struct COREARRAY_DLL_LOCAL TVCF_Field_Format
 {
 	string name;           //< FORMAT ID
 	int type;              //< 1: integer, 2: float, 3: flag, 4: character,
@@ -513,9 +514,9 @@ static double getFloat(string &txt, bool RaiseError)
 
 extern "C"
 {
-// ###########################################################
+// ======================================================================
 // Convert from VCF4: VCF4 -> SNP GDS
-// ###########################################################
+// ======================================================================
 
 static C_Int32 GDS_Variant_Index = 0;
 static C_Int32 GDS_Global_Variant_Index = 0;
@@ -542,6 +543,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParseVCF4Init()
 
 
 /** VCF4 --> SNP GDS
+ *
  *  \param vcf_fn            the file names of VCF format
  *  \param gds_root          the root of GDS file
  *  \param method            the method index: 1 -- biallelic.only
@@ -904,6 +906,10 @@ COREARRAY_DLL_EXPORT SEXP gnrParseVCF4(SEXP vcf_fn, SEXP gds_root,
 
 
 
+// ======================================================================
+// Convert from Oxford GEN: GEN -> SNP GDS
+// ======================================================================
+
 /** Oxford GEN --> SNP GDS
  *  \param vcf_fn            the file names of VCF format
  *  \param gds_root          the root of GDS file
@@ -1054,6 +1060,228 @@ COREARRAY_DLL_EXPORT SEXP gnrParseGEN(SEXP gen_fn, SEXP gds_root,
 
 		UNPROTECT(1);
 		rv_ans = ScalarInteger(LN);
+
+	CORE_CATCH({
+		char buf[4096];
+		if (RL.ColumnNo() > 0)
+		{
+			snprintf(buf, sizeof(buf),
+				"\nFILE: %s\n\tLINE: %d, COLUMN: %d, %s\n\t%s",
+				fn, RL.LineNo(), RL.ColumnNo(), cell.c_str(),
+				GDS_GetError());
+		} else {
+			snprintf(buf, sizeof(buf), "\nFILE: %s\n\tLINE: %d\n\t%s",
+				fn, RL.LineNo(), GDS_GetError());
+		}
+		GDS_SetError(buf);
+		has_error = true;
+	});
+
+	if (has_error) error(GDS_GetError());
+	return rv_ans;
+}
+
+
+
+// ======================================================================
+// Convert from PLINK PED: PED -> SNP GDS
+// ======================================================================
+
+/** PLINK PED --> SNP GDS
+ *  \param ped_fn            the file names of VCF format
+ *  \param gds_root          the root of GDS file
+ *  \param SNPIdx            the index of SNPs
+ *  \param ReadLineFun       the R function 'readLines'
+ *  \param SeekFun           the R function 'seek'
+ *  \param ReadLine_File     the parameter of 'con' in 'readLines' and 'seek'
+ *  \param rho               the environment
+ *  \param Verbose           print out information
+**/
+COREARRAY_DLL_EXPORT SEXP gnrParsePED(SEXP ped_fn, SEXP gds_root,
+	SEXP SNPIdx, SEXP ReadLineFun, SEXP SeekFun, SEXP ReadLine_File,
+	SEXP rho, SEXP Verbose)
+{
+	const char *fn = CHAR(STRING_ELT(ped_fn, 0));
+	int verbose = Rf_asLogical(Verbose);
+	if (verbose == NA_LOGICAL)
+		error("'verbose' must be TRUE or FALSE.");
+
+	// the number of SNPs
+	const int nSNP  = Rf_length(SNPIdx);
+	const int nSNP2 = nSNP * 2;
+	int *pIdx = INTEGER(SNPIdx);
+
+	// define a variable for reading lines
+	CReadLine RL;
+
+	// string buffer
+	string cell;
+	cell.reserve(256);
+
+	COREARRAY_TRY
+
+		string MissingString("0");
+
+		// =========================================================
+		// initialize external calling for reading stream
+
+		// GDS nodes
+		PdGDSObj Root = GDS_R_SEXP2Obj(gds_root);
+		PdSequenceX varSample = GDS_Node_Path(Root, "sample.id", TRUE);
+		PdSequenceX varAllele = GDS_Node_Path(Root, "snp.allele", TRUE);
+		PdSequenceX varGeno   = GDS_Node_Path(Root, "genotype", TRUE);
+
+		PdSequenceX varFamily = GDS_Node_Path(Root, "sample.annot/family", FALSE);
+		PdSequenceX varFather = GDS_Node_Path(Root, "sample.annot/father", FALSE);
+		PdSequenceX varMother = GDS_Node_Path(Root, "sample.annot/mother", FALSE);
+		PdSequenceX varSex    = GDS_Node_Path(Root, "sample.annot/sex", FALSE);
+		PdSequenceX varPheno  = GDS_Node_Path(Root, "sample.annot/phenotype", FALSE);
+
+		// 'readLine(con, n)'
+		SEXP R_Read_Call = PROTECT(
+			LCONS(ReadLineFun, LCONS(ReadLine_File,
+			LCONS(ScalarInteger(1), R_NilValue))));
+		RL.Init(R_Read_Call, rho);
+		RL.SplitBySpaceTab();
+
+		// create allele list
+		vector< map<string, int> > AlleleList(nSNP);
+		while (!RL.IfEnd())
+		{
+			// ignore the first 6 columns
+			for (int i=0; i < 6; i++)
+				RL.GetCell(cell, false);
+			// for each SNP
+			for (int i=0; i < nSNP2; i++)
+			{
+				RL.GetCell(cell, i >= nSNP2-1);
+				if (cell != MissingString)
+					AlleleList[i >> 1][cell] ++;
+			}
+		}
+
+		// find the major alleles
+		vector<string> RefAlleleList(nSNP);
+		vector<string> AltAlleleList(nSNP);
+		for (int i=0; i < nSNP; i++)
+		{
+			map<string, int> &mt = AlleleList[i];
+			int nmax = 0;
+			string smax = MissingString;
+
+			map<string, int>::iterator it;
+			for (it=mt.begin(); it != mt.end(); it++)
+			{
+				int m = it->second;
+				if (nmax < m)
+				{
+					nmax = m;
+					smax = it->first;
+				}
+			}
+			RefAlleleList[i] = smax;
+
+			string s;
+			for (it=mt.begin(); it != mt.end(); it++)
+			{
+				if (smax != it->first)
+				{
+					if (!s.empty()) s.append(",");
+					s.append(it->first);
+				}
+			}
+			if (s.empty()) s = MissingString;
+			AltAlleleList[i] = s;
+		}
+
+		for (int i=0; i < nSNP; i++)
+		{
+			string s = RefAlleleList[i] + "/" + AltAlleleList[i];
+			GDS_Array_AppendString(varAllele, s.c_str());
+		}
+
+
+		// =========================================================
+		// Rewind the file
+
+		// 'seek(con, 0L)'
+		SEXP R_Seek_Call = PROTECT(
+			LCONS(SeekFun, LCONS(ReadLine_File,
+			LCONS(ScalarInteger(0), R_NilValue))));
+		eval(R_Seek_Call, rho);
+		RL.Init(R_Read_Call, rho);
+		RL.SplitBySpaceTab();
+
+
+		// =========================================================
+		// Genotypes
+
+		vector<C_UInt8> Geno(nSNP), SortGeno(nSNP);
+		while (!RL.IfEnd())
+		{
+			// Family ID
+			RL.GetCell(cell, false);
+			if (varFamily)
+				GDS_Array_AppendString(varFamily, cell.c_str());
+
+			// Individual ID
+			RL.GetCell(cell, false);
+			GDS_Array_AppendString(varSample, cell.c_str());
+
+			// Paternal ID
+			RL.GetCell(cell, false);
+			if (varFather)
+				GDS_Array_AppendString(varFather, cell.c_str());
+
+			// Maternal ID
+			RL.GetCell(cell, false);
+			if (varMother)
+				GDS_Array_AppendString(varMother, cell.c_str());
+
+			// Sex (1=male; 2=female; other=unknown)
+			RL.GetCell(cell, false);
+			if (varSex)
+			{
+				if (cell == "1")
+					cell = "M";
+				else if (cell == "2")
+					cell = "F";
+				GDS_Array_AppendString(varSex, cell.c_str());
+			}
+
+			// Phenotype
+			RL.GetCell(cell, false);
+			if (varPheno)
+				GDS_Array_AppendString(varPheno, cell.c_str());
+
+			// for each SNP
+			for (int i=0; i < nSNP; i++)
+			{
+				bool missing = false;
+				C_UInt8 g = 0;
+
+				RL.GetCell(cell, false);
+				if (cell != MissingString)
+					g += (cell == RefAlleleList[i]) ? 1 : 0;
+				else
+					missing = true;
+				RL.GetCell(cell, i >= nSNP-1);
+				if (cell != MissingString)
+					g += (cell == RefAlleleList[i]) ? 1 : 0;
+				else
+					missing = true;
+
+				if (missing) g = 3;
+				Geno[i] = g;
+			}
+
+			// append genotypes
+			for (int i=0; i < nSNP; i++)
+				SortGeno[i] = Geno[ pIdx[i] ];
+			GDS_Array_AppendData(varGeno, nSNP, &SortGeno[0], svUInt8);
+		}
+
+		UNPROTECT(3);
 
 	CORE_CATCH({
 		char buf[4096];

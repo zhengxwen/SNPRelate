@@ -176,8 +176,8 @@ put.attr.gdsn(newfile$root, "FileFormat", "SNP_ARRAY")
 # Add variables
 add.gdsn(newfile, "sample.id", sample.id)
 add.gdsn(newfile, "snp.id", snp.id)
-add.gdsn(newfile, "snp.position", snp.position)
 add.gdsn(newfile, "snp.chromosome", snp.chromosome)
+add.gdsn(newfile, "snp.position", snp.position)
 add.gdsn(newfile, "snp.allele", c("A/G", "T/C", ...))
 
 #####################################################################
@@ -592,7 +592,7 @@ unlink("test.gds", force=TRUE)
 
 1. A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. Xiuwen Zheng; David Levine; Jess Shen; Stephanie M. Gogarten; Cathy Laurie; Bruce S. Weir. Bioinformatics 2012; doi: 10.1093/bioinformatics/bts606.
 2. GWASTools: an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies. Stephanie M. Gogarten, Tushar Bhangale, Matthew P. Conomos, Cecelia A. Laurie, Caitlin P. McHugh, Ian Painter, Xiuwen Zheng, David R. Crosslin, David Levine, Thomas Lumley, Sarah C. Nelson, Kenneth Rice, Jess Shen, Rohit Swarnkar, Bruce S. Weir, and Cathy C. Laurie. Bioinformatics 2012.
-3. Quality control and quality assurance in genotypic data for genome-wide association studies. Laurie CC, Doheny KF, Mirel DB, Pugh EW, Bierut LJ, Bhangale T, Boehm F, Caporaso NE, Cornelis MC, Edenberg HJ, Gabriel SB, Harris EL, Hu FB, Jacobs KB, Kraft P, Landi MT, Lumley T, Manolio TA, McHugh C, Painter I, Paschall J, Rice JP, Rice KM, Zheng X, Weir BS; GENEVA Investigators. Genet Epidemiol. 2010 Sep;34(6):591-602.
+3. Quality control and quality assurance in genotypic data for genome-wide association studies. Laurie CC, Doheny KF, Mirel DB, Pugh EW, Bierut LJ, Bhangale T, Boehm F, Caporaso NE, Cornelis MC, Edenberg HJ, Gabriel SB, Harris EL, Hu FB, Jacobs KB, Kraft P, Landi MT, Lumley T, Manolio TA, McHugh C, Painter I, Paschall J, Rice JP, Rice KM, Zheng X, Weir BS; GENEVA Investigators. Genet Epidemiol. 2010 Sep; 34(6): 591-602.
 
 
 

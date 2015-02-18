@@ -1247,6 +1247,22 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParseNumeric(SEXP gdsobj)
 
 
 /// get an error message
+COREARRAY_DLL_EXPORT SEXP gnrGetNumOfWindow(SEXP Start, SEXP End,
+	SEXP WinSize, SEXP Shift)
+{
+	int start   = Rf_asInteger(Start);
+	int end     = Rf_asInteger(End);
+	int winsize = Rf_asInteger(WinSize);
+	int shift   = Rf_asInteger(Shift);
+	int cnt     = 0;
+
+	start -= winsize / 2;
+	end   += winsize / 2;
+	return ScalarInteger(cnt);
+}
+
+
+/// get an error message
 COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	SEXP Shift, SEXP Unit, SEXP WinStart, SEXP AsIs, SEXP chflag,
 	SEXP ChrPos, SEXP Param)
@@ -1489,8 +1505,9 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrPCASampLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCASNPLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCASNPLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-	extern SEXP gnrParseVCF4Init();
 	extern SEXP gnrParseGEN(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrParsePED(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrParseVCF4Init();
 	extern SEXP gnrParseVCF4(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 
@@ -1526,8 +1543,8 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrPCA, 7),                 CALL(gnrPCACorr, 4),
 		CALL(gnrPCASampLoading, 9),      CALL(gnrPCASNPLoading, 7),
 
-		CALL(gnrParseVCF4Init, 0),       CALL(gnrParseGEN, 9),
-		CALL(gnrParseVCF4, 10),
+		CALL(gnrParseGEN, 9),            CALL(gnrParsePED, 8),
+		CALL(gnrParseVCF4Init, 0),       CALL(gnrParseVCF4, 10),
 
 		CALL(gnrCopyGeno, 2),            CALL(gnrCopyGenoMem, 1),
 		CALL(gnrGetGenoDim, 0),          CALL(gnrSelSNP_Base, 3),

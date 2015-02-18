@@ -21,7 +21,179 @@
 
 
 #######################################################################
-# Convert a GDS file to a PLINK ped file
+# Convert a PLINK PED file to GDS
+#
+
+snpgdsPED2GDS <- function(ped.fn, map.fn, out.gdsfn, family=TRUE,
+    snpfirstdim=FALSE, compress.annotation="ZIP_RA.max", compress.geno="",
+    verbose=TRUE)
+{
+    # check
+    stopifnot(is.character(ped.fn))
+    stopifnot(is.vector(ped.fn) & (length(ped.fn)==1L))
+
+    stopifnot(is.character(map.fn))
+    stopifnot(is.vector(map.fn) & (length(map.fn)==1L))
+
+    stopifnot(is.character(out.gdsfn))
+    stopifnot(is.vector(out.gdsfn) & (length(out.gdsfn)==1L))
+
+    stopifnot(is.character(compress.annotation))
+    stopifnot(is.vector(compress.annotation) & (length(compress.annotation)==1L))
+
+    stopifnot(is.character(compress.geno))
+    stopifnot(is.vector(compress.geno) & (length(compress.geno)==1L))
+
+    stopifnot(is.logical(family))
+    stopifnot(is.logical(snpfirstdim))
+    stopifnot(is.logical(verbose))
+
+    if (verbose) cat("PLINK PED/MAP to GDS Format:\n")
+
+    # read MAP file
+    map <- read.table(map.fn, header=FALSE, stringsAsFactors=FALSE)
+    nsnp <- dim(map)[1]
+    if (is.numeric(map$V1))
+    {
+        ii <- order(map$V1, map$V4)
+    } else {
+        chrcode <- suppressWarnings(as.integer(map$V1))
+        ii <- order(chrcode, map$V1, map$V4)
+    }    
+    if (is.unsorted(ii))
+        cat("Hint: the SNPs are sorted and merged into the GDS file.\n")
+    map <- map[ii, ]
+    map$V1[is.na(map$V1)] <- 0
+
+    if (verbose)
+    {
+        cat(sprintf("Import %d variant%s from '%s'\n", nsnp,
+            .plural(nsnp), map.fn))
+        cat("Chromosome:")
+        print(table(map$V1))
+    }
+
+
+    # create GDS file
+    gfile <- createfn.gds(out.gdsfn)
+    # close the file at the end
+    on.exit({ closefn.gds(gfile) })
+
+    # add a flag
+    put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
+
+    # add "sample.id"
+    add.gdsn(gfile, "sample.id", valdim=0, storage="string",
+        compress=compress.annotation)
+    # add "snp.id"
+    add.gdsn(gfile, "snp.id", seq_len(nsnp), compress=compress.annotation,
+        closezip=TRUE)
+    # add "snp.rs.id"
+    add.gdsn(gfile, "snp.rs.id", map$V2, compress=compress.annotation,
+        closezip=TRUE)
+    # add "snp.position"
+    add.gdsn(gfile, "snp.position", map$V4, compress=compress.annotation,
+        closezip=TRUE)
+
+    # add "snp.chromosome"
+    if (is.numeric(map$V1))
+    {
+        var_chr <- add.gdsn(gfile, "snp.chromosome", map$V1, storage="integer",
+            compress=compress.annotation, closezip=TRUE)
+        option <- snpgdsOption()
+        put.attr.gdsn(var_chr, "autosome.start", option$autosome.start)
+        put.attr.gdsn(var_chr, "autosome.end", option$autosome.end)
+        for (i in 1:length(option$chromosome.code))
+        {
+            put.attr.gdsn(var_chr, names(option$chromosome.code)[i],
+                option$chromosome.code[[i]])
+        }
+    } else {
+        var_chr <- add.gdsn(gfile, "snp.chromosome", map$V1, storage="string",
+            compress=compress.annotation, closezip=TRUE)
+    }
+
+    # add "snp.allele"
+    add.gdsn(gfile, "snp.allele", valdim=0, storage="string",
+        compress=compress.annotation)
+
+    # add "genotype"
+    comp.geno <- compress.geno
+    if (!snpfirstdim) comp.geno <- ""
+    gGeno <- add.gdsn(gfile, "genotype", storage="bit2", valdim=c(nsnp, 0),
+        compress=comp.geno)
+    put.attr.gdsn(gGeno, "snp.order")
+
+    # add family information
+    if (family)
+    {
+        v <- addfolder.gdsn(gfile, "sample.annot")
+        put.attr.gdsn(v, "R.class", "data.frame")
+        add.gdsn(v, "family", valdim=0, storage="string",
+            compress=compress.annotation)
+        add.gdsn(v, "father", valdim=0, storage="string",
+            compress=compress.annotation)
+        add.gdsn(v, "mother", valdim=0, storage="string",
+            compress=compress.annotation)
+        add.gdsn(v, "sex", valdim=0, storage="string",
+            compress=compress.annotation)
+        add.gdsn(v, "phenotype", valdim=0, storage="string",
+            compress=compress.annotation)
+    }
+
+    # sync file
+    sync.gds(gfile)
+
+
+    # read PED file
+    pedfile <- file(ped.fn, open="rt")
+    on.exit({ close(pedfile) }, add=TRUE)
+    if (verbose)
+    {
+        cat("Reading '", ped.fn, "'\n", sep="")
+        cat("Output: '", out.gdsfn, "'\n", sep="")
+    }
+
+    # call C function
+    .Call("gnrParsePED", ped.fn, gfile$root, ii - 1L,
+        readLines, seek, pedfile, new.env(), verbose, PACKAGE="SNPRelate")
+    nsamp <- objdesp.gdsn(gGeno)$dim[2]
+
+    if (verbose)
+        cat(sprintf("Import %d sample%s\n", nsamp, .plural(nsamp)))
+
+    on.exit({ closefn.gds(gfile) })
+    close(pedfile)
+
+    if (!snpfirstdim)
+    {
+        if (verbose) cat("Transpose the genotypic matrix ...\n")
+        tm <- add.gdsn(gfile, "~genotype", storage="bit2", valdim=c(nsamp, 0),
+            compress=compress.geno)
+        put.attr.gdsn(tm, "sample.order")
+        apply.gdsn(gGeno, margin=1, FUN=c, as.is="gdsnode", target.node=tm)
+        readmode.gdsn(tm)
+        moveto.gdsn(tm, gGeno, relpos="replace")
+    }
+
+    on.exit()
+    closefn.gds(gfile)
+
+    if (verbose) cat("Done.\n")
+
+    # optimize access efficiency
+    if (verbose)
+        cat("Optimize the access efficiency ...\n")
+    cleanup.gds(out.gdsfn, verbose=verbose)
+
+    # return
+    invisible()
+}
+
+
+
+#######################################################################
+# Convert a GDS file to PLINK PED
 #
 
 snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
@@ -127,7 +299,7 @@ snpgdsGDS2PED <- function(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL,
 
 
 #######################################################################
-# Convert a GDS file to a PLINK binary ped file
+# Convert a GDS file to PLINK Binary PED (BED) file
 #
 
 snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL,
@@ -143,9 +315,9 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL,
     ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id)
 
     stopifnot(is.character(bed.fn) & is.vector(bed.fn))
-    stopifnot(length(bed.fn) == 1)
+    stopifnot(length(bed.fn)==1L)
     stopifnot(is.logical(verbose) & is.vector(verbose))
-    stopifnot(length(verbose) == 1)
+    stopifnot(length(verbose)==1L)
 
     # snp order
     if (is.null(snpfirstdim))
@@ -250,7 +422,7 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL,
 
 
 #######################################################################
-# Convert a GDS file to a PLINK ped file
+# Convert a PLINK BED file to GDS
 #
 
 snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
@@ -258,9 +430,9 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     cvt.snpid=c("auto", "int"), verbose=TRUE)
 {
     # check
-    stopifnot(is.character(bed.fn) & (length(bed.fn)==1))
-    stopifnot(is.character(fam.fn) & (length(fam.fn)==1))
-    stopifnot(is.character(bim.fn) & (length(bim.fn)==1))
+    stopifnot(is.character(bed.fn) & (length(bed.fn)==1L))
+    stopifnot(is.character(fam.fn) & (length(fam.fn)==1L))
+    stopifnot(is.character(bim.fn) & (length(bim.fn)==1L))
     cvt.snpid <- match.arg(cvt.snpid)
     stopifnot(is.logical(verbose))
 
@@ -398,7 +570,8 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 
     if (family)
     {
-        samp.annot <- data.frame(family=famD$FamilyID, father=famD$PatID, mother=famD$MatID,
+        samp.annot <- data.frame(family=famD$FamilyID,
+            father=famD$PatID, mother=famD$MatID,
             sex=sex, phenotype=famD$Pheno, stringsAsFactors=FALSE)
     } else {
         samp.annot <- data.frame(sex=sex, phenotype=famD$Pheno,
@@ -426,7 +599,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 
 
 #######################################################################
-# To convert a genotype GDS file to Eigenstrat format
+# Convert a GDS file to Eigenstrat format
 #
 
 snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL,
@@ -541,10 +714,10 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
     stopifnot(!any(is.na(gen.fn)))
 
     stopifnot(is.character(sample.fn) & is.vector(sample.fn))
-    stopifnot(length(sample.fn) == 1)
+    stopifnot(length(sample.fn)==1L)
 
     stopifnot(is.character(out.fn) & is.vector(out.fn))
-    stopifnot(length(out.fn) == 1)
+    stopifnot(length(out.fn)==1L)
 
     if (!is.null(chr.code))
     {
@@ -556,7 +729,7 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
     }
 
     stopifnot(is.numeric(call.threshold) & is.vector(call.threshold))
-    stopifnot(length(call.threshold) == 1)
+    stopifnot(length(call.threshold)==1L)
     stopifnot(is.finite(call.threshold))
 
     version <- match.arg(version)
@@ -702,7 +875,7 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
 
 
 #######################################################################
-# Convert a VCF (sequence) file to a GDS file (extract SNP data)
+# Convert a VCF (sequence) file to GDS (extracting SNP data)
 #
 
 snpgdsVCF2GDS <- function(vcf.fn, out.fn,
@@ -715,7 +888,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
     stopifnot(length(vcf.fn) > 0)
 
     stopifnot(is.character(out.fn) & is.vector(out.fn))
-    stopifnot(length(out.fn) == 1)
+    stopifnot(length(out.fn) == 1L)
 
     method <- match.arg(method)
     metidx <- match(method, c("biallelic.only", "copy.num.of.ref"))
@@ -910,7 +1083,7 @@ snpgdsVCF2GDS_R <- function(vcf.fn, out.fn, nblock=1024,
     # check
     stopifnot(is.character(vcf.fn))
     stopifnot(is.character(out.fn))
-    stopifnot(is.logical(snpfirstdim) & (length(snpfirstdim)==1))
+    stopifnot(is.logical(snpfirstdim) & (length(snpfirstdim)==1L))
 
     method <- match.arg(method)
     if (!is.null(option) & !is.list(option))

@@ -48,10 +48,10 @@ snpgdsGDS2PED(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL, use.snp.rsid=TRUE,
 # open an example dataset (HapMap)
 genofile <- snpgdsOpen(snpgdsExampleFileName())
 
-snpset <- snpgdsSelectSNP(genofile, missing.rate=0.95)
-snpgdsGDS2PED(genofile, ped.fn="tmp", snp.id=snpset)
+# GDS ==> PED
+snpgdsGDS2PED(genofile, ped.fn="tmp")
 
-# close the genotype file
+# close the GDS file
 snpgdsClose(genofile)
 }
 
