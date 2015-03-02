@@ -35,7 +35,7 @@ namespace Fst
 	class ClassFst_WH15
 	{
 	public:
-		
+		// vector<double> H(NumPop*NumPop, 0);
 	};
 }
 

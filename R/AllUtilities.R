@@ -1414,8 +1414,8 @@ snpgdsCreateGeno <- function(gds.fn, genmat, sample.id=NULL, snp.id=NULL,
     }
 
     # add genotype
-    genmat[is.na(genmat)] <- 3
-    genmat[!(genmat %in% c(0,1,2))] <- 3
+    genmat[is.na(genmat)] <- 3L
+    genmat[!(genmat %in% c(0L,1L,2L))] <- 3L
     node.geno <- add.gdsn(gfile, "genotype", genmat, storage="bit2",
         compress=compress.geno)
     if (snpfirstdim)

@@ -155,8 +155,8 @@ snpgdsPED2GDS <- function(ped.fn, map.fn, out.gdsfn, family=TRUE,
     }
 
     # call C function
-    .Call("gnrParsePED", ped.fn, gfile$root, ii - 1L,
-        readLines, seek, pedfile, new.env(), verbose, PACKAGE="SNPRelate")
+    .Call(gnrParsePED, ped.fn, gfile$root, ii - 1L, readLines, seek, pedfile,
+        new.env(), verbose)
     nsamp <- objdesp.gdsn(gGeno)$dim[2]
 
     if (verbose)

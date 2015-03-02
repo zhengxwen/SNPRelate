@@ -29,7 +29,7 @@ GDS is also used by an R/Bioconductor package [GWASTools](http://www.bioconducto
 
 ~
 
-R is the most popular statistical programming environment, but one not typically optimized for high performance or parallel computing which would ease the burden of large-scale GWAS calculations. To overcome these limitations we have developed a project named CoreArray ([http://corearray.sourceforge.net/](http://corearray.sourceforge.net/) that includes two R packages: [gdsfmt](http://www.bioconductor.org/packages/release/bioc/html/gdsfmt.html) to provide efficient, platform independent memory and file management for genome-wide numerical data, and [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html) to solve large-scale, numerically intensive GWAS calculations (i.e., PCA and IBD) on multi-core symmetric multiprocessing (SMP) computer architectures.
+R is the most popular statistical programming environment, but one not typically optimized for high performance or parallel computing which would ease the burden of large-scale GWAS calculations. To overcome these limitations we have developed a project named CoreArray ([http://corearray.sourceforge.net/](http://corearray.sourceforge.net/)) that includes two R packages: [gdsfmt](http://www.bioconductor.org/packages/release/bioc/html/gdsfmt.html) to provide efficient, platform independent memory and file management for genome-wide numerical data, and [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html) to solve large-scale, numerically intensive GWAS calculations (i.e., PCA and IBD) on multi-core symmetric multiprocessing (SMP) computer architectures.
 
 This vignette takes the user through the relatedness and principal component analysis used for genome wide association data. The methods in these vignettes have been introduced in the paper of Zheng *et al.* (2012)^1^. For replication purposes the data used here are taken from the HapMap Phase II project. These data were kindly provided by the Center for Inherited Disease Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard University (Broad). The data supplied here should not be used for any purpose other than this tutorial.
 
@@ -240,16 +240,15 @@ closefn.gds(newfile)
 ```
 
 
-## Format conversion from PLINK binary files
+## Format conversion from PLINK text/binary files
 
-The [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html) package provides a function `snpgdsBED2GDS}
-for converting a PLINK binary file to a GDS file:
+The [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html) package provides a function `snpgdsPED2GDS()` and `snpgdsBED2GDS()` for converting a PLINK text/binary file to a GDS file:
 
 ```{r}
 # The PLINK BED file, using the example in the SNPRelate package
 bed.fn <- system.file("extdata", "plinkhapmap.bed", package="SNPRelate")
-fam.fn <- system.file("extdata", "plinkhapmap.fam", package="SNPRelate")
-bim.fn <- system.file("extdata", "plinkhapmap.bim", package="SNPRelate")
+fam.fn <- system.file("extdata", "plinkhapmap.fam.xz", package="SNPRelate")
+bim.fn <- system.file("extdata", "plinkhapmap.bim.xz", package="SNPRelate")
 ```
 Or, uses your own PLINK files:
 ```{r eval=FALSE}
@@ -268,7 +267,7 @@ snpgdsSummary("test.gds")
 
 ## Format conversion from VCF files
 
-The [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html) package provides a function `snpgdsVCF2GDS} to reformat a VCF file. There are two options for extracting markers from a VCF file for downstream analyses:
+The [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html) package provides a function `snpgdsVCF2GDS()` to reformat a VCF file. There are two options for extracting markers from a VCF file for downstream analyses:
 1. to extract and store dosage of the reference allele only for biallelic SNPs
 2. to extract and store dosage of the reference allele for all variant sites, including bi-allelic SNPs, multi-allelic SNPs, indels and structural variants.
 

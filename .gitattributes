@@ -1,0 +1,6 @@
+* text=auto
+data/* binary
+src/* text=lf
+R/* text=lf
+vignettes/* text=lf
+man/* text=lf
