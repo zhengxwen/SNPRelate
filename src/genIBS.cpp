@@ -355,10 +355,10 @@ namespace IBS
 namespace IBD
 {
 	// PLINK method of moment
-	void Init_EPrIBD_IBS(const double in_afreq[], double out_afreq[],
-		bool CorrectFactor, long nSNP = -1);
+	COREARRAY_DLL_LOCAL void Init_EPrIBD_IBS(const double in_afreq[],
+		double out_afreq[], bool CorrectFactor, long nSNP = -1);
 
-	void Est_PLINK_Kinship(int IBS0, int IBS1, int IBS2,
+	COREARRAY_DLL_LOCAL void Est_PLINK_Kinship(int IBS0, int IBS1, int IBS2,
 		double &k0, double &k1, bool KinshipConstrict);
 }
 

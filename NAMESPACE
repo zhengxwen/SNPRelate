@@ -13,8 +13,9 @@ useDynLib(SNPRelate,
     gnrParseVCF4Init, gnrParseVCF4,
     gnrPairIBD, gnrPairIBDLogLik, gnrPCA, gnrPCACorr, gnrPCASampLoading,
     gnrPCASNPLoading, gnrSampFreq, gnrSelSNP_Base, gnrSelSNP_Base_Ex,
-    gnrSetGenoSpace, gnrSlidingWindow, gnrSNPFreq, gnrSNPRateFreq,
-    gnrStrandSwitch
+    gnrSetGenoSpace,
+    gnrSlidingNumWin, gnrSlidingWindow,
+    gnrSNPFreq, gnrSNPRateFreq, gnrStrandSwitch
 )
 
 # Export all names

@@ -73,7 +73,8 @@ CdGenoWorkSpace::CdGenoWorkSpace()
 	vBufSize = 0;
 }
 
-CdGenoWorkSpace::~CdGenoWorkSpace() {}
+CdGenoWorkSpace::~CdGenoWorkSpace()
+{ }
 
 void CdGenoWorkSpace::SetGeno(PdSequenceX vGeno, bool _InitSelection)
 {
@@ -155,6 +156,11 @@ void CdGenoWorkSpace::InitSelection()
 		vSampleIndex.clear();
 	}
 
+	InitSelectionSNPOnly();
+}
+
+void CdGenoWorkSpace::InitSelectionSNPOnly()
+{
 	// snps
 	if (fTotalSNPNum > 0)
 	{
@@ -1009,16 +1015,34 @@ C_UInt8 *GWAS::PackGeno4b(const C_UInt8 *src, size_t cnt, C_UInt8 *dest)
 
 
 
+
 // ===================================================================== //
 
 // CdProgression
 
-static const clock_t TimeInterval = 30*CLOCKS_PER_SEC;
-
-CdProgression::CdProgression()
+CdProgression::CdProgression(int type, bool show)
 {
-	fShow = true;
+	fShow = show;
 	Init(0, false);
+
+	switch (fType = type)
+	{
+	case 0:
+		TimeInterval = 30 * CLOCKS_PER_SEC;
+		break;
+	case 1:
+		TimeInterval = 5 * CLOCKS_PER_SEC;
+		break;
+	}
+}
+
+CdProgression::~CdProgression()
+{
+	if (fType == 1)
+	{
+		string s(64, '=');
+		Rprintf("\r%s\n", s.c_str());
+	}
 }
 
 void CdProgression::Init(C_Int64 TotalCnt, bool ShowInit)
@@ -1052,13 +1076,28 @@ void CdProgression::ShowProgress()
 {
 	if (fShow)
 	{
-		time_t tm; time(&tm);
-		string s(ctime(&tm));
-		s.erase(s.size()-1, 1);
-		if (Info.empty())
-			Rprintf("%s\t%d%%\n", s.c_str(), fPercent);
-		else
-			Rprintf("%s\t%s\t%d%%\n", Info.c_str(), s.c_str(), fPercent);
+		switch (fType)
+		{
+		case 0:
+			{
+				time_t tm; time(&tm);
+				string s(ctime(&tm));
+				s.erase(s.size()-1, 1);
+				if (Info.empty())
+					Rprintf("%s\t%d%%\n", s.c_str(), fPercent);
+				else
+					Rprintf("%s\t%s\t%d%%\n", Info.c_str(), s.c_str(), fPercent);
+				break;
+			}
+		case 1:
+			{
+				int n = (int)round(fPercent * 0.64);
+				string s1(n, '>');
+				string s2(64-n, ' ');
+				Rprintf("\r%s%s", s1.c_str(), s2.c_str());
+				break;
+			}
+		}
 	}
 }
 

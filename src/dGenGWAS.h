@@ -76,7 +76,9 @@ namespace GWAS
 
 		/// set the pointer to snp genotypes
 		void SetGeno(PdSequenceX vGeno, bool _InitSelection=true);
+
 		void InitSelection();
+		void InitSelectionSNPOnly();
 
 		C_Int64 GenoSum();
 
@@ -247,7 +249,8 @@ namespace GWAS
 		std::string Info;
 
 		/// Constructor
-		CdProgression();
+		CdProgression(int type=0, bool show=true);
+		~CdProgression();
 
 		void Init(C_Int64 TotalCnt, bool ShowInit=true);
 		bool Forward(C_Int64 step = 1, bool Show=true);
@@ -261,11 +264,13 @@ namespace GWAS
 		inline C_Int64 Current() const { return fCurrent; }
 		/// Whether show information
 		inline bool &Show() { return fShow; }
+
 	protected:
+		int fType;
 		C_Int64 fTotal, fCurrent;
 		int fPercent;
 		bool fShow;
-		clock_t OldTime;
+		clock_t TimeInterval, OldTime;
 	};
 
 

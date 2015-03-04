@@ -53,14 +53,14 @@ The `install_github()` approach requires that you build from source, i.e. `make`
 * Install the package from the source code:
 [gdsfmt](https://github.com/zhengxwen/gdsfmt/tarball/master),
 [SNPRelate](https://github.com/zhengxwen/SNPRelate/tarball/master)
-```
+```sh
 wget --no-check-certificate https://github.com/zhengxwen/gdsfmt/tarball/master -O gdsfmt_latest.tar.gz
 wget --no-check-certificate https://github.com/zhengxwen/SNPRelate/tarball/master -O SNPRelate_latest.tar.gz
-** Or **
+## Or
 curl -L https://github.com/zhengxwen/gdsfmt/tarball/master/ -o gdsfmt_latest.tar.gz
 curl -L https://github.com/zhengxwen/SNPRelate/tarball/master/ -o SNPRelate_latest.tar.gz
 
-** Install **
+## Install
 R CMD INSTALL gdsfmt_latest.tar.gz
 R CMD INSTALL SNPRelate_latest.tar.gz
 ```

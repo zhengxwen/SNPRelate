@@ -2203,7 +2203,7 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     FUN=NULL, winsize=100000L, shift=10000L, unit=c("basepair", "locus"),
     winstart=NULL, autosome.only=FALSE, remove.monosnp=TRUE, maf=NaN,
     missing.rate=NaN, as.is=c("list", "numeric", "array"),
-    with.id=c("snp.id", "snp.id.in.window", "none"), num.thread=1,
+    with.id=c("snp.id", "snp.id.in.window", "none"), num.thread=1L,
     verbose=TRUE, ...)
 {
     # check
@@ -2233,7 +2233,7 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     {
         stopifnot(is.vector(FUN))
         stopifnot(length(FUN) == 1)
-        FunList <- c("snpgdsFst")
+        FunList <- c("snpgdsFst", "snpgdsSNPRateFreq")
         FunIdx <- match(FUN, FunList)
         if (is.na(FunIdx))
             stop("'FUN' should be one of ", paste(FunList, collapse=","), ".")
@@ -2253,20 +2253,11 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         pm <- list(...)
         param <- switch(EXPR = FUN,
             snpgdsFst = {
-                v <- .paramFst(sample.id, pm$population, pm$method, ws)
-                if (is.null(pm$type))
-                    v$type <- "Fst"
-                else if (is.character(pm$type))
-                {
-                    v$type <- pm$type[1]
-                    if (!(v$type %in% c("Fst", "PopFst", "list")))
-                    {
-                        stop("'type' should be a character ",
-                            "\"Fst\", \"PopFst\" or \"list\".")
-                    }
-                } else
-                    stop("'type' should be a character or NULL.")
-                v
+                .paramFst(sample.id, pm$population, pm$method, ws)
+            },
+            snpgdsSNPRateFreq = {
+                if (length(pm) > 0)
+                    stop("Unused additional parameters '...'.")
             }
         )
     }
@@ -2344,9 +2335,8 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             {
                 rg <- range(chpos)
                 if (is.null(winst)) winst <- rg[1]
-                L <- (rg[2] - winst + 1) - winsize + 1L
-                n <- L %/% shift
-                if ((L %% shift) > 0) n <- n + 1L
+                n <- .Call(gnrSlidingNumWin, winst, rg[2], winsize, shift)
+                if (verbose) cat(",", n, "windows\n")
 
                 if (as.is == "list")
                     rvlist <- vector("list", n)
@@ -2377,9 +2367,8 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                 }
             } else {
                 if (is.null(winst)) winst <- 1L
-                L <- (length(sid) - winst + 1L) - winsize + 1L
-                n <- L %/% shift
-                if ((L %% shift) > 0) n <- n + 1L
+                n <- .Call(gnrSlidingNumWin, winst, length(sid), winsize, shift)
+                if (verbose) cat(",", n, "windows\n")
 
                 if (as.is == "list")
                     rvlist <- vector("list", n)
@@ -2417,22 +2406,16 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             if (with.id == "snp.id.in.window")
                 ans[[paste("chr", ch, ".snpid", sep="")]] <- sidlist
 
-            if (verbose)
-                cat(sprintf(", %d Windows.\n", length(nlist)))
-
         } else {
             ####  specific functions
 
             v <- .Call(gnrSlidingWindow, FunIdx, winsize, shift, unit, winst,
-                as.is, chflag, chpos, param)
+                as.is, chflag, chpos, param, verbose)
 
             ans[[paste("chr", ch, sep="")]] <- v[[1]]
             ans[[paste("chr", ch, ".num", sep="")]] <- v[[2]]
             ans[[paste("chr", ch, ".pos", sep="")]] <- v[[3]]
             ans[[paste("chr", ch, ".posrange", sep="")]] <- v[[4]]
-
-            if (verbose)
-                cat(sprintf(", %d Windows.\n", length(v[[2]])))
         }
     }
 

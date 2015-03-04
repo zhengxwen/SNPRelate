@@ -52,26 +52,6 @@ using namespace GWAS;
 
 extern "C"
 {
-
-/// Get the list element named str, or return NULL
-static SEXP GetListElement(SEXP list, const char *str)
-{
-	SEXP elmt = R_NilValue;
-	SEXP names = getAttrib(list, R_NamesSymbol);
-	R_xlen_t n = XLENGTH(list);
-	for (R_xlen_t i=0; i < n; i++)
-	{
-		if (strcmp(CHAR(STRING_ELT(names, i)), str) == 0)
-		{
-			elmt = VECTOR_ELT(list, i);
-			break;
-		}
-	}
-	return elmt;
-}
-
-
-
 // ===========================================================
 // the public functions
 // ===========================================================
@@ -217,6 +197,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSelSNP_Base_Ex(SEXP afreq, SEXP remove_mono,
 
 		int *pFlag = LOGICAL(Flag);
 		for (int i=0; i < n; i++) pFlag[i] = sel[i];
+
 		UNPROTECT(2);
 	COREARRAY_CATCH
 }
@@ -241,6 +222,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSNPRateFreq()
 		for (R_xlen_t i=0; i < L; i++)
 			pMF[i] = min(pAF[i], 1 - pAF[i]);
 		MCWorkingGeno.Space.GetMissingRates(REAL(MR));
+
 		UNPROTECT(4);
 	COREARRAY_CATCH
 }
@@ -1245,227 +1227,6 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParseNumeric(SEXP gdsobj)
 }
 
 
-
-/// get an error message
-COREARRAY_DLL_EXPORT SEXP gnrGetNumOfWindow(SEXP Start, SEXP End,
-	SEXP WinSize, SEXP Shift)
-{
-	int start   = Rf_asInteger(Start);
-	int end     = Rf_asInteger(End);
-	int winsize = Rf_asInteger(WinSize);
-	int shift   = Rf_asInteger(Shift);
-	int cnt     = 0;
-
-	start -= winsize / 2;
-	end   += winsize / 2;
-	return ScalarInteger(cnt);
-}
-
-
-/// get an error message
-COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
-	SEXP Shift, SEXP Unit, SEXP WinStart, SEXP AsIs, SEXP chflag,
-	SEXP ChrPos, SEXP Param)
-{
-	/// to compute Fst
-	extern SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method);
-
-	const int FunIdx   = asInteger(FUNIdx);
-	const int winsize  = asInteger(WinSize);
-	const int shift	   = asInteger(Shift);
-	const char *c_Unit = CHAR(STRING_ELT(Unit, 0));
-	const char *c_AsIs = CHAR(STRING_ELT(AsIs, 0));
-
-	const size_t nChr  = XLENGTH(ChrPos);
-	const int *pPos	   = INTEGER(ChrPos);
-	const int *pFlag   = LOGICAL(chflag);
-	const bool is_basepair = (strcmp(c_Unit, "basepair") == 0);
-
-	if (MCWorkingGeno.Space.TotalSNPNum() != XLENGTH(chflag))
-		error("Internal error in 'gnrSlidingWindow': invalid chflag.");
-
-	int nProtected = 0;
-	SEXP ans_rv = PROTECT(NEW_LIST(4));
-	nProtected ++;
-
-	// for-loop parameters
-	int PosMin=INT_MAX, PosMax=-INT_MAX;
-	// the number of sliding windows
-	int nWin=0;
-
-	// get the range of chpos
-	const int *p = pPos;
-	for (size_t n=nChr; n > 0; n--)
-	{
-		if (*p < PosMin) PosMin = *p;
-		if (*p > PosMax) PosMax = *p;
-		p ++;
-	}
-	if ((PosMin == NA_INTEGER) || (PosMax == NA_INTEGER))
-		error("Internal error in 'gnrSlidingWindow': invalid position.");
-
-	// posrange
-	SEXP posrange = PROTECT(NEW_INTEGER(2));
-	INTEGER(posrange)[0] = PosMin;
-	INTEGER(posrange)[1] = PosMax;
-	SET_ELEMENT(ans_rv, 3, posrange);
-	nProtected ++;
-
-	// calculate nWin
-	if (is_basepair)
-	{
-		if (Rf_isInteger(WinStart))
-			PosMin = asInteger(WinStart);
-	} else {
-		PosMax = (long)nChr - 1;
-		PosMin = Rf_isInteger(WinStart) ? asInteger(WinStart) : 0;
-	}
-	long TempL = (PosMax - PosMin + 1) - winsize + 1;
-	nWin = TempL / shift;
-	if (TempL % shift) nWin ++;
-
-	// get the parameter
-	SEXP PL[64];
-	for (int i=0; i < 64; i++) PL[i] = R_NilValue;
-	switch (FunIdx)
-	{
-	case 1:	 // snpgdsFst
-		PL[0] = GetListElement(Param, "population");
-		PL[1] = GetListElement(Param, "npop");
-		PL[2] = GetListElement(Param, "method");
-		break;
-	}
-
-	// rvlist
-	SEXP rvlist = R_NilValue;
-	int as_i = -1;
-	if (strcmp(c_AsIs, "list") == 0)
-	{
-		as_i = 0;
-		rvlist = PROTECT(NEW_LIST(nWin));
-	} else if (strcmp(c_AsIs, "numeric") == 0)
-	{
-		as_i = 1;
-		rvlist = PROTECT(NEW_NUMERIC(nWin));
-	} else if (strcmp(c_AsIs, "array") == 0)
-	{
-		switch (FunIdx)
-		{
-		case 1:	 // snpgdsFst
-			rvlist = PROTECT(allocMatrix(REALSXP, Rf_asInteger(PL[1])+1, nWin));
-			break;
-		default:
-			rvlist = PROTECT(NEW_NUMERIC(nWin));
-		}
-		as_i = 2;
-	}
-	if (Rf_isNumeric(rvlist))
-	{
-		double *p = REAL(rvlist);
-		size_t n = XLENGTH(rvlist);
-		for (size_t i=0; i < n; i++) p[i] = R_NaN;
-	}
-	SET_ELEMENT(ans_rv, 0, rvlist);
-	nProtected ++;
-
-	// nlist
-	SEXP nlist = PROTECT(NEW_INTEGER(nWin));
-	SET_ELEMENT(ans_rv, 1, nlist);
-	nProtected ++;
-
-	// poslist
-	SEXP poslist = PROTECT(NEW_NUMERIC(nWin));
-	SET_ELEMENT(ans_rv, 2, poslist);
-	nProtected ++;
-
-	// for-loop
-	int x = PosMin, iWin = 0;
-	while (iWin < nWin)
-	{
-		C_BOOL *pb = MCWorkingGeno.Space.SNPSelection();
-		size_t n=XLENGTH(chflag), ip = 0;
-		int num = 0;
-		double pos_sum = 0;
-
-		if (is_basepair)
-		{
-			for (size_t i=0; i < n; i++)
-			{
-				C_BOOL val = 0;
-				if (pFlag[i])
-				{
-					int P = pPos[ip];
-					if ((x <= P) && (P < x+winsize))
-					{
-						pos_sum += P;
-						val = 1; num ++;
-					}
-					ip ++;
-				}
-				*pb++ = val;
-			}
-		} else {
-			for (size_t i=0; i < n; i++)
-			{
-				C_BOOL val = 0;
-				if (pFlag[i])
-				{
-					if ((x <= (int)ip) && ((int)ip < x+winsize))
-					{
-						pos_sum += pPos[ip];
-						val = 1; num ++;
-					}
-					ip ++;
-				}
-				*pb++ = val;
-			}
-		}
-
-		MCWorkingGeno.Space.InitSelection();
-
-		INTEGER(nlist)[iWin] = num;
-		if (num > 0)
-		{
-			SEXP rv;
-			switch (FunIdx)
-			{
-			case 1:	 // snpgdsFst
-				rv = gnrFst(PL[0], PL[1], PL[2]);
-				switch (as_i)
-				{
-					case 0:  // list
-						SET_ELEMENT(rvlist, iWin, rv);
-						break;
-					case 1:  // numeric
-						REAL(rvlist)[iWin] = Rf_asReal(VECTOR_ELT(rv, 0));
-						break;
-					case 2:  // array
-						int m  = Rf_asInteger(PL[1]);
-						int mk = m + 1;
-						double *p = REAL(rvlist);
-						double *s = REAL(VECTOR_ELT(rv, 1));
-						p[iWin*mk + 0] = Rf_asReal(VECTOR_ELT(rv, 0));
-						for (int k=0; k < m; k++)
-							p[iWin*mk + k + 1] = s[k*m + k];
-						break;
-				}
-			}
-
-			REAL(poslist)[iWin] = pos_sum / num;
-		} else {
-			REAL(poslist)[iWin] = R_NaN;
-		}
-
-		// poslist[i] <- median(ppos)
-		x += shift; iWin ++;
-	}
-
-	UNPROTECT(nProtected);
-
-	return ans_rv;
-}
-
-
 /// get an error message
 COREARRAY_DLL_EXPORT SEXP gnrErrMsg()
 {
@@ -1473,6 +1234,7 @@ COREARRAY_DLL_EXPORT SEXP gnrErrMsg()
 	GDS_SetError(NULL);
 	return ans_rv;
 }
+
 
 /// initialize the package
 COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
@@ -1498,6 +1260,8 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrLDMat(SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrLDpair(SEXP, SEXP, SEXP);
 	extern SEXP gnrLDpruning(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrSlidingNumWin(SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrSlidingWindow(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPairIBD(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPairIBDLogLik(SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCA(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1550,7 +1314,8 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrGetGenoDim, 0),          CALL(gnrSelSNP_Base, 3),
 		CALL(gnrSelSNP_Base_Ex, 4),      CALL(gnrSetGenoSpace, 3),
 
-		CALL(gnrSlidingWindow, 9),
+		CALL(gnrSlidingNumWin, 4),       CALL(gnrSlidingWindow, 10),
+
 		CALL(gnrSampFreq, 0),            CALL(gnrSNPFreq, 0),
 		CALL(gnrSNPRateFreq, 0),
 
