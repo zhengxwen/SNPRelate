@@ -32,10 +32,13 @@
 
 namespace Fst
 {
-	class ClassFst_WH15
+	class COREARRAY_DLL_LOCAL ClassFst_WH15
 	{
 	public:
-		// vector<double> H(NumPop*NumPop, 0);
+		std::vector<double> H;
+
+		ClassFst_WH15() {}
+		void SetNumPop(int nPop) {}
 	};
 }
 

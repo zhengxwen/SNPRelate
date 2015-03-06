@@ -275,8 +275,8 @@ struct COREARRAY_DLL_LOCAL TVCF_Field_Format
 	string name;           //< FORMAT ID
 	int type;              //< 1: integer, 2: float, 3: flag, 4: character,
 	bool import_flag;      //< true: import, false: not import
-	PdSequenceX data_obj;  //< the pointer to data object
-	PdSequenceX len_obj;   //< can be NULL if variable-length object
+	PdAbstractArray data_obj;  //< the pointer to data object
+	PdAbstractArray len_obj;   //< can be NULL if variable-length object
 	int number;            //< according to 'Number' field, if -1: variable-length, -2: # of alleles, -3: # of genotypes
 	bool used;             //< if TRUE, it has been parsed for the current line
 
@@ -583,14 +583,14 @@ COREARRAY_DLL_EXPORT SEXP gnrParseVCF4(SEXP vcf_fn, SEXP gds_root,
 
 		// GDS nodes
 		PdGDSObj Root = GDS_R_SEXP2Obj(gds_root);
-		PdSequenceX varIdx = GDS_Node_Path(Root, "snp.id", TRUE);
-		PdSequenceX varRSID = GDS_Node_Path(Root, "snp.rs.id", TRUE);
-		PdSequenceX varChr = GDS_Node_Path(Root, "snp.chromosome", TRUE);
-		PdSequenceX varPos = GDS_Node_Path(Root, "snp.position", TRUE);
-		PdSequenceX varAllele = GDS_Node_Path(Root, "snp.allele", TRUE);
-		PdSequenceX varGeno = GDS_Node_Path(Root, "genotype", TRUE);
-		PdSequenceX varQual = GDS_Node_Path(Root, "snp.annot/qual", TRUE);
-		PdSequenceX varFilter = GDS_Node_Path(Root, "snp.annot/filter", TRUE);
+		PdAbstractArray varIdx = GDS_Node_Path(Root, "snp.id", TRUE);
+		PdAbstractArray varRSID = GDS_Node_Path(Root, "snp.rs.id", TRUE);
+		PdAbstractArray varChr = GDS_Node_Path(Root, "snp.chromosome", TRUE);
+		PdAbstractArray varPos = GDS_Node_Path(Root, "snp.position", TRUE);
+		PdAbstractArray varAllele = GDS_Node_Path(Root, "snp.allele", TRUE);
+		PdAbstractArray varGeno = GDS_Node_Path(Root, "genotype", TRUE);
+		PdAbstractArray varQual = GDS_Node_Path(Root, "snp.annot/qual", TRUE);
+		PdAbstractArray varFilter = GDS_Node_Path(Root, "snp.annot/filter", TRUE);
 
 		int nTotalSamp;
 		{
@@ -947,12 +947,12 @@ COREARRAY_DLL_EXPORT SEXP gnrParseGEN(SEXP gen_fn, SEXP gds_root,
 
 		// GDS nodes
 		PdGDSObj Root = GDS_R_SEXP2Obj(gds_root);
-		PdSequenceX varIdx = GDS_Node_Path(Root, "snp.id", TRUE);
-		PdSequenceX varRSID = GDS_Node_Path(Root, "snp.rs.id", TRUE);
-		PdSequenceX varPos = GDS_Node_Path(Root, "snp.position", TRUE);
-		PdSequenceX varChr = GDS_Node_Path(Root, "snp.chromosome", TRUE);
-		PdSequenceX varAllele = GDS_Node_Path(Root, "snp.allele", TRUE);
-		PdSequenceX varGeno = GDS_Node_Path(Root, "genotype", TRUE);
+		PdAbstractArray varIdx = GDS_Node_Path(Root, "snp.id", TRUE);
+		PdAbstractArray varRSID = GDS_Node_Path(Root, "snp.rs.id", TRUE);
+		PdAbstractArray varPos = GDS_Node_Path(Root, "snp.position", TRUE);
+		PdAbstractArray varChr = GDS_Node_Path(Root, "snp.chromosome", TRUE);
+		PdAbstractArray varAllele = GDS_Node_Path(Root, "snp.allele", TRUE);
+		PdAbstractArray varGeno = GDS_Node_Path(Root, "genotype", TRUE);
 
 		int nTotalSamp;
 		{
@@ -1092,13 +1092,13 @@ COREARRAY_DLL_EXPORT SEXP gnrParseGEN(SEXP gen_fn, SEXP gds_root,
  *  \param gds_root          the root of GDS file
  *  \param SNPIdx            the index of SNPs
  *  \param ReadLineFun       the R function 'readLines'
- *  \param SeekFun           the R function 'seek'
- *  \param ReadLine_File     the parameter of 'con' in 'readLines' and 'seek'
+ *  \param ReadLine_File1    the parameter of 'con' in 'readLines'
+ *  \param ReadLine_File2    the parameter of 'con' in 'readLines'
  *  \param rho               the environment
  *  \param Verbose           print out information
 **/
 COREARRAY_DLL_EXPORT SEXP gnrParsePED(SEXP ped_fn, SEXP gds_root,
-	SEXP SNPIdx, SEXP ReadLineFun, SEXP SeekFun, SEXP ReadLine_File,
+	SEXP SNPIdx, SEXP ReadLineFun, SEXP ReadLine_File1, SEXP ReadLine_File2,
 	SEXP rho, SEXP Verbose)
 {
 	const char *fn = CHAR(STRING_ELT(ped_fn, 0));
@@ -1127,19 +1127,19 @@ COREARRAY_DLL_EXPORT SEXP gnrParsePED(SEXP ped_fn, SEXP gds_root,
 
 		// GDS nodes
 		PdGDSObj Root = GDS_R_SEXP2Obj(gds_root);
-		PdSequenceX varSample = GDS_Node_Path(Root, "sample.id", TRUE);
-		PdSequenceX varAllele = GDS_Node_Path(Root, "snp.allele", TRUE);
-		PdSequenceX varGeno   = GDS_Node_Path(Root, "genotype", TRUE);
+		PdAbstractArray varSample = GDS_Node_Path(Root, "sample.id", TRUE);
+		PdAbstractArray varAllele = GDS_Node_Path(Root, "snp.allele", TRUE);
+		PdAbstractArray varGeno   = GDS_Node_Path(Root, "genotype", TRUE);
 
-		PdSequenceX varFamily = GDS_Node_Path(Root, "sample.annot/family", FALSE);
-		PdSequenceX varFather = GDS_Node_Path(Root, "sample.annot/father", FALSE);
-		PdSequenceX varMother = GDS_Node_Path(Root, "sample.annot/mother", FALSE);
-		PdSequenceX varSex    = GDS_Node_Path(Root, "sample.annot/sex", FALSE);
-		PdSequenceX varPheno  = GDS_Node_Path(Root, "sample.annot/phenotype", FALSE);
+		PdAbstractArray varFamily = GDS_Node_Path(Root, "sample.annot/family", FALSE);
+		PdAbstractArray varFather = GDS_Node_Path(Root, "sample.annot/father", FALSE);
+		PdAbstractArray varMother = GDS_Node_Path(Root, "sample.annot/mother", FALSE);
+		PdAbstractArray varSex    = GDS_Node_Path(Root, "sample.annot/sex", FALSE);
+		PdAbstractArray varPheno  = GDS_Node_Path(Root, "sample.annot/phenotype", FALSE);
 
 		// 'readLine(con, n)'
 		SEXP R_Read_Call = PROTECT(
-			LCONS(ReadLineFun, LCONS(ReadLine_File,
+			LCONS(ReadLineFun, LCONS(ReadLine_File1,
 			LCONS(ScalarInteger(1), R_NilValue))));
 		RL.Init(R_Read_Call, rho);
 		RL.SplitBySpaceTab();
@@ -1204,11 +1204,10 @@ COREARRAY_DLL_EXPORT SEXP gnrParsePED(SEXP ped_fn, SEXP gds_root,
 		// =========================================================
 		// Rewind the file
 
-		// 'seek(con, 0L)'
-		SEXP R_Seek_Call = PROTECT(
-			LCONS(SeekFun, LCONS(ReadLine_File,
-			LCONS(ScalarInteger(0), R_NilValue))));
-		eval(R_Seek_Call, rho);
+		// 'readLine(con, n)'
+		R_Read_Call = PROTECT(
+			LCONS(ReadLineFun, LCONS(ReadLine_File2,
+			LCONS(ScalarInteger(1), R_NilValue))));
 		RL.Init(R_Read_Call, rho);
 		RL.SplitBySpaceTab();
 

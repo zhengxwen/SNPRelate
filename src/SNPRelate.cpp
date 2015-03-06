@@ -308,7 +308,7 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGeno(SEXP Node, SEXP snpfirstorder)
 
 	COREARRAY_TRY
 
-		PdSequenceX obj = GDS_R_SEXP2Obj(Node);
+		PdAbstractArray obj = GDS_R_SEXP2Obj(Node);
 		GDS_R_NodeValid(obj, TRUE);
 
 		if (snpdim)
@@ -905,7 +905,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP bedfn, SEXP Node, SEXP verbose)
 	const char *fn = CHAR(STRING_ELT(bedfn, 0));
 	COREARRAY_TRY
 
-		PdSequenceX Seq = GDS_R_SEXP2Obj(Node);
+		PdAbstractArray Seq = GDS_R_SEXP2Obj(Node);
 
 		int DLen[2];
 		GDS_Array_GetDim(Seq, DLen, 2);
@@ -1109,7 +1109,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParse(SEXP gdsobj)
 {
 	COREARRAY_TRY
 
-		PdSequenceX Obj = GDS_R_SEXP2Obj(gdsobj);
+		PdAbstractArray Obj = GDS_R_SEXP2Obj(gdsobj);
 		GDS_R_NodeValid(Obj, TRUE);
 
 		C_Int32 st, cnt, TotalCnt;
@@ -1169,7 +1169,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromRangeNumeric(SEXP gdsobj, SEXP ChrMin,
 
 	COREARRAY_TRY
 
-		PdSequenceX Obj = GDS_R_SEXP2Obj(gdsobj);
+		PdAbstractArray Obj = GDS_R_SEXP2Obj(gdsobj);
 		GDS_R_NodeValid(Obj, TRUE);
 
 		C_Int32 st, cnt, TotalCnt;
@@ -1197,7 +1197,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParseNumeric(SEXP gdsobj)
 {
 	COREARRAY_TRY
 
-		PdSequenceX Obj = GDS_R_SEXP2Obj(gdsobj);
+		PdAbstractArray Obj = GDS_R_SEXP2Obj(gdsobj);
 		GDS_R_NodeValid(Obj, TRUE);
 
 		C_Int32 st, cnt, TotalCnt;

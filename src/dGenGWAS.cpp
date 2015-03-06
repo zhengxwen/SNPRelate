@@ -76,7 +76,7 @@ CdGenoWorkSpace::CdGenoWorkSpace()
 CdGenoWorkSpace::~CdGenoWorkSpace()
 { }
 
-void CdGenoWorkSpace::SetGeno(PdSequenceX vGeno, bool _InitSelection)
+void CdGenoWorkSpace::SetGeno(PdAbstractArray vGeno, bool _InitSelection)
 {
 	if (vGeno)
 	{

@@ -339,6 +339,61 @@
 
 
 
+#######################################################################
+# Open and close a connection,
+# Please always call '.CloseConnection' after '.OpenConnText'
+
+.LastStr <- function(s, len)
+{
+    substring(s, nchar(s)-len+1L, nchar(s))
+}
+
+.OpenConnText <- function(filename, require.txtmode=FALSE)
+{
+    stopifnot(is.character(filename))
+    con2 <- NULL
+
+    if ((substr(filename, 1, 6) == "ftp://") |
+        (substr(filename, 1, 7) == "http://"))
+    {
+        if (.LastStr(filename, 3) == ".gz")
+        {
+            con <- gzcon(url(filename, "rb"))
+            if (require.txtmode)
+            {
+                fn <- tempfile(fileext=".tmpfile")
+                write(readLines(con), file=fn, sep="\n")
+                close(con)
+                con <- fn
+                con2 <- NULL
+            }
+        } else
+            con <- url(filename, "rt")
+    } else
+        con <- file(filename, "rt")
+
+    list(filename=filename, con=con, con2=con2)
+}
+
+.CloseConnection <- function(conn)
+{
+    if (is.character(conn$con))
+    {
+        if (.LastStr(conn$con, 8) == ".tmpfile")
+            unlink(conn$con, force=TRUE)
+    } else if (inherits(conn$con, "connection"))
+    {
+        close(conn$con)
+    }
+
+    if (inherits(conn$con2, "connection"))
+    {
+        close(conn$con2)
+    }
+}
+
+
+
 
 #######################################################################
 # File Functions
@@ -2208,7 +2263,7 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 {
     # check
     ws <- .InitFile2(
-        cmd="Sliding Windows Analysis:",
+        cmd="Sliding Window Analysis:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,

@@ -75,7 +75,7 @@ namespace GWAS
 		virtual ~CdGenoWorkSpace();
 
 		/// set the pointer to snp genotypes
-		void SetGeno(PdSequenceX vGeno, bool _InitSelection=true);
+		void SetGeno(PdAbstractArray vGeno, bool _InitSelection=true);
 
 		void InitSelection();
 		void InitSelectionSNPOnly();
@@ -118,7 +118,7 @@ namespace GWAS
 		void Set_SNPSelection(C_BOOL flag[]);
 		void Set_SampSelection(C_BOOL flag[]);
 
-		inline PdSequenceX Geno() { return fGeno; };
+		inline PdAbstractArray Geno() { return fGeno; };
 		inline bool SNPOrder() const { return fSNPOrder; };
 		inline C_Int32 TotalSampleNum() const { return fTotalSampleNum; };
 		inline C_Int32 TotalSNPNum() const { return fTotalSNPNum; };
@@ -128,7 +128,7 @@ namespace GWAS
 		inline C_BOOL *SNPSelection() { return &fSNPSelection[0]; };
 
 	protected:
-		PdSequenceX fGeno;
+		PdAbstractArray fGeno;
 		bool fSNPOrder;
 		C_Int32 fTotalSampleNum, fTotalSNPNum;
 		C_Int32 fSampleNum, fSNPNum;

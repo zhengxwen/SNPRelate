@@ -60,9 +60,6 @@ snpgdsClose(genofile)
 snpgdsPED2GDS("tmp.ped", "tmp.map", "test.gds")
 
 
-
-
-
 # delete the temporary file
 unlink(c("tmp.ped", "tmp.map", "test.gds"), force=TRUE)
 }
