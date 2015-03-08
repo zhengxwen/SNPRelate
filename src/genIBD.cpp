@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// genIBD.cpp: Identity by descent (IBD) analysis on GWAS
+// genIBD.cpp: Identity by descent (IBD) Analysis on GWAS
 //
 // Copyright (C) 2011-2015    Xiuwen Zheng
 //

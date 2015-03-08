@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// genLD.cpp: Linkage Disequilibrium (LD) analysis on GWAS
+// genLD.cpp: Linkage Disequilibrium (LD) Analysis on GWAS
 //
 // Copyright (C) 2011-2015    Xiuwen Zheng
 //

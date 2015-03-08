@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// genPCA.cpp: Principal component analysis on GWAS
+// genPCA.cpp: Principal Component Analysis on GWAS
 //
 // Copyright (C) 2011-2015    Xiuwen Zheng
 //
@@ -1278,7 +1278,11 @@ static int GetEigen(double *pMat, int n, int nEig, const char *EigMethod,
 		F77_NAME(dspev)("V", "L", &n, pMat, REAL(EigVal),
 			&tmp_EigenVec[0], &n, &tmp_Work[0], &info);
 		if (info != 0)
-			throw ErrCoreArray("LAPACK::DSPEV error (INFO: %d)!", info);
+		{
+			throw ErrCoreArray(
+				"LAPACK::DSPEV error (%d), infinite or missing values in the genetic covariance matrix!",
+				info);
+		}
 
 		// output eigenvalues
 		vt<double>::Sub(REAL(EigVal), 0.0, REAL(EigVal), n);
@@ -1319,7 +1323,11 @@ static int GetEigen(double *pMat, int n, int nEig, const char *EigMethod,
 			&M, &tmp_Eigen[0], REAL(EigVect), &LDZ,
 			&tmp_Work[0], &tmp_IWork[0], &ifail[0], &info);
 		if (info != 0)
-			throw ErrCoreArray("LAPACK::DSPEVX error (INFO: %d)!", info);
+		{
+			throw ErrCoreArray(
+				"LAPACK::DSPEVX error (%d), infinite or missing values in the genetic covariance matrix!",
+				info);
+		}
 
 		// output eigenvalues
 		for (int i=0; i < nEig; i++)

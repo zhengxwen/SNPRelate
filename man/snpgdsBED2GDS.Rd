@@ -6,7 +6,8 @@
 }
 \usage{
 snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
-    compress.annotation="ZIP_RA.max", option=NULL, cvt.snpid=c("auto", "int"),
+    snpfirstdim=NA, compress.annotation="ZIP_RA.max", compress.geno="",
+    option=NULL, cvt.chr=c("int", "char"), cvt.snpid=c("auto", "int"),
     verbose=TRUE)
 }
 \arguments{
@@ -17,11 +18,20 @@ snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     \item{out.gdsfn}{the output GDS file}
     \item{family}{if \code{TRUE}, to include family information in the
         sample annotation}
+    \item{snpfirstdim}{if TRUE, genotypes are stored in the individual-major
+        mode, (i.e, list all SNPs for the first individual, and then list all
+        SNPs for the second individual, etc); \code{NA}, the dimension is
+        determined by the BED file}
     \item{compress.annotation}{the compression mode of the nodes stored,
+        except "genotype"; optional value are defined in the function of
+        \code{add.gdsn}}
+    \item{compress.geno}{the compression mode of the node "genotype",
         except "genotype"; optional value are defined in the function of
         \code{add.gdsn}}
     \item{option}{\code{NULL} or an object from \code{\link{snpgdsOption}},
         see details}
+    \item{cvt.chr}{\code{"int"} -- chromosome code in the GDS file is integer;
+        \code{"char"} -- chromosome code in the GDS file is character}
     \item{cvt.snpid}{\code{"int"} -- to create an integer \code{snp.id}
         starting from 1; \code{"auto"} -- if SNP IDs in the PLINK file are not
         unique, to create an an integer \code{snp.id}, otherwise to use SNP
@@ -54,15 +64,15 @@ It also allow define new chromosome coding, e.g.,
 }
 \author{Xiuwen Zheng}
 \seealso{
-    \code{\link{snpgdsOption}}, \code{\link{snpgdsBED2GDS}},
+    \code{\link{snpgdsOption}}, \code{\link{snpgdsPED2GDS}},
     \code{\link{snpgdsGDS2PED}}
 }
 
 \examples{
 # PLINK BED files
-bed.fn <- system.file("extdata", "plinkhapmap.bed", package="SNPRelate")
-fam.fn <- system.file("extdata", "plinkhapmap.fam.xz", package="SNPRelate")
-bim.fn <- system.file("extdata", "plinkhapmap.bim.xz", package="SNPRelate")
+bed.fn <- system.file("extdata", "plinkhapmap.bed.gz", package="SNPRelate")
+fam.fn <- system.file("extdata", "plinkhapmap.fam.gz", package="SNPRelate")
+bim.fn <- system.file("extdata", "plinkhapmap.bim.gz", package="SNPRelate")
 
 # convert
 snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "HapMap.gds")

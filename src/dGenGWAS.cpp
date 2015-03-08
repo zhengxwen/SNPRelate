@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// dGenGWAS.cpp: Workspace of genome-wide association studies
+// dGenGWAS.cpp: Workspace of Genome-Wide Association Studies
 //
 // Copyright (C) 2011-2015    Xiuwen Zheng
 //

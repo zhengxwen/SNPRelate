@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// genHWE.cpp: Hardy-Weinberg Equilibrium test on SNPs
+// genHWE.cpp: Hardy-Weinberg Equilibrium Test on SNPs
 //
 // Copyright (C) 2015    Xiuwen Zheng
 //

@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// genKING.cpp: KINK Identity-by-descent (IBD) analysis on GWAS
+// genKING.cpp: KINK Identity-by-descent (IBD) Analysis on GWAS
 //
 // Copyright (C) 2011-2015    Xiuwen Zheng
 //
@@ -20,8 +20,8 @@
 // If not, see <http://www.gnu.org/licenses/>.
 
 
-#ifndef _H_IBD_KING_
-#define _H_IBD_KING_
+#ifndef _HEADER_IBD_KING_
+#define _HEADER_IBD_KING_
 
 // CoreArray library header
 #include <dGenGWAS.h>
@@ -408,4 +408,4 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
 
 }
 
-#endif  /* _H_IBD_KING_ */
+#endif  /* _HEADER_IBD_KING_ */

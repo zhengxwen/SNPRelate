@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// genSlideWin.cpp: The method of sliding windows
+// genSlideWin.cpp: The Method of Sliding Windows
 //
 // Copyright (C) 2015    Xiuwen Zheng
 //

@@ -348,6 +348,34 @@
     substring(s, nchar(s)-len+1L, nchar(s))
 }
 
+.OpenConnBin <- function(filename)
+{
+    stopifnot(is.character(filename))
+    con2 <- NULL
+
+    if ((substr(filename, 1, 6) == "ftp://") |
+        (substr(filename, 1, 7) == "http://"))
+    {
+        if (.LastStr(filename, 3) == ".gz")
+        {
+            con <- gzcon(url(filename, "rb"))
+        } else
+            con <- url(filename, "rb")
+    } else {
+        if (.LastStr(filename, 3) == ".gz")
+        {
+            con <- gzfile(filename, "rb")
+        } else if (.LastStr(filename, 3) == ".xz")
+        {
+            con <- xzfile(filename, "rb")
+        } else 
+            con <- file(filename, "rb")
+    }
+
+    # open(con)
+    list(filename=filename, con=con, con2=con2)
+}
+
 .OpenConnText <- function(filename, require.txtmode=FALSE)
 {
     stopifnot(is.character(filename))
@@ -372,6 +400,7 @@
     } else
         con <- file(filename, "rt")
 
+    # open(con)
     list(filename=filename, con=con, con2=con2)
 }
 

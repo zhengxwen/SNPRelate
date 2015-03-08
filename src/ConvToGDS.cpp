@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// ConvToGDS.cpp: PED/VCF to GDS format
+// ConvToGDS.cpp: PED/VCF to GDS Format
 //
 // Copyright (C) 2013-2015    Xiuwen Zheng
 //
@@ -28,6 +28,11 @@
 
 using namespace std;
 using namespace CoreArray;
+
+
+#include <dGenGWAS.h>
+#include <fstream>
+using namespace GWAS;
 
 
 
@@ -514,6 +519,99 @@ static double getFloat(string &txt, bool RaiseError)
 
 extern "C"
 {
+// ======================================================================
+// Convert from PLINK BED: BED -> SNP GDS
+// ======================================================================
+
+/// to detect PLINK BED
+COREARRAY_DLL_EXPORT SEXP gnrConvBEDFlag(SEXP File, SEXP ReadBinFun, SEXP Rho)
+{
+	// 'readBin(File, raw(), 3)'
+	SEXP R_Read_Call = PROTECT(
+		LCONS(ReadBinFun, LCONS(File,
+		LCONS(NEW_RAW(0), LCONS(ScalarInteger(3), R_NilValue)))));
+
+	// call ...
+	SEXP val = PROTECT(eval(R_Read_Call, Rho));
+	unsigned char *prefix = RAW(val);
+
+	if ((prefix[0] != 0x6C) || (prefix[1] != 0x1B))
+		error("Invalid prefix in the bed file.");
+
+	UNPROTECT(2);
+	return ScalarInteger((C_UInt8)prefix[2]);
+}
+
+
+/// to convert from PLINK BED to GDS
+COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP GenoNode, SEXP Num, SEXP File,
+	SEXP ReadBinFun, SEXP Rho, SEXP Verbose)
+{
+	COREARRAY_TRY
+
+		PdAbstractArray Seq = GDS_R_SEXP2Obj(GenoNode);
+		int n = Rf_asInteger(Num);
+
+		int DLen[2];
+		GDS_Array_GetDim(Seq, DLen, 2);
+
+		MCWorkingGeno.Progress.Info = " ";
+		MCWorkingGeno.Progress.Show() = (Rf_asLogical(Verbose) == TRUE);
+		MCWorkingGeno.Progress.Init(n);
+
+		int nRe = DLen[1] % 4;
+		int nRe4 = DLen[1] / 4;
+		int nPack = (nRe > 0) ? (nRe4 + 1) : nRe4;
+
+		// 'readBin(File, raw(), 3)'
+		SEXP R_Read_Call = PROTECT(
+			LCONS(ReadBinFun, LCONS(File,
+			LCONS(NEW_RAW(0), LCONS(ScalarInteger(nPack), R_NilValue)))));
+
+		vector<C_UInt8> dstgeno(DLen[1]);
+		C_Int32 st[2] = { 0, 0 }, cnt[2] = { 1, DLen[1] };
+
+		static const C_UInt8 cvt[4] = { 2, 3, 1, 0 };
+
+		for (int i=0; i < n; i++)
+		{
+			// read genotypes
+			SEXP val = eval(R_Read_Call, Rho);
+			unsigned char *srcgeno = RAW(val);
+
+			// unpacked
+			C_UInt8 *p = &dstgeno[0];
+			for (int k=0; k < nRe4; k++)
+			{
+				C_UInt8 g = srcgeno[k];
+				*p++ = cvt[g & 0x03]; g >>= 2;
+				*p++ = cvt[g & 0x03]; g >>= 2;
+				*p++ = cvt[g & 0x03]; g >>= 2;
+				*p++ = cvt[g & 0x03];
+			}
+			if (nRe > 0)
+			{
+				C_UInt8 g = srcgeno[nRe4];
+				for (int k=0; k < nRe; k++)
+				{
+					*p++ = cvt[g & 0x03]; g >>= 2;
+				}
+			}
+
+			// write
+			st[0] = i;
+			GDS_Array_AppendData(Seq, DLen[1], &dstgeno[0], svUInt8);
+			MCWorkingGeno.Progress.Forward(1);
+		}
+
+		UNPROTECT(1);
+
+	COREARRAY_CATCH
+}
+
+
+
+
 // ======================================================================
 // Convert from VCF4: VCF4 -> SNP GDS
 // ======================================================================

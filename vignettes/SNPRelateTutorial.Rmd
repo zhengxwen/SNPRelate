@@ -135,7 +135,7 @@ snpgdsClose(genofile)
 ```
 
 
-## Create a GDS File of Your Own
+## Create a SNP GDS File
 
 ### snpgdsCreateGeno
 
@@ -246,11 +246,11 @@ The [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate
 
 ```{r}
 # The PLINK BED file, using the example in the SNPRelate package
-bed.fn <- system.file("extdata", "plinkhapmap.bed", package="SNPRelate")
-fam.fn <- system.file("extdata", "plinkhapmap.fam.xz", package="SNPRelate")
-bim.fn <- system.file("extdata", "plinkhapmap.bim.xz", package="SNPRelate")
+bed.fn <- system.file("extdata", "plinkhapmap.bed.gz", package="SNPRelate")
+fam.fn <- system.file("extdata", "plinkhapmap.fam.gz", package="SNPRelate")
+bim.fn <- system.file("extdata", "plinkhapmap.bim.gz", package="SNPRelate")
 ```
-Or, uses your own PLINK files:
+Or, uses your PLINK files:
 ```{r eval=FALSE}
 bed.fn <- "C:/your_folder/your_plink_file.bed"
 fam.fn <- "C:/your_folder/your_plink_file.fam"
@@ -275,7 +275,7 @@ The [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate
 # The VCF file, using the example in the SNPRelate package
 vcf.fn <- system.file("extdata", "sequence.vcf", package="SNPRelate")
 ```
-Or, uses your own VCF file:
+Or, uses your VCF file:
 ```{r eval=FALSE}
 vcf.fn <- "C:/your_folder/your_vcf_file.vcf"
 ```

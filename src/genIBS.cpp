@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// genIBS.cpp: Identity by state (IBS) analysis on GWAS
+// genIBS.cpp: Identity by state (IBS) Analysis on GWAS
 //
 // Copyright (C) 2011-2015    Xiuwen Zheng
 //

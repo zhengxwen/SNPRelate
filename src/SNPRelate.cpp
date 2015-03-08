@@ -878,88 +878,6 @@ COREARRAY_DLL_EXPORT SEXP gnrConvGDS2EIGEN(SEXP pedfn, SEXP verbose)
 }
 
 
-/// to detect PLINK BED
-COREARRAY_DLL_EXPORT SEXP gnrBEDFlag(SEXP bedfn)
-{
-	const char *fn = CHAR(STRING_ELT(bedfn, 0));
-	COREARRAY_TRY
-
-		ifstream file(fn, ios::binary);
-		if (!file.good())
-			throw ErrCoreArray("Cannot open the file '%s'.", fn);
-
-		char prefix[3];
-		file.read(prefix, 3);
-		if ((prefix[0] != 0x6C) || (prefix[1] != 0x1B))
-			throw ErrCoreArray("Invalid prefix in the bed file.");
-		rv_ans = NEW_INTEGER(1);
-		INTEGER(rv_ans)[0] = (C_UInt8)(prefix[2]);
-
-	COREARRAY_CATCH
-}
-
-
-/// to convert from PLINK BED to GDS
-COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP bedfn, SEXP Node, SEXP verbose)
-{
-	const char *fn = CHAR(STRING_ELT(bedfn, 0));
-	COREARRAY_TRY
-
-		PdAbstractArray Seq = GDS_R_SEXP2Obj(Node);
-
-		int DLen[2];
-		GDS_Array_GetDim(Seq, DLen, 2);
-
-		MCWorkingGeno.Progress.Info = " ";
-		MCWorkingGeno.Progress.Show() = (LOGICAL(verbose)[0] == TRUE);
-		MCWorkingGeno.Progress.Init(DLen[0]);
-
-		ifstream file(fn, ios::binary);
-		if (!file.good())
-			throw ErrCoreArray("Fail to open the file '%s'.", fn);
-		// read prefix
-		char prefix[3];
-		file.read(prefix, 3);
-
-		long nRe = DLen[1] % 4;
-		long nPack = (nRe > 0) ? (DLen[1]/4 + 1) : (DLen[1]/4);
-		vector<char> srcgeno(nPack);
-		vector<C_UInt8> dstgeno(DLen[1]);
-		C_Int32 st[2] = { 0, 0 }, cnt[2] = { 1, DLen[1] };
-		const C_UInt8 cvt[4] = { 2, 3, 1, 0 };
-
-		for (long i=0; i < DLen[0]; i++)
-		{
-			// read genotypes
-			file.read(&srcgeno[0], nPack);
-			// unpacked
-			C_UInt8 *p = &dstgeno[0];
-			for (long k=0; k < DLen[1]/4; k++)
-			{
-				C_UInt8 g = srcgeno[k];
-				*p++ = cvt[g & 0x03]; g >>= 2;
-				*p++ = cvt[g & 0x03]; g >>= 2;
-				*p++ = cvt[g & 0x03]; g >>= 2;
-				*p++ = cvt[g & 0x03];
-			}
-			if (nRe > 0)
-			{
-				C_UInt8 g = srcgeno[DLen[1]/4];
-				for (long k=0; k < nRe; k++)
-				{
-					*p++ = cvt[g & 0x03]; g >>= 2;
-				}
-			}
-			// write
-			st[0] = i;
-			GDS_Array_WriteData(Seq, st, cnt, &dstgeno[0], svUInt8);
-			MCWorkingGeno.Progress.Forward(1);
-		}
-
-	COREARRAY_CATCH
-}
-
-
 /// SNP functions
 
 /// to detect and correct strand problem
@@ -1239,6 +1157,8 @@ COREARRAY_DLL_EXPORT SEXP gnrErrMsg()
 /// initialize the package
 COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 {
+	extern SEXP gnrConvBEDFlag(SEXP, SEXP, SEXP);
+	extern SEXP gnrConvBED2GDS(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrDiss(SEXP, SEXP);
 	extern SEXP gnrEIGMIX(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrFst(SEXP, SEXP, SEXP);
@@ -1283,10 +1203,12 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrAppendGenoSpaceStrand, 3),
 		CALL(gnrStrandSwitch, 5),
 
-		CALL(gnrBEDFlag, 1),             CALL(gnrChromParse, 1),
-		CALL(gnrChromParseNumeric, 1),   CALL(gnrChromRangeNumeric, 3),
-		CALL(gnrConvBED2GDS, 3),         CALL(gnrConvGDS2BED, 3),
-		CALL(gnrConvGDS2EIGEN, 2),       CALL(gnrConvGDS2PED, 5),
+		CALL(gnrChromParse, 1),          CALL(gnrChromParseNumeric, 1),
+		CALL(gnrChromRangeNumeric, 3),
+
+		CALL(gnrConvBEDFlag, 3),         CALL(gnrConvBED2GDS, 6),
+		CALL(gnrConvGDS2BED, 3),         CALL(gnrConvGDS2EIGEN, 2),
+		CALL(gnrConvGDS2PED, 5),
 
 		CALL(gnrDiss, 2),
 		// CALL(gnrDistPerm, ),

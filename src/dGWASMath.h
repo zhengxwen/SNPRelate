@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// dGWASMath.h: Math functions of genome-wide association studies
+// dGWASMath.h: Math functions of Genome-Wide Association Studies
 //
 // Copyright (C) 2011-2015    Xiuwen Zheng
 //
@@ -19,8 +19,8 @@
 // with SNPRelate.
 // If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _dGWASMath_H_
-#define _dGWASMath_H_
+#ifndef _HEADER_GWAS_MATH_
+#define _HEADER_GWAS_MATH_
 
 #include <limits>
 #include <memory>
@@ -465,4 +465,4 @@ namespace GWAS_Math
 
 }
 
-#endif /* _dGWASMath_H_ */
+#endif /* _HEADER_GWAS_MATH_ */
