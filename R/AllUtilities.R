@@ -2540,17 +2540,11 @@ snpgdsErrMsg <- function()
 
 .onAttach <- function(lib, pkg)
 {
-    # initialize SNPRelate
-    sse <- .Call(gnrSSEFlag)
-
     # information
-    if (sse)
-    {
-        packageStartupMessage(
-            "SNPRelate -- supported by Streaming SIMD Extensions 2 (SSE2)")
-    } else {
-        packageStartupMessage("SNPRelate")
-    }
-
+    s <- switch(.Call(gnrSSEFlag),
+        " -- supported by Streaming SIMD Extensions 2 (SSE2)",
+        " -- supported by Advanced Vector Extensions (AVX)"
+    )
+    packageStartupMessage("SNPRelate", s)
     TRUE
 }

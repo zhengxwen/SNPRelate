@@ -17,9 +17,9 @@ snpgdsVCF2GDS_R(vcf.fn, out.fn, nblock=1024,
     \item{nblock}{the buffer lines}
     \item{method}{either "biallelic.only" by default or "copy.num.of.ref",
         see details}
-    \item{compress.annotation}{the compression flag of the nodes stored, except
-        "genotype"; the string value is defined in the function of
-        \code{\link[gdsfmt]{add.gdsn}}}
+    \item{compress.annotation}{the compression method for the GDS variables,
+        except "genotype"; optional values are defined in the function
+        \code{add.gdsn}}
     \item{snpfirstdim}{if TRUE, genotypes are stored in the individual-major
         mode, (i.e, list all SNPs for the first individual, and then list all
         SNPs for the second individual, etc)}

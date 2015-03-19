@@ -17,12 +17,11 @@ snpgdsPED2GDS(ped.fn, map.fn, out.gdsfn, family=TRUE, snpfirstdim=FALSE,
     \item{snpfirstdim}{if TRUE, genotypes are stored in the individual-major
         mode, (i.e, list all SNPs for the first individual, and then list all
         SNPs for the second individual, etc)}
-    \item{compress.annotation}{the compression mode of the nodes stored,
-        except "genotype"; optional value are defined in the function of
+    \item{compress.annotation}{the compression method for the GDS variables,
+        except "genotype"; optional values are defined in the function
         \code{add.gdsn}}
-    \item{compress.geno}{the compression mode of the node "genotype",
-        except "genotype"; optional value are defined in the function of
-        \code{add.gdsn}}
+    \item{compress.geno}{the compression method for "genotype"; optional
+        values are defined in the function \code{add.gdsn}}
     \item{verbose}{if TRUE, show information}
 }
 \value{

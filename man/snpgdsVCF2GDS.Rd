@@ -18,11 +18,11 @@ snpgdsVCF2GDS(vcf.fn, out.fn, method=c("biallelic.only", "copy.num.of.ref"),
     \item{snpfirstdim}{if TRUE, genotypes are stored in the individual-major
         mode, (i.e, list all SNPs for the first individual, and then list all
         SNPs for the second individual, etc)}
-    \item{compress.annotation}{the data compression mode, except the GDS
-        variable "genotype"; optional values are defined in the function of
+    \item{compress.annotation}{the compression method for the GDS variables,
+        except "genotype"; optional values are defined in the function
         \code{add.gdsn}}
-    \item{compress.geno}{the data compression mode for the variable "genotype",
-        optional values are defined in the function of \code{add.gdsn}}
+    \item{compress.geno}{the compression method for "genotype"; optional
+        values are defined in the function \code{add.gdsn}}
     \item{ref.allele}{\code{NULL} or a character vector indicating reference
         allele (like \code{"A", "G", "T", NA, ...}) for each site where
         \code{NA} to use the original reference allele in the VCF file(s).

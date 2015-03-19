@@ -25,7 +25,6 @@
 
 // CoreArray library header
 #include "dGenGWAS.h"
-#include "dGWASMath.h"
 #include "dVect.h"
 
 // Standard library header
@@ -42,6 +41,152 @@
 #ifdef COREARRAY_SIMD_SSE2
 #include <emmintrin.h>
 #endif
+
+
+namespace GWAS_Math
+{
+	using namespace std;
+
+	// Nelder-Mead Simplex algorithm
+	// J.A. Nelder and R. Mead, A simplex method for function minimization,
+	//   Computer Journal vol. 7 (1965), 308®C315.
+	//
+	// Press, W. H., S. A. Teukolsky, W. T. Vetterling and B. P. Flannery, 2002.
+	//   Numerical Recipes in C++: The Art of Scientific Computing,
+	//   Ed. 2. Cambridge University Press, Cambridge, UK.
+
+	/// Nelder-Mead Simplex algorithm
+	/** Extrapolates by a factor fac through the face of the simplex across from
+	 *  the high point, tries it, and replaces the high point if the new point
+	 *  is better. **/
+	template<typename tfloat, int ndim, typename Functor>
+		inline tfloat Simplex_Point_Try(tfloat p[][ndim], tfloat y[],
+			tfloat psum[], int ihi, tfloat fac, Functor funk, void *funkdata)
+	{
+		tfloat fac1 = (1.0-fac)/ndim, fac2 = fac1-fac;
+		tfloat ytry, ptry[ndim];
+		for (int j=0; j < ndim; j++)
+			ptry[j] = psum[j]*fac1 - p[ihi][j]*fac2;
+		// Evaluate the function at the trial point.
+		ytry = funk(ptry, funkdata);
+		if (ytry < y[ihi])
+		{
+			// If it's better than the highest, then replace the highest.
+			y[ihi] = ytry;
+			for (int j=0; j < ndim; j++)
+			{
+				psum[j] += ptry[j] - p[ihi][j];
+				p[ihi][j] = ptry[j];
+			}
+		}
+		return ytry;
+	}
+
+	/// Nelder-Mead Simplex algorithm
+	/** Multidimensional minimization of the function funk(x) where x[1..ndim]
+	 *  is a vector in ndim dimensions, by the downhill simplex method of Nelder
+	 *  and Mead. The matrix p[1..ndim+1][1..ndim] is input. Its ndim+1 rows are
+	 *  ndim-dimensional vectors which are the vertices of the starting simplex.
+	 *  On output, p will have been reset to ndim+1 new points all within reltol
+	 *  of a minimum function value, outx will be the point corresponding to the
+	 *  minimum value outy, and nfunk gives the number of function evaluations
+	 *  taken.
+	**/
+	template<typename tfloat, int ndim, typename Functor>
+		void SimplexMin(tfloat p[][ndim], tfloat outx[], tfloat &outy,
+		int &nfunk, Functor funk, void *funkdata, tfloat reltol, int nfunkmax)
+	{
+		int i, ihi, ilo, inhi, j;
+		tfloat convtol, sum, ysave, ytry;
+		tfloat y[ndim+1], psum[ndim];
+
+		// The components of y are initialized to the values of funk evaluated
+		// at the ndim+1 vertices (rows) of p.
+		for (i=0; i <= ndim; i++)
+			y[i] = funk(p[i], funkdata);
+		nfunk = ndim;
+		// Set converage tolenance with respect to reltol
+		convtol = reltol * (fabs(y[0]) + fabs(reltol));
+		if (convtol < numeric_limits<tfloat>::epsilon())
+			convtol = numeric_limits<tfloat>::epsilon();
+
+		// Get psum
+		for (j=0; j<ndim; j++)
+		{
+			for (sum=0, i=0; i<=ndim; i++) sum += p[i][j];
+			psum[j] = sum;
+		}
+
+		// do loop
+		while (true)
+		{
+			ilo = 0;
+			// First we must determine which point is the highest (worst),
+			// next-highest, and lowest (best), by looping over the points
+			// in the simplex.
+			ihi = y[0]>y[1] ? (inhi=1,0) : (inhi=0,1);
+			for (i=0; i<=ndim; i++)
+			{
+				if (y[i] <= y[ilo]) ilo=i;
+				if (y[i] > y[ihi]) {
+					inhi = ihi; ihi = i;
+				} else
+					if ((y[i] > y[inhi]) && (i!=ihi))
+						inhi = i;
+			}
+			// Compute the fractional range from highest to lowest and return
+			// if satisfactory. If returning, put best point and value in
+			// outx and outy.
+			if (((y[ihi]-y[ilo]) <= convtol) || (nfunk>=nfunkmax))
+			{
+				outy = y[ilo];
+				for (i=0; i<ndim; i++) outx[i] = p[ilo][i];
+				break;
+			}
+
+			nfunk += 2;
+			// Begin a new iteration.
+			// First extrapolate by a factor (-1.0)( through the face of the
+			// simplex across from the high point, i.e., reflect the simplex from
+			// the high point.
+			ytry = Simplex_Point_Try(p, y, psum, ihi, (tfloat)-1.0, funk, funkdata);
+			if (ytry <= y[ilo])
+			{
+				// Gives a result better than the best point, so try an additional
+				// extrapolation by a factor (2.0).
+				ytry = Simplex_Point_Try(p, y, psum, ihi, (tfloat)2.0, funk, funkdata);
+			} else if (ytry >= y[inhi]) {
+				// The reflected point is worse than the second-highest, so look for
+				// an intermediate lower point, i.e., do a one-dimensional contraction.
+				ysave = y[ihi];
+				ytry = Simplex_Point_Try(p, y, psum, ihi, (tfloat)0.5, funk, funkdata);
+				if (ytry >= ysave) {
+					// Can't seem to get rid of that high point. Better contract
+					// around the lowest (best) point.
+					for (i=0; i<=ndim; i++)
+					{
+						if (i != ilo)
+						{
+							for (j=0; j<ndim; j++)
+								p[i][j] = psum[j] = 0.5 * (p[i][j] + p[ilo][j]);
+							y[i] = funk(psum, funkdata);
+						}
+					}
+					// Keep track of function evaluations.
+					nfunk += ndim;
+					// Recompute psum
+					for (j=0; j<ndim; j++)
+					{
+						for (sum=0, i=0; i<=ndim; i++) sum += p[i][j];
+						psum[j] = sum;
+					}
+				}
+			} else
+				// Correct the evaluation count.
+				-- nfunk;
+		}
+	}
+}
 
 
 namespace IBS

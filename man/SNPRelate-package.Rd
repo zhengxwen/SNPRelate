@@ -45,8 +45,9 @@ written in C/C++ and highly optimized.
 
 # PLINK BED files
 bed.fn <- system.file("extdata", "plinkhapmap.bed.gz", package="SNPRelate")
-bim.fn <- system.file("extdata", "plinkhapmap.bim.gz", package="SNPRelate")
 fam.fn <- system.file("extdata", "plinkhapmap.fam.gz", package="SNPRelate")
+bim.fn <- system.file("extdata", "plinkhapmap.bim.gz", package="SNPRelate")
+
 # convert
 snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "HapMap.gds")
 

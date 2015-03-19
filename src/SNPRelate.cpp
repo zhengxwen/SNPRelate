@@ -59,13 +59,14 @@ extern "C"
 /// initialize the package, return the flag of SSE2
 COREARRAY_DLL_EXPORT SEXP gnrSSEFlag()
 {
-	SEXP rv_ans = NEW_LOGICAL(1);
-#ifdef COREARRAY_SIMD_SSE2
-	LOGICAL(rv_ans)[0] = TRUE;
+#if defined(COREARRAY_SIMD_AVX)
+	int I = 2;
+#elif defined(COREARRAY_SIMD_SSE2)
+	int I = 1;
 #else
-	LOGICAL(rv_ans)[0] = FALSE;
+	int I = 0;
 #endif
-	return rv_ans;
+	return ScalarInteger(I);
 }
 
 

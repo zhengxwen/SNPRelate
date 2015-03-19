@@ -22,12 +22,11 @@ snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
         mode, (i.e, list all SNPs for the first individual, and then list all
         SNPs for the second individual, etc); \code{NA}, the dimension is
         determined by the BED file}
-    \item{compress.annotation}{the compression mode of the nodes stored,
-        except "genotype"; optional value are defined in the function of
+    \item{compress.annotation}{the compression method for the GDS variables,
+        except "genotype"; optional values are defined in the function
         \code{add.gdsn}}
-    \item{compress.geno}{the compression mode of the node "genotype",
-        except "genotype"; optional value are defined in the function of
-        \code{add.gdsn}}
+    \item{compress.geno}{the compression method for "genotype"; optional
+        values are defined in the function \code{add.gdsn}}
     \item{option}{\code{NULL} or an object from \code{\link{snpgdsOption}},
         see details}
     \item{cvt.chr}{\code{"int"} -- chromosome code in the GDS file is integer;

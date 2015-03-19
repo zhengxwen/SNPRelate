@@ -64,8 +64,8 @@ namespace PCA
 	#define __ALIGNED16__ __attribute__((aligned(16)))
 
 	template<typename tfloat,
-		bool SSE = (FlagVectorization >= vtSSE),
-		bool SSE2 = (FlagVectorization >= vtSSE2)
+		bool SSE = (FLAG_VECTORIZATION >= vtSSE),
+		bool SSE2 = (FLAG_VECTORIZATION >= vtSSE2)
 	> class CPCAMat
 	{
 	public:
@@ -139,11 +139,12 @@ namespace PCA
 			{
 				float *p1 = base() + Idx.Row() * fM;
 				float *p2 = base() + Idx.Column() * fM;
+
 				// unroll loop
 				float rv4[4] __ALIGNED16__ = {0, 0, 0, 0};
-				size_t k = ArrayLength;
 				__m128 rv128 = _mm_load_ps(rv4);
 
+				size_t k = ArrayLength;
 				while (k >= 16)
 				{
 					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[0]),
@@ -163,6 +164,7 @@ namespace PCA
 					p1 += 4; p2 += 4; k -= 4;
 				}
 				_mm_store_ps(rv4, rv128);
+
 				rv4[0] += rv4[1] + rv4[2] + rv4[3];
 				while (k > 0)
 				{
@@ -206,11 +208,12 @@ namespace PCA
 			{
 				double *p1 = base() + Idx.Row() * fM;
 				double *p2 = base() + Idx.Column() * fM;
+
 				// unroll loop
 				double rv2[2] __ALIGNED16__ = {0, 0};
-				size_t k = ArrayLength;
-
 				__m128d rv128 = _mm_load_pd(rv2);
+
+				size_t k = ArrayLength;
 				while (k >= 8)
 				{
 					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[0]),
@@ -231,6 +234,7 @@ namespace PCA
 					p1 += 2; p2 += 2; k -= 2;
 				}
 				_mm_store_pd(rv2, rv128);
+
 				rv2[0] += rv2[1];
 				if (k > 0) rv2[0] += (*p1) * (*p2);
 				(*OutBuf++) += rv2[0];
@@ -1673,7 +1677,13 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
 				F77_NAME(dspev)("V", "L", &_n, IBD.get(), REAL(EigenVal),
 					&tmp_EigenVec[0], &_n, &tmp_Work[0], &info);
 				if (info != 0)
-					throw "LAPACK::SPEV error!";
+					throw "LAPACK::DSPEV error!";
+				double *p = REAL(EigenVal);
+				for (int i=0; i < n; i++)
+				{
+					if (!R_FINITE(p[i]))
+						throw "LAPACK::DSPEV returns non-finite eigenvalues!";
+				}
 			}
 
 			// sort in a decreasing order

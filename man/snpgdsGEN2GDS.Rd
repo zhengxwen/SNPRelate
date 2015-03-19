@@ -22,11 +22,11 @@ snpgdsGEN2GDS(gen.fn, sample.fn, out.fn, chr.code=NULL,
     \item{snpfirstdim}{if TRUE, genotypes are stored in the individual-major
         mode, (i.e, list all SNPs for the first individual, and then list all
         SNPs for the second individual, etc)}
-    \item{compress.annotation}{the compression mode of the nodes stored,
-        except "genotype"; optional value are defined in the function of
+    \item{compress.annotation}{the compression method for the GDS variables,
+        except "genotype"; optional values are defined in the function
         \code{add.gdsn}}
-    \item{compress.geno}{the data compression mode for the variable "genotype",
-        optional values are defined in the function of \code{add.gdsn}}
+    \item{compress.geno}{the compression method for "genotype"; optional
+        values are defined in the function \code{add.gdsn}}
     \item{verbose}{if TRUE, show information}
 }
 \value{

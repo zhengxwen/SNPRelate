@@ -24,7 +24,6 @@
 
 // CoreArray library header
 #include "dGenGWAS.h"
-#include "dGWASMath.h"
 
 // Standard library header
 #include <vector>

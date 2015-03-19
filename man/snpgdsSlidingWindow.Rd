@@ -21,7 +21,7 @@ snpgdsSlidingWindow(gdsobj, sample.id=NULL, snp.id=NULL,
         if NULL, all samples are used}
     \item{snp.id}{a vector of snp id specifying selected SNPs; if NULL,
         all SNPs are used}
-    \item{FUN}{the user-defined function}
+    \item{FUN}{the user-defined function, see details}
     \item{winsize}{the size of sliding window}
     \item{shift}{the amount of shifting the sliding window}
     \item{unit}{\code{"basepair"} -- \code{winsize} and \code{shift} are
@@ -55,6 +55,8 @@ a list of the values from \code{\link{snpgdsFst}}), "numeric" (
 population-average Fst, returns a vector) or "array" (population-average and
 -specific Fst, returns a `# of pop + 1'-by-`# of windows' matrix, and the first
 row is population-average Fst).
+
+    If \code{FUN="snpgdsSNPRateFreq"}, .
 }
 \value{
     Return a list

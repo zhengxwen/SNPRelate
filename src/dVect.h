@@ -23,7 +23,7 @@
  *	\file     dVect.h
  *	\author   Xiuwen Zheng [zhengxwen@gmail.com]
  *	\version  1.0
- *	\date     2007 - 2014
+ *	\date     2007 - 2015
  *	\brief    Classess and functions for vectorization
  *	\details
 **/
@@ -75,27 +75,39 @@ namespace CoreArray
 
 		// Vectorization Functions
 
-		enum TFlagVectorization { vtFPU, vtSSE, vtSSE2, vtSSE3, vtSSE4 };
+		enum TFlagVectorization {
+			vtFPU,
+			vtSSE,     //< Streaming SIMD Extensions
+			vtSSE2,    //< Streaming SIMD Extensions 2
+			vtSSE3,    //< Streaming SIMD Extensions 3
+			vtSSE4,    //< Streaming SIMD Extensions 4
+			vtAVX,     //< Advanced Vector Extensions
+			vtAVX2     //< Advanced Vector Extensions 2
+		};
 		enum TAlignVectorization { avNormal, av16Align };
 
-	#if defined(COREARRAY_SIMD_SSE4)
-		const TFlagVectorization FlagVectorization = vtSSE4;
+	#if defined(COREARRAY_SIMD_AVX2)
+		const TFlagVectorization FLAG_VECTORIZATION = vtAVX2;
+	#elif defined(COREARRAY_SIMD_AVX)
+		const TFlagVectorization FLAG_VECTORIZATION = vtAVX;
+	#elif defined(COREARRAY_SIMD_SSE4)
+		const TFlagVectorization FLAG_VECTORIZATION = vtSSE4;
 	#elif defined(COREARRAY_SIMD_SSE3)
-		const TFlagVectorization FlagVectorization = vtSSE3;
+		const TFlagVectorization FLAG_VECTORIZATION = vtSSE3;
 	#elif defined(COREARRAY_SIMD_SSE2)
-		const TFlagVectorization FlagVectorization = vtSSE2;
+		const TFlagVectorization FLAG_VECTORIZATION = vtSSE2;
 	#elif defined(COREARRAY_SIMD_SSE)
-		const TFlagVectorization FlagVectorization = vtSSE;
+		const TFlagVectorization FLAG_VECTORIZATION = vtSSE;
 	#else
-		const TFlagVectorization FlagVectorization = vtFPU;
+		const TFlagVectorization FLAG_VECTORIZATION = vtFPU;
 	#endif
 
 		template<typename Tx,
 			TAlignVectorization fAlign = avNormal,
-            bool SSE = (FlagVectorization >= vtSSE),
-			bool SSE2 = (FlagVectorization >= vtSSE2),
-			bool SSE3 = (FlagVectorization >= vtSSE3),
-			bool SSE4 = (FlagVectorization >= vtSSE4)
+            bool SSE = (FLAG_VECTORIZATION >= vtSSE),
+			bool SSE2 = (FLAG_VECTORIZATION >= vtSSE2),
+			bool SSE3 = (FLAG_VECTORIZATION >= vtSSE3),
+			bool SSE4 = (FLAG_VECTORIZATION >= vtSSE4)
 		>
 		struct vt
 		{
