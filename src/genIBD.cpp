@@ -28,6 +28,7 @@
 #include "dVect.h"
 
 // Standard library header
+#include <limits>
 #include <vector>
 #include <cmath>
 #include <cfloat>

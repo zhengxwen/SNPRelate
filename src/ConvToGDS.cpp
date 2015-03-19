@@ -569,8 +569,6 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP GenoNode, SEXP Num, SEXP File,
 			LCONS(NEW_RAW(0), LCONS(ScalarInteger(nPack), R_NilValue)))));
 
 		vector<C_UInt8> dstgeno(DLen[1]);
-		C_Int32 st[2] = { 0, 0 }, cnt[2] = { 1, DLen[1] };
-
 		static const C_UInt8 cvt[4] = { 2, 3, 1, 0 };
 
 		for (int i=0; i < n; i++)
@@ -598,8 +596,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP GenoNode, SEXP Num, SEXP File,
 				}
 			}
 
-			// write
-			st[0] = i;
+			// append
 			GDS_Array_AppendData(Seq, DLen[1], &dstgeno[0], svUInt8);
 			MCWorkingGeno.Progress.Forward(1);
 		}

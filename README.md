@@ -65,29 +65,6 @@ R CMD INSTALL gdsfmt_latest.tar.gz
 R CMD INSTALL SNPRelate_latest.tar.gz
 ```
 
-* Install the package from the source code with the support of Advanced Vector Extensions ([AVX](http://en.wikipedia.org/wiki/Advanced_Vector_Extensions)):
-You have to customize the package compilation, see: [CRAN: Customizing-package-compilation](http://cran.r-project.org/doc/manuals/r-release/R-admin.html#Customizing-package-compilation)
-
-Change `~/.R/Makevars` to, if your machine supports AVX, assuming GNU Compilers (gcc/g++) or Clang compiler (clang++) are installed:
-```sh
-## for C code
-CFLAGS=-g -O3 -march=native -mtune=native
-## for C++ code
-CXXFLAGS=-g -O3 -march=native -mtune=native
-```
-Or force to create AVX code:
-```sh
-## for C code
-CFLAGS=-g -O3 -mavx
-## for C++ code
-CXXFLAGS=-g -O3 -mavx
-```
-
-If the package compilation succeeds with AVX instructions, you should see a welcome message after loading the package:
-```
-SNPRelate -- supported by Advanced Vector Extensions (AVX)
-```
-
 
 * Old version (<=v0.9.19) from [R-Forge](http://R-Forge.R-project.org) repository:
 ```R
