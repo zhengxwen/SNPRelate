@@ -1,10 +1,11 @@
 \name{snpgdsFst}
 \alias{snpgdsFst}
 \title{
-    Relatedness estimation -- Fst
+    F-statistics (fixation indices)
 }
 \description{
-    Calculate relatedness measures (like Fst) for specified populations
+    Calculate relatedness measures F-statistics (also known as fixation
+indices) for given populations
 }
 \usage{
 snpgdsFst(gdsobj, population, method=c("W&H02", "W&C84"), sample.id=NULL,

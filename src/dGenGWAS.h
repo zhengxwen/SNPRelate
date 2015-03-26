@@ -364,7 +364,7 @@ namespace GWAS
 
 #ifndef NO_COREARRAY_VECTORIZATION
 
-	template<typename Tx, size_t vAlign = Vectorization::_SSE_16_Align_>
+	template<typename Tx, size_t vAlign = Vectorization::_SIMD_ALIGN_>
 	class COREARRAY_DLL_LOCAL CdMatTri
 	{
 	public:
@@ -439,7 +439,7 @@ namespace GWAS
 	};
 
 
-	template<typename Tx, size_t vAlign = Vectorization::_SSE_16_Align_>
+	template<typename Tx, size_t vAlign = Vectorization::_SIMD_ALIGN_>
 	class COREARRAY_DLL_LOCAL CdMatTriDiag
 	{
 	public:

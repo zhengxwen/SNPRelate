@@ -40,11 +40,17 @@
 #ifdef COREARRAY_SIMD_SSE2
 #include <emmintrin.h>
 #endif
-
-
-#ifndef COREARRAY_CALL_ALIGN16_ARG
-#   define COREARRAY_CALL_ALIGN16_ARG    COREARRAY_CALL_ALIGN
+#ifdef COREARRAY_SIMD_AVX
+#include <immintrin.h>
 #endif
+
+
+#if defined(__GNUC__) && (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__>1) && defined(__MINGW32__)
+#   define SIMD_CALL_ALIGN    __attribute__((force_align_arg_pointer))
+#else
+#   define SIMD_CALL_ALIGN
+#endif
+
 
 
 namespace PCA
@@ -61,194 +67,199 @@ namespace PCA
 
 	// Vectorization
 
-	#define __ALIGNED16__ __attribute__((aligned(16)))
+	#if defined(COREARRAY_SIMD_AVX)
 
-	template<typename tfloat,
-		bool SSE = (FLAG_VECTORIZATION >= vtSSE),
-		bool SSE2 = (FLAG_VECTORIZATION >= vtSSE2)
-	> class CPCAMat
-	{
-	public:
-		static const bool SSEFlag = SSE;
-		static const bool SSE2Flag = SSE2;
-
-		CPCAMat() { fN = fM = 0; }
-		CPCAMat(size_t n, size_t m) { Reset(n, m); }
-
-		void Reset(size_t n, size_t m)
+		// AVX
+		class COREARRAY_DLL_LOCAL CPCAMat
 		{
-			fBuf.resize(n * m);
-			fN = n; fM = m;
-		}
+		public:
+			CPCAMat() { fN = fM = 0; }
+			CPCAMat(size_t n, size_t m) { Reset(n, m); }
 
-		void COREARRAY_CALL_ALIGN16_ARG MulAdd(IdMatTri &Idx, size_t IdxCnt,
-			size_t ArrayLength, tfloat *OutBuf)
-		{
-			for (; IdxCnt > 0; IdxCnt--, ++Idx)
+			void Reset(size_t n, size_t m)
 			{
-				tfloat *p1 = base() + Idx.Row() * fM;
-				tfloat *p2 = base() + Idx.Column() * fM;
-				tfloat rv = 0;
-				// unroll loop
-				size_t k = ArrayLength;
-				while (k >= 4)
-				{
-					rv += p1[0] * p2[0]; rv += p1[1] * p2[1];
-					rv += p1[2] * p2[2]; rv += p1[3] * p2[3];
-					p1 += 4; p2 += 4; k -= 4;
-				}
-				while (k > 0)
-				{
-					rv += (*p1++) * (*p2++);
-					k--;
-				}
-				(*OutBuf++) += rv;
+				// 4-aligned array
+				if (m & 0x03) m += 4 - (m & 0x03);
+				fBuf.Reset(n * m);
+				fN = n; fM = m;
 			}
-		}
 
-		inline size_t N() const { return fN; }
-		inline size_t M() const { return fM; }
-		inline tfloat* base() { return &fBuf[0]; }
-
-	private:
-		vector<tfloat> fBuf;
-		size_t fN, fM;
-	};
-
-	#ifdef COREARRAY_SIMD_SSE
-	template<bool SSE2> class CPCAMat<float, true, SSE2>
-	{
-	public:
-		static const bool SSEFlag = true;
-		static const bool SSE2Flag = SSE2;
-
-		CPCAMat() { fN = fM = 0; }
-		CPCAMat(size_t n, size_t m) { Reset(n, m); }
-
-		void Reset(size_t n, size_t m)
-		{
-			if (m & 0x03) m += 4 - (m & 0x03);
-			fBuf.Reset(n * m);
-			fN = n; fM = m;
-		}
-
-		void COREARRAY_CALL_ALIGN16_ARG MulAdd(IdMatTri &Idx, size_t IdxCnt,
-			size_t ArrayLength, float *OutBuf)
-		{
-			for (; IdxCnt > 0; IdxCnt--, ++Idx)
+			void SIMD_CALL_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt,
+				size_t ArrayLength, double *OutBuf)
 			{
-				float *p1 = base() + Idx.Row() * fM;
-				float *p2 = base() + Idx.Column() * fM;
-
-				// unroll loop
-				float rv4[4] __ALIGNED16__ = {0, 0, 0, 0};
-				__m128 rv128 = _mm_load_ps(rv4);
-
-				size_t k = ArrayLength;
-				while (k >= 16)
+				for (; IdxCnt > 0; IdxCnt--, ++Idx)
 				{
-					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[0]),
-						_mm_load_ps(&p2[0])));
-					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[4]),
-						_mm_load_ps(&p2[4])));
-					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[8]),
-						_mm_load_ps(&p2[8])));
-					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(&p1[12]),
-						_mm_load_ps(&p2[12])));
-					p1 += 16; p2 += 16; k -= 16;
-				}
-				while (k >= 4)
-				{
-					rv128 = _mm_add_ps(rv128, _mm_mul_ps(_mm_load_ps(p1),
-						_mm_load_ps(p2)));
-					p1 += 4; p2 += 4; k -= 4;
-				}
-				_mm_store_ps(rv4, rv128);
+					double *p1 = base() + Idx.Row() * fM;
+					double *p2 = base() + Idx.Column() * fM;
 
-				rv4[0] += rv4[1] + rv4[2] + rv4[3];
-				while (k > 0)
-				{
-					rv4[0] += (*p1++) * (*p2++);
-					k--;
+					// unroll loop
+					double rv4[4] __attribute__((aligned(32))) = {0, 0, 0, 0};
+					__m256d rv256 = _mm256_load_pd(rv4);
+
+					size_t k = ArrayLength;
+					while (k >= 8)
+					{
+						rv256 = _mm256_add_pd(rv256, _mm256_mul_pd(
+							_mm256_load_pd(&p1[0]), _mm256_load_pd(&p2[0])));
+						rv256 = _mm256_add_pd(rv256, _mm256_mul_pd(
+							_mm256_load_pd(&p1[4]), _mm256_load_pd(&p2[4])));
+						p1 += 8; p2 += 8;
+						k -= 8;
+					}
+
+					if (k >= 4)
+					{
+						rv256 = _mm256_add_pd(rv256, _mm256_mul_pd(
+							_mm256_load_pd(&p1[0]), _mm256_load_pd(&p2[0])));
+						p1 += 4; p2 += 4; k -= 4;
+					}
+
+					_mm256_store_pd(rv4, rv256);
+					rv4[0] += rv4[1] + rv4[2] + rv4[3];
+
+					switch (k)
+					{
+						case 3:
+							rv4[0] += (p1[0]*p2[0] + p1[1]*p2[1] + p1[2]*p2[2]);
+							break;
+						case 2:
+							rv4[0] += (p1[0]*p2[0] + p1[1]*p2[1]);
+							break;
+						case 1:
+							rv4[0] += p1[0]*p2[0];
+							break;
+					}
+
+					(*OutBuf++) += rv4[0];
 				}
-				(*OutBuf++) += rv4[0];
 			}
-		}
 
-		inline size_t N() const { return fN; }
-		inline size_t M() const { return fM; }
-		inline float* base() { return fBuf.get(); }
-	private:
-		TdAlignPtr<float> fBuf;
-		size_t fN, fM;
-	};
-	#endif // COREARRAY_SIMD_SSE
+			inline size_t N() const { return fN; }
+			inline size_t M() const { return fM; }
+			inline double *base() { return fBuf.get(); }
+		private:
+			TdAlignPtr<double, 32u> fBuf;
+			size_t fN, fM;
+		};
 
-	#ifdef COREARRAY_SIMD_SSE2
-	template<> class CPCAMat<double, true, true>
-	{
-	public:
-		static const bool SSEFlag = true;
-		static const bool SSE2Flag = true;
+	#elif defined(COREARRAY_SIMD_SSE2)
 
-		CPCAMat() { fN = fM = 0; }
-		CPCAMat(size_t n, size_t m) { Reset(n, m); }
-
-		void Reset(size_t n, size_t m)
+		// SSE2
+		class COREARRAY_DLL_LOCAL CPCAMat
 		{
-			if (m & 0x01) m += 2 - (m & 0x01);
-			fBuf.Reset(n * m);
-			fN = n; fM = m;
-		}
+		public:
+			CPCAMat() { fN = fM = 0; }
+			CPCAMat(size_t n, size_t m) { Reset(n, m); }
 
-		void COREARRAY_CALL_ALIGN16_ARG MulAdd(IdMatTri &Idx, size_t IdxCnt,
-			size_t ArrayLength, double *OutBuf)
-		{
-			for (; IdxCnt > 0; IdxCnt--, ++Idx)
+			void Reset(size_t n, size_t m)
 			{
-				double *p1 = base() + Idx.Row() * fM;
-				double *p2 = base() + Idx.Column() * fM;
-
-				// unroll loop
-				double rv2[2] __ALIGNED16__ = {0, 0};
-				__m128d rv128 = _mm_load_pd(rv2);
-
-				size_t k = ArrayLength;
-				while (k >= 8)
-				{
-					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[0]),
-						_mm_load_pd(&p2[0])));
-					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[2]),
-						_mm_load_pd(&p2[2])));
-					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[4]),
-						_mm_load_pd(&p2[4])));
-					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[6]),
-						_mm_load_pd(&p2[6])));
-					p1 += 8; p2 += 8; k -= 8;
-				}
-
-				while (k >= 2)
-				{
-					rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(p1),
-						_mm_load_pd(p2)));
-					p1 += 2; p2 += 2; k -= 2;
-				}
-				_mm_store_pd(rv2, rv128);
-
-				rv2[0] += rv2[1];
-				if (k > 0) rv2[0] += (*p1) * (*p2);
-				(*OutBuf++) += rv2[0];
+				// 2-aligned array
+				if (m & 0x01) m += 2 - (m & 0x01);
+				fBuf.Reset(n * m);
+				fN = n; fM = m;
 			}
-		}
 
-		inline size_t N() const { return fN; }
-		inline size_t M() const { return fM; }
-		inline double* base() { return fBuf.get(); }
-	private:
-		TdAlignPtr<double> fBuf;
-		size_t fN, fM;
-	};
-	#endif // COREARRAY_SIMD_SSE2
+			void SIMD_CALL_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt,
+				size_t ArrayLength, double *OutBuf)
+			{
+				for (; IdxCnt > 0; IdxCnt--, ++Idx)
+				{
+					double *p1 = base() + Idx.Row() * fM;
+					double *p2 = base() + Idx.Column() * fM;
+
+					// unroll loop
+					double rv2[2] __attribute__((aligned(16))) = {0, 0};
+					__m128d rv128 = _mm_load_pd(rv2);
+
+					size_t k = ArrayLength;
+					while (k >= 8)
+					{
+						rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[0]),
+							_mm_load_pd(&p2[0])));
+						rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[2]),
+							_mm_load_pd(&p2[2])));
+						rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[4]),
+							_mm_load_pd(&p2[4])));
+						rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(&p1[6]),
+							_mm_load_pd(&p2[6])));
+						p1 += 8; p2 += 8;
+						k -= 8;
+					}
+
+					while (k >= 2)
+					{
+						rv128 = _mm_add_pd(rv128, _mm_mul_pd(_mm_load_pd(p1),
+							_mm_load_pd(p2)));
+						p1 += 2; p2 += 2;
+						k -= 2;
+					}
+					_mm_store_pd(rv2, rv128);
+
+					rv2[0] += rv2[1];
+					if (k > 0) rv2[0] += (*p1) * (*p2);
+					(*OutBuf++) += rv2[0];
+				}
+			}
+
+			inline size_t N() const { return fN; }
+			inline size_t M() const { return fM; }
+			inline double *base() { return fBuf.get(); }
+		private:
+			TdAlignPtr<double, 16u> fBuf;
+			size_t fN, fM;
+		};
+
+	#else
+
+		// FPU, no SSE2 and AVX
+		class COREARRAY_DLL_LOCAL CPCAMat
+		{
+		public:
+			CPCAMat() { fN = fM = 0; }
+			CPCAMat(size_t n, size_t m) { Reset(n, m); }
+
+			void Reset(size_t n, size_t m)
+			{
+				fBuf.resize(n * m);
+				fN = n; fM = m;
+			}
+
+			void SIMD_CALL_ALIGN MulAdd(IdMatTri &Idx,
+				size_t IdxCnt, size_t ArrayLength, double *OutBuf)
+			{
+				for (; IdxCnt > 0; IdxCnt--, ++Idx)
+				{
+					double *p1 = base() + Idx.Row() * fM;
+					double *p2 = base() + Idx.Column() * fM;
+					double rv = 0;
+					// unroll loop
+					size_t k = ArrayLength;
+					while (k >= 4)
+					{
+						rv += p1[0] * p2[0]; rv += p1[1] * p2[1];
+						rv += p1[2] * p2[2]; rv += p1[3] * p2[3];
+						p1 += 4; p2 += 4;
+						k -= 4;
+					}
+					while (k > 0)
+					{
+						rv += (*p1++) * (*p2++);
+						k --;
+					}
+					(*OutBuf++) += rv;
+				}
+			}
+
+			inline size_t N() const { return fN; }
+			inline size_t M() const { return fM; }
+			inline double *base() { return &fBuf[0]; }
+
+		private:
+			vector<double> fBuf;
+			size_t fN, fM;
+		};
+
+	#endif
 
 
 
@@ -264,7 +275,7 @@ namespace PCA
 	/// the pointer to eigenvectors, snp loadings
 	double *In_EigenVect = NULL;
 	/// the pointer to the object storing the eigenvectors, snp loadings
-	CPCAMat<double> *_EigenVectBuf = NULL;
+	CPCAMat *_EigenVectBuf = NULL;
 	/// the pointer to allele frequency
 	double *In_AveFreq = NULL;
 
@@ -308,13 +319,13 @@ namespace PCA
 	/// The temparory variables used in computing
 	static vector<int> PCA_gSum, PCA_gNum;
 	/// The mean-adjusted genotype buffers
-	static CPCAMat<double> PCA_Mat;
+	static CPCAMat PCA_Mat;
 	/// The temporary variable
 	static TdAlignPtr<double> tmpBuf;
 
 	/// Convert the raw genotypes to the mean-adjusted genotypes
 	static void _Do_PCA_ReadBlock(C_UInt8 *GenoBuf, long Start, long SNP_Cnt,
-		void* Param)
+		void *Param)
 	{
 		// init ...
 		const int n = MCWorkingGeno.Space.SampleNum();
@@ -516,11 +527,9 @@ namespace PCA
 	// ================== SNP loadings ==================
 
 	/// Normalize the genotype
-	/** \tparam tfloat    template type, it should be floating number type
-	 *  \param Geno   genotype: 0 -- BB, 1 -- AB, 2 -- AA, 3 -- missing
+	/** \param Geno   genotype: 0 -- BB, 1 -- AB, 2 -- AA, 3 -- missing
 	 *  \param NormalizedGeno  normalized genotype
 	 *  \param NumGeno    the number of total genotype
-	 *  \param AdjNormal  whether or not use Bayerian correction factor
 	**/
 	inline static void NormalizeGeno(C_UInt8 *Geno, double *NormalizedGeno, long NumGeno)
 	{
@@ -539,8 +548,10 @@ namespace PCA
 				*NormalizedGeno++ = (*pGeno < 3) ? (*pGeno-ave)*scale : 0.0;
 				pGeno++;
 			}
-		} else
-			for (; NumGeno > 0; NumGeno--) *NormalizedGeno++ = 0.0;
+		} else {
+			for (; NumGeno > 0; NumGeno--)
+				*NormalizedGeno ++ = 0.0;
+		}
 	}
 
 	/// The thread entry for the calculation of SNP loadings
@@ -660,7 +671,7 @@ namespace PCA
 		// Array of eigenvectors
 		const long n = MCWorkingGeno.Space.SampleNum();
 		double Scale = double(n-1) / TraceXTX;
-		_EigenVectBuf = new CPCAMat<double>(OutputEigenDim, n);
+		_EigenVectBuf = new CPCAMat(OutputEigenDim, n);
 		for (long i=0; i < OutputEigenDim; i++)
 		{
 			vt<double>::Mul(_EigenVectBuf->base() + i*_EigenVectBuf->M(),

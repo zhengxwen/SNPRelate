@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.1.0-1.1.9
+CHANGES IN VERSION 1.1.0-1.1.11
 -------------------------
 
     o fix a bug in snpgdsVCF2GDS when 'method="biallelic.only"'
@@ -27,6 +27,12 @@ CHANGES IN VERSION 1.1.0-1.1.9
     o v1.1.8: the original Rnw vignette is replaced by a R Markdown vignette
 
     o v1.1.9: a new function 'snpgdsPED2GDS'
+
+
+CHANGES IN VERSION 1.0.0
+-------------------------
+
+    o The version number was bumped for the Bioconductor release version
 
 
 CHANGES IN VERSION 0.99.1-0.99.3

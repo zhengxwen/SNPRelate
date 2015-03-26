@@ -21,7 +21,7 @@ library(SNPRelate)
 # test function
 #
 
-.test.PCA <- function()
+test.PCA <- function()
 {
     valid.dta <- get(load(system.file(
         "unitTests", "valid", "Validate.PCA.RData", package="SNPRelate")))
@@ -36,15 +36,10 @@ library(SNPRelate)
         num.thread=1, need.genmat=TRUE, verbose=FALSE)
     checkEquals(pca.1$genmat, valid.dta$genmat, "PCA (one core)")
 
-    # run on 4 cores
-    pca.4 <- snpgdsPCA(genofile, sample.id=samp.id[1:90],
-        num.thread=4, need.genmat=TRUE, verbose=FALSE)
-    checkEquals(pca.4$genmat, valid.dta$genmat, "PCA (four cores)")
-
-    # run on 16 cores
-    pca.16 <- snpgdsPCA(genofile, sample.id=samp.id[1:90],
-        num.thread=16, need.genmat=TRUE, verbose=FALSE)
-    checkEquals(pca.16$genmat, valid.dta$genmat, "PCA (16 cores)")
+    # run on one core
+    pca.2 <- snpgdsPCA(genofile, sample.id=samp.id[1:90],
+        num.thread=2, need.genmat=TRUE, verbose=FALSE)
+    checkEquals(pca.2$genmat, valid.dta$genmat, "PCA (two cores)")
 
     # close the file
     snpgdsClose(genofile)

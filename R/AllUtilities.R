@@ -218,7 +218,7 @@
                 if (identical(autosome.only, TRUE))
                 {
                     m <- dt$dim - sum(snp.id)
-                    cat("Removing ", m, " SNP", .plural(m),
+                    cat("Excluding ", m, " SNP", .plural(m),
                         " on non-autosomes\n", sep="")
                 } else {
                     m <- sum(snp.id)
@@ -268,7 +268,7 @@
                 if (identical(autosome.only, TRUE))
                 {
                     m <- dt$dim - sum(snp.id)
-                    cat("Removing ", m, " SNP", .plural(m),
+                    cat("Excluding ", m, " SNP", .plural(m),
                         " on non-autosomes\n", sep="")
                 } else {
                     m <- sum(snp.id)
@@ -310,7 +310,7 @@
         # show
         if (verbose)
         {
-            cat("Removing ", rv[[1]], " SNP", .plural(rv[[1]]),
+            cat("Excluding ", rv[[1]], " SNP", .plural(rv[[1]]),
                 " (monomorphic: ", remove.monosnp, ", < MAF: ", t.maf,
                 ", or > missing rate: ", t.miss, ")\n", sep="")
         }

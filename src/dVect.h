@@ -37,16 +37,24 @@ namespace CoreArray
 {
 	namespace Vectorization
 	{
-		const size_t _SSE_16_Align_ = 16;
 
-		template<typename Tx, size_t vAlign=_SSE_16_Align_> struct TdAlignPtr
+	#if defined(COREARRAY_SIMD_AVX)
+		const size_t _SIMD_ALIGN_ = 32u;
+	#else
+		const size_t _SIMD_ALIGN_ = 16u;
+	#endif
+
+		template<typename Tx, size_t vAlign=_SIMD_ALIGN_> struct TdAlignPtr
 		{
 		public:
 			static const size_t Align = vAlign;
 
-			TdAlignPtr() { alloc = NULL; base = NULL; vlen = 0; }
-			TdAlignPtr(size_t n) { alloc = NULL; base = NULL; vlen = 0; Reset(n); }
-			~TdAlignPtr() { if (alloc) delete []alloc; }
+			TdAlignPtr()
+				{ alloc = NULL; base = NULL; vlen = 0; }
+			TdAlignPtr(size_t n)
+				{ alloc = NULL; base = NULL; vlen = 0; Reset(n); }
+			~TdAlignPtr()
+				{ if (alloc) delete []alloc; }
 
 			void Reset(size_t n)
 			{
@@ -59,12 +67,14 @@ namespace CoreArray
 						size_t r = ((size_t)alloc) % Align;
 						base = (Tx*)(r ? (alloc+Align-r) : alloc);
 						vlen = n;
-					} else
-						{ alloc = NULL; base = NULL; vlen = 0; }
+					} else {
+						alloc = NULL; base = NULL;
+						vlen = 0;
+					}
 				}
 			}
 
-			COREARRAY_INLINE Tx * get() { return base; };
+			COREARRAY_INLINE Tx *get() { return base; };
 			COREARRAY_INLINE size_t len() { return vlen; };
 		private:
 			char *alloc;
@@ -75,7 +85,8 @@ namespace CoreArray
 
 		// Vectorization Functions
 
-		enum TFlagVectorization {
+		enum TFlagVectorization
+		{
 			vtFPU,
 			vtSSE,     //< Streaming SIMD Extensions
 			vtSSE2,    //< Streaming SIMD Extensions 2
@@ -84,7 +95,9 @@ namespace CoreArray
 			vtAVX,     //< Advanced Vector Extensions
 			vtAVX2     //< Advanced Vector Extensions 2
 		};
+
 		enum TAlignVectorization { avNormal, av16Align };
+
 
 	#if defined(COREARRAY_SIMD_AVX2)
 		const TFlagVectorization FLAG_VECTORIZATION = vtAVX2;

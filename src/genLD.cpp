@@ -101,7 +101,7 @@ namespace LD
 
 
 	/// initial object
-	class TInit
+	class COREARRAY_DLL_LOCAL TInit
 	{
 	public:
 		TInit()

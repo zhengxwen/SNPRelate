@@ -302,7 +302,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 						SET_ELEMENT(rvlist, iWin, rv);
 						break;
 					case 1:  // numeric
-						REAL(rvlist)[iWin] = GetMean(VECTOR_ELT(rv, 0));
+						REAL(rvlist)[iWin] = GetMean(VECTOR_ELT(rv, 1));
 						break;
 					case 2:  // array
 						double *p = REAL(rvlist);

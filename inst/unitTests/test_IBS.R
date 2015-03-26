@@ -21,7 +21,7 @@ library(SNPRelate)
 # test function
 #
 
-.test.IBS <- function()
+test.IBS <- function()
 {
     valid.dta <- get(load(system.file(
         "unitTests", "valid", "Validate.IBS.RData", package="SNPRelate")))
@@ -35,15 +35,10 @@ library(SNPRelate)
         num.thread=1, verbose=FALSE)
     checkEquals(ibs.1, valid.dta, "IBS (one core)")
 
-    # run on 4 cores
-    ibs.4 <- snpgdsIBS(genofile, sample.id=samp.id[1:90],
-        num.thread=4, verbose=FALSE)
-    checkEquals(ibs.4, valid.dta, "IBS (four cores)")
-
-    # run on 16 cores
-    ibs.16 <- snpgdsIBS(genofile, sample.id=samp.id[1:90],
-        num.thread=16, verbose=FALSE)
-    checkEquals(ibs.16, valid.dta, "IBS (16 cores)")
+    # run on one core
+    ibs.2 <- snpgdsIBS(genofile, sample.id=samp.id[1:90],
+        num.thread=2, verbose=FALSE)
+    checkEquals(ibs.2, valid.dta, "IBS (two cores)")
 
     # close the file
     snpgdsClose(genofile)
