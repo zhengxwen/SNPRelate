@@ -1142,7 +1142,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParseGEN(SEXP gen_fn, SEXP gds_root,
 						U8s[samp_idx] = (P_BB >= CallProb) ? 0 : 3;
 				} else {
 					if (P_AB >= P_BB)
-						U8s[samp_idx] = (P_AA >= CallProb) ? 1 : 3;
+						U8s[samp_idx] = (P_AB >= CallProb) ? 1 : 3;
 					else
 						U8s[samp_idx] = (P_BB >= CallProb) ? 0 : 3;
 				}
