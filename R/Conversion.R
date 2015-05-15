@@ -985,7 +985,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
 
     if (verbose)
     {
-        cat("VCF Format --> SNP GDS Format\n")
+        cat("VCF Format ==> SNP GDS Format\n")
         if (metidx == 1L)
             cat("Method: exacting biallelic SNPs\n")
         else

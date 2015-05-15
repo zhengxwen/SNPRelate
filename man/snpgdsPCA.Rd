@@ -11,7 +11,7 @@ analysis in GWAS.
 snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, eigen.cnt=32,
     num.thread=1L, bayesian=FALSE, need.genmat=FALSE, genmat.only=FALSE,
-    eigen.method=c("DSPEVX", "DSPEV"), verbose = TRUE)
+    eigen.method=c("DSPEVX", "DSPEV"), verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},

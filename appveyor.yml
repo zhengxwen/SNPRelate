@@ -13,9 +13,9 @@ install:
 # Adapt as necessary starting from here
 
 build_script:
+  - travis-tool.sh install_github Bioconductor-mirror/BiocGenerics
   - travis-tool.sh install_github zhengxwen/gdsfmt
   - travis-tool.sh install_deps
-  - travis-tool.sh install_bioc_deps
 
 test_script:
   - travis-tool.sh run_tests

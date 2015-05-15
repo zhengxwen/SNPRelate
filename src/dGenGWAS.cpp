@@ -228,7 +228,7 @@ void CdGenoWorkSpace::snpRead(C_Int32 SnpStart,
 				{ vSampleIndex[0], vSNPIndex[SnpStart] };
 			C_Int32 cnt[2] =
 				{ vSampleIndex[fSampleNum-1] - st[0] + 1,
-					vSNPIndex[SnpStart+SnpCount-1] - st[1] + 1 };
+				  vSNPIndex[SnpStart+SnpCount-1] - st[1] + 1 };
 			C_BOOL *Sel[2] =
 				{ &fSampleSelection[st[0]], &fSNPSelection[ st[1] ] };
 			if (SnpOrder || (SnpCount==1))
@@ -249,7 +249,7 @@ void CdGenoWorkSpace::snpRead(C_Int32 SnpStart,
 				{ vSNPIndex[SnpStart], vSampleIndex[0] };
 			C_Int32 cnt[2] =
 				{ vSNPIndex[SnpStart+SnpCount-1]-st[0]+1,
-					vSampleIndex[fSampleNum-1]-st[1]+1 };
+				  vSampleIndex[fSampleNum-1]-st[1]+1 };
 			C_BOOL *Sel[2] =
 				{ &fSNPSelection[st[0]], &fSampleSelection[ st[1] ] };
 			if (SnpOrder && (SnpCount>1))
@@ -1470,7 +1470,8 @@ CMultiCoreWorkingGeno::~CMultiCoreWorkingGeno()
 	if (_Suspend) GDS_Parallel_DoneSuspend(_Suspend);
 }
 
-void CMultiCoreWorkingGeno::InitParam(bool snp_direction, bool read_snp_order, long block_size)
+void CMultiCoreWorkingGeno::InitParam(bool snp_direction,
+	bool read_snp_order, long block_size)
 {
 	if (_Mutex == NULL) _Mutex = GDS_Parallel_InitMutex();
 	if (_Suspend == NULL) _Suspend = GDS_Parallel_InitSuspend();
@@ -1648,7 +1649,7 @@ void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTriD outMatIdx
 
 bool GWAS::SEXP_Verbose(SEXP Verbose)
 {
-	int flag = asLogical(Verbose);
+	int flag = Rf_asLogical(Verbose);
 	if (flag == NA_LOGICAL)
 		error("'verbose' must be TRUE or FALSE.");
 	return (flag == TRUE);

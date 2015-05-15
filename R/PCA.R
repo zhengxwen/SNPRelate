@@ -37,14 +37,15 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.logical(bayesian))
     stopifnot(is.logical(need.genmat))
     stopifnot(is.logical(genmat.only))
+
     if (genmat.only) need.genmat <- TRUE
     if (eigen.cnt <= 0L) eigen.cnt <- ws$n.samp
 
 	eigen.method <- match.arg(eigen.method)
 
     # call parallel PCA
-    rv <- .Call(gnrPCA, eigen.cnt, ws$num.thread,
-        bayesian, need.genmat, genmat.only, eigen.method, verbose)
+    rv <- .Call(gnrPCA, eigen.cnt, ws$num.thread, bayesian, need.genmat,
+        genmat.only, eigen.method, verbose)
 
     # return
     rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
