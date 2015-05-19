@@ -55,7 +55,7 @@
 #######################################################################
 # Initialize the working space with sample and SNP IDs
 
-.InitFile <- function(gdsobj, sample.id, snp.id)
+.InitFile <- function(gdsobj, sample.id, snp.id, with.id=FALSE)
 {
     # check
     .CheckFile(gdsobj)
@@ -64,24 +64,32 @@
     if (!is.null(sample.id))
     {
         n.tmp <- length(sample.id)
-        sample.id <- read.gdsn(index.gdsn(gdsobj, "sample.id")) %in% sample.id
+        samp.tmp <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
+        sample.id <- samp.tmp %in% sample.id
         n.samp <- sum(sample.id)
         if (n.samp != n.tmp)
             stop("Some of sample.id do not exist!")
         if (n.samp <= 0)
             stop("No sample in the working dataset.")
+    } else {
+        if (with.id)
+            samp.tmp <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
     }
 
     # SNPs
     if (!is.null(snp.id))
     {
         n.tmp <- length(snp.id)
-        snp.id <- read.gdsn(index.gdsn(gdsobj, "snp.id")) %in% snp.id
+        snp.tmp <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+        snp.id <- snp.tmp %in% snp.id
         n.snp <- sum(snp.id)
         if (n.snp != n.tmp)
             stop("Some of snp.id do not exist!")
         if (n.snp <= 0)
             stop("No SNP in the working dataset.")
+    } else {
+        if (with.id)
+            snp.tmp <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
     }
 
     # set genotype working space
@@ -89,7 +97,12 @@
         sample.id, snp.id)
 
     # output
-    list(n.snp=v[1], n.samp=v[2], samp.flag=sample.id, snp.flag=snp.id)
+    if (with.id)
+    {
+        list(n.snp=v[1], n.samp=v[2],
+            sample.id=samp.tmp[sample.id], snp.id=snp.tmp[snp.id])
+    } else
+        list(n.snp=v[1], n.samp=v[2], samp.flag=sample.id, snp.flag=snp.id)
 }
 
 

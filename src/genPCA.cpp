@@ -1364,7 +1364,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
 	SEXP _BayesianNormal, SEXP NeedGenMat, SEXP GenMat_Only,
 	SEXP EigenMethod, SEXP _Verbose)
 {
-	bool verbose = SEXP_Verbose(_Verbose);
+	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
@@ -1449,7 +1449,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
 COREARRAY_DLL_EXPORT SEXP gnrPCACorr(SEXP LenEig, SEXP EigenVect,
 	SEXP NumThread, SEXP _Verbose)
 {
-	bool verbose = SEXP_Verbose(_Verbose);
+	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
@@ -1476,7 +1476,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP DimCnt,
 	SEXP EigenVect, SEXP TraceXTX, SEXP NumThread, SEXP Bayesian,
 	SEXP _Verbose)
 {
-	bool verbose = SEXP_Verbose(_Verbose);
+	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
@@ -1517,7 +1517,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
 	SEXP EigenCnt, SEXP SNPLoadings, SEXP TraceXTX, SEXP AveFreq, SEXP Scale,
 	SEXP NumThread, SEXP _Verbose)
 {
-	bool verbose = SEXP_Verbose(_Verbose);
+	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
@@ -1547,7 +1547,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
 /// to compute the eigenvalues and eigenvectors
 COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Verbose)
 {
-	bool verbose = SEXP_Verbose(_Verbose);
+	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
@@ -1607,7 +1607,7 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
 	SEXP _NeedIBDMat, SEXP _IBDMatOnly, SEXP _Method, SEXP _DiagAdj,
 	SEXP _Verbose)
 {
-	bool verbose = SEXP_Verbose(_Verbose);
+	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 

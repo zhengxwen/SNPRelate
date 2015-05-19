@@ -367,7 +367,7 @@ using namespace IBS;
 
 extern "C"
 {
-// ======================================================================*
+// =======================================================================
 // the functions for identity-by-state (IBS)
 //
 
@@ -376,14 +376,14 @@ extern "C"
 /// to compute the average IBS
 COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)
 {
-	bool verbose = SEXP_Verbose(_Verbose);
+	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
-		// =======* To cache the genotype data =======*
+		// ======== To cache the genotype data ========
 		CachingSNPData("IBS", verbose);
 
-		// =======* The calculation of IBS matrix =======*
+		// ======== The calculation of IBS matrix ========
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
@@ -424,14 +424,14 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)
 /// to compute the average IBS
 COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 {
-	bool verbose = SEXP_Verbose(_Verbose);
+	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
-		// =======* To cache the genotype data =======*
+		// ======== To cache the genotype data ========
 		CachingSNPData("IBS", verbose);
 
-		// =======* The calculation of IBS matrix =======*
+		// ======== The calculation of IBS matrix ========
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
@@ -483,7 +483,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 }
 
 
-// ======================================================================*
+// =======================================================================
 // the functions for identity-by-descent (IBD)
 //
 
@@ -491,11 +491,11 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 	SEXP UseSpecificAFreq, SEXP KinshipConstrict, SEXP _Verbose)
 {
-	bool verbose = SEXP_Verbose(_Verbose);
+	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
-		// =======* To cache the genotype data =======*
+		// ======== To cache the genotype data ========
 		CachingSNPData("PLINK IBD", verbose);
 
 		// the number of individuals
@@ -505,7 +505,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 
-		// =======* PLINK method of moment =======*
+		// ======== PLINK method of moment ========
 
 		// initialize output variables
 		SEXP dim;
@@ -565,14 +565,14 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 /// to compute the individual dissimilarity
 COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 {
-	bool verbose = SEXP_Verbose(_Verbose);
+	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
-		// =======* To cache the genotype data =======*
+		// ======== To cache the genotype data ========
 		CachingSNPData("Dissimilarity", verbose);
 
-		// =======* The calculation of genetic covariance matrix =======*
+		// ======== The calculation of genetic covariance matrix ========
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
@@ -599,6 +599,104 @@ COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 		}
 
 		UNPROTECT(1);
+
+	COREARRAY_CATCH
+}
+
+
+
+// =========================================================================
+// the functions for genotype score
+
+/// to compute the individual dissimilarity
+COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
+	SEXP Method, SEXP Type, SEXP _Verbose)
+{
+	const int *c_1 = INTEGER(SampIdx1);
+	const int *c_2 = INTEGER(SampIdx2);
+	const int nSamp = Rf_length(SampIdx1);
+	const char *c_Method = CHAR(STRING_ELT(Method, 0));
+	const char *c_Type = CHAR(STRING_ELT(Type, 0));
+	const bool verbose = SEXP_Verbose(_Verbose);
+
+	COREARRAY_TRY
+
+		int iMethod;
+		if (strcmp(c_Method, "IBS") == 0)
+			iMethod = 1;
+		else if (strcmp(c_Method, "GVH") == 0)
+			iMethod = 2;
+		else if (strcmp(c_Method, "HVG") == 0)
+			iMethod = 3;
+		else
+			throw ErrCoreArray("Invalid 'method'.");
+
+		// ======== To cache the genotype data ========
+		CachingSNPData("Genotype Score", false);
+
+		// ======== Genotype score for individual pairs ========
+		const int nSNP = MCWorkingGeno.Space.SNPNum();
+		int iType = 0;
+		vector<double> Buffer;
+		double *pBuf;
+
+		if (strcmp(c_Type, "avg+sd") == 0)
+		{
+			rv_ans = allocMatrix(REALSXP, 2, nSNP);
+			Buffer.resize(nSamp);
+			pBuf = &Buffer[0];
+			iType = 1;
+		} else if (strcmp(c_Type, "matrix") == 0)
+		{
+			rv_ans = allocMatrix(REALSXP, nSamp, nSNP);
+			pBuf = REAL(rv_ans);
+			iType = 2;
+		} else
+			throw ErrCoreArray("Invalid 'type'.");
+
+		// ======== Genotype score for individual pairs ========
+
+		CdBufSpace BufSNP(MCWorkingGeno.Space, true, CdBufSpace::acInc);
+		// for-loop
+		for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+		{
+			C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+
+			for (int j=0; j < nSamp; j++)
+			{
+				C_UInt8 g1 = pGeno[c_1[j]];
+				C_UInt8 g2 = pGeno[c_2[j]];
+				if ((g1 < 3) && (g2 < 3))
+				{
+					static const int IBS[3][3] =
+						{ { 2, 1, 0 }, { 1, 2, 1 }, { 0, 1, 2 } };
+					static const int GVH[3][3] =
+						{ { 0, 0, 2 }, { 1, 0, 1 }, { 2, 0, 0 } };
+					static const int HVG[3][3] =
+						{ { 0, 1, 2 }, { 0, 0, 0 }, { 2, 1, 0 } };
+
+					switch (iMethod)
+					{
+					case 1: // IBS
+						pBuf[j] = IBS[g1][g2]; break;
+					case 2: // GVH
+						pBuf[j] = GVH[g1][g2]; break;
+					case 3: // HVG
+						pBuf[j] = HVG[g1][g2]; break;
+					}
+				} else
+					pBuf[j] = R_NaN;
+			}
+
+			if (iType == 1)
+			{
+				double Avg, SD;
+				CalcArray_AvgSD(pBuf, nSamp, Avg, SD);
+				double *Out = REAL(rv_ans) + 2*i;
+				Out[0] = Avg; Out[1] = SD;
+			} else
+				pBuf += nSamp;
+		}
 
 	COREARRAY_CATCH
 }

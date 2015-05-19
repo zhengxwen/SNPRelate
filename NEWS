@@ -1,7 +1,9 @@
-CHANGES IN VERSION 1.3.0
+CHANGES IN VERSION 1.3.0-1.3.1
 -------------------------
 
     o update GENEVA website address
+
+    o add a new function `snpgdsPairScore()`
 
 
 CHANGES IN VERSION 1.2.0
@@ -13,32 +15,32 @@ CHANGES IN VERSION 1.2.0
 CHANGES IN VERSION 1.1.0-1.1.11
 -------------------------
 
-    o fix a bug in snpgdsVCF2GDS when 'method="biallelic.only"'
+    o fix a bug in `snpgdsVCF2GDS()` when 'method="biallelic.only"'
 
-    o add 'snpgdsVCF2GDS_R' for the R implementation
+    o add `snpgdsVCF2GDS_R()` for the R implementation
 
-    o fix a bug in 'snpgdsBED2GDS' if 'family=TRUE'
+    o fix a bug in `snpgdsBED2GDS()` if 'family=TRUE'
 
-    o 'snpgdsGDS2BED' allows the file name of GDS
+    o `snpgdsGDS2BED()` allows the file name of GDS
 
-    o improve 'snpgdsSlidingWindow'
+    o improve `snpgdsSlidingWindow()`
 
-    o add an option 'ignore.chr.prefix' to the function 'snpgdsVCF2GDS'
+    o add an option 'ignore.chr.prefix' to the function `snpgdsVCF2GDS()`
 
-    o a new function 'snpgdsHWE'
+    o a new function `snpgdsHWE()`
 
-    o v1.1.5: add 'Fst estimation' to the vignette
+    o v1.1.5: add "Fst estimation" to the vignette
 
-    o v1.1.6: bug fix if 'requireNamespace("SNPRelate")' is called from
+    o v1.1.6: bug fix if `requireNamespace("SNPRelate")` is called from
       other packages
 
-    o v1.1.7: snpgdsPCA uses 'DSPEVX' to compute eigenvalues and eigenvectors
-      instead of 'DSPEV' if top eigenvalues are required only (significant
-      improvement on computing speed)
+    o v1.1.7: `snpgdsPCA()` uses 'DSPEVX' to compute eigenvalues and
+      eigenvectors instead of 'DSPEV' if top eigenvalues are required only
+      (significant improvement on computing speed)
 
     o v1.1.8: the original Rnw vignette is replaced by a R Markdown vignette
 
-    o v1.1.9: a new function 'snpgdsPED2GDS'
+    o v1.1.9: a new function `snpgdsPED2GDS()`
 
 
 CHANGES IN VERSION 1.0.0
@@ -52,7 +54,7 @@ CHANGES IN VERSION 0.99.1-0.99.3
 
     o an option to create an integer snp.id when converting from PLINK
 
-    o a new function 'snpgdsFst' to estimate Fst
+    o a new function `snpgdsFst()` to estimate Fst
 
     o minor fixes
 
@@ -64,32 +66,32 @@ CHANGES IN VERSION 0.99.0
 
     o fully support long vectors (>= R v3.0)
 
-    o >5x speedup in the function 'snpgdsVCF2GDS'
+    o >5x speedup in the function `snpgdsVCF2GDS()`
 
     o SNP GDS format allows character-type chromosome codes
 
-    o add a new argument 'ref.allele' in 'snpgdsVCF2GDS'
+    o add a new argument 'ref.allele' in `snpgdsVCF2GDS()`
 
-    o add new functions 'snpgdsOpen' and 'snpgdsClose'
+    o add new functions `snpgdsOpen()` and `snpgdsClose()`
 
-    o add a new function 'snpgdsTranspose' to transpose the genotypic matrix
+    o add a new function `snpgdsTranspose()` to transpose the genotypic matrix
 
-    o add a new function 'snpgdsAlleleSwitch' to switch alleles if needed
+    o add a new function `snpgdsAlleleSwitch()` to switch alleles if needed
 
-    o add a new function 'snpgdsApartSelection'
+    o add a new function `snpgdsApartSelection()`
 
-    o add a new function 'snpgdsGEN2GDS' to import Oxford GEN data
+    o add a new function `snpgdsGEN2GDS()` to import Oxford GEN data
 
-    o use NA instead of 3 as missing value in 'snpgdsGetGeno'
+    o use NA instead of 3 as missing value in `snpgdsGetGeno()`
 
-    o add a new argument 'snpfirstdim' in the function 'snpgdsGDS2BED'
+    o add a new argument 'snpfirstdim' in the function `snpgdsGDS2BED()`
 
-    o add a new argument 'with.id' in the functions 'snpgdsSNPRateFreq'
-      and 'snpgdsSampMissRate'
+    o add a new argument 'with.id' in the functions `snpgdsSNPRateFreq()`
+      and `snpgdsSampMissRate()`
 
-    o return a numeric vector instead of data.frame in 'snpgdsLDpair'
+    o return a numeric vector instead of data.frame in `snpgdsLDpair()`
 
-    o add estimating nine Jacquard's coefficients in 'snpgdsIBDMLE'
+    o add estimating nine Jacquard's coefficients in `snpgdsIBDMLE()`
 
     o fix the memory issues reported by valgrind
 
@@ -97,35 +99,35 @@ CHANGES IN VERSION 0.99.0
 CHANGES IN VERSION 0.9.15-0.9.19
 -------------------------
 
-    o improve 'snpgdsIBDKING' to avoid misleading arguments and examples
+    o improve `snpgdsIBDKING()` to avoid misleading arguments and examples
 
-    o improve 'snpgdsIBDSelection'
+    o improve `snpgdsIBDSelection()`
 
     o the names of column 'sample1', 'sample2' and 'kinshipcoeff' are changed
-      to 'ID1', 'ID2' and 'kinship' in the output of 'snpgdsIBDSelection'
+      to 'ID1', 'ID2' and 'kinship' in the output of `snpgdsIBDSelection()`
 
     o avoid compiler issues when the version of R < v3.0
 
-    o minor fixes in 'snpgdsIBDSelection': allow non-character-type sample IDs
-      and missing IBD coefficients
+    o minor fixes in `snpgdsIBDSelection()`: allow non-character-type sample
+      IDs and missing IBD coefficients
 
 
 CHANGES IN VERSION 0.9.14:
 -------------------------
 
-    o 'snpgdsGDS2BED' gives a warning if the allele information is missing
+    o `snpgdsGDS2BED()` gives a warning if the allele information is missing
 
-    o add 'snpgdsIBDKING' (KING robust relationship inference in genome-wide
+    o add `snpgdsIBDKING()` (KING robust relationship inference in genome-wide
       association studies)
 
-    o bug fixes in 'snpgdsIBS' and 'snpgdsIBSNum'
+    o bug fixes in `snpgdsIBS()` and `snpgdsIBSNum()`
 
-    o some warnings in 'snpgdsSummary' are replaced by hints
+    o some warnings in `snpgdsSummary()` are replaced by hints
 
-    o bug fix in 'snpgdsVCF2GDS': duplicate SNP id when importing multiple
+    o bug fix in `snpgdsVCF2GDS()`: duplicate SNP id when importing multiple
       VCF files
 
-    o improve hint information in 'snpgdsGDS2BED'
+    o improve hint information in `snpgdsGDS2BED()`
 
 
 CHANGES IN VERSION 0.9.10-0.9.13
@@ -137,16 +139,17 @@ CHANGES IN VERSION 0.9.10-0.9.13
 
     o fix compiling issues in the Windows version of SNPRelate
 
-    o add 'GetRNGstate' and 'PutRNGstate' to the C function 'gnrDistPerm'
+    o add 'GetRNGstate' and 'PutRNGstate' to the C function `gnrDistPerm()`
 
-    o remove the upper limit of 200 chromosomes in 'snpgdsVCF2GDS' according
+    o remove the upper limit of 200 chromosomes in `snpgdsVCF2GDS()` according
       to scaffolds/contigs from a de novo assembly not chromosomes
 
-    o improve 'snpgdsSummary'
+    o improve `snpgdsSummary()`
 
-    o bug fixes in 'snpgdsPairIBD'
+    o bug fixes in `snpgdsPairIBD()`
 
-    o bug fix in 'snpgdsVCF2GDS': to use "\t" as the field separator character
+    o bug fix in `snpgdsVCF2GDS()`: to use "\t" as the field separator
+      character
 
     o bug fixes according to gdsfmt v0.9.11
 
@@ -156,43 +159,44 @@ CHANGES IN VERSION 0.9.10-0.9.13
 CHANGES IN VERSION 0.9.8-0.9.9
 -------------------------
 
-    o adds a new argument 'family' to 'snpgdsBED2GDS'
+    o adds a new argument 'family' to `snpgdsBED2GDS()`
 
-    o improves 'snpgdsCutTree'
+    o improves `snpgdsCutTree()`
 
-    o adds a new function 'snpgdsDrawTree'
+    o adds a new function `snpgdsDrawTree()`
 
-    o adds an argument 'option' to the function 'snpgdsBED2GDS'
+    o adds an argument 'option' to the function `snpgdsBED2GDS()`
 
-    o outputs chromosome codes according to 'snpgdsOption' in 'snpgdsGDS2BED'
+    o outputs chromosome codes according to `snpgdsOption()` in
+      `snpgdsGDS2BED()`
 
     o add an alternative method extracting variants from a VCF file in
-      'snpgdsVCF2GDS'
+      `snpgdsVCF2GDS()`
 
-    o supports multiple files in 'snpgdsVCF2GDS'
+    o supports multiple files in `snpgdsVCF2GDS()`
 
-    o add 'snpgdsOption'
+    o add `snpgdsOption()`
 
-    o add 'snpgdsHCluster'
+    o add `snpgdsHCluster()`
 
-    o add 'snpgdsCutTree'
+    o add `snpgdsCutTree()`
 
-    o add 'snpgdsDiss'
+    o add `snpgdsDiss()`
 
 
 CHANGES IN VERSION 0.9.1-0.9.7
 -------------------------
 
-    o bug fix: an important bug of missing genotypes in 'snpgdsVCF2GDS'
+    o bug fix: an important bug of missing genotypes in `snpgdsVCF2GDS()`
 
-    o bug fix: a bug in 'snpgdsGDS2BED' (output 23, 24, ..., instead of
+    o bug fix: a bug in `snpgdsGDS2BED()` (output 23, 24, ..., instead of
       X, Y, XY)
 
-    o bug fix: a bug in 'snpgdsCombineGeno' (due to duplicate SNPs)
+    o bug fix: a bug in `snpgdsCombineGeno()` (due to duplicate SNPs)
 
-    o 'snpgdsLDpair' provides haplotype frequency estimates
+    o `snpgdsLDpair()` provides haplotype frequency estimates
 
-    o 'snpgdsLDMat' allows specifying sliding window size
+    o `snpgdsLDMat()` allows specifying sliding window size
 
     o add RUnit tests
 
@@ -200,9 +204,9 @@ CHANGES IN VERSION 0.9.1-0.9.7
 
     o bug fixes
 
-    o add functions to 'snpgdsIBDMLE' and 'snpgdsIBDMoM'
+    o add functions to `snpgdsIBDMLE()` and `snpgdsIBDMoM()`
 
-    o add a new function 'snpgdsVCF2GDS'
+    o add a new function `snpgdsVCF2GDS()`
 
 
 CHANGES IN VERSION 0.9.0 (03-Aug-2011)

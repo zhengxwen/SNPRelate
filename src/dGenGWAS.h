@@ -612,6 +612,12 @@ namespace GWAS
 
 	// ===================================================================== //
 
+	void CalcArray_AvgSD(const double array[], size_t n, double &Avg, double &SD);
+
+
+
+	// ===================================================================== //
+
 	/// Detect the argument 'verbose'
 	COREARRAY_DLL_LOCAL bool SEXP_Verbose(SEXP Verbose);
 

@@ -124,7 +124,7 @@ There are two additional and optional variables:
 1. *snp.rs.id*, a character string for reference SNP ID that may not be unique.
 2. *snp.allele*, it is not necessary for the analysis, but it is necessary when merging genotypes from different platforms. The format of *snp.allele* is "A allele/B allele", like "T/G" where T is A allele and G is B allele.
 
-The information of sample annotation can be obtained by the same function `read.gdsn()`. For example, population information. "FStr8" indicates a character-type variable.
+The information of sample annotation can be obtained by the same function `read.gdsn()`. For example, population information. "VStr8" indicates a character-type variable.
 ```{r}
 # Read population information
 pop <- read.gdsn(index.gdsn(genofile, path="sample.annot/pop.group"))

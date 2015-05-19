@@ -1687,3 +1687,35 @@ C_Int64 GWAS::Array_Thread_MatCnt[N_MAX_THREAD];
 vector<C_UInt8> GWAS::Array_PackedGeno;
 
 vector<double> GWAS::Array_AlleleFreq;
+
+
+// =====================================================================
+
+void GWAS::CalcArray_AvgSD(const double array[], size_t n, double &Avg, double &SD)
+{
+	double Sum = 0, SqSum = 0;
+	size_t Num = 0;
+
+	for (size_t i=0; i < n; i++)
+	{
+		const double v = array[i];
+		if (R_FINITE(v))
+		{
+			Sum += v; SqSum += v*v;
+			Num ++;
+		}
+	}
+
+	if (Num > 0)
+	{
+		if (Num > 1)
+		{
+			Avg = Sum / Num;
+			SD  = sqrt((SqSum - Num*Avg*Avg) / (Num - 1));
+		} else {
+			Avg = Sum; SD = R_NaN;
+		}
+	} else {
+		Avg = SD = R_NaN;
+	}
+}
