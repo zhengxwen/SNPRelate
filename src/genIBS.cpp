@@ -612,9 +612,16 @@ COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 	SEXP Method, SEXP Type, SEXP _Verbose)
 {
+	static const int IBS[3][3] =
+		{ { 2, 1, 0 }, { 1, 2, 1 }, { 0, 1, 2 } };
+	static const int GVH[3][3] =
+		{ { 0, 0, 2 }, { 1, 0, 1 }, { 2, 0, 0 } };
+	static const int HVG[3][3] =
+		{ { 0, 1, 2 }, { 0, 0, 0 }, { 2, 1, 0 } };
+
 	const int *c_1 = INTEGER(SampIdx1);
 	const int *c_2 = INTEGER(SampIdx2);
-	const int nSamp = Rf_length(SampIdx1);
+	const int nPair = Rf_length(SampIdx1);
 	const char *c_Method = CHAR(STRING_ELT(Method, 0));
 	const char *c_Type = CHAR(STRING_ELT(Type, 0));
 	const bool verbose = SEXP_Verbose(_Verbose);
@@ -636,67 +643,111 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 
 		// ======== Genotype score for individual pairs ========
 		const int nSNP = MCWorkingGeno.Space.SNPNum();
-		int iType = 0;
-		vector<double> Buffer;
-		double *pBuf;
-
-		if (strcmp(c_Type, "avg+sd") == 0)
-		{
-			rv_ans = allocMatrix(REALSXP, 2, nSNP);
-			Buffer.resize(nSamp);
-			pBuf = &Buffer[0];
-			iType = 1;
-		} else if (strcmp(c_Type, "matrix") == 0)
-		{
-			rv_ans = allocMatrix(REALSXP, nSamp, nSNP);
-			pBuf = REAL(rv_ans);
-			iType = 2;
-		} else
-			throw ErrCoreArray("Invalid 'type'.");
-
-		// ======== Genotype score for individual pairs ========
-
 		CdBufSpace BufSNP(MCWorkingGeno.Space, true, CdBufSpace::acInc);
-		// for-loop
-		for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+
+		if (strcmp(c_Type, "per.pair") == 0)
 		{
-			C_UInt8 *pGeno = BufSNP.ReadGeno(i);
-
-			for (int j=0; j < nSamp; j++)
+			vector<CSummary_AvgSD> Sums(nPair);
+			// for-loop
+			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
 			{
-				C_UInt8 g1 = pGeno[c_1[j]];
-				C_UInt8 g2 = pGeno[c_2[j]];
-				if ((g1 < 3) && (g2 < 3))
+				C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+				for (int j=0; j < nPair; j++)
 				{
-					static const int IBS[3][3] =
-						{ { 2, 1, 0 }, { 1, 2, 1 }, { 0, 1, 2 } };
-					static const int GVH[3][3] =
-						{ { 0, 0, 2 }, { 1, 0, 1 }, { 2, 0, 0 } };
-					static const int HVG[3][3] =
-						{ { 0, 1, 2 }, { 0, 0, 0 }, { 2, 1, 0 } };
-
-					switch (iMethod)
+					C_UInt8 g1 = pGeno[c_1[j]];
+					C_UInt8 g2 = pGeno[c_2[j]];
+					if ((g1 < 3) && (g2 < 3))
 					{
-					case 1: // IBS
-						pBuf[j] = IBS[g1][g2]; break;
-					case 2: // GVH
-						pBuf[j] = GVH[g1][g2]; break;
-					case 3: // HVG
-						pBuf[j] = HVG[g1][g2]; break;
+						switch (iMethod)
+						{
+						case 1: // IBS
+							Sums[j].Add(IBS[g1][g2]); break;
+						case 2: // GVH
+							Sums[j].Add(GVH[g1][g2]); break;
+						case 3: // HVG
+							Sums[j].Add(HVG[g1][g2]); break;
+						}
 					}
-				} else
-					pBuf[j] = R_NaN;
+				}
 			}
 
-			if (iType == 1)
+			rv_ans = allocMatrix(REALSXP, nPair, 3);
+			double *Out = REAL(rv_ans);
+			for (int i=0; i < nPair; i++)
 			{
-				double Avg, SD;
-				CalcArray_AvgSD(pBuf, nSamp, Avg, SD);
-				double *Out = REAL(rv_ans) + 2*i;
-				Out[0] = Avg; Out[1] = SD;
-			} else
-				pBuf += nSamp;
-		}
+				Sums[i].CalcAvgSD();
+				double *p = Out + i;
+				p[0      ] = Sums[i].Avg;
+				p[nPair  ] = Sums[i].SD;
+				p[nPair*2] = Sums[i].Num;
+			}
+
+		} else if (strcmp(c_Type, "per.snp") == 0)
+		{
+			vector<double> Buffer(nPair);
+			rv_ans = allocMatrix(REALSXP, 3, nSNP);
+			double *Out = REAL(rv_ans);
+
+			// for-loop
+			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+			{
+				C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+				for (int j=0; j < nPair; j++)
+				{
+					C_UInt8 g1 = pGeno[c_1[j]];
+					C_UInt8 g2 = pGeno[c_2[j]];
+					if ((g1 < 3) && (g2 < 3))
+					{
+						switch (iMethod)
+						{
+						case 1: // IBS
+							Buffer[j] = IBS[g1][g2]; break;
+						case 2: // GVH
+							Buffer[j] = GVH[g1][g2]; break;
+						case 3: // HVG
+							Buffer[j] = HVG[g1][g2]; break;
+						}
+					} else
+						Buffer[j] = R_NaN;
+				}
+
+				CSummary_AvgSD Sum;
+				Sum.Add(&Buffer[0], nPair);
+				Sum.CalcAvgSD();
+				Out[0] = Sum.Avg; Out[1] = Sum.SD; Out[2] = Sum.Num;
+				Out += 3;
+			}
+
+		} else if (strcmp(c_Type, "matrix") == 0)
+		{
+			rv_ans = allocMatrix(INTSXP, nPair, nSNP);
+			int *Out = INTEGER(rv_ans);
+
+			// for-loop
+			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+			{
+				C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+				for (int j=0; j < nPair; j++, Out++)
+				{
+					C_UInt8 g1 = pGeno[c_1[j]];
+					C_UInt8 g2 = pGeno[c_2[j]];
+					if ((g1 < 3) && (g2 < 3))
+					{
+						switch (iMethod)
+						{
+						case 1: // IBS
+							*Out = IBS[g1][g2]; break;
+						case 2: // GVH
+							*Out = GVH[g1][g2]; break;
+						case 3: // HVG
+							*Out = HVG[g1][g2]; break;
+						}
+					} else
+						*Out = NA_INTEGER;
+				}
+			}
+		} else
+			throw ErrCoreArray("Invalid 'type'.");
 
 	COREARRAY_CATCH
 }

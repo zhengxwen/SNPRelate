@@ -9,8 +9,8 @@ identity-by-state (IBS) measure
 }
 \usage{
 snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
-    method=c("IBS", "GVH", "HVG"), type=c("avg+sd", "matrix"), with.id=TRUE,
-    verbose=TRUE)
+    method=c("IBS", "GVH", "HVG"), type=c("per.pair", "per.snp", "matrix"),
+    with.id=TRUE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -21,9 +21,11 @@ snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
         if NULL, all samples are used}
     \item{snp.id}{a vector of snp id specifying selected SNPs; if NULL,
         all SNPs are used}
-    \item{method}{\code{"IBS"} -- identity-by-state score; \code{"GVH"} -- ;
+    \item{method}{\code{"IBS"} -- identity-by-state score;
+        \code{"GVH"} -- ;
         \code{"HVG"} -- }
-    \item{type}{\code{"avg+sd"} -- ; \code{"matrix"} -- }
+    \item{type}{\code{"per.pair"} -- ; \code{"per.snp"} -- ;
+        \code{"matrix"} -- }
     \item{with.id}{if \code{TRUE}, returns "sample.id" and "snp.id"; see Value}
     \item{verbose}{if TRUE, show information}
 }
@@ -35,9 +37,13 @@ snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
     \item{sample.id}{the sample ids used in the analysis,
         if \code{with.id=TRUE}}
     \item{snp.id}{the SNP ids used in the analysis, if \code{with.id=TRUE}}
-    \item{score}{a matrix of genotype score over SNPs:
-        if \code{type="avg+sd"}, a 2-by-\code{# of SNPs} matrix with the first
-        row for average scores and the second row for standard deviation;
+    \item{score}{a matrix of genotype score:
+        if \code{type="per.pair"}, a \code{# of pairs}-by-3 matrix with the
+        first column for average scores, the second column for standard
+        deviation and the third column for the valid number of SNPs;
+        if \code{type="per.snp"}, a 3-by-\code{# of SNPs} matrix with the first
+        row for average scores, the second row for standard deviation and
+        the third row for the valid number of individual pairs;
         if \code{type="matrix"}, a \code{# of pairs}-by-\code{# of SNPs}
         matrix with rows for pairs of individuals}
 }
@@ -63,18 +69,25 @@ father.id <- father.id[father.id != ""]
 
 # calculate average genotype scores
 z1 <- snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
-    method="IBS", type="avg+sd")
+    method="IBS", type="per.pair")
 names(z1)
-mean(z1$score["Avg",])
-mean(z1$score["SD",])
+z1$score
 
-plot(z1$score["Avg",], pch=20, cex=0.75, xlab="SNP Index", ylab="IBS score")
+
+# calculate average genotype scores
+z2 <- snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
+    method="IBS", type="per.snp")
+names(z2)
+mean(z2$score["Avg",])
+mean(z2$score["SD",])
+
+plot(z2$score["Avg",], pch=20, cex=0.75, xlab="SNP Index", ylab="IBS score")
 
 
 # calculate a matrix of genotype scores over samples and SNPs
-z2 <- snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
+z3 <- snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
     method="IBS", type="matrix")
-dim(z2$score)
+dim(z3$score)
 
 
 # close the file

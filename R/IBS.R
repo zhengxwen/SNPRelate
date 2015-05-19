@@ -73,8 +73,8 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
-    method=c("IBS", "GVH", "HVG"), type=c("avg+sd", "matrix"), with.id=TRUE,
-    verbose=TRUE)
+    method=c("IBS", "GVH", "HVG"), type=c("per.pair", "per.snp", "matrix"),
+    with.id=TRUE, verbose=TRUE)
 {
     # check
     if (anyDuplicated(sample1.id) != 0)
@@ -107,8 +107,10 @@ snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
     # call the C function
     ans$score <- .Call(gnrPairScore, match(sample1.id, ws$sample.id)-1L,
         match(sample2.id, ws$sample.id)-1L, method, type, verbose)
-    if (type == "avg+sd")
-        rownames(ans$score) <- c("Avg", "SD")
+    if (type == "per.pair")
+        colnames(ans$score) <- c("Avg", "SD", "Num")
+    else if (type == "per.snp")
+        rownames(ans$score) <- c("Avg", "SD", "Num")
 
     ans
 }

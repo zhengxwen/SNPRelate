@@ -612,7 +612,20 @@ namespace GWAS
 
 	// ===================================================================== //
 
-	void CalcArray_AvgSD(const double array[], size_t n, double &Avg, double &SD);
+	class COREARRAY_DLL_LOCAL CSummary_AvgSD
+	{
+	public:
+		double Sum;    /// the sum: \sum_{x_i}
+		double SqSum;  /// the sum: \sum_{x_i^2}
+		int Num;       /// the number of valid elements
+		double Avg;
+		double SD;
+
+		CSummary_AvgSD();
+		void Add(double Elm);
+		void Add(const double array[], size_t n);
+		void CalcAvgSD();
+	};
 
 
 

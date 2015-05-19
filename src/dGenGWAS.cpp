@@ -1691,11 +1691,23 @@ vector<double> GWAS::Array_AlleleFreq;
 
 // =====================================================================
 
-void GWAS::CalcArray_AvgSD(const double array[], size_t n, double &Avg, double &SD)
+CSummary_AvgSD::CSummary_AvgSD()
 {
-	double Sum = 0, SqSum = 0;
-	size_t Num = 0;
+	Sum = SqSum = 0;
+	Num = 0;
+}
 
+void CSummary_AvgSD::Add(double Elm)
+{
+	if (R_FINITE(Elm))
+	{
+		Sum += Elm; SqSum += Elm*Elm;
+		Num ++;
+	}
+}
+
+void CSummary_AvgSD::Add(const double array[], size_t n)
+{
 	for (size_t i=0; i < n; i++)
 	{
 		const double v = array[i];
@@ -1705,7 +1717,10 @@ void GWAS::CalcArray_AvgSD(const double array[], size_t n, double &Avg, double &
 			Num ++;
 		}
 	}
+}
 
+void CSummary_AvgSD::CalcAvgSD()
+{
 	if (Num > 0)
 	{
 		if (Num > 1)
