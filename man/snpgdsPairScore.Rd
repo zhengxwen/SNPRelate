@@ -21,16 +21,29 @@ snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
         if NULL, all samples are used}
     \item{snp.id}{a vector of snp id specifying selected SNPs; if NULL,
         all SNPs are used}
-    \item{method}{\code{"IBS"} -- identity-by-state score;
-        \code{"GVH"} -- ;
-        \code{"HVG"} -- }
-    \item{type}{\code{"per.pair"} -- ; \code{"per.snp"} -- ;
-        \code{"matrix"} -- }
+    \item{method}{\code{"IBS"} -- identity-by-state score, \code{"GVH"}
+        or \code{"HVG"}, see Details}
+    \item{type}{\code{"per.pair"}, \code{"per.snp"} or \code{"matrix"},
+        see Value}
     \item{with.id}{if \code{TRUE}, returns "sample.id" and "snp.id"; see Value}
     \item{verbose}{if TRUE, show information}
 }
 \details{
-    XX.
+    \tabular{ccccccc}{
+        Patient (sample1.id) \tab Coded Genotype \tab
+        Donor (sample2.id)   \tab Coded Genotype \tab
+        IBS \tab GVH \tab HVG \cr
+
+        AA \tab 0 \tab AA \tab 0 \tab 2 \tab 0 \tab 0 \cr
+        AA \tab 0 \tab AB \tab 1 \tab 1 \tab 0 \tab 1 \cr
+        AA \tab 0 \tab BB \tab 2 \tab 0 \tab 2 \tab 2 \cr
+        AB \tab 1 \tab AA \tab 0 \tab 1 \tab 1 \tab 0 \cr
+        AB \tab 1 \tab AB \tab 1 \tab 2 \tab 0 \tab 0 \cr
+        AB \tab 1 \tab BB \tab 2 \tab 1 \tab 1 \tab 0 \cr
+        BB \tab 2 \tab AA \tab 0 \tab 0 \tab 2 \tab 2 \cr
+        BB \tab 2 \tab AB \tab 1 \tab 1 \tab 0 \tab 1 \cr
+        BB \tab 2 \tab BB \tab 2 \tab 2 \tab 0 \tab 0 \cr
+    }
 }
 \value{
     Return a list:
@@ -46,6 +59,12 @@ snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
         the third row for the valid number of individual pairs;
         if \code{type="matrix"}, a \code{# of pairs}-by-\code{# of SNPs}
         matrix with rows for pairs of individuals}
+}
+\references{
+    Warren, E. H., Zhang, X. C., Li, S., Fan, W., Storer, B. E., Chien, J. W.,
+Boeckh, M. J., et al. (2012). Effect of MHC and non-MHC donor/recipient
+genetic disparity on the outcome of allogeneic HCT. Blood, 120(14), 2796–806.
+doi:10.1182/blood-2012-04-347286
 }
 \author{Xiuwen Zheng}
 \seealso{
