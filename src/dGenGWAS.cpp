@@ -133,6 +133,12 @@ void CdGenoWorkSpace::SetGeno(PdAbstractArray vGeno, bool _InitSelection)
 
 void CdGenoWorkSpace::InitSelection()
 {
+	InitSelectionSampOnly();
+	InitSelectionSNPOnly();
+}
+
+void CdGenoWorkSpace::InitSelectionSampOnly()
+{
 	// samples
 	if (fTotalSampleNum > 0)
 	{
@@ -155,8 +161,6 @@ void CdGenoWorkSpace::InitSelection()
 		fSampleNum = 0;
 		vSampleIndex.clear();
 	}
-
-	InitSelectionSNPOnly();
 }
 
 void CdGenoWorkSpace::InitSelectionSNPOnly()
@@ -324,7 +328,7 @@ void CdGenoWorkSpace::ExtractSNPs(long Start, long Length)
 		fSNPSelection[vSNPIndex[i]] = false;
 	for (long i=Start+Length; i < fSNPNum; i++)
 		fSNPSelection[vSNPIndex[i]] = false;
-	InitSelection();
+	InitSelectionSNPOnly();
 }
 
 void CdGenoWorkSpace::ExtractSamples(long Start, long Length)
@@ -333,7 +337,7 @@ void CdGenoWorkSpace::ExtractSamples(long Start, long Length)
 		fSampleSelection[vSampleIndex[i]] = false;
 	for (long i=Start+Length; i < fSampleNum; i++)
 		fSampleSelection[vSampleIndex[i]] = false;
-	InitSelection();
+	InitSelectionSampOnly();
 }
 
 void CdGenoWorkSpace::GetMissingRates(double OutRate[])
@@ -1401,11 +1405,11 @@ bool GWAS::RequireWork(C_UInt8 *buf, long &_SNPstart, long &_SNPlen,
 	// auto Lock and Unlock
 	TdAutoMutex _m(_Mutex);
 
-	long Cnt = MCWorkingGeno.Space.SNPNum() - SNPStart;
+	long Cnt = MCWorkingGeno.Space().SNPNum() - SNPStart;
 	if (Cnt <= 0) return false;
 	if (Cnt > BlockNumSNP) Cnt = BlockNumSNP;
 
-	MCWorkingGeno.Space.snpRead(SNPStart, Cnt, buf, SNPOrder);
+	MCWorkingGeno.Space().snpRead(SNPStart, Cnt, buf, SNPOrder);
 	_SNPstart = SNPStart; _SNPlen = Cnt;
 	SNPStart += Cnt;
 	return true;
@@ -1414,11 +1418,11 @@ bool GWAS::RequireWork(C_UInt8 *buf, long &_SNPstart, long &_SNPlen,
 bool GWAS::RequireWork_NoMutex(C_UInt8 *buf, long &_SNPstart, long &_SNPlen,
 	bool SNPOrder)
 {
-	long Cnt = MCWorkingGeno.Space.SNPNum() - SNPStart;
+	long Cnt = MCWorkingGeno.Space().SNPNum() - SNPStart;
 	if (Cnt <= 0) return false;
 	if (Cnt > BlockNumSNP) Cnt = BlockNumSNP;
 
-	MCWorkingGeno.Space.snpRead(SNPStart, Cnt, buf, SNPOrder);
+	MCWorkingGeno.Space().snpRead(SNPStart, Cnt, buf, SNPOrder);
 	_SNPstart = SNPStart; _SNPlen = Cnt;
 	SNPStart += Cnt;
 	return true;
@@ -1430,11 +1434,11 @@ bool GWAS::RequireWorkSamp(C_UInt8 *buf, long &_SampStart, long &_SampLen,
 	// auto Lock and Unlock
 	TdAutoMutex _m(_Mutex);
 
-	long Cnt = MCWorkingGeno.Space.SampleNum() - SampStart;
+	long Cnt = MCWorkingGeno.Space().SampleNum() - SampStart;
 	if (Cnt <= 0) return false;
 	if (Cnt > BlockSamp) Cnt = BlockSamp;
 
-	MCWorkingGeno.Space.sampleRead(SampStart, Cnt, buf, SNPOrder);
+	MCWorkingGeno.Space().sampleRead(SampStart, Cnt, buf, SNPOrder);
 	_SampStart = SampStart; _SampLen = Cnt;
 	SampStart += Cnt;
 	return true;
@@ -1443,11 +1447,11 @@ bool GWAS::RequireWorkSamp(C_UInt8 *buf, long &_SampStart, long &_SampLen,
 bool GWAS::RequireWorkSamp_NoMutex(C_UInt8 *buf, long &_SampStart,
 	long &_SampLen, bool SNPOrder)
 {
-	long Cnt = MCWorkingGeno.Space.SampleNum() - SampStart;
+	long Cnt = MCWorkingGeno.Space().SampleNum() - SampStart;
 	if (Cnt <= 0) return false;
 	if (Cnt > BlockSamp) Cnt = BlockSamp;
 
-	MCWorkingGeno.Space.sampleRead(SampStart, Cnt, buf, SNPOrder);
+	MCWorkingGeno.Space().sampleRead(SampStart, Cnt, buf, SNPOrder);
 	_SampStart = SampStart; _SampLen = Cnt;
 	SampStart += Cnt;
 	return true;
@@ -1481,11 +1485,11 @@ void CMultiCoreWorkingGeno::InitParam(bool snp_direction,
 	_Block_Size = block_size;
 	if (snp_direction)
 	{
-		_Geno_Block.resize(block_size * Space.SampleNum());
-		Progress.Init(Space.SNPNum());
+		_Geno_Block.resize(block_size * Space().SampleNum());
+		Progress.Init(Space().SNPNum());
 	} else {
-		_Geno_Block.resize(block_size * Space.SNPNum());
-		Progress.Init(Space.SampleNum());
+		_Geno_Block.resize(block_size * Space().SNPNum());
+		Progress.Init(Space().SampleNum());
 	}
 
 	// init the internal variables
@@ -1556,20 +1560,20 @@ void CMultiCoreWorkingGeno::_DoThread_WorkingGeno(PdThread Thread,
 			// reading ...
 			if (_SNP_Direction)
 			{
-				_StepCnt = Space.SNPNum() - _Start_Position;
+				_StepCnt = Space().SNPNum() - _Start_Position;
 				if (_StepCnt <= 0)
 					{ _If_End = true; break; }
 				if (_StepCnt > _Block_Size) _StepCnt = _Block_Size;
 
-				Space.snpRead(_Start_Position, _StepCnt,
+				Space().snpRead(_Start_Position, _StepCnt,
 					&_Geno_Block[0], _Read_SNP_Order);
 			} else {
-				_StepCnt = Space.SampleNum() - _Start_Position;
+				_StepCnt = Space().SampleNum() - _Start_Position;
 				if (_StepCnt <= 0)
 					{ _If_End = true; break; }
 				if (_StepCnt > _Block_Size) _StepCnt = _Block_Size;
 
-				Space.sampleRead(_Start_Position, _StepCnt,
+				Space().sampleRead(_Start_Position, _StepCnt,
 					&_Geno_Block[0], _Read_SNP_Order);
 			}
 			_StepStart = _Start_Position;
@@ -1657,7 +1661,7 @@ bool GWAS::SEXP_Verbose(SEXP Verbose)
 
 void GWAS::CachingSNPData(const char *Msg, bool Verbose)
 {
-	double GenoSum = MCWorkingGeno.Space.GenoSum();
+	double GenoSum = MCWorkingGeno.Space().GenoSum();
 	if (Verbose)
 	{
 		Rprintf(

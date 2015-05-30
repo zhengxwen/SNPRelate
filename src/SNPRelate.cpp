@@ -78,39 +78,39 @@ COREARRAY_DLL_EXPORT SEXP gnrSetGenoSpace(SEXP Node, SEXP SelSamp, SEXP SelSNP)
 	COREARRAY_TRY
 
 		PdGDSObj Obj = GDS_R_SEXP2Obj(Node);
-		MCWorkingGeno.Space.SetGeno(Obj, false);
+		MCWorkingGeno.Space().SetGeno(Obj, false);
 		if (!Rf_isNull(SelSamp))
 		{
-			int n = MCWorkingGeno.Space.TotalSampleNum();
+			int n = MCWorkingGeno.Space().TotalSampleNum();
 			if (XLENGTH(SelSamp) != n)
 				throw ErrCoreArray("'SelSamp' is invalid.");
 			int *p = LOGICAL(SelSamp);
 			for (int i=0; i < n; i++)
 			{
-				MCWorkingGeno.Space.SampleSelection()[i] = (*p++ == TRUE);
+				MCWorkingGeno.Space().SampleSelection()[i] = (*p++ == TRUE);
 			}
 		}
 		if (!Rf_isNull(SelSNP))
 		{
-			int n = MCWorkingGeno.Space.TotalSNPNum();
+			int n = MCWorkingGeno.Space().TotalSNPNum();
 			if (XLENGTH(SelSNP) != n)
 				throw ErrCoreArray("'SelSNP' is invalid.");
 			int *p = LOGICAL(SelSNP);
 			for (int i=0; i < n; i++)
 			{
-				MCWorkingGeno.Space.SNPSelection()[i] = (*p++ == TRUE);
+				MCWorkingGeno.Space().SNPSelection()[i] = (*p++ == TRUE);
 			}
 		}
-		MCWorkingGeno.Space.InitSelection();
+		MCWorkingGeno.Space().InitSelection();
 
-		if (MCWorkingGeno.Space.SNPNum() <= 0)
+		if (MCWorkingGeno.Space().SNPNum() <= 0)
 			throw ErrCoreArray("There is no SNP!");
-		if (MCWorkingGeno.Space.SampleNum() <= 0)
+		if (MCWorkingGeno.Space().SampleNum() <= 0)
 			throw ErrCoreArray("There is no sample!");
 
 		rv_ans = NEW_INTEGER(2);
-		INTEGER(rv_ans)[0] = MCWorkingGeno.Space.SNPNum();
-		INTEGER(rv_ans)[1] = MCWorkingGeno.Space.SampleNum();
+		INTEGER(rv_ans)[0] = MCWorkingGeno.Space().SNPNum();
+		INTEGER(rv_ans)[1] = MCWorkingGeno.Space().SampleNum();
 
 	COREARRAY_CATCH
 }
@@ -121,8 +121,8 @@ COREARRAY_DLL_EXPORT SEXP gnrGetGenoDim()
 {
 	COREARRAY_TRY
 		rv_ans = NEW_INTEGER(2);
-		INTEGER(rv_ans)[0] = MCWorkingGeno.Space.SNPNum();
-		INTEGER(rv_ans)[1] = MCWorkingGeno.Space.SampleNum();
+		INTEGER(rv_ans)[0] = MCWorkingGeno.Space().SNPNum();
+		INTEGER(rv_ans)[1] = MCWorkingGeno.Space().SampleNum();
 	COREARRAY_CATCH
 }
 
@@ -131,10 +131,10 @@ COREARRAY_DLL_EXPORT SEXP gnrGetGenoDim()
 COREARRAY_DLL_EXPORT void gnrSetGenoSelSNP(LongBool SNP_Flag[], LongBool *out_err)
 {
 	CORE_TRY
-		vector<C_BOOL> buf(MCWorkingGeno.Space.SNPNum());
-		for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+		vector<C_BOOL> buf(MCWorkingGeno.Space().SNPNum());
+		for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			buf[i] = (SNP_Flag[i]!=0);
-		MCWorkingGeno.Space.Set_SNPSelection(&buf[0]);
+		MCWorkingGeno.Space().Set_SNPSelection(&buf[0]);
 		*out_err = 0;
 	CORE_CATCH(*out_err = 1)
 }
@@ -154,9 +154,9 @@ COREARRAY_DLL_EXPORT SEXP gnrSelSNP_Base(SEXP remove_mono, SEXP maf,
 	double MRATE = Rf_asReal(missrate);
 
 	COREARRAY_TRY
-		const R_xlen_t n = MCWorkingGeno.Space.SNPNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SNPNum();
 		vector<C_BOOL> sel(n);
-		int OutNum = MCWorkingGeno.Space.Select_SNP_Base(
+		int OutNum = MCWorkingGeno.Space().Select_SNP_Base(
 			RM_MONO == TRUE, MAF, MRATE, &sel[0]);
 
 		rv_ans = PROTECT(NEW_LIST(2));
@@ -186,9 +186,9 @@ COREARRAY_DLL_EXPORT SEXP gnrSelSNP_Base_Ex(SEXP afreq, SEXP remove_mono,
 	double MRATE  = Rf_asReal(missrate);
 
 	COREARRAY_TRY
-		const R_xlen_t n = MCWorkingGeno.Space.SNPNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SNPNum();
 		vector<C_BOOL> sel(n);
-		int OutNum = MCWorkingGeno.Space.Select_SNP_Base_Ex(
+		int OutNum = MCWorkingGeno.Space().Select_SNP_Base_Ex(
 			pFreq, RM_MONO == TRUE, MAF, MRATE, &sel[0]);
 
 		rv_ans = PROTECT(NEW_LIST(2));
@@ -208,7 +208,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSelSNP_Base_Ex(SEXP afreq, SEXP remove_mono,
 COREARRAY_DLL_EXPORT SEXP gnrSNPRateFreq()
 {
 	COREARRAY_TRY
-		R_xlen_t L = MCWorkingGeno.Space.SNPNum();
+		R_xlen_t L = MCWorkingGeno.Space().SNPNum();
 		SEXP AF, MF, MR;
 		PROTECT(rv_ans = NEW_LIST(3));
 		PROTECT(AF = NEW_NUMERIC(L));
@@ -218,11 +218,11 @@ COREARRAY_DLL_EXPORT SEXP gnrSNPRateFreq()
 		PROTECT(MR = NEW_NUMERIC(L));
 		SET_ELEMENT(rv_ans, 2, MR);
 
-		MCWorkingGeno.Space.GetAlleleFreqs(REAL(AF));
+		MCWorkingGeno.Space().GetAlleleFreqs(REAL(AF));
 		double *pAF = REAL(AF), *pMF = REAL(MF);
 		for (R_xlen_t i=0; i < L; i++)
 			pMF[i] = min(pAF[i], 1 - pAF[i]);
-		MCWorkingGeno.Space.GetMissingRates(REAL(MR));
+		MCWorkingGeno.Space().GetMissingRates(REAL(MR));
 
 		UNPROTECT(4);
 	COREARRAY_CATCH
@@ -233,8 +233,8 @@ COREARRAY_DLL_EXPORT SEXP gnrSNPRateFreq()
 COREARRAY_DLL_EXPORT SEXP gnrSNPFreq()
 {
 	COREARRAY_TRY
-		PROTECT(rv_ans = NEW_NUMERIC(MCWorkingGeno.Space.SNPNum()));
-		MCWorkingGeno.Space.GetAlleleFreqs(REAL(rv_ans));
+		PROTECT(rv_ans = NEW_NUMERIC(MCWorkingGeno.Space().SNPNum()));
+		MCWorkingGeno.Space().GetAlleleFreqs(REAL(rv_ans));
 		UNPROTECT(1);
 	COREARRAY_CATCH
 }
@@ -244,8 +244,8 @@ COREARRAY_DLL_EXPORT SEXP gnrSNPFreq()
 COREARRAY_DLL_EXPORT SEXP gnrSampFreq()
 {
 	COREARRAY_TRY
-		PROTECT(rv_ans = NEW_NUMERIC(MCWorkingGeno.Space.SampleNum()));
-		MCWorkingGeno.Space.GetSampMissingRates(REAL(rv_ans));
+		PROTECT(rv_ans = NEW_NUMERIC(MCWorkingGeno.Space().SampleNum()));
+		MCWorkingGeno.Space().GetSampMissingRates(REAL(rv_ans));
 		UNPROTECT(1);
 	COREARRAY_CATCH
 }
@@ -256,7 +256,7 @@ COREARRAY_DLL_EXPORT void gnrCacheGeno(double *out_GenoSum, LongBool *out_err)
 {
 	CORE_TRY
 		if (out_GenoSum)
-			*out_GenoSum = MCWorkingGeno.Space.GenoSum();
+			*out_GenoSum = MCWorkingGeno.Space().GenoSum();
 		if (out_err) *out_err = 0;
 	CORE_CATCH(if (out_err) *out_err = 1)
 }
@@ -266,7 +266,7 @@ COREARRAY_DLL_EXPORT void gnrCacheGeno(double *out_GenoSum, LongBool *out_err)
 COREARRAY_DLL_EXPORT void gnrInitGenoBuffer(LongBool *SNPorSamp, int *AF, int *out_obj, LongBool *out_err)
 {
 	CORE_TRY
-		CdBufSpace *p = new CdBufSpace(MCWorkingGeno.Space,
+		CdBufSpace *p = new CdBufSpace(MCWorkingGeno.Space(),
 			*SNPorSamp, CdBufSpace::TAccessFlag(*AF));
 		memmove((void*)out_obj, (void*)&p, sizeof(CdBufSpace *));
 		*out_err = 0;
@@ -314,8 +314,8 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGeno(SEXP Node, SEXP snpfirstorder)
 
 		if (snpdim)
 		{
-			C_Int32 cnt[2] = { 1, MCWorkingGeno.Space.SNPNum() };
-			CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
+			C_Int32 cnt[2] = { 1, MCWorkingGeno.Space().SNPNum() };
+			CdBufSpace buf(MCWorkingGeno.Space(), false, CdBufSpace::acInc);
 			for (int i=0; i < buf.IdxCnt(); i++)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
@@ -323,8 +323,8 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGeno(SEXP Node, SEXP snpfirstorder)
 				GDS_Array_WriteData(obj, st, cnt, p, svUInt8);
 			}
 		} else {
-			C_Int32 cnt[2] = { 1, MCWorkingGeno.Space.SampleNum() };
-			CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
+			C_Int32 cnt[2] = { 1, MCWorkingGeno.Space().SampleNum() };
+			CdBufSpace buf(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
 			for (int i=0; i < buf.IdxCnt(); i++)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
@@ -349,11 +349,11 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGenoMem(SEXP snpfirstdim)
 		if (if_snp)
 		{
 			PROTECT(rv_ans = allocMatrix(INTSXP,
-				MCWorkingGeno.Space.SNPNum(), MCWorkingGeno.Space.SampleNum()));
+				MCWorkingGeno.Space().SNPNum(), MCWorkingGeno.Space().SampleNum()));
 			int *pMem = INTEGER(rv_ans);
 
-			const long n = MCWorkingGeno.Space.SNPNum();
-			CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
+			const long n = MCWorkingGeno.Space().SNPNum();
+			CdBufSpace buf(MCWorkingGeno.Space(), false, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
@@ -362,11 +362,11 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGenoMem(SEXP snpfirstdim)
 			}
 		} else {
 			PROTECT(rv_ans = allocMatrix(INTSXP,
-				MCWorkingGeno.Space.SampleNum(), MCWorkingGeno.Space.SNPNum()));
+				MCWorkingGeno.Space().SampleNum(), MCWorkingGeno.Space().SNPNum()));
 			int *pMem = INTEGER(rv_ans);
 
-			const long n = MCWorkingGeno.Space.SampleNum();
-			CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
+			const long n = MCWorkingGeno.Space().SampleNum();
+			CdBufSpace buf(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
@@ -392,8 +392,8 @@ COREARRAY_DLL_EXPORT SEXP gnrAppendGenoSpaceStrand(SEXP Node,
 		PdGDSObj Obj = GDS_R_SEXP2Obj(Node);
 		if (firstorder == TRUE)
 		{
-			const R_xlen_t n = MCWorkingGeno.Space.SNPNum();
-			CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
+			const R_xlen_t n = MCWorkingGeno.Space().SNPNum();
+			CdBufSpace buf(MCWorkingGeno.Space(), false, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
@@ -402,8 +402,8 @@ COREARRAY_DLL_EXPORT SEXP gnrAppendGenoSpaceStrand(SEXP Node,
 				GDS_Array_AppendData(Obj, n, p, svUInt8);
 			}
 		} else {
-			const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
-			CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
+			const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
+			CdBufSpace buf(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
@@ -715,13 +715,13 @@ COREARRAY_DLL_EXPORT SEXP gnrConvGDS2PED(SEXP pedfn, SEXP SampID, SEXP Allele,
 
 		MCWorkingGeno.Progress.Info = "\t\tOutput: ";
 		MCWorkingGeno.Progress.Show() = if_verbose;
-		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SampleNum());
+		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space().SampleNum());
 
 		ofstream file(fn);
 		if (!file.good())
 			throw ErrCoreArray("Fail to create the file '%s'.", fn);
 
-		CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
+		CdBufSpace buf(MCWorkingGeno.Space(), false, CdBufSpace::acInc);
 
 		const char *s;
 		string s1, s2;
@@ -731,7 +731,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvGDS2PED(SEXP pedfn, SEXP SampID, SEXP Allele,
 			file << "0\t" << CHAR(STRING_ELT(SampID, i)) << "\t0\t0\t0\t-9";
 			C_UInt8 *g = buf.ReadGeno(i);
 
-			for (long j=0; j < MCWorkingGeno.Space.SNPNum(); j++, g++)
+			for (long j=0; j < MCWorkingGeno.Space().SNPNum(); j++, g++)
 			{
 				switch (fmt)
 				{
@@ -812,7 +812,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvGDS2BED(SEXP bedfn, SEXP SNPOrder, SEXP Verbose
 			file.write(prefix, 3);
 		}
 
-		CdBufSpace buf(MCWorkingGeno.Space, !if_snp, CdBufSpace::acInc);
+		CdBufSpace buf(MCWorkingGeno.Space(), !if_snp, CdBufSpace::acInc);
 		MCWorkingGeno.Progress.Init(buf.IdxCnt());
 
 		long nRe = buf.BufElmSize() % 4;
@@ -856,17 +856,17 @@ COREARRAY_DLL_EXPORT SEXP gnrConvGDS2EIGEN(SEXP pedfn, SEXP verbose)
 
 		MCWorkingGeno.Progress.Info = "\tOutput: ";
 		MCWorkingGeno.Progress.Show() = if_verbose;
-		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SNPNum());
+		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space().SNPNum());
 
 		ofstream file(fn);
 		if (!file.good())
 			throw ErrCoreArray("Fail to create the file '%s'.", fn);
 
-		CdBufSpace buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
+		CdBufSpace buf(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
 		for (long i=0; i < buf.IdxCnt(); i++)
 		{
 			C_UInt8 *g = buf.ReadGeno(i);
-			for (long j=0; j < MCWorkingGeno.Space.SampleNum(); j++, g++)
+			for (long j=0; j < MCWorkingGeno.Space().SampleNum(); j++, g++)
 			{
 				int geno = (*g <= 2) ? (*g) : 9;
 				file << geno;
@@ -1240,7 +1240,6 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrSelSNP_Base_Ex, 4),      CALL(gnrSetGenoSpace, 3),
 
 		CALL(gnrSlidingNumWin, 4),       CALL(gnrSlidingWindow, 10),
-
 		CALL(gnrSampFreq, 0),            CALL(gnrSNPFreq, 0),
 		CALL(gnrSNPRateFreq, 0),
 

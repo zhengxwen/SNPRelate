@@ -71,6 +71,8 @@
             stop("Some of sample.id do not exist!")
         if (n.samp <= 0)
             stop("No sample in the working dataset.")
+        if (with.id)
+            samp.tmp <- samp.tmp[sample.id]
     } else {
         if (with.id)
             samp.tmp <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
@@ -87,6 +89,8 @@
             stop("Some of snp.id do not exist!")
         if (n.snp <= 0)
             stop("No SNP in the working dataset.")
+        if (with.id)
+            snp.tmp <- snp.tmp[snp.id]
     } else {
         if (with.id)
             snp.tmp <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
@@ -99,10 +103,11 @@
     # output
     if (with.id)
     {
+        list(n.snp=v[1], n.samp=v[2], sample.id=samp.tmp, snp.id=snp.tmp)
+    } else {
         list(n.snp=v[1], n.samp=v[2],
-            sample.id=samp.tmp[sample.id], snp.id=snp.tmp[snp.id])
-    } else
-        list(n.snp=v[1], n.samp=v[2], samp.flag=sample.id, snp.flag=snp.id)
+            samp.flag=sample.id, snp.flag=snp.id)
+    }
 }
 
 
@@ -1387,7 +1392,7 @@ snpgdsSummary <- function(gds, show=TRUE)
 #
 
 snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    snpfirstdim=NULL, verbose=TRUE)
+    snpfirstdim=NULL, with.id=FALSE, verbose=TRUE)
 {
     if (is.character(gdsobj))
     {
@@ -1396,7 +1401,8 @@ snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     }
 
     # check
-    ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id)
+    ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id,
+        with.id=with.id)
 
     # snp order
     if (is.null(snpfirstdim))
@@ -1420,7 +1426,11 @@ snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     }
 
     # get genotypes
-    .Call(gnrCopyGenoMem, snpfirstdim)
+    ans <- .Call(gnrCopyGenoMem, snpfirstdim)
+
+    if (with.id)
+        ans <- list(genotype=ans, sample.id=ws$sample.id, snp.id=ws$snp.id)
+    ans
 }
 
 
@@ -2133,7 +2143,7 @@ snpgdsDrawTree <- function(obj, clust.count=NULL, dend.idx=NULL,
 
             ym <- pretty(c(0, 1))
             axis(side=4, (1 - ym) * y.kinship.baseline, ym, line=0)
-            mtext("kinship coefficient", 4, line=2.5)
+            mtext("coancestry / kinship coefficient", 4, line=2.5)
         }
 
         # draw others

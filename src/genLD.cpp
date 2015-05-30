@@ -517,16 +517,16 @@ namespace LD
 	void InitPackedGeno()
 	{
 		// set # of samples and snps
-		nSNP = MCWorkingGeno.Space.SNPNum();
-		nPackedSamp = (MCWorkingGeno.Space.SampleNum() % 4 > 0) ?
-			(MCWorkingGeno.Space.SampleNum()/4 + 1) :
-			(MCWorkingGeno.Space.SampleNum()/4);
+		nSNP = MCWorkingGeno.Space().SNPNum();
+		nPackedSamp = (MCWorkingGeno.Space().SampleNum() % 4 > 0) ?
+			(MCWorkingGeno.Space().SampleNum()/4 + 1) :
+			(MCWorkingGeno.Space().SampleNum()/4);
 		PackedGeno.resize(nPackedSamp * nSNP);
 
 		// buffer
-		CdBufSpace Buf(MCWorkingGeno.Space, true, CdBufSpace::acInc);
+		CdBufSpace Buf(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
 		C_UInt8 *p = &PackedGeno[0];
-		for (long i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+		for (long i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 		{
 			p = Buf.ReadPackedGeno(i, p);
 		}
@@ -650,8 +650,8 @@ namespace LD
 		int slide_max_n, const double LD_threshold, C_BOOL *out_SNP)
 	{
 		// initial variables
-		nPackedSamp = (MCWorkingGeno.Space.SampleNum() % 4 > 0) ?
-			(MCWorkingGeno.Space.SampleNum()/4 + 1) : (MCWorkingGeno.Space.SampleNum()/4);
+		nPackedSamp = (MCWorkingGeno.Space().SampleNum() % 4 > 0) ?
+			(MCWorkingGeno.Space().SampleNum()/4 + 1) : (MCWorkingGeno.Space().SampleNum()/4);
 		list<TSNP> ListGeno;
 		out_SNP[StartIdx] = true;
 		vector<C_UInt8> buf(nPackedSamp);
@@ -659,12 +659,12 @@ namespace LD
 		// -----------------------------------------------------
 		// increasing searching: i --> i+1
 
-		CdBufSpace BufSNP(MCWorkingGeno.Space, true, CdBufSpace::acInc);
+		CdBufSpace BufSNP(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
 		ListGeno.push_back(TSNP(StartIdx, pos_bp[StartIdx], nPackedSamp));
 		BufSNP.ReadPackedGeno(StartIdx, &(ListGeno.back().genobuf[0]));
 
 		// for-loop, increasing
-		for (int i=StartIdx+1; i < MCWorkingGeno.Space.SNPNum(); i++)
+		for (int i=StartIdx+1; i < MCWorkingGeno.Space().SNPNum(); i++)
 		{
 			// load genotypes
 			BufSNP.ReadPackedGeno(i, &buf[0]);
@@ -701,7 +701,7 @@ namespace LD
 		// decreasing searching: i --> i-1
 
 		ListGeno.clear();
-		for (int i=StartIdx; i < MCWorkingGeno.Space.SNPNum(); i++)
+		for (int i=StartIdx; i < MCWorkingGeno.Space().SNPNum(); i++)
 		{
 			if (out_SNP[i])
 			{
@@ -802,7 +802,7 @@ COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP n_slide, SEXP NumThread,
 		if (INTEGER(n_slide)[0] <= 0)
 		{
 			PROTECT(rv_ans = allocMatrix(REALSXP,
-				MCWorkingGeno.Space.SNPNum(), MCWorkingGeno.Space.SNPNum()));
+				MCWorkingGeno.Space().SNPNum(), MCWorkingGeno.Space().SNPNum()));
 			{
 				double *p = REAL(rv_ans);
 				R_xlen_t N = XLENGTH(rv_ans);
@@ -813,7 +813,7 @@ COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP n_slide, SEXP NumThread,
 			LD::calcLD_mat(INTEGER(NumThread)[0], REAL(rv_ans));
 		} else {
 			PROTECT(rv_ans = allocMatrix(REALSXP,
-				INTEGER(n_slide)[0], MCWorkingGeno.Space.SNPNum()));
+				INTEGER(n_slide)[0], MCWorkingGeno.Space().SNPNum()));
 			{
 				double *p = REAL(rv_ans);
 				R_xlen_t N = XLENGTH(rv_ans);
@@ -837,15 +837,15 @@ COREARRAY_DLL_EXPORT SEXP gnrLDpruning(SEXP StartIdx, SEXP pos_bp,
 {
 	COREARRAY_TRY
 
-		vector<C_BOOL> flag(MCWorkingGeno.Space.SNPNum());
+		vector<C_BOOL> flag(MCWorkingGeno.Space().SNPNum());
 		LD::LD_Method = INTEGER(method)[0];
 		LD::calcLDpruning(INTEGER(StartIdx)[0], INTEGER(pos_bp),
 			INTEGER(slide_max_bp)[0], INTEGER(slide_max_n)[0],
 			REAL(LD_threshold)[0], &flag[0]);
 
-		PROTECT(rv_ans = NEW_LOGICAL(MCWorkingGeno.Space.SNPNum()));
+		PROTECT(rv_ans = NEW_LOGICAL(MCWorkingGeno.Space().SNPNum()));
 		int *p = LOGICAL(rv_ans);
-		for (long i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+		for (long i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			p[i] = flag[i] ? TRUE : FALSE;
 		UNPROTECT(1);
 

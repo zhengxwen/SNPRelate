@@ -174,7 +174,7 @@ namespace IBS
 		long SNP_Cnt, void* Param)
 	{
 		// initialize
-		const int nSamp = MCWorkingGeno.Space.SampleNum();
+		const int nSamp = MCWorkingGeno.Space().SampleNum();
 		C_UInt8 *pG = GenoBuf;
 		C_UInt8 *pPack = &GenoPacked[0];
 
@@ -275,7 +275,7 @@ namespace IBS
 		long SNP_Cnt, void* Param)
 	{
 		// initialize
-		const int nSamp = MCWorkingGeno.Space.SampleNum();
+		const int nSamp = MCWorkingGeno.Space().SampleNum();
 		C_UInt8 *pG = GenoBuf;
 		C_UInt8 *pPack = &GenoPacked[0];
 
@@ -386,7 +386,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)
 		// ======== The calculation of IBS matrix ========
 
 		// the number of samples
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 		// the upper-triangle genetic covariance matrix
@@ -434,7 +434,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 		// ======== The calculation of IBS matrix ========
 
 		// the number of samples
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 
@@ -499,9 +499,9 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 		CachingSNPData("PLINK IBD", verbose);
 
 		// the number of individuals
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 		// the number of SNPs
-		const R_xlen_t m = MCWorkingGeno.Space.SNPNum();
+		const R_xlen_t m = MCWorkingGeno.Space().SNPNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 
@@ -575,7 +575,7 @@ COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 		// ======== The calculation of genetic covariance matrix ========
 
 		// the number of samples
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 		// to detect the block size
 		IBS::AutoDetectSNPBlockSize(n);
 		// the upper-triangle genetic covariance matrix
@@ -639,17 +639,17 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 			throw ErrCoreArray("Invalid 'method'.");
 
 		// ======== To cache the genotype data ========
-		CachingSNPData("Genotype Score", false);
+		CachingSNPData("Genotype Score", verbose);
 
 		// ======== Genotype score for individual pairs ========
-		const int nSNP = MCWorkingGeno.Space.SNPNum();
-		CdBufSpace BufSNP(MCWorkingGeno.Space, true, CdBufSpace::acInc);
+		const int nSNP = MCWorkingGeno.Space().SNPNum();
+		CdBufSpace BufSNP(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
 
 		if (strcmp(c_Type, "per.pair") == 0)
 		{
 			vector<CSummary_AvgSD> Sums(nPair);
 			// for-loop
-			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			{
 				C_UInt8 *pGeno = BufSNP.ReadGeno(i);
 				for (int j=0; j < nPair; j++)
@@ -689,7 +689,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 			double *Out = REAL(rv_ans);
 
 			// for-loop
-			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			{
 				C_UInt8 *pGeno = BufSNP.ReadGeno(i);
 				for (int j=0; j < nPair; j++)
@@ -724,7 +724,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 			int *Out = INTEGER(rv_ans);
 
 			// for-loop
-			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			{
 				C_UInt8 *pGeno = BufSNP.ReadGeno(i);
 				for (int j=0; j < nPair; j++, Out++)

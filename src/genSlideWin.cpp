@@ -113,7 +113,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	const int *pFlag   = LOGICAL(chflag);
 	const bool is_basepair = (strcmp(c_Unit, "basepair") == 0);
 
-	if (MCWorkingGeno.Space.TotalSNPNum() != XLENGTH(chflag))
+	if (MCWorkingGeno.Space().TotalSNPNum() != XLENGTH(chflag))
 		error("Internal error in 'gnrSlidingWindow': invalid chflag.");
 
 	int nProtected = 0;
@@ -225,7 +225,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	int x = PosMin, iWin = 0;
 	while (iWin < nWin)
 	{
-		C_BOOL *pb = MCWorkingGeno.Space.SNPSelection();
+		C_BOOL *pb = MCWorkingGeno.Space().SNPSelection();
 		size_t n=XLENGTH(chflag), ip = 0;
 		int num = 0;
 		double pos_sum = 0;
@@ -264,7 +264,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 			}
 		}
 
-		MCWorkingGeno.Space.InitSelectionSNPOnly();
+		MCWorkingGeno.Space().InitSelectionSNPOnly();
 
 		INTEGER(nlist)[iWin] = num;
 		if (num > 0)

@@ -78,6 +78,7 @@ namespace GWAS
 		void SetGeno(PdAbstractArray vGeno, bool _InitSelection=true);
 
 		void InitSelection();
+		void InitSelectionSampOnly();
 		void InitSelectionSNPOnly();
 
 		C_Int64 GenoSum();
@@ -553,25 +554,32 @@ namespace GWAS
 		typedef void (*TDoEachThread)(int ThreadIndex, long Start,
 			long Cnt, void* Param);
 
-		/// The working genotypes
-		CdGenoWorkSpace Space;
 		/// The progression information
 		CdProgression Progress;
 
 		CMultiCoreWorkingGeno();
 		~CMultiCoreWorkingGeno();
 
-		void InitParam(bool snp_direction, bool read_snp_order, long block_size);
+		void InitParam(bool snp_direction, bool read_snp_order,
+			long block_size);
 
-		void Run(int nThread, TDoBlockRead do_read, TDoEachThread do_thread, void *Param);
+		void Run(int nThread, TDoBlockRead do_read, TDoEachThread do_thread,
+			void *Param);
 
-		static void SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[], C_Int64 outMatCnt[]);
-		static void SplitJobs(int nJob, int MatSize, IdMatTriD outMatIdx[], C_Int64 outMatCnt[]);
+		static void SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[],
+			C_Int64 outMatCnt[]);
+		static void SplitJobs(int nJob, int MatSize, IdMatTriD outMatIdx[],
+			C_Int64 outMatCnt[]);
 
 		// internal uses
 		void _DoThread_WorkingGeno(PdThread Thread, int ThreadIndex);
 
+		inline CdGenoWorkSpace &Space() { return _Space; }
+
 	protected:
+		/// The working genotypes
+		CdGenoWorkSpace _Space;
+
 		/// The genotypes will be filled in the buffer, one genotype per byte.
 		/** 0 -- BB, 1 -- AB, 2 -- AA, otherwise missing
 		 *  \param buf        the output buffer

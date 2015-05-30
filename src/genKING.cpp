@@ -148,7 +148,7 @@ namespace KING_IBD
 		long SNP_Cnt, void *Param)
 	{
 		// initialize
-		const long nSamp = MCWorkingGeno.Space.SampleNum();
+		const long nSamp = MCWorkingGeno.Space().SampleNum();
 		C_UInt8 *pG = GenoBuf;
 		C_UInt8 *pPack = &Array_PackedGeno[0];
 
@@ -302,7 +302,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Homo(SEXP NumThread, SEXP _Verbose)
 		// ======= The calculation of genetic covariance matrix =======
 
 		// the number of samples
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 
 		// to detect the block size
 		DetectOptimizedNumOfSNP(n, LT_MEM_SIZE);
@@ -358,7 +358,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
 		// ======= The calculation of genetic covariance matrix =======
 
 		// the number of samples
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 
 		// to detect the block size
 		DetectOptimizedNumOfSNP(n, LT_MEM_SIZE);

@@ -328,7 +328,7 @@ namespace PCA
 		void *Param)
 	{
 		// init ...
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const int n = MCWorkingGeno.Space().SampleNum();
 		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
 		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
 
@@ -474,7 +474,7 @@ namespace PCA
 	void Entry_SNPCorrCalc(PdThread Thread, int ThreadIndex, void *Param)
 	{
 		// The number of working samples
-		const long n = MCWorkingGeno.Space.SampleNum();
+		const long n = MCWorkingGeno.Space().SampleNum();
 		vector<C_UInt8> GenoBlock(n * BlockNumSNP);
 
 		long _SNPstart, _SNPlen;
@@ -511,7 +511,7 @@ namespace PCA
 		// Initialize progress information
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SNPNum());
+		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space().SNPNum());
 		SNPStart = 0;
 		OutputEigenDim = nEig;
 		Out_Buffer = out_snpcorr; In_EigenVect = EigenVect;
@@ -558,7 +558,7 @@ namespace PCA
 	void Entry_SNPLoadingCalc(PdThread Thread, int ThreadIndex, void *Param)
 	{
 		// The number of working samples
-		const long n = MCWorkingGeno.Space.SampleNum();
+		const long n = MCWorkingGeno.Space().SampleNum();
 		vector<C_UInt8> GenoBlock(n * BlockNumSNP);
 		TdAlignPtr<double> NormalGeno(n);
 
@@ -589,10 +589,10 @@ namespace PCA
 	/// Calculate the SNP loadings
 	void GetPCAFreqScale(double OutFreq[], double OutScale[])
 	{
-		if (MCWorkingGeno.Space.SNPOrder())
+		if (MCWorkingGeno.Space().SNPOrder())
 		{
 			// initialize
-			const int nsnp = MCWorkingGeno.Space.SNPNum();
+			const int nsnp = MCWorkingGeno.Space().SNPNum();
 			vector<C_UInt8> buf(nsnp);
 			vector<int> n(nsnp);
 			for (int i=0; i < nsnp; i++)
@@ -602,9 +602,9 @@ namespace PCA
 			}
 
 			// for-loop for each sample
-			for (int iSamp=0; iSamp < MCWorkingGeno.Space.SampleNum(); iSamp++)
+			for (int iSamp=0; iSamp < MCWorkingGeno.Space().SampleNum(); iSamp++)
 			{
-				MCWorkingGeno.Space.sampleRead(iSamp, 1, &buf[0], true);
+				MCWorkingGeno.Space().sampleRead(iSamp, 1, &buf[0], true);
 				for (int i=0; i < nsnp; i++)
 				{
 					C_UInt8 &v = buf[i];
@@ -616,7 +616,7 @@ namespace PCA
 				}
 			}
 			// average
-			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			{
 				const int nn = n[i];
 				const double sum = OutFreq[i];
@@ -629,15 +629,15 @@ namespace PCA
 			}
 		} else {
 			// initialize
-			vector<C_UInt8> buf(MCWorkingGeno.Space.SampleNum());
+			vector<C_UInt8> buf(MCWorkingGeno.Space().SampleNum());
 
 			// for-loop for each snp
-			for (int isnp=0; isnp < MCWorkingGeno.Space.SNPNum(); isnp++)
+			for (int isnp=0; isnp < MCWorkingGeno.Space().SNPNum(); isnp++)
 			{
 				int n = 0;
 				double sum = 0;
-				MCWorkingGeno.Space.snpRead(isnp, 1, &buf[0], false);
-				for (int i=0; i < MCWorkingGeno.Space.SampleNum(); i++)
+				MCWorkingGeno.Space().snpRead(isnp, 1, &buf[0], false);
+				for (int i=0; i < MCWorkingGeno.Space().SampleNum(); i++)
 				{
 					C_UInt8 &v = buf[i];
 					if (v <= 2) { sum += v; n ++; }
@@ -663,13 +663,13 @@ namespace PCA
 		// Initialize progress information
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SNPNum());
+		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space().SNPNum());
 		SNPStart = 0;
 		OutputEigenDim = nEig;
 		Out_Buffer = out_snploading;
 
 		// Array of eigenvectors
-		const long n = MCWorkingGeno.Space.SampleNum();
+		const long n = MCWorkingGeno.Space().SampleNum();
 		double Scale = double(n-1) / TraceXTX;
 		_EigenVectBuf = new CPCAMat(OutputEigenDim, n);
 		for (long i=0; i < OutputEigenDim; i++)
@@ -694,7 +694,7 @@ namespace PCA
 	void Entry_SampLoadingCalc(PdThread Thread, int ThreadIndex, void *Param)
 	{
 		// The number of working samples
-		const long n = MCWorkingGeno.Space.SNPNum();
+		const long n = MCWorkingGeno.Space().SNPNum();
 		vector<C_UInt8> GenoBlock(n * BlockSamp);
 		vector<double> buf(n);
 
@@ -723,7 +723,7 @@ namespace PCA
 						p1 += OutputEigenDim; p2 ++;
 					}
 					*out = sum;
-					out += MCWorkingGeno.Space.SampleNum();
+					out += MCWorkingGeno.Space().SampleNum();
 				}
 			}
 			// Update progress
@@ -744,10 +744,10 @@ namespace PCA
 		InitMutexObject();
 
 		// Initialize progress information
-		const int n = MCWorkingGeno.Space.SNPNum();
+		const int n = MCWorkingGeno.Space().SNPNum();
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space.SampleNum());
+		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space().SampleNum());
 
 		double ss = double(Num-1) / TraceXTX;
 		vector<double> eigen(EigenCnt);
@@ -794,7 +794,7 @@ namespace PCA
 		long Start, long SNP_Cnt, void* Param)
 	{
 		// init ...
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const int n = MCWorkingGeno.Space().SampleNum();
 		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
 		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
 
@@ -945,7 +945,7 @@ namespace PCA
 		long Start, long SNP_Cnt, void* Param)
 	{
 		// init ...
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const int n = MCWorkingGeno.Space().SampleNum();
 		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
 		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
 
@@ -1122,7 +1122,7 @@ namespace PCA
 		const static double SCALE = 1.0 / sqrt(2.0);
 
 		// init ...
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const int n = MCWorkingGeno.Space().SampleNum();
 		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
 		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
 
@@ -1374,7 +1374,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
 		// ======== The calculation of genetic covariance matrix ========
 
 		// the number of samples
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 		// set parameters
 		PCA::BayesianNormal = (LOGICAL(_BayesianNormal)[0] == TRUE);
 		PCA::AutoDetectSNPBlockSize(n);
@@ -1457,10 +1457,10 @@ COREARRAY_DLL_EXPORT SEXP gnrPCACorr(SEXP LenEig, SEXP EigenVect,
 		CachingSNPData("SNP Correlation", verbose);
 
 		// ======== To compute the snp correlation ========
-		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space.SampleNum());
+		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space().SampleNum());
 
 		PROTECT(rv_ans = allocMatrix(REALSXP, INTEGER(LenEig)[0],
-			MCWorkingGeno.Space.SNPNum()));
+			MCWorkingGeno.Space().SNPNum()));
 
 		PCA::DoSNPCoeffCalculate(INTEGER(LenEig)[0], REAL(EigenVect),
 			REAL(rv_ans), INTEGER(NumThread)[0], verbose, "SNP Correlation:");
@@ -1484,20 +1484,20 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP DimCnt,
 		CachingSNPData("SNP Loading", verbose);
 
 		// ======== To compute the snp correlation ========
-		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space.SampleNum());
+		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space().SampleNum());
 		PCA::BayesianNormal = (LOGICAL(Bayesian)[0] == TRUE);
 
 		PROTECT(rv_ans = NEW_LIST(3));
 
 		SEXP loading, afreq, scale;
 		PROTECT(loading = allocMatrix(REALSXP, INTEGER(DimCnt)[1],
-			MCWorkingGeno.Space.SNPNum()));
+			MCWorkingGeno.Space().SNPNum()));
 		SET_ELEMENT(rv_ans, 0, loading);
 
-		PROTECT(afreq = NEW_NUMERIC(MCWorkingGeno.Space.SNPNum()));
+		PROTECT(afreq = NEW_NUMERIC(MCWorkingGeno.Space().SNPNum()));
 		SET_ELEMENT(rv_ans, 1, afreq);
 
-		PROTECT(scale = NEW_NUMERIC(MCWorkingGeno.Space.SNPNum()));
+		PROTECT(scale = NEW_NUMERIC(MCWorkingGeno.Space().SNPNum()));
 		SET_ELEMENT(rv_ans, 2, scale);
 
 		PCA::GetPCAFreqScale(REAL(afreq), REAL(scale));
@@ -1525,7 +1525,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
 		CachingSNPData("Sample Loading", verbose);
 
 		PROTECT(rv_ans = allocMatrix(REALSXP,
-			MCWorkingGeno.Space.SampleNum(), INTEGER(EigenCnt)[0]));
+			MCWorkingGeno.Space().SampleNum(), INTEGER(EigenCnt)[0]));
 
 		// ======== To compute the snp correlation ========
 		PCA::DoSampLoadingCalculate(REAL(AveFreq), REAL(Scale),
@@ -1557,7 +1557,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Verbose)
 		// ======== The calculation of genetic covariance matrix ========
 
 		// the number of samples
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 
 		// set internal parameters
 		PCA::AutoDetectSNPBlockSize(n);
@@ -1617,7 +1617,7 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
 		// ======== The calculation of genetic covariance matrix ========
 
 		// the number of samples
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 
 		// set internal parameters
 		PCA::AutoDetectSNPBlockSize(n);

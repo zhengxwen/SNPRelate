@@ -254,7 +254,7 @@ namespace IBD
 		bool CorrectFactor, long nSNP = -1)
 	{
 		if (nSNP < 0)
-			nSNP = MCWorkingGeno.Space.SNPNum();
+			nSNP = MCWorkingGeno.Space().SNPNum();
 
 		// clear EPrIBS_IBD
 		memset((void*)EPrIBS_IBD, 0, sizeof(EPrIBS_IBD));
@@ -262,7 +262,7 @@ namespace IBD
 
 		if (!in_afreq)
 		{
-			MCWorkingGeno.Space.GetABNumPerSNP(&AA[0], &AB[0], &BB[0]);
+			MCWorkingGeno.Space().GetABNumPerSNP(&AA[0], &AB[0], &BB[0]);
 		}
 
 		// for-loop each snp
@@ -424,16 +424,16 @@ namespace IBD
 	void InitPackedGeno(void *buffer)
 	{
 		// set # of samples and snps
-		nSamp = MCWorkingGeno.Space.SampleNum();
-		nPackedSNP = (MCWorkingGeno.Space.SNPNum() % 4 > 0) ?
-			(MCWorkingGeno.Space.SNPNum()/4 + 1) : (MCWorkingGeno.Space.SNPNum()/4);
+		nSamp = MCWorkingGeno.Space().SampleNum();
+		nPackedSNP = (MCWorkingGeno.Space().SNPNum() % 4 > 0) ?
+			(MCWorkingGeno.Space().SNPNum()/4 + 1) : (MCWorkingGeno.Space().SNPNum()/4);
 		nTotalSNP = nPackedSNP * 4;
 		PackedGeno = (C_UInt8*)buffer;
 
 		// buffer
-		CdBufSpace Buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
+		CdBufSpace Buf(MCWorkingGeno.Space(), false, CdBufSpace::acInc);
 		C_UInt8 *p = PackedGeno;
-		for (long i=0; i < MCWorkingGeno.Space.SampleNum(); i++)
+		for (long i=0; i < MCWorkingGeno.Space().SampleNum(); i++)
 		{
 			p = Buf.ReadPackedGeno(i, p);
 		}
@@ -1155,7 +1155,7 @@ namespace IBD
 			MLEAlleleFreq[i] = -1;
 		if (AFreq)
 		{
-			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			{
 				if (R_FINITE(AFreq[i]))
 					MLEAlleleFreq[i] = AFreq[i];
@@ -1200,7 +1200,7 @@ namespace IBD
 		bool verbose)
 	{
 		InitAFreq(AFreq, tmpAF);
-		for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+		for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			out_AFreq[i] = MLEAlleleFreq[i];
 
 		IBD = &PublicIBD; pMatIBD = PublicIBD.get();
@@ -1230,7 +1230,7 @@ namespace IBD
 		const char *Info, double *tmpAF, bool verbose)
 	{
 		InitAFreq(AFreq, tmpAF);
-		for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+		for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			out_AFreq[i] = MLEAlleleFreq[i];
 
 		IBD_Jacq = &PublicIBD; pMatIBD_Jacq = PublicIBD.get();
@@ -1475,9 +1475,9 @@ extern "C"
 /// internal IBD function
 static void IBD_Init_Buffer(vector<int> &buf_geno, vector<double> &buf_afreq)
 {
-	size_t nSamp = MCWorkingGeno.Space.SampleNum();
-	size_t nPackedSNP = (MCWorkingGeno.Space.SNPNum() % 4 > 0) ?
-		(MCWorkingGeno.Space.SNPNum()/4 + 1) : (MCWorkingGeno.Space.SNPNum()/4);
+	size_t nSamp = MCWorkingGeno.Space().SampleNum();
+	size_t nPackedSNP = (MCWorkingGeno.Space().SNPNum() % 4 > 0) ?
+		(MCWorkingGeno.Space().SNPNum()/4 + 1) : (MCWorkingGeno.Space().SNPNum()/4);
 	size_t nTotal = nSamp * nPackedSNP;
 
 	size_t buf_size = nTotal/sizeof(int) +
@@ -1520,7 +1520,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE(SEXP AlleleFreq, SEXP KinshipConstraint,
 		IBD::KinshipConstraint = (LOGICAL(KinshipConstraint)[0] == TRUE);
 
 		// the upper-triangle genetic covariance matrix
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 		CdMatTriDiag<IBD::TIBD> IBD(IBD::TIBD(), n);
 		CdMatTriDiag<int> niter;
 		if (LOGICAL(IfOutNum)[0] == TRUE)
@@ -1528,7 +1528,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE(SEXP AlleleFreq, SEXP KinshipConstraint,
 
 		// R SEXP objects
 		PROTECT(rv_ans = NEW_LIST(4));
-		SEXP afreq = PROTECT(NEW_NUMERIC(MCWorkingGeno.Space.SNPNum()));
+		SEXP afreq = PROTECT(NEW_NUMERIC(MCWorkingGeno.Space().SNPNum()));
 		SET_ELEMENT(rv_ans, 2, afreq);
 
 		// Calculate the IBD matrix
@@ -1603,7 +1603,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE_Jacquard(SEXP AlleleFreq, SEXP MaxIterCnt,
 		IBD::Loglik_Adjust = (LOGICAL(CoeffCorrect)[0] == TRUE);
 
 		// the upper-triangle genetic covariance matrix
-		const R_xlen_t n = MCWorkingGeno.Space.SampleNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 		CdMatTriDiag<IBD::TIBD_Jacq> IBD(IBD::TIBD_Jacq(), n);
 		CdMatTriDiag<int> niter;
 		if (LOGICAL(IfOutNum)[0] == TRUE)
@@ -1611,7 +1611,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE_Jacquard(SEXP AlleleFreq, SEXP MaxIterCnt,
 
 		// R SEXP objects
 		PROTECT(rv_ans = NEW_LIST(10));
-		SEXP afreq = PROTECT(NEW_NUMERIC(MCWorkingGeno.Space.SNPNum()));
+		SEXP afreq = PROTECT(NEW_NUMERIC(MCWorkingGeno.Space().SNPNum()));
 		SET_ELEMENT(rv_ans, 8, afreq);
 
 		// Calculate the IBD matrix
@@ -1739,7 +1739,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_LogLik(SEXP AlleleFreq, SEXP k0, SEXP k1)
 		IBD::InitPackedGeno(&(tmp_buffer[0]));
 
 		// call
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const int n = MCWorkingGeno.Space().SampleNum();
 		PROTECT(rv_ans = allocMatrix(REALSXP, n, n));
 		IBD::Do_MLE_LogLik(REAL(AlleleFreq), REAL(k0), REAL(k1),
 			&(tmp_AF[0]), REAL(rv_ans));
@@ -1763,7 +1763,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_LogLik_k01(SEXP AlleleFreq, SEXP k0, SEXP k1)
 		IBD::InitPackedGeno(&(tmp_buffer[0]));
 
 		// call
-		const int n = MCWorkingGeno.Space.SampleNum();
+		const int n = MCWorkingGeno.Space().SampleNum();
 		PROTECT(rv_ans = allocMatrix(REALSXP, n, n));
 		IBD::Do_MLE_LogLik_k01(REAL(AlleleFreq), REAL(k0)[0], REAL(k1)[0],
 			&(tmp_AF[0]), REAL(rv_ans));
@@ -1978,9 +1978,9 @@ COREARRAY_DLL_EXPORT SEXP gnrIndInb(SEXP afreq, SEXP method, SEXP reltol,
 	COREARRAY_TRY
 
 		// the number of SNPs
-		const R_xlen_t n = MCWorkingGeno.Space.SNPNum();
+		const R_xlen_t n = MCWorkingGeno.Space().SNPNum();
 		// buffer object
-		CdBufSpace buf(MCWorkingGeno.Space, false, CdBufSpace::acInc);
+		CdBufSpace buf(MCWorkingGeno.Space(), false, CdBufSpace::acInc);
 		// the number of samples
 		const R_xlen_t m = buf.IdxCnt();
 

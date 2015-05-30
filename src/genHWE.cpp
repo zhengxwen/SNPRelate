@@ -119,12 +119,12 @@ COREARRAY_DLL_EXPORT SEXP gnrHWE()
 	COREARRAY_TRY
 
 		// the number of samples
-		size_t n = MCWorkingGeno.Space.SNPNum();
+		size_t n = MCWorkingGeno.Space().SNPNum();
 
 		vector<int> AA(n), AB(n), BB(n);
-		MCWorkingGeno.Space.GetABNumPerSNP(&AA[0], &AB[0], &BB[0]);
+		MCWorkingGeno.Space().GetABNumPerSNP(&AA[0], &AB[0], &BB[0]);
 
-		vector<double> het_probs(2*MCWorkingGeno.Space.SampleNum());
+		vector<double> het_probs(2*MCWorkingGeno.Space().SampleNum());
 		PROTECT(rv_ans = NEW_NUMERIC(n));
 		double *p = REAL(rv_ans);
 

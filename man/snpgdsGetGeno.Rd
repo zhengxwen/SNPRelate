@@ -8,7 +8,7 @@
 }
 \usage{
 snpgdsGetGeno(gdsobj, sample.id=NULL, snp.id=NULL, snpfirstdim=NULL,
-    verbose=TRUE)
+    with.id=FALSE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -21,11 +21,17 @@ snpgdsGetGeno(gdsobj, sample.id=NULL, snp.id=NULL, snpfirstdim=NULL,
         individual-major mode, (i.e, list all SNPs for the first individual,
         and then list all SNPs for the second individual, etc); if \code{NULL},
         determine automatically}
+    \item{with.id}{if \code{TRUE}, return \code{sample.id} and \code{snp.id}}
     \item{verbose}{if TRUE, show information}
 }
 \value{
-    Return an integer matrix with values 0, 1, 2 or NA representing the
-number of reference allele.
+    The function returns an integer matrix with values 0, 1, 2 or NA
+representing the number of reference allele when \code{with.id=FALSE};
+or \code{list(genotype, sample.id, snp.id)} when \code{with.id=TRUE}. The
+orders of sample and SNP IDs in the genotype matrix are actually consistent
+with \code{sample.id} and \code{snp.id} in the GDS file, which may not be
+as the same as the arguments \code{sampel.id} and \code{snp.id} specified
+by users.
 }
 \author{Xiuwen Zheng}
 

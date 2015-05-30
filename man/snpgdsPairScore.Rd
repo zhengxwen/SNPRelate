@@ -63,7 +63,7 @@ snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
 \references{
     Warren, E. H., Zhang, X. C., Li, S., Fan, W., Storer, B. E., Chien, J. W.,
 Boeckh, M. J., et al. (2012). Effect of MHC and non-MHC donor/recipient
-genetic disparity on the outcome of allogeneic HCT. Blood, 120(14), 2796–806.
+genetic disparity on the outcome of allogeneic HCT. Blood, 120(14), 2796-806.
 doi:10.1182/blood-2012-04-347286
 }
 \author{Xiuwen Zheng}

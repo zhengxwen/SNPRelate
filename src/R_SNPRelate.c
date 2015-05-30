@@ -1,5 +1,5 @@
 //
-// R_SNPRelate.c: link to R_GDS2.h in the gdsfmt package
+// R_SNPRelate.c: link to the gdsfmt package
 //
 
 #include <R_GDS.h>

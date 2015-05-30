@@ -58,8 +58,8 @@ COREARRAY_DLL_EXPORT SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method)
 
 	COREARRAY_TRY
 
-		const int nSamp = MCWorkingGeno.Space.SampleNum();
-		CdBufSpace BufSNP(MCWorkingGeno.Space, true, CdBufSpace::acInc);
+		const int nSamp = MCWorkingGeno.Space().SampleNum();
+		CdBufSpace BufSNP(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
 
 		if (strcmp(MetText, "W&H02") == 0)
 		{
@@ -69,7 +69,7 @@ COREARRAY_DLL_EXPORT SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method)
 			vector<double> P(NumPop);
 
 			// for-loop each SNP
-			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			{
 				// read genotypes
 				C_UInt8 *pg = BufSNP.ReadGeno(i);
@@ -154,7 +154,7 @@ COREARRAY_DLL_EXPORT SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method)
 			double Numerator=0, Denominator=0;
 
 			// for-loop each SNP
-			for (int i=0; i < MCWorkingGeno.Space.SNPNum(); i++)
+			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			{
 				// read genotypes
 				C_UInt8 *pg = BufSNP.ReadGeno(i);
