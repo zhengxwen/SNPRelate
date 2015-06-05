@@ -67,8 +67,27 @@ namespace GWAS
 		C_UInt8 *pGeno, long NumGeno, long *OutValidNumSNP=NULL);
 
 
+
+	/// the base class for working space
+	class COREARRAY_DLL_LOCAL CdBaseWorkSpace
+	{
+	public:
+		CdBaseWorkSpace();
+		virtual ~CdBaseWorkSpace();
+
+		virtual void InitSelection() = 0;
+		virtual void InitSelectionSampOnly() = 0;
+		virtual void InitSelectionSNPOnly() = 0;
+
+		virtual void snpRead(C_Int32 SnpStart, C_Int32 SnpCount,
+			C_UInt8 *OutBuf, bool SnpOrder) = 0;
+		virtual void sampleRead(C_Int32 SampStart, C_Int32 SampCount,
+			C_UInt8 *OutBuf, bool SnpOrder) = 0;
+	};
+
+
 	/// the working space for SNP genotypes
-	class COREARRAY_DLL_LOCAL CdGenoWorkSpace
+	class COREARRAY_DLL_LOCAL CdGenoWorkSpace: public CdBaseWorkSpace
 	{
 	public:
 		CdGenoWorkSpace();
@@ -77,16 +96,16 @@ namespace GWAS
 		/// set the pointer to snp genotypes
 		void SetGeno(PdAbstractArray vGeno, bool _InitSelection=true);
 
-		void InitSelection();
-		void InitSelectionSampOnly();
-		void InitSelectionSNPOnly();
+		virtual void InitSelection();
+		virtual void InitSelectionSampOnly();
+		virtual void InitSelectionSNPOnly();
+
+		virtual void snpRead(C_Int32 SnpStart, C_Int32 SnpCount,
+			C_UInt8 *OutBuf, bool SnpOrder);
+		virtual void sampleRead(C_Int32 SampStart, C_Int32 SampCount,
+			C_UInt8 *OutBuf, bool SnpOrder);
 
 		C_Int64 GenoSum();
-
-		void snpRead(C_Int32 SnpStart, C_Int32 SnpCount,
-			C_UInt8 *OutBuf, bool SnpOrder);
-		void sampleRead(C_Int32 SampStart, C_Int32 SampCount,
-			C_UInt8 *OutBuf, bool SnpOrder);
 
 		void ExtractSNPs(long Start, long Length);
 		void ExtractSamples(long Start, long Length);

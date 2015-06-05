@@ -518,10 +518,13 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 
 snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    method=c("Visscher", "Eigenstrat", "EIGMIX", "WeirBeta"),
     num.thread=1L, with.id=TRUE, verbose=TRUE)
 {
     # check and initialize ...
-    ws <- .InitFile2(cmd="Genetic Relationship Matrix (GRM):",
+    method <- match.arg(method)
+    ws <- .InitFile2(
+        cmd=paste("Genetic Relationship Matrix (GRM/", method, "):", sep=""),
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
@@ -529,11 +532,11 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.logical(with.id))
 
     # call GRM C function
-    rv <- .Call(gnrGRM, ws$num.thread, verbose)
+    rv <- .Call(gnrGRM, ws$num.thread, method, verbose)
 
     # return
     if (with.id)
-        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, GRM=rv)
+        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, grm=rv)
 
     return(rv)
 }

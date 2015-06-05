@@ -62,10 +62,24 @@ long GWAS::GENO_Get_Sum_ValidNumSNP(C_UInt8 *pGeno, long NumGeno,
 }
 
 
+
+// ===================================================================== //
+// CdBaseWorkSpace
+
+CdBaseWorkSpace::CdBaseWorkSpace()
+{ }
+
+CdBaseWorkSpace::~CdBaseWorkSpace()
+{ }
+
+
+
+
+
 // ===================================================================== //
 // CdGenoWorkSpace
 
-CdGenoWorkSpace::CdGenoWorkSpace()
+CdGenoWorkSpace::CdGenoWorkSpace(): CdBaseWorkSpace()
 {
 	fGeno = NULL; fSNPOrder = true;
 	fTotalSampleNum = fTotalSNPNum = 0;

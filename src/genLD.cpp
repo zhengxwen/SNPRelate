@@ -651,7 +651,8 @@ namespace LD
 	{
 		// initial variables
 		nPackedSamp = (MCWorkingGeno.Space().SampleNum() % 4 > 0) ?
-			(MCWorkingGeno.Space().SampleNum()/4 + 1) : (MCWorkingGeno.Space().SampleNum()/4);
+			(MCWorkingGeno.Space().SampleNum()/4 + 1) :
+			(MCWorkingGeno.Space().SampleNum()/4);
 		list<TSNP> ListGeno;
 		out_SNP[StartIdx] = true;
 		vector<C_UInt8> buf(nPackedSamp);

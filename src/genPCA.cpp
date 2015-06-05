@@ -1540,19 +1540,22 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
 }
 
 
-// ======================================================================*
+
+// =======================================================================
 // Genetic relationship matrix
-// ======================================================================*
+// =======================================================================
 
 /// to compute the eigenvalues and eigenvectors
-COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Verbose)
+COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 {
+	const int nThread  = Rf_asInteger(_NumThread);
+	const char *Method = CHAR(STRING_ELT(_Method, 0));
 	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
 		// ======== To cache the genotype data ========
-		CachingSNPData("GRM calculation", verbose);
+		CachingSNPData("GRM Calculation", verbose);
 
 		// ======== The calculation of genetic covariance matrix ========
 
@@ -1565,8 +1568,88 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Verbose)
 		// the upper-triangle IBD matrix
 		CdMatTri<double> IBD(n);
 
-		// Calculate the genetic covariace
-		PCA::DoGRMCalc(IBD, INTEGER(_NumThread)[0], verbose);
+		if (strcmp(Method, "Eigenstrat") == 0)
+		{
+			// set parameters
+			PCA::BayesianNormal = FALSE;
+			// Calculate the genetic covariace
+			PCA::DoCovCalculate(IBD, nThread, "Eigenstrat:", verbose);
+
+			// Normalize
+			double TraceXTX = IBD.Trace();
+			double scale = double(n-1) / TraceXTX;
+			vt<double, av16Align>::Mul(IBD.get(), IBD.get(), scale, IBD.Size());
+
+		} else if (strcmp(Method, "Visscher") == 0)
+		{
+			// Calculate Visscher's GRM
+			PCA::DoGRMCalc(IBD, nThread, verbose);
+
+		} else if (strcmp(Method, "EIGMIX") == 0)
+		{
+			// Calculate Zheng's coancestry matrix (EIGMIX)
+			PCA::DoAdmixCalc_RatioOfAvg(IBD, true, nThread, verbose);
+
+		} else if (strcmp(Method, "WeirBeta") == 0)
+		{
+			const int nSNP = MCWorkingGeno.Space().SNPNum();
+			CdBufSpace BufSNP(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
+
+			IBD.Clear(0);
+			CdMatTri<double> Denom(n, 0);
+			CdMatTri<C_Int8> M(n);
+
+			CdProgression Progress(0, verbose);
+			Progress.Init(nSNP, true);
+
+			for (int iSNP=0; iSNP < nSNP; iSNP++)
+			{
+				const C_UInt8 *pG = BufSNP.ReadGeno(iSNP);
+				C_Int8 *pM = M.get();
+				C_Int64 Sum = 0;
+				int nSum = 0;
+				for (R_xlen_t i=0; i < n; i++)
+				{
+					for (R_xlen_t j=i; j < n; j++, pM++)
+					{
+						if ((pG[i] < 3) && (pG[j] < 3))
+						{
+							if (j != i)
+							{
+								*pM = 1 + (1 - (int)pG[i]) * (1 - (int)pG[j]);
+								Sum += (*pM); nSum ++;
+							} else
+								*pM = 2 * (1 - (int)pG[i]) * (1 - (int)pG[j]);
+						} else
+							*pM = -1;
+					}
+				}
+
+				if (nSum > 0)
+				{
+					double Mb    = (double)Sum / (2*nSum);
+					double OneMb = 1 - Mb;
+					double *pI = IBD.get(), *pD = Denom.get();
+					pM = M.get();
+					for (size_t i=IBD.Size(); i > 0; i--)
+					{
+						if (*pM >= 0)
+						{
+							*pI += (*pM) * 0.5 - Mb;
+							*pD += OneMb;
+						}
+						pI ++; pD ++; pM ++;
+					}
+				}
+
+				Progress.Forward(1);
+			}
+
+			// the ratio
+			vt<double>::Div(IBD.get(), IBD.get(), Denom.get(), IBD.Size());
+
+		} else
+			throw ErrCoreArray("Invalid 'method'!");
 
 		// Output
 		PROTECT(rv_ans = allocMatrix(REALSXP, n, n));
@@ -1586,7 +1669,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Verbose)
 }
 
 
-// ======================================================================*
+// =======================================================================
 // the functions for eigen-analysis for admixtures
 //
 
