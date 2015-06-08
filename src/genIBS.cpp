@@ -231,7 +231,7 @@ namespace IBS
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
+		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
 		MCWorkingGeno.SplitJobs(NumThread, PublicIBS.N(), Array_Thread_MatIdxD, Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_PLINKIBS_Compute, PublicIBS.get());
@@ -247,7 +247,7 @@ namespace IBS
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
+		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
 		MCWorkingGeno.SplitJobs(NumThread, PublicIBS.N(), Array_Thread_MatIdx, Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_IBS_Compute, PublicIBS.get());
@@ -332,7 +332,7 @@ namespace IBS
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
+		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
 		MCWorkingGeno.SplitJobs(NumThread, PublicDiss.N(),
 			Array_Thread_MatIdx, Array_Thread_MatCnt);

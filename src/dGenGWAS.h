@@ -71,16 +71,16 @@ namespace GWAS
 
 	// ===================================================================== //
 
+	enum TTypeGenoDim
+	{
+		RDim_Sample_X_SNP = 0,  ///< genotype matrix: sample X snp
+		RDim_SNP_X_Sample = 1   ///< genotype matrix: snp X sample
+	};
+
 	/// the base class for working space
 	class COREARRAY_DLL_LOCAL CdBaseWorkSpace
 	{
 	public:
-		enum TTypeGenoDim
-		{
-			RDim_Sample_X_SNP,    ///< genotype matrix: sample X snp
-			RDim_SNP_X_Sample     ///< genotype matrix: snp X sample
-		};
-
 		CdBaseWorkSpace();
 		virtual ~CdBaseWorkSpace();
 
@@ -89,9 +89,9 @@ namespace GWAS
 		virtual void InitSelectionSNPOnly() = 0;
 
 		virtual void snpRead(C_Int32 SnpStart, C_Int32 SnpCount,
-			C_UInt8 *OutBuf, bool SnpOrder) = 0;
+			C_UInt8 *OutBuf, TTypeGenoDim OutDim) = 0;
 		virtual void sampleRead(C_Int32 SampStart, C_Int32 SampCount,
-			C_UInt8 *OutBuf, bool SnpOrder) = 0;
+			C_UInt8 *OutBuf, TTypeGenoDim OutDim) = 0;
 
 		/// set the selection among the selected SNPs
 		virtual void Set_SNPSelection(C_BOOL flag[]) = 0;
@@ -145,11 +145,11 @@ namespace GWAS
 
 
 	/// the working space for SNP genotypes in the SNP GDS file
-	class COREARRAY_DLL_LOCAL CdGenoWorkSpace: public CdBaseWorkSpace
+	class COREARRAY_DLL_LOCAL CdSNPWorkSpace: public CdBaseWorkSpace
 	{
 	public:
-		CdGenoWorkSpace();
-		virtual ~CdGenoWorkSpace();
+		CdSNPWorkSpace();
+		virtual ~CdSNPWorkSpace();
 
 		/// set the pointer to snp genotypes
 		void SetGeno(PdAbstractArray vGeno, bool _InitSelection=true);
@@ -159,9 +159,9 @@ namespace GWAS
 		virtual void InitSelectionSNPOnly();
 
 		virtual void snpRead(C_Int32 SnpStart, C_Int32 SnpCount,
-			C_UInt8 *OutBuf, bool SnpOrder);
+			C_UInt8 *OutBuf, TTypeGenoDim OutDim);
 		virtual void sampleRead(C_Int32 SampStart, C_Int32 SampCount,
-			C_UInt8 *OutBuf, bool SnpOrder);
+			C_UInt8 *OutBuf, TTypeGenoDim OutDim);
 
 		virtual void Set_SNPSelection(C_BOOL flag[]);
 		virtual void Set_SampSelection(C_BOOL flag[]);
@@ -173,8 +173,40 @@ namespace GWAS
 
 	protected:
 		PdAbstractArray fGeno;
+		vector<C_Int32> vSampleIndex, vSNPIndex;
+		vector<C_UInt8> vBuf;
+		size_t vBufSize;
 
-	private:
+		void _NeedBuffer(size_t NewSize);
+	};
+
+
+	/// the working space for sequencing variants in the sequencing GDS file
+	class COREARRAY_DLL_LOCAL CdSeqWorkSpace: public CdBaseWorkSpace
+	{
+	public:
+		CdSeqWorkSpace();
+		virtual ~CdSeqWorkSpace();
+
+		/// set the pointer to snp genotypes
+		void SetGeno(PdAbstractArray vGeno, bool _InitSelection=true);
+
+		virtual void InitSelection();
+		virtual void InitSelectionSampOnly();
+		virtual void InitSelectionSNPOnly();
+
+		virtual void snpRead(C_Int32 SnpStart, C_Int32 SnpCount,
+			C_UInt8 *OutBuf, TTypeGenoDim OutDim);
+		virtual void sampleRead(C_Int32 SampStart, C_Int32 SampCount,
+			C_UInt8 *OutBuf, TTypeGenoDim OutDim);
+
+		virtual void Set_SNPSelection(C_BOOL flag[]);
+		virtual void Set_SampSelection(C_BOOL flag[]);
+
+		inline PdAbstractArray Geno() { return fGeno; };
+
+	protected:
+		PdAbstractArray fGeno;
 		vector<C_Int32> vSampleIndex, vSNPIndex;
 		vector<C_UInt8> vBuf;
 		size_t vBufSize;
@@ -210,6 +242,7 @@ namespace GWAS
 		inline long IdxStart() const { return fIdxStart; }
 		inline long IdxEnd() const { return fIdxEnd; }
 		inline long IdxCnt() const { return fIdxCnt; }
+
 	protected:
 		CdBaseWorkSpace *fSpace;
 		bool fSNPorSamp;
@@ -527,9 +560,9 @@ namespace GWAS
 	 *                    genotypes are stored in the sample-major order if false
 	**/
 	COREARRAY_DLL_LOCAL bool RequireWork(C_UInt8 *buf, long &_SNPstart,
-		long &_SNPlen, bool SNPOrder);
+		long &_SNPlen, TTypeGenoDim DimOrder);
 	COREARRAY_DLL_LOCAL bool RequireWork_NoMutex(C_UInt8 *buf,
-		long &_SNPstart, long &_SNPlen, bool SNPOrder);
+		long &_SNPstart, long &_SNPlen, TTypeGenoDim DimOrder);
 
 	/// The genotypes will be filled in the buffer, one genotype per byte.
 	/** 0 -- BB, 1 -- AB, 2 -- AA, otherwise missing
@@ -540,9 +573,9 @@ namespace GWAS
 	 *                    genotypes are stored in the sample-major order if false
 	**/
 	COREARRAY_DLL_LOCAL bool RequireWorkSamp(C_UInt8 *buf, long &_SampStart,
-		long &_SampLen, bool SNPOrder);
+		long &_SampLen, TTypeGenoDim DimOrder);
 	COREARRAY_DLL_LOCAL bool RequireWorkSamp_NoMutex(C_UInt8 *buf,
-		long &_SampStart, long &_SampLen, bool SNPOrder);
+		long &_SampStart, long &_SampLen, TTypeGenoDim DimOrder);
 
 
 
@@ -566,7 +599,7 @@ namespace GWAS
 		void InitSNPGDSFile(PdAbstractArray vGeno, bool _InitSelection);
 
 		/// Initialize the parameters for multiple cores
-		void InitParam(bool snp_direction, bool read_snp_order,
+		void InitParam(bool snp_direction, TTypeGenoDim read_order,
 			long block_size);
 
 		/// Run the user-defined functions
@@ -581,11 +614,11 @@ namespace GWAS
 		// internal uses
 		void _DoThread_WorkingGeno(PdThread Thread, int ThreadIndex);
 
-		inline CdBaseWorkSpace &Space() { return _Space; }
+		inline CdBaseWorkSpace &Space() { return *_Space; }
 
 	protected:
 		/// The working genotypes
-		CdGenoWorkSpace _Space;
+		CdBaseWorkSpace *_Space;
 
 		/// The genotypes will be filled in the buffer, one genotype per byte.
 		/** 0 -- BB, 1 -- AB, 2 -- AA, otherwise missing
@@ -598,8 +631,8 @@ namespace GWAS
 
 		/// if TRUE perform computing SNP by SNP, otherwise sample by sample
 		bool _SNP_Direction;
-		/// if TRUE read genotypes in the major of SNP order, otherwise in the major of sample order
-		bool _Read_SNP_Order;
+		/// sample_x_snp, or snp_x_sample
+		TTypeGenoDim _Read_Order;
 		/// The number of SNPs or samples in a block
 		long _Block_Size;
 		/// The starting point of SNP or sample

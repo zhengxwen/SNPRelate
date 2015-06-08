@@ -257,7 +257,7 @@ namespace KING_IBD
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
+		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
 		MCWorkingGeno.SplitJobs(NumThread, PublicKING.N(),
 			Array_Thread_MatIdx, Array_Thread_MatCnt);
@@ -276,7 +276,7 @@ namespace KING_IBD
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
+		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
 		MCWorkingGeno.SplitJobs(NumThread, PublicKING.N(),
 			Array_Thread_MatIdx, Array_Thread_MatCnt);

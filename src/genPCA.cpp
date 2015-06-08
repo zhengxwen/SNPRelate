@@ -422,7 +422,7 @@ namespace PCA
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
+		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
 		MCWorkingGeno.SplitJobs(NumThread, PublicCov.N(), Array_Thread_MatIdx,
 			Array_Thread_MatCnt);
@@ -470,7 +470,7 @@ namespace PCA
 		vector<C_UInt8> GenoBlock(n * BlockNumSNP);
 
 		long _SNPstart, _SNPlen;
-		while (RequireWork(&GenoBlock[0], _SNPstart, _SNPlen, false))
+		while (RequireWork(&GenoBlock[0], _SNPstart, _SNPlen, RDim_Sample_X_SNP))
 		{
 			C_UInt8 *pGeno = &GenoBlock[0];
 			double *Out = Out_Buffer + (_SNPstart*OutputEigenDim);
@@ -555,7 +555,7 @@ namespace PCA
 		TdAlignPtr<double> NormalGeno(n);
 
 		long _SNPstart, _SNPlen;
-		while (RequireWork(&GenoBlock[0], _SNPstart, _SNPlen, false))
+		while (RequireWork(&GenoBlock[0], _SNPstart, _SNPlen, RDim_Sample_X_SNP))
 		{
 			for (long iSNP=0; iSNP < _SNPlen; iSNP++)
 			{
@@ -581,7 +581,7 @@ namespace PCA
 	/// Calculate the SNP loadings
 	void GetPCAFreqScale(double OutFreq[], double OutScale[])
 	{
-		if (MCWorkingGeno.Space().GenoDimType() == CdBaseWorkSpace::RDim_SNP_X_Sample)
+		if (MCWorkingGeno.Space().GenoDimType() == RDim_SNP_X_Sample)
 		{
 			// initialize
 			const int nsnp = MCWorkingGeno.Space().SNPNum();
@@ -596,7 +596,7 @@ namespace PCA
 			// for-loop for each sample
 			for (int iSamp=0; iSamp < MCWorkingGeno.Space().SampleNum(); iSamp++)
 			{
-				MCWorkingGeno.Space().sampleRead(iSamp, 1, &buf[0], true);
+				MCWorkingGeno.Space().sampleRead(iSamp, 1, &buf[0], RDim_SNP_X_Sample);
 				for (int i=0; i < nsnp; i++)
 				{
 					C_UInt8 &v = buf[i];
@@ -628,7 +628,7 @@ namespace PCA
 			{
 				int n = 0;
 				double sum = 0;
-				MCWorkingGeno.Space().snpRead(isnp, 1, &buf[0], false);
+				MCWorkingGeno.Space().snpRead(isnp, 1, &buf[0], RDim_Sample_X_SNP);
 				for (int i=0; i < MCWorkingGeno.Space().SampleNum(); i++)
 				{
 					C_UInt8 &v = buf[i];
@@ -691,7 +691,7 @@ namespace PCA
 		vector<double> buf(n);
 
 		long _SampStart, _SampLen;
-		while (RequireWorkSamp(&GenoBlock[0], _SampStart, _SampLen, true))
+		while (RequireWorkSamp(&GenoBlock[0], _SampStart, _SampLen, RDim_SNP_X_Sample))
 		{
 			// for-loop each sample
 			for (long iS=0; iS < _SampLen; iS++)
@@ -905,7 +905,7 @@ namespace PCA
 
 		MCWorkingGeno.Progress.Info = "Eigen-analysis:";
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
+		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
 		CdMatTri<double> AFreqProd(n);
 		memset(AFreqProd.get(), 0, sizeof(double)*AFreqProd.Size());
@@ -1080,7 +1080,7 @@ namespace PCA
 
 		MCWorkingGeno.Progress.Info = "Eigen-analysis:";
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
+		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
 		CdMatTri<int> NumValid(n);
 		memset(NumValid.get(), 0, sizeof(int)*NumValid.Size());
@@ -1233,7 +1233,7 @@ namespace PCA
 
 		MCWorkingGeno.Progress.Info = "GRM-analysis:";
 		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
+		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
 		CdMatTri<int> NumValid(n);
 		memset(NumValid.get(), 0, sizeof(int)*NumValid.Size());
