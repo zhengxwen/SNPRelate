@@ -306,14 +306,6 @@ namespace PCA
 	}
 
 
-	// ---------------------------------------------------------------------
-	// ---------------------------------------------------------------------
-
-	/// Thread variables
-	const int N_MAX_THREAD = 256;
-	IdMatTri PCA_Thread_MatIdx[N_MAX_THREAD];
-	C_Int64 PCA_Thread_MatCnt[N_MAX_THREAD];
-
 	// ================== PCA covariate matrix ==================
 
 	/// The temparory variables used in computing
@@ -412,8 +404,8 @@ namespace PCA
 		void* Param)
 	{
 		double *base = (double*)Param;
-		IdMatTri I = PCA_Thread_MatIdx[ThreadIndex];
-		PCA_Mat.MulAdd(I, PCA_Thread_MatCnt[ThreadIndex], SNP_Cnt,
+		IdMatTri I = Array_Thread_MatIdx[ThreadIndex];
+		PCA_Mat.MulAdd(I, Array_Thread_MatCnt[ThreadIndex], SNP_Cnt,
 			base + I.Offset());
 	}
 
@@ -432,8 +424,8 @@ namespace PCA
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
 
-		MCWorkingGeno.SplitJobs(NumThread, PublicCov.N(), PCA_Thread_MatIdx,
-			PCA_Thread_MatCnt);
+		MCWorkingGeno.SplitJobs(NumThread, PublicCov.N(), Array_Thread_MatIdx,
+			Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_PCA_ReadBlock, &_Do_PCA_ComputeCov,
 			PublicCov.get());
 	}
@@ -589,7 +581,7 @@ namespace PCA
 	/// Calculate the SNP loadings
 	void GetPCAFreqScale(double OutFreq[], double OutScale[])
 	{
-		if (MCWorkingGeno.Space().SNPOrder())
+		if (MCWorkingGeno.Space().GenoDimType() == CdBaseWorkSpace::RDim_SNP_X_Sample)
 		{
 			// initialize
 			const int nsnp = MCWorkingGeno.Space().SNPNum();
@@ -873,14 +865,14 @@ namespace PCA
 		double **Ptr = (double**)Param;
 
 		// numerator
-		IdMatTri I = PCA_Thread_MatIdx[ThreadIndex];
-		PCA_Mat.MulAdd(I, PCA_Thread_MatCnt[ThreadIndex], SNP_Cnt,
+		IdMatTri I = Array_Thread_MatIdx[ThreadIndex];
+		PCA_Mat.MulAdd(I, Array_Thread_MatCnt[ThreadIndex], SNP_Cnt,
 			Ptr[0] + I.Offset());
 
 		// denominator
-		I = PCA_Thread_MatIdx[ThreadIndex];
+		I = Array_Thread_MatIdx[ThreadIndex];
 		double *pAFreq = Ptr[1] + I.Offset();
-		for (C_Int64 L = PCA_Thread_MatCnt[ThreadIndex]; L > 0; L--)
+		for (C_Int64 L = Array_Thread_MatCnt[ThreadIndex]; L > 0; L--)
 		{
 			C_UInt8 *p1 = &(Admix_Missing_Flag[0]) + SNP_Cnt*I.Row();
 			C_UInt8 *p2 = &(Admix_Missing_Flag[0]) + SNP_Cnt*I.Column();
@@ -920,8 +912,8 @@ namespace PCA
 
 		double *Ptr[2] = { OutIBD.get(), AFreqProd.get() };
 
-		MCWorkingGeno.SplitJobs(NumThread, n, PCA_Thread_MatIdx,
-			PCA_Thread_MatCnt);
+		MCWorkingGeno.SplitJobs(NumThread, n, Array_Thread_MatIdx,
+			Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_Admix_RatioOfAvg_ReadBlock,
 			&_Do_Admix_RatioOfAvg_Compute, (void*)Ptr);
 
@@ -1048,14 +1040,14 @@ namespace PCA
 		double *Ptr1 = (double*)(Ptr[0]);
 
 		// numerator
-		IdMatTri I = PCA_Thread_MatIdx[ThreadIndex];
-		PCA_Mat.MulAdd(I, PCA_Thread_MatCnt[ThreadIndex], SNP_Cnt,
+		IdMatTri I = Array_Thread_MatIdx[ThreadIndex];
+		PCA_Mat.MulAdd(I, Array_Thread_MatCnt[ThreadIndex], SNP_Cnt,
 			Ptr1 + I.Offset());
 
 		// denominator
-		I = PCA_Thread_MatIdx[ThreadIndex];
+		I = Array_Thread_MatIdx[ThreadIndex];
 		int *Ptr2 = (int*)(Ptr[1]) + I.Offset();
-		for (C_Int64 L = PCA_Thread_MatCnt[ThreadIndex]; L > 0; L--)
+		for (C_Int64 L = Array_Thread_MatCnt[ThreadIndex]; L > 0; L--)
 		{
 			C_UInt8 *p1 = &Admix_Missing_Flag[0] + SNP_Cnt*I.Row();
 			C_UInt8 *p2 = &Admix_Missing_Flag[0] + SNP_Cnt*I.Column();
@@ -1095,8 +1087,8 @@ namespace PCA
 
 		void *Ptr[2] = { OutIBD.get(), NumValid.get() };
 
-		MCWorkingGeno.SplitJobs(NumThread, n, PCA_Thread_MatIdx,
-			PCA_Thread_MatCnt);
+		MCWorkingGeno.SplitJobs(NumThread, n, Array_Thread_MatIdx,
+			Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_Admix_AvgOfRatio_ReadBlock,
 			&_Do_Admix_AvgOfRatio_Compute, (void*)Ptr);
 
@@ -1248,8 +1240,8 @@ namespace PCA
 
 		void *Ptr[2] = { OutIBD.get(), NumValid.get() };
 
-		MCWorkingGeno.SplitJobs(NumThread, n, PCA_Thread_MatIdx,
-			PCA_Thread_MatCnt);
+		MCWorkingGeno.SplitJobs(NumThread, n, Array_Thread_MatIdx,
+			Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_GRM_AvgOfRatio_ReadBlock,
 			&_Do_Admix_AvgOfRatio_Compute, (void*)Ptr);
 

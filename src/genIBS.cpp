@@ -86,18 +86,6 @@ namespace IBS
 	vector<double> GenoAlleleFreq;
 
 
-	/// Thread variables
-	const int N_MAX_THREAD = 256;
-	// PLINK -- IBS
-	IdMatTriD PLINKIBS_Thread_MatIdx[N_MAX_THREAD];
-	C_Int64 PLINKIBS_Thread_MatCnt[N_MAX_THREAD];
-
-	// IBS, KING IBD, Individual Similarity
-	IdMatTri IBS_Thread_MatIdx[N_MAX_THREAD];
-	C_Int64 IBS_Thread_MatCnt[N_MAX_THREAD];
-
-
-
 	/// The pointer to the variable 'PublicIBS' in the function "DoIBSCalculate"
 	/// The structure of IBS states
 	struct TS_IBS
@@ -155,14 +143,15 @@ namespace IBS
 
 
 	/// detect the effective value for BlockNumSNP
-	void AutoDetectSNPBlockSize(int nSamp, bool Detect=true)
+	static void AutoDetectSNPBlockSize(int nSamp, bool Detect=true)
 	{
 		if (Detect)
 		{
 			C_UInt64 L2Cache = GDS_Mach_GetCPULevelCache(2);
 			C_UInt64 L3Cache = GDS_Mach_GetCPULevelCache(3);
 			C_UInt64 Cache = (L2Cache > L3Cache) ? L2Cache : L3Cache;
-			if ((C_Int64)Cache <= 0) Cache = 1024*1024; // 1M
+			if ((C_Int64)Cache <= 0)
+				Cache = 1024*1024; // 1MiB
 			BlockNumSNP = (Cache - 3*256*256 - 8*1024) / nSamp * 4;
 		}
 		BlockNumSNP = (BlockNumSNP / 4) * 4;
@@ -190,8 +179,8 @@ namespace IBS
 	static void _Do_PLINKIBS_Compute(int ThreadIndex, long Start,
 		long SNP_Cnt, void* Param)
 	{
-		long Cnt = PLINKIBS_Thread_MatCnt[ThreadIndex];
-		IdMatTriD I = PLINKIBS_Thread_MatIdx[ThreadIndex];
+		C_Int64 Cnt = Array_Thread_MatCnt[ThreadIndex];
+		IdMatTriD I = Array_Thread_MatIdxD[ThreadIndex];
 		TS_IBS *p = ((TS_IBS*)Param) + I.Offset();
 		long _PackSNPLen = (SNP_Cnt / 4) + (SNP_Cnt % 4 ? 1 : 0);
 
@@ -213,8 +202,8 @@ namespace IBS
 	static void _Do_IBS_Compute(int ThreadIndex, long Start,
 		long SNP_Cnt, void* Param)
 	{
-		long Cnt = IBS_Thread_MatCnt[ThreadIndex];
-		IdMatTri I = IBS_Thread_MatIdx[ThreadIndex];
+		long Cnt = Array_Thread_MatCnt[ThreadIndex];
+		IdMatTri I = Array_Thread_MatIdx[ThreadIndex];
 		TS_IBS *p = ((TS_IBS*)Param) + I.Offset();
 		long _PackSNPLen = (SNP_Cnt / 4) + (SNP_Cnt % 4 ? 1 : 0);
 
@@ -244,7 +233,7 @@ namespace IBS
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
 
-		MCWorkingGeno.SplitJobs(NumThread, PublicIBS.N(), PLINKIBS_Thread_MatIdx, PLINKIBS_Thread_MatCnt);
+		MCWorkingGeno.SplitJobs(NumThread, PublicIBS.N(), Array_Thread_MatIdxD, Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_PLINKIBS_Compute, PublicIBS.get());
 	}
 
@@ -260,7 +249,7 @@ namespace IBS
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
 
-		MCWorkingGeno.SplitJobs(NumThread, PublicIBS.N(), IBS_Thread_MatIdx, IBS_Thread_MatCnt);
+		MCWorkingGeno.SplitJobs(NumThread, PublicIBS.N(), Array_Thread_MatIdx, Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_IBS_Compute, PublicIBS.get());
 	}
 
@@ -305,8 +294,8 @@ namespace IBS
 	static void _Do_Diss_Compute(int ThreadIndex, long Start,
 		long SNP_Cnt, void* Param)
 	{
-		long Cnt = IBS_Thread_MatCnt[ThreadIndex];
-		IdMatTri I = IBS_Thread_MatIdx[ThreadIndex];
+		long Cnt = Array_Thread_MatCnt[ThreadIndex];
+		IdMatTri I = Array_Thread_MatIdx[ThreadIndex];
 		TS_Dissimilarity *p = ((TS_Dissimilarity*)Param) + I.Offset();
 		long _PackSNPLen = (SNP_Cnt / 4) + (SNP_Cnt % 4 ? 1 : 0);
 
@@ -346,7 +335,7 @@ namespace IBS
 		MCWorkingGeno.InitParam(true, true, BlockNumSNP);
 
 		MCWorkingGeno.SplitJobs(NumThread, PublicDiss.N(),
-			IBS_Thread_MatIdx, IBS_Thread_MatCnt);
+			Array_Thread_MatIdx, Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_Diss_ReadBlock,
 			&_Do_Diss_Compute, PublicDiss.get());
 	}
@@ -370,8 +359,6 @@ extern "C"
 // =======================================================================
 // the functions for identity-by-state (IBS)
 //
-
-// the functions for Identity by state (IBS)
 
 /// to compute the average IBS
 COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)

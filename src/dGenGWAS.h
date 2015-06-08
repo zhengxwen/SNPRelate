@@ -36,6 +36,7 @@
 
 namespace GWAS
 {
+	using namespace std;
 	using namespace CoreArray;
 
 
@@ -68,10 +69,18 @@ namespace GWAS
 
 
 
+	// ===================================================================== //
+
 	/// the base class for working space
 	class COREARRAY_DLL_LOCAL CdBaseWorkSpace
 	{
 	public:
+		enum TTypeGenoDim
+		{
+			RDim_Sample_X_SNP,    ///< genotype matrix: sample X snp
+			RDim_SNP_X_Sample     ///< genotype matrix: snp X sample
+		};
+
 		CdBaseWorkSpace();
 		virtual ~CdBaseWorkSpace();
 
@@ -83,32 +92,22 @@ namespace GWAS
 			C_UInt8 *OutBuf, bool SnpOrder) = 0;
 		virtual void sampleRead(C_Int32 SampStart, C_Int32 SampCount,
 			C_UInt8 *OutBuf, bool SnpOrder) = 0;
-	};
 
+		/// set the selection among the selected SNPs
+		virtual void Set_SNPSelection(C_BOOL flag[]) = 0;
+		/// set the selection among the selected samples
+		virtual void Set_SampSelection(C_BOOL flag[]) = 0;
 
-	/// the working space for SNP genotypes
-	class COREARRAY_DLL_LOCAL CdGenoWorkSpace: public CdBaseWorkSpace
-	{
-	public:
-		CdGenoWorkSpace();
-		virtual ~CdGenoWorkSpace();
+		inline TTypeGenoDim GenoDimType() const { return fGenoDimType; }
+		inline C_Int32 TotalSampleNum() const { return fTotalSampleNum; };
+		inline C_Int32 TotalSNPNum() const { return fTotalSNPNum; };
+		inline C_Int32 SampleNum() const { return fSampleNum; };
+		inline C_Int32 SNPNum() const { return fSNPNum; };
+		inline C_BOOL *SampleSelection() { return &fSampleSelection[0]; };
+		inline C_BOOL *SNPSelection() { return &fSNPSelection[0]; };
 
-		/// set the pointer to snp genotypes
-		void SetGeno(PdAbstractArray vGeno, bool _InitSelection=true);
-
-		virtual void InitSelection();
-		virtual void InitSelectionSampOnly();
-		virtual void InitSelectionSNPOnly();
-
-		virtual void snpRead(C_Int32 SnpStart, C_Int32 SnpCount,
-			C_UInt8 *OutBuf, bool SnpOrder);
-		virtual void sampleRead(C_Int32 SampStart, C_Int32 SampCount,
-			C_UInt8 *OutBuf, bool SnpOrder);
-
-		C_Int64 GenoSum();
-
-		void ExtractSNPs(long Start, long Length);
-		void ExtractSamples(long Start, long Length);
+		/// the sum of working genotypes (the count of reference alleles)
+		C_Int64 SumOfGenotype();
 
 		void GetMissingRates(double OutRate[]);
 		void GetSampValidNum(int OutNum[]);
@@ -132,36 +131,60 @@ namespace GWAS
 		 *  \param maf            the threshold of minor allele frequencies, keeping ">= maf"
 		 *  \param missrate       the threshold of missing rates, keeping "<= missing.rate"
 		**/
-		int Select_SNP_Base_Ex(const double afreq[], bool remove_mono, double maf,
-			double missrate, C_BOOL *out_sel=NULL);
+		int Select_SNP_Base_Ex(const double afreq[], bool remove_mono,
+			double maf, double missrate, C_BOOL *out_sel=NULL);
 
-		void Set_SNPSelection(C_BOOL flag[]);
-		void Set_SampSelection(C_BOOL flag[]);
+	protected:
+		TTypeGenoDim fGenoDimType;
+		C_Int32 fTotalSampleNum, fTotalSNPNum;
+		C_Int32 fSampleNum, fSNPNum;
+
+		vector<C_BOOL> fSampleSelection;
+		vector<C_BOOL> fSNPSelection;
+	};
+
+
+	/// the working space for SNP genotypes in the SNP GDS file
+	class COREARRAY_DLL_LOCAL CdGenoWorkSpace: public CdBaseWorkSpace
+	{
+	public:
+		CdGenoWorkSpace();
+		virtual ~CdGenoWorkSpace();
+
+		/// set the pointer to snp genotypes
+		void SetGeno(PdAbstractArray vGeno, bool _InitSelection=true);
+
+		virtual void InitSelection();
+		virtual void InitSelectionSampOnly();
+		virtual void InitSelectionSNPOnly();
+
+		virtual void snpRead(C_Int32 SnpStart, C_Int32 SnpCount,
+			C_UInt8 *OutBuf, bool SnpOrder);
+		virtual void sampleRead(C_Int32 SampStart, C_Int32 SampCount,
+			C_UInt8 *OutBuf, bool SnpOrder);
+
+		virtual void Set_SNPSelection(C_BOOL flag[]);
+		virtual void Set_SampSelection(C_BOOL flag[]);
+
+		void ExtractSNPs(long Start, long Length);
+		void ExtractSamples(long Start, long Length);
 
 		inline PdAbstractArray Geno() { return fGeno; };
-		inline bool SNPOrder() const { return fSNPOrder; };
-		inline C_Int32 TotalSampleNum() const { return fTotalSampleNum; };
-		inline C_Int32 TotalSNPNum() const { return fTotalSNPNum; };
-		inline C_Int32 SampleNum() const { return fSampleNum; };
-		inline C_Int32 SNPNum() const { return fSNPNum; };
-		inline C_BOOL *SampleSelection() { return &fSampleSelection[0]; };
-		inline C_BOOL *SNPSelection() { return &fSNPSelection[0]; };
 
 	protected:
 		PdAbstractArray fGeno;
-		bool fSNPOrder;
-		C_Int32 fTotalSampleNum, fTotalSNPNum;
-		C_Int32 fSampleNum, fSNPNum;
-		std::vector<C_BOOL> fSampleSelection, fSNPSelection;
 
 	private:
-		std::vector<C_Int32> vSampleIndex, vSNPIndex;
-		std::vector<C_UInt8> vBuf;
+		vector<C_Int32> vSampleIndex, vSNPIndex;
+		vector<C_UInt8> vBuf;
 		size_t vBufSize;
 
 		void _NeedBuffer(size_t NewSize);
-		void _CheckGeno();
 	};
+
+
+
+	// ===================================================================== //
 
 	/// the buffer object for SNP genotypes
 	class COREARRAY_DLL_LOCAL CdBufSpace
@@ -169,7 +192,7 @@ namespace GWAS
 	public:
 		enum TAccessFlag { acDec=0, acInc=1, acRandom=2 };
 
-		CdBufSpace(CdGenoWorkSpace &space, bool SNPorSamp, TAccessFlag AF,
+		CdBufSpace(CdBaseWorkSpace &space, bool SNPorSamp, TAccessFlag AF,
 			long _bufsize=0);
 		~CdBufSpace();
 
@@ -177,7 +200,7 @@ namespace GWAS
 		C_UInt8 *ReadPackedGeno(long idx, C_UInt8 *out_buf);
 		C_UInt8 *ReadPackedGeno4b(long idx, C_UInt8 *out_buf);
 
-		inline CdGenoWorkSpace &Space() { return *fSpace; }
+		inline CdBaseWorkSpace &Space() { return *fSpace; }
 		inline bool ifSNP() const { return fSNPorSamp; }
 		inline bool ifSamp() const { return !fSNPorSamp; }
 		inline TAccessFlag AccessFlag() const { return fAccessFlag; }
@@ -188,7 +211,7 @@ namespace GWAS
 		inline long IdxEnd() const { return fIdxEnd; }
 		inline long IdxCnt() const { return fIdxCnt; }
 	protected:
-		CdGenoWorkSpace *fSpace;
+		CdBaseWorkSpace *fSpace;
 		bool fSNPorSamp;
 		TAccessFlag fAccessFlag;
 		long fBufSize, fBufElmSize;
@@ -198,46 +221,6 @@ namespace GWAS
 		void _RequireIdx(long idx);
 	};
 
-
-	/// the memory object for SNP genotypes
-	class COREARRAY_DLL_LOCAL CdBaseGenoMem
-	{
-	public:
-		CdBaseGenoMem();
-		CdBaseGenoMem(CdGenoWorkSpace &space);
-		~CdBaseGenoMem();
-
-	protected:
-		CdGenoWorkSpace *fSpace;
-		C_UInt8 *fMemory;
-		int fRow, fColumn, fElmSize;
-	};
-
-	/// the memory object for samples
-	class COREARRAY_DLL_LOCAL CdPackSampGenoMem: public CdBaseGenoMem
-	{
-	public:
-		CdPackSampGenoMem(CdGenoWorkSpace &space);
-
-		C_UInt8 at(int iSamp, int iSNP) const;
-		inline int SampleNum() { return fRow; }
-		inline C_UInt8 *PackedGeno(int iSamp) { return(fMemory + iSamp*fElmSize); }
-	};
-
-	/// the memory object for samples
-	class COREARRAY_DLL_LOCAL CdSampGenoMem: public CdBaseGenoMem
-	{
-	public:
-		CdSampGenoMem();
-		CdSampGenoMem(CdGenoWorkSpace &space);
-
-		void SetGeno(CdGenoWorkSpace &space);
-		void SetGeno(int n_snp, int n_samp);
-
-		C_UInt8 at(int iSamp, int iSNP) const;
-		inline int SampleNum() { return fRow; }
-		inline C_UInt8 *PtrGeno(int iSamp) { return(fMemory + iSamp*fElmSize); }
-	};
 
 
 	// ===================================================================== //
@@ -266,7 +249,7 @@ namespace GWAS
 	{
 	public:
 		/// The associated information
-		std::string Info;
+		string Info;
 
 		/// Constructor
 		CdProgression(int type=0, bool show=true);
@@ -297,7 +280,7 @@ namespace GWAS
 	// ===================================================================== //
 
 	/// get a string of current time
-	COREARRAY_DLL_LOCAL std::string NowDateToStr();
+	COREARRAY_DLL_LOCAL string NowDateToStr();
 
 
 
@@ -309,7 +292,7 @@ namespace GWAS
 	public:
 		ErrMatIndex() {};
 		ErrMatIndex(const char *fmt, ...) { _COREARRAY_ERRMACRO_(fmt); }
-		ErrMatIndex(const std::string &msg) { fMessage = msg; }
+		ErrMatIndex(const string &msg) { fMessage = msg; }
 	};
 
 
@@ -440,7 +423,7 @@ namespace GWAS
 
 		template<typename OUTTYPE> void SaveTo(OUTTYPE *n_n_buffer)
 		{
-			std::vector<Tx> buf(fN);
+			vector<Tx> buf(fN);
 			for (size_t i=0; i < fN; i++)
 			{
 				GetRow(&buf[0], i);
@@ -579,9 +562,14 @@ namespace GWAS
 		CMultiCoreWorkingGeno();
 		~CMultiCoreWorkingGeno();
 
+		/// Initialize the working space according to the SNP GDS file
+		void InitSNPGDSFile(PdAbstractArray vGeno, bool _InitSelection);
+
+		/// Initialize the parameters for multiple cores
 		void InitParam(bool snp_direction, bool read_snp_order,
 			long block_size);
 
+		/// Run the user-defined functions
 		void Run(int nThread, TDoBlockRead do_read, TDoEachThread do_thread,
 			void *Param);
 
@@ -593,7 +581,7 @@ namespace GWAS
 		// internal uses
 		void _DoThread_WorkingGeno(PdThread Thread, int ThreadIndex);
 
-		inline CdGenoWorkSpace &Space() { return _Space; }
+		inline CdBaseWorkSpace &Space() { return _Space; }
 
 	protected:
 		/// The working genotypes
@@ -617,15 +605,15 @@ namespace GWAS
 		/// The starting point of SNP or sample
 		long _Start_Position;
 		/// The temparory genotype buffer
-		std::vector<C_UInt8> _Geno_Block;
+		vector<C_UInt8> _Geno_Block;
 
 		/// The mutex object
 		PdThreadMutex _Mutex;
 		PdThreadsSuspending _Suspend;
 
 		// The internal parameter
-		void *_Param;            /// The internal parameter
-		int _Num_Thread;         /// The number of threads
+		void *_Param;            /// the internal parameter
+		int _Num_Thread;         /// the number of threads
 		TDoBlockRead _DoRead;
 		TDoEachThread _DoThread;
 		int _Num_Use;
@@ -634,6 +622,13 @@ namespace GWAS
 	};
 
 	extern CMultiCoreWorkingGeno MCWorkingGeno;
+
+	/// Thread variables
+	const int N_MAX_THREAD = 256;
+
+	extern IdMatTri  Array_Thread_MatIdx[N_MAX_THREAD];
+	extern IdMatTriD Array_Thread_MatIdxD[N_MAX_THREAD];
+	extern C_Int64   Array_Thread_MatCnt[N_MAX_THREAD];
 
 
 
@@ -668,20 +663,13 @@ namespace GWAS
 	/** Detect the optimized number of SNPs in a block according to
 	 *    L2 and L3 cache memory, and the value is assigned to 'BlockNumSNP'
 	**/
-	void DetectOptimizedNumOfSNP(int nSamp, size_t need);
-
-
-	/// Thread variables
-	const int N_MAX_THREAD = 256;
-
-	extern IdMatTri Array_Thread_MatIdx[N_MAX_THREAD];
-	extern C_Int64 Array_Thread_MatCnt[N_MAX_THREAD];
+	void DetectOptimizedNumOfSNP(int nSamp, size_t atleast);
 
 
 	/// The packed genotype buffer
-	extern std::vector<C_UInt8> Array_PackedGeno;
+	extern vector<C_UInt8> Array_PackedGeno;
 	/// The allele frequencies
-	extern std::vector<double> Array_AlleleFreq;
+	extern vector<double> Array_AlleleFreq;
 }
 
 #endif /* _HEADER_GWAS_ */

@@ -78,7 +78,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSetGenoSpace(SEXP Node, SEXP SelSamp, SEXP SelSNP)
 	COREARRAY_TRY
 
 		PdGDSObj Obj = GDS_R_SEXP2Obj(Node);
-		MCWorkingGeno.Space().SetGeno(Obj, false);
+		MCWorkingGeno.InitSNPGDSFile(Obj, false);
 		if (!Rf_isNull(SelSamp))
 		{
 			int n = MCWorkingGeno.Space().TotalSampleNum();
@@ -124,19 +124,6 @@ COREARRAY_DLL_EXPORT SEXP gnrGetGenoDim()
 		INTEGER(rv_ans)[0] = MCWorkingGeno.Space().SNPNum();
 		INTEGER(rv_ans)[1] = MCWorkingGeno.Space().SampleNum();
 	COREARRAY_CATCH
-}
-
-
-/// set the SNP selection on the genotype node
-COREARRAY_DLL_EXPORT void gnrSetGenoSelSNP(LongBool SNP_Flag[], LongBool *out_err)
-{
-	CORE_TRY
-		vector<C_BOOL> buf(MCWorkingGeno.Space().SNPNum());
-		for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
-			buf[i] = (SNP_Flag[i]!=0);
-		MCWorkingGeno.Space().Set_SNPSelection(&buf[0]);
-		*out_err = 0;
-	CORE_CATCH(*out_err = 1)
 }
 
 
@@ -248,55 +235,6 @@ COREARRAY_DLL_EXPORT SEXP gnrSampFreq()
 		MCWorkingGeno.Space().GetSampMissingRates(REAL(rv_ans));
 		UNPROTECT(1);
 	COREARRAY_CATCH
-}
-
-
-/// to cache the genotype data
-COREARRAY_DLL_EXPORT void gnrCacheGeno(double *out_GenoSum, LongBool *out_err)
-{
-	CORE_TRY
-		if (out_GenoSum)
-			*out_GenoSum = MCWorkingGeno.Space().GenoSum();
-		if (out_err) *out_err = 0;
-	CORE_CATCH(if (out_err) *out_err = 1)
-}
-
-
-/// add genotype buffer
-COREARRAY_DLL_EXPORT void gnrInitGenoBuffer(LongBool *SNPorSamp, int *AF, int *out_obj, LongBool *out_err)
-{
-	CORE_TRY
-		CdBufSpace *p = new CdBufSpace(MCWorkingGeno.Space(),
-			*SNPorSamp, CdBufSpace::TAccessFlag(*AF));
-		memmove((void*)out_obj, (void*)&p, sizeof(CdBufSpace *));
-		*out_err = 0;
-	CORE_CATCH(*out_err = 1)
-}
-
-
-/// done genotype buffer
-COREARRAY_DLL_EXPORT void gnrDoneGenoBuffer(int *buf_obj, LongBool *out_err)
-{
-	CORE_TRY
-		CdBufSpace *p;
-		memmove((void*)&p, (void*)buf_obj, sizeof(CdBufSpace *));
-		delete p;
-		*out_err = 0;
-	CORE_CATCH(*out_err = 1)
-}
-
-
-/// get genotype
-COREARRAY_DLL_EXPORT void gnrGetGenoBuffer(int *buf_obj, int *idx, int *out_buf, LongBool *out_err)
-{
-	CORE_TRY
-		CdBufSpace *p;
-		memmove((void*)&p, (void*)buf_obj, sizeof(CdBufSpace *));
-		C_UInt8 *s = p->ReadGeno(*idx);
-		for (long i=0; i < p->BufElmSize(); i++)
-			out_buf[i] = s[i];
-		*out_err = 0;
-	CORE_CATCH(*out_err = 1)
 }
 
 
