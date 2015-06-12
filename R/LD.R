@@ -158,11 +158,18 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             "\"composite\", \"r\", \"dprime\" and \"corr\"")
     }
 
-    total.snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
-    total.samp.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
-    chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-    position <- read.gdsn(index.gdsn(gdsobj, "snp.position"))
-
+    if (!inherits(gdsobj, "SeqVarGDSClass"))
+    {
+        total.snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+        total.samp.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
+        chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
+        position <- read.gdsn(index.gdsn(gdsobj, "snp.position"))
+    } else {
+        total.snp.ids <- read.gdsn(index.gdsn(gdsobj, "variant.id"))
+        total.samp.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
+        chr <- read.gdsn(index.gdsn(gdsobj, "chromosome"))
+        position <- read.gdsn(index.gdsn(gdsobj, "position"))
+    }
 
     # for-loop each chromosome
     ntotal <- 0; res <- list()
@@ -184,8 +191,13 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         if (n.tmp > 0)
         {
             # set genotype working space
-            .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
-                samp.flag, flag)
+            if (!inherits(gdsobj, "SeqVarGDSClass"))
+            {
+                .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
+                    samp.flag, flag)
+            } else {
+                .Call(gnrSetSeqSpace, gdsobj, samp.flag, flag)
+            }
 
             # call LD prune for this chromosome
             startidx <- sample(1:n.tmp, 1)

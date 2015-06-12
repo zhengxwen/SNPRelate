@@ -79,10 +79,13 @@
     }
 
     # SNPs
+    snp.var <- "snp.id"
+    if (inherits(gdsobj, "SeqVarGDSClass"))
+        snp.var <- "variant.id"
     if (!is.null(snp.id))
     {
         n.tmp <- length(snp.id)
-        snp.tmp <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+        snp.tmp <- read.gdsn(index.gdsn(gdsobj, snp.var))
         snp.id <- snp.tmp %in% snp.id
         n.snp <- sum(snp.id)
         if (n.snp != n.tmp)
@@ -93,12 +96,17 @@
             snp.tmp <- snp.tmp[snp.id]
     } else {
         if (with.id)
-            snp.tmp <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+            snp.tmp <- read.gdsn(index.gdsn(gdsobj, snp.var))
     }
 
     # set genotype working space
-    v <- .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
-        sample.id, snp.id)
+    if (!inherits(gdsobj, "SeqVarGDSClass"))
+    {
+        v <- .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
+            sample.id, snp.id)
+    } else {
+        v <- .Call(gnrSetSeqSpace, gdsobj, sample.id, snp.id)
+    }
 
     # output
     if (with.id)
@@ -190,7 +198,15 @@
     }
 
     # SNPs
-    snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+    snp.var <- "snp.id"
+    chr.var <- "snp.chromosome"
+    if (inherits(gdsobj, "SeqVarGDSClass"))
+    {
+        snp.var <- "variant.id"
+        chr.var <- "chromosome"
+    }
+
+    snp.ids <- read.gdsn(index.gdsn(gdsobj, snp.var))
     if (!is.null(snp.id))
     {
         # specify 'snp.id'
@@ -211,7 +227,7 @@
 
         if (!identical(autosome.only, FALSE))
         {
-            nt <- index.gdsn(gdsobj, "snp.chromosome")
+            nt <- index.gdsn(gdsobj, chr.var)
             if (identical(autosome.only, TRUE))
             {
                 dt <- objdesp.gdsn(nt)
@@ -261,7 +277,7 @@
 
         if (!identical(autosome.only, FALSE))
         {
-            nt <- index.gdsn(gdsobj, "snp.chromosome")
+            nt <- index.gdsn(gdsobj, chr.var)
             if (identical(autosome.only, TRUE))
             {
                 dt <- objdesp.gdsn(nt)
@@ -299,8 +315,13 @@
     }
 
     # set genotype working space
-    .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
-        sample.id, snp.id)
+    if (!inherits(gdsobj, "SeqVarGDSClass"))
+    {
+        .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
+            sample.id, snp.id)
+    } else {
+        .Call(gnrSetSeqSpace, gdsobj, sample.id, snp.id)
+    }
 
     # call allele freq. and missing rates
     if (remove.monosnp || is.finite(maf) || is.finite(missing.rate))
@@ -1406,14 +1427,9 @@ snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
     # snp order
     if (is.null(snpfirstdim))
-    {
-        snpfirstdim <- TRUE
-        rd <- names(get.attr.gdsn(index.gdsn(gdsobj, "genotype")))
-        if ("snp.order" %in% rd) snpfirstdim <- TRUE
-        if ("sample.order" %in% rd) snpfirstdim <- FALSE
-    } else {
+        snpfirstdim <- .Call(gnrGetGenoDimInfo)
+    else
         stopifnot(is.logical(snpfirstdim))
-    }
 
     stopifnot(is.logical(verbose))
     if (verbose)

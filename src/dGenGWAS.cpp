@@ -20,6 +20,7 @@
 // If not, see <http://www.gnu.org/licenses/>.
 
 #include "dGenGWAS.h"
+#include <R_ext/Rdynload.h>
 
 using namespace std;
 using namespace GWAS;
@@ -75,6 +76,12 @@ CdBaseWorkSpace::CdBaseWorkSpace()
 
 CdBaseWorkSpace::~CdBaseWorkSpace()
 { }
+
+void CdBaseWorkSpace::InitSelection()
+{
+	InitSelectionSampOnly();
+	InitSelectionSNPOnly();
+}
 
 C_Int64 CdBaseWorkSpace::SumOfGenotype()
 {
@@ -526,7 +533,7 @@ CdSNPWorkSpace::CdSNPWorkSpace(): CdBaseWorkSpace()
 CdSNPWorkSpace::~CdSNPWorkSpace()
 { }
 
-void CdSNPWorkSpace::SetGeno(PdAbstractArray vGeno, bool _InitSelection)
+void CdSNPWorkSpace::SetSNPGeno(PdAbstractArray vGeno, bool _InitSelection)
 {
 	if (vGeno)
 	{
@@ -558,6 +565,7 @@ void CdSNPWorkSpace::SetGeno(PdAbstractArray vGeno, bool _InitSelection)
 		} else {
 			fTotalSampleNum = DLen[1]; fTotalSNPNum = DLen[0];
 		}
+		fSampleNum = fSNPNum = 0;
 
 		// selection of sample
 		if (fTotalSampleNum > 0)
@@ -580,12 +588,6 @@ void CdSNPWorkSpace::SetGeno(PdAbstractArray vGeno, bool _InitSelection)
 
 	fGeno = vGeno;
 	if (_InitSelection) InitSelection();
-}
-
-void CdSNPWorkSpace::InitSelection()
-{
-	InitSelectionSampOnly();
-	InitSelectionSNPOnly();
 }
 
 void CdSNPWorkSpace::InitSelectionSampOnly()
@@ -797,140 +799,128 @@ void CdSNPWorkSpace::_NeedBuffer(size_t NewSize)
 
 static bool HasInitSeqArrayProc = false;
 
+typedef void (*Type_Seq_Func)(void*);
+static Type_Seq_Func fn_seq_InitSeqArray = NULL;
+static Type_Seq_Func fn_seq_DoneSeqArray = NULL;
 
+typedef void (*Type_Seq_InitSel)(C_BOOL*, void*);
+static Type_Seq_InitSel fn_seq_InitSelSampOnly = NULL;
+static Type_Seq_InitSel fn_seq_InitSelSNPOnly = NULL;
 
+typedef void (*Type_Seq_Read)(C_Int32, C_Int32, C_UInt8*, TTypeGenoDim, void*);
+static Type_Seq_Read fn_seq_SnpRead = NULL;
+static Type_Seq_Read fn_seq_SampleRead = NULL;
+
+typedef void (*Type_Seq_SetSel)(C_BOOL*, void*);
+static Type_Seq_SetSel fn_seq_SNPSelection = NULL;
+static Type_Seq_SetSel fn_seq_SampleSelection = NULL;
 
 static void InitSeqArrayProc()
 {
 	if (!HasInitSeqArrayProc)
 	{
+		static const char *SeqArray_pkg_name = "SeqArray";
+
+		#define LOAD(var, name)    \
+			*((DL_FUNC*)&var) = R_GetCCallable(SeqArray_pkg_name, name)
+
+		LOAD(fn_seq_InitSeqArray, "SNPRelate_InitSeqArray");
+		LOAD(fn_seq_DoneSeqArray, "SNPRelate_DoneSeqArray");
+		LOAD(fn_seq_InitSelSampOnly, "SNPRelate_InitSelSampOnly");
+		LOAD(fn_seq_InitSelSNPOnly,  "SNPRelate_InitSelSNPOnly");
+		LOAD(fn_seq_SnpRead, "SNPRelate_SnpRead");
+		LOAD(fn_seq_SampleRead, "SNPRelate_SampleRead");
+		LOAD(fn_seq_SNPSelection, "SNPRelate_SetSnpSelection");
+		LOAD(fn_seq_SampleSelection, "SNPRelate_SetSampSelection");
+
+		#undef LOAD
 		
-		HasInitSeqArrayProc = false;
+		HasInitSeqArrayProc = true;
 	}
 }
 
+
+/// get the list element named str, or return NULL
+inline static SEXP GetListElement(SEXP list, const char *str)
+{
+	SEXP elmt = R_NilValue;
+	SEXP names = getAttrib(list, R_NamesSymbol);
+	for (R_len_t i = 0; i < XLENGTH(list); i++)
+	{
+		if (strcmp(CHAR(STRING_ELT(names, i)), str) == 0)
+		{
+			elmt = VECTOR_ELT(list, i);
+			break;
+		}
+	}
+	return elmt;
+}
 
 CdSeqWorkSpace::CdSeqWorkSpace(): CdBaseWorkSpace()
 {
-	fGeno = NULL;
-	vBufSize = 0;
+	InitSeqArrayProc();
+
+	fParam.pGenoDimType = &fGenoDimType;
+	fParam.pTotalSampleNum = &fTotalSampleNum;
+	fParam.pTotalSNPNum = &fTotalSNPNum;
+	fParam.pSampleNum = &fSampleNum;
+	fParam.pSNPNum = &fSNPNum;
+
+	fParam.SeqGDSFile = NULL;
+	fParam.Object = NULL;
+	fParam.GenoBuffer = NULL;
+	fParam.Index = 0;
 }
 
 CdSeqWorkSpace::~CdSeqWorkSpace()
-{ }
-
-void CdSeqWorkSpace::SetGeno(PdAbstractArray vGeno, bool _InitSelection)
 {
-	if (vGeno)
+	if (fn_seq_DoneSeqArray)
 	{
-		// checking
-		if (GDS_Array_DimCnt(vGeno) != 2)
-			throw ErrCoreArray("Invalid dimension of genotype dataset.");
-
-		// determine sample or snp order
-		bool sample = (GDS_Attr_Name2Index(vGeno, "sample.order")>=0);
-		bool snp = (GDS_Attr_Name2Index(vGeno, "snp.order")>=0);
-		if (sample && snp)
+		if (fParam.SeqGDSFile)
 		{
-			throw ErrCoreArray(
-				"Unable to determine the dimension of genotype dataset.");
+			(*fn_seq_DoneSeqArray)(&fParam);
+			fParam.SeqGDSFile = NULL;
 		}
-		if (snp)
-			fGenoDimType = RDim_SNP_X_Sample;
-		else if (sample)
-			fGenoDimType = RDim_Sample_X_SNP;
-		else
-			fGenoDimType = RDim_SNP_X_Sample;
-
-		// determine numbers of samples and snps
-		C_Int32 DLen[2];
-		GDS_Array_GetDim(vGeno, DLen, 2);
-		if (fGenoDimType == RDim_SNP_X_Sample)
-		{
-			fTotalSampleNum = DLen[0]; fTotalSNPNum = DLen[1];
-		} else {
-			fTotalSampleNum = DLen[1]; fTotalSNPNum = DLen[0];
-		}
-
-		// selection of sample
-		if (fTotalSampleNum > 0)
-		{
-			fSampleSelection.resize(fTotalSampleNum);
-			memset(&fSampleSelection[0], TRUE, fTotalSampleNum);
-		} else
-			fSampleSelection.clear();
-
-		// selection of snp
-		if (fTotalSNPNum > 0)
-		{
-			fSNPSelection.resize(fTotalSNPNum);
-			memset(&fSNPSelection[0], TRUE, fTotalSNPNum);
-		} else
-			fSNPSelection.clear();
-	} else {
-		throw ErrCoreArray("'genotype' does not exist in the GDS file.");
 	}
-
-	fGeno = vGeno;
-	if (_InitSelection) InitSelection();
 }
 
-void CdSeqWorkSpace::InitSelection()
+void CdSeqWorkSpace::SetSeqArray(SEXP SeqFile, bool _InitSelection)
 {
-	InitSelectionSampOnly();
-	InitSelectionSNPOnly();
+	if (fParam.SeqGDSFile)
+	{
+		(*fn_seq_DoneSeqArray)(&fParam);
+		fParam.SeqGDSFile = NULL;
+	}
+	fParam.SeqGDSFile = SeqFile;
+	(*fn_seq_InitSeqArray)(&fParam);
+
+	// selection of sample
+	if (fTotalSampleNum > 0)
+	{
+		fSampleSelection.resize(fTotalSampleNum);
+		memset(&fSampleSelection[0], TRUE, fTotalSampleNum);
+	} else
+		fSampleSelection.clear();
+
+	// selection of snp
+	if (fTotalSNPNum > 0)
+	{
+		fSNPSelection.resize(fTotalSNPNum);
+		memset(&fSNPSelection[0], TRUE, fTotalSNPNum);
+	} else
+		fSNPSelection.clear();
+
+	if (_InitSelection) InitSelection();
 }
 
 void CdSeqWorkSpace::InitSelectionSampOnly()
 {
-	// Samples
-	if (fTotalSampleNum > 0)
-	{
-		C_BOOL *s = &fSampleSelection[0];
-		fSampleNum = 0;
-		for (int L=fTotalSampleNum; L > 0; L--)
-			if (*s++) fSampleNum++;
-		if (fSampleNum > 0)
-		{
-			vSampleIndex.resize(fSampleNum);
-			C_Int32 *p = &vSampleIndex[0];
-			s = &fSampleSelection[0];
-			for (int i=0; i < fTotalSampleNum; i++)
-				if (*s++) *p++ = i;
-		} else {
-			fSampleNum = 0;
-			vSampleIndex.clear();
-        }
-	} else {
-		fSampleNum = 0;
-		vSampleIndex.clear();
-	}
+	(*fn_seq_InitSelSampOnly)(&fSampleSelection[0], (void*)&fParam);
 }
 
 void CdSeqWorkSpace::InitSelectionSNPOnly()
 {
-	// SNPs
-	if (fTotalSNPNum > 0)
-	{
-		C_BOOL *s = &fSNPSelection[0];
-		fSNPNum = 0;
-		for (int L=fTotalSNPNum; L > 0; L--)
-			if (*s++) fSNPNum++;
-		if (fSNPNum > 0)
-		{
-			vSNPIndex.resize(fSNPNum);
-			C_Int32 *p = &vSNPIndex[0];
-			s = &fSNPSelection[0];
-			for (int i=0; i < fTotalSNPNum; i++)
-				if (*s++) *p++ = i;
-		} else {
-			fSNPNum = 0;
-			vSNPIndex.clear();
-		}
-	} else {
-		fSNPNum = 0;
-		vSNPIndex.clear();
-	}
+	(*fn_seq_InitSelSNPOnly)(&fSNPSelection[0], (void*)&fParam);
 }
 
 void CdSeqWorkSpace::snpRead(C_Int32 SnpStart, C_Int32 SnpCount,
@@ -941,6 +931,8 @@ void CdSeqWorkSpace::snpRead(C_Int32 SnpStart, C_Int32 SnpCount,
 	{
 		throw ErrCoreArray("Invalid SnpStart and SnpCount.");
 	}
+
+	(*fn_seq_SnpRead)(SnpStart, SnpCount, OutBuf, OutDim, (void*)&fParam);
 }
 
 void CdSeqWorkSpace::sampleRead(C_Int32 SampStart, C_Int32 SampCount,
@@ -951,29 +943,18 @@ void CdSeqWorkSpace::sampleRead(C_Int32 SampStart, C_Int32 SampCount,
 	{
 		throw ErrCoreArray("Invalid SnpStart and SnpCount.");
 	}
+
+	(*fn_seq_SampleRead)(SampStart, SampCount, OutBuf, OutDim, (void*)&fParam);
 }
 
 void CdSeqWorkSpace::Set_SNPSelection(C_BOOL flag[])
 {
-	for (int i=0; i < fSNPNum; i++)
-		fSNPSelection[vSNPIndex[i]] = flag[i];
-	InitSelectionSNPOnly();
+	(*fn_seq_SNPSelection)(flag, (void*)&fParam);
 }
 
 void CdSeqWorkSpace::Set_SampSelection(C_BOOL flag[])
 {
-	for (int i=0; i < fSampleNum; i++)
-		fSampleSelection[vSampleIndex[i]] = flag[i];
-	InitSelectionSampOnly();
-}
-
-void CdSeqWorkSpace::_NeedBuffer(size_t NewSize)
-{
-	if (NewSize > vBufSize)
-	{
-		vBuf.resize(NewSize);
-		vBufSize = NewSize;
-	}
+	(*fn_seq_SampleSelection)(flag, (void*)&fParam);
 }
 
 
@@ -1610,7 +1591,19 @@ void CMultiCoreWorkingGeno::InitSNPGDSFile(PdAbstractArray vGeno,
 		_Space = new CdSNPWorkSpace;
 	}
 
-	static_cast<CdSNPWorkSpace*>(_Space)->SetGeno(vGeno, _InitSelection);
+	static_cast<CdSNPWorkSpace*>(_Space)->SetSNPGeno(vGeno, _InitSelection);
+}
+
+void CMultiCoreWorkingGeno::InitSeqGDSFile(SEXP GDSFile, bool _InitSelection)
+{
+	if (!dynamic_cast<CdSeqWorkSpace*>(_Space))
+	{
+		if (_Space)
+			delete _Space;
+		_Space = new CdSeqWorkSpace;
+	}
+
+	static_cast<CdSeqWorkSpace*>(_Space)->SetSeqArray(GDSFile, _InitSelection);
 }
 
 void CMultiCoreWorkingGeno::InitParam(bool snp_direction,

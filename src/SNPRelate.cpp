@@ -85,10 +85,9 @@ COREARRAY_DLL_EXPORT SEXP gnrSetGenoSpace(SEXP Node, SEXP SelSamp, SEXP SelSNP)
 			if (XLENGTH(SelSamp) != n)
 				throw ErrCoreArray("'SelSamp' is invalid.");
 			int *p = LOGICAL(SelSamp);
+			C_BOOL *s = MCWorkingGeno.Space().SampleSelection();
 			for (int i=0; i < n; i++)
-			{
-				MCWorkingGeno.Space().SampleSelection()[i] = (*p++ == TRUE);
-			}
+				*s++ = (*p++ == TRUE);
 		}
 		if (!Rf_isNull(SelSNP))
 		{
@@ -96,10 +95,49 @@ COREARRAY_DLL_EXPORT SEXP gnrSetGenoSpace(SEXP Node, SEXP SelSamp, SEXP SelSNP)
 			if (XLENGTH(SelSNP) != n)
 				throw ErrCoreArray("'SelSNP' is invalid.");
 			int *p = LOGICAL(SelSNP);
+			C_BOOL *s = MCWorkingGeno.Space().SNPSelection();
 			for (int i=0; i < n; i++)
-			{
-				MCWorkingGeno.Space().SNPSelection()[i] = (*p++ == TRUE);
-			}
+				*s++ = (*p++ == TRUE);
+		}
+		MCWorkingGeno.Space().InitSelection();
+
+		if (MCWorkingGeno.Space().SNPNum() <= 0)
+			throw ErrCoreArray("There is no SNP!");
+		if (MCWorkingGeno.Space().SampleNum() <= 0)
+			throw ErrCoreArray("There is no sample!");
+
+		rv_ans = NEW_INTEGER(2);
+		INTEGER(rv_ans)[0] = MCWorkingGeno.Space().SNPNum();
+		INTEGER(rv_ans)[1] = MCWorkingGeno.Space().SampleNum();
+
+	COREARRAY_CATCH
+}
+
+/// set the genotype node
+COREARRAY_DLL_EXPORT SEXP gnrSetSeqSpace(SEXP Node, SEXP SelSamp, SEXP SelSNP)
+{
+	COREARRAY_TRY
+
+		MCWorkingGeno.InitSeqGDSFile(Node, false);
+		if (!Rf_isNull(SelSamp))
+		{
+			int n = MCWorkingGeno.Space().TotalSampleNum();
+			if (XLENGTH(SelSamp) != n)
+				throw ErrCoreArray("'SelSamp' is invalid.");
+			int *p = LOGICAL(SelSamp);
+			C_BOOL *s = MCWorkingGeno.Space().SampleSelection();
+			for (int i=0; i < n; i++)
+				*s++ = (*p++ == TRUE);
+		}
+		if (!Rf_isNull(SelSNP))
+		{
+			int n = MCWorkingGeno.Space().TotalSNPNum();
+			if (XLENGTH(SelSNP) != n)
+				throw ErrCoreArray("'SelSNP' is invalid.");
+			int *p = LOGICAL(SelSNP);
+			C_BOOL *s = MCWorkingGeno.Space().SNPSelection();
+			for (int i=0; i < n; i++)
+				*s++ = (*p++ == TRUE);
 		}
 		MCWorkingGeno.Space().InitSelection();
 
@@ -123,6 +161,16 @@ COREARRAY_DLL_EXPORT SEXP gnrGetGenoDim()
 		rv_ans = NEW_INTEGER(2);
 		INTEGER(rv_ans)[0] = MCWorkingGeno.Space().SNPNum();
 		INTEGER(rv_ans)[1] = MCWorkingGeno.Space().SampleNum();
+	COREARRAY_CATCH
+}
+
+/// get the dimension of SNP genotypes
+COREARRAY_DLL_EXPORT SEXP gnrGetGenoDimInfo()
+{
+	COREARRAY_TRY
+		rv_ans = ScalarLogical(
+			MCWorkingGeno.Space().GenoDimType() == RDim_Sample_X_SNP ?
+			FALSE : TRUE);
 	COREARRAY_CATCH
 }
 
@@ -1174,8 +1222,10 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrParseVCF4Init, 0),       CALL(gnrParseVCF4, 10),
 
 		CALL(gnrCopyGeno, 2),            CALL(gnrCopyGenoMem, 1),
-		CALL(gnrGetGenoDim, 0),          CALL(gnrSelSNP_Base, 3),
-		CALL(gnrSelSNP_Base_Ex, 4),      CALL(gnrSetGenoSpace, 3),
+		CALL(gnrGetGenoDim, 0),          CALL(gnrGetGenoDimInfo, 0),
+
+		CALL(gnrSetGenoSpace, 3),        CALL(gnrSetSeqSpace, 3),
+		CALL(gnrSelSNP_Base, 3),         CALL(gnrSelSNP_Base_Ex, 4),
 
 		CALL(gnrSlidingNumWin, 4),       CALL(gnrSlidingWindow, 10),
 		CALL(gnrSampFreq, 0),            CALL(gnrSNPFreq, 0),

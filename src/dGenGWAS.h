@@ -84,7 +84,7 @@ namespace GWAS
 		CdBaseWorkSpace();
 		virtual ~CdBaseWorkSpace();
 
-		virtual void InitSelection() = 0;
+		void InitSelection();
 		virtual void InitSelectionSampOnly() = 0;
 		virtual void InitSelectionSNPOnly() = 0;
 
@@ -152,9 +152,8 @@ namespace GWAS
 		virtual ~CdSNPWorkSpace();
 
 		/// set the pointer to snp genotypes
-		void SetGeno(PdAbstractArray vGeno, bool _InitSelection=true);
+		void SetSNPGeno(PdAbstractArray vGeno, bool _InitSelection=true);
 
-		virtual void InitSelection();
 		virtual void InitSelectionSampOnly();
 		virtual void InitSelectionSNPOnly();
 
@@ -188,10 +187,9 @@ namespace GWAS
 		CdSeqWorkSpace();
 		virtual ~CdSeqWorkSpace();
 
-		/// set the pointer to snp genotypes
-		void SetGeno(PdAbstractArray vGeno, bool _InitSelection=true);
+		/// set the pointer to sequencing variants
+		void SetSeqArray(SEXP SeqFile, bool _InitSelection=true);
 
-		virtual void InitSelection();
 		virtual void InitSelectionSampOnly();
 		virtual void InitSelectionSNPOnly();
 
@@ -203,15 +201,21 @@ namespace GWAS
 		virtual void Set_SNPSelection(C_BOOL flag[]);
 		virtual void Set_SampSelection(C_BOOL flag[]);
 
-		inline PdAbstractArray Geno() { return fGeno; };
-
 	protected:
-		PdAbstractArray fGeno;
-		vector<C_Int32> vSampleIndex, vSNPIndex;
-		vector<C_UInt8> vBuf;
-		size_t vBufSize;
+		typedef struct
+		{
+			TTypeGenoDim *pGenoDimType;
+			C_Int32 *pTotalSampleNum;
+			C_Int32 *pTotalSNPNum;
+			C_Int32 *pSampleNum;
+			C_Int32 *pSNPNum;
 
-		void _NeedBuffer(size_t NewSize);
+			SEXP SeqGDSFile;
+			void *Object;
+			int *GenoBuffer;
+			int Index;
+		} TParam;
+		TParam fParam;
 	};
 
 
@@ -597,6 +601,8 @@ namespace GWAS
 
 		/// Initialize the working space according to the SNP GDS file
 		void InitSNPGDSFile(PdAbstractArray vGeno, bool _InitSelection);
+		/// Initialize the working space according to the sequencing GDS file
+		void InitSeqGDSFile(SEXP GDSFile, bool _InitSelection);
 
 		/// Initialize the parameters for multiple cores
 		void InitParam(bool snp_direction, TTypeGenoDim read_order,
