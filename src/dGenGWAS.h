@@ -84,9 +84,13 @@ namespace GWAS
 		CdBaseWorkSpace();
 		virtual ~CdBaseWorkSpace();
 
-		void InitSelection();
+		/// initialize the internal variables based on fSampleSelection
 		virtual void InitSelectionSampOnly() = 0;
+		/// initialize the internal variables based on fSNPSelection
 		virtual void InitSelectionSNPOnly() = 0;
+
+		/// call both InitSelectionSampOnly() and InitSelectionSNPOnly()
+		void InitSelection();
 
 		virtual void snpRead(C_Int32 SnpStart, C_Int32 SnpCount,
 			C_UInt8 *OutBuf, TTypeGenoDim OutDim) = 0;

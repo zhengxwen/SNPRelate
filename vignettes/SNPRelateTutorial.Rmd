@@ -25,7 +25,7 @@ GDS is also used by the R/Bioconductor package [GWASTools](http://www.bioconduct
 
 ![Flowchart](SNPRelate-Flowchart.png)
 
-**Figure 1**: Flowchart of parallel computing for principal component analysis and identity-by-descent analysis
+**Figure 1**: Flowchart of parallel computing for principal component analysis and identity-by-descent analysis.
 
 ~
 
@@ -516,7 +516,7 @@ plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
 
 ## Identity-By-State Analysis
 
-For the $n$ individuals in a sample, `snpgdsIBS()` can be used to create a $n \times n$ matrix of genome-wide average IBS pairwise identities:
+For $n$ study individuals, `snpgdsIBS()` can be used to create a $n \times n$ matrix of genome-wide average IBS pairwise identities:
 
 ```{r}
 ibs <- snpgdsIBS(genofile, num.thread=2)
@@ -576,7 +576,7 @@ snpgdsClose(genofile)
 
 
 
-# Session Info
+# Session Information
 
 ```{r}
 sessionInfo()
