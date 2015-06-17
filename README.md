@@ -21,6 +21,11 @@ Development Version: v1.3.4
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
 
+## News (Development Version)
+
+* supports the sequencing GDS format defined in the [SeqArray](http://www.bioconductor.org/packages/devel/bioc/html/SeqArray.html) package, see [http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/SeqArrayTutorial.html#integration-with-snprelate](http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/SeqArrayTutorial.html#integration-with-snprelate)
+
+
 ## Tutorials
 
 [http://corearray.sourceforge.net/tutorials/SNPRelate](http://corearray.sourceforge.net/tutorials/SNPRelate)
@@ -30,7 +35,7 @@ Development Version: v1.3.4
 
 ## Citation
 
-Xiuwen Zheng, David Levine, Jess Shen, Stephanie M. Gogarten, Cathy Laurie, Bruce S. Weir. A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. Bioinformatics 2012; [doi:10.1093/bioinformatics/bts606](http://dx.doi.org/10.1093/bioinformatics/bts606).
+Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS (2012). “A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data”. *Bioinformatics*. [DOI: 10.1093/bioinformatics/bts606](http://dx.doi.org/10.1093/bioinformatics/bts606).
 
 
 ## Installation
