@@ -499,13 +499,13 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 		PROTECT(dim = NEW_INTEGER(2));
 		INTEGER(dim)[0] = n; INTEGER(dim)[1] = n;
 
-		SEXP k0    = NEW_NUMERIC(n*n);  PROTECT(k0);
+		SEXP k0 = NEW_NUMERIC(n*n); PROTECT(k0);
 		setAttrib(k0, R_DimSymbol, dim);
 
-		SEXP k1    = NEW_NUMERIC(n*n);  PROTECT(k1);
+		SEXP k1 = NEW_NUMERIC(n*n); PROTECT(k1);
 		setAttrib(k1, R_DimSymbol, dim);
 
-		SEXP afreq = NEW_NUMERIC(m);    PROTECT(afreq);
+		SEXP afreq = NEW_NUMERIC(m); PROTECT(afreq);
 		double *out_k0    = REAL(k0);
 		double *out_k1    = REAL(k1);
 		double *out_afreq = REAL(afreq);
@@ -597,7 +597,7 @@ COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 
 /// to compute the individual dissimilarity
 COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
-	SEXP Method, SEXP Type, SEXP _Verbose)
+	SEXP Method, SEXP Type, SEXP GDSNode, SEXP _Verbose)
 {
 	static const int IBS[3][3] =
 		{ { 2, 1, 0 }, { 1, 2, 1 }, { 0, 1, 2 } };
@@ -668,7 +668,6 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 				p[nPair  ] = Sums[i].SD;
 				p[nPair*2] = Sums[i].Num;
 			}
-
 		} else if (strcmp(c_Type, "per.snp") == 0)
 		{
 			vector<double> Buffer(nPair);
@@ -704,7 +703,6 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 				Out[0] = Sum.Avg; Out[1] = Sum.SD; Out[2] = Sum.Num;
 				Out += 3;
 			}
-
 		} else if (strcmp(c_Type, "matrix") == 0)
 		{
 			rv_ans = allocMatrix(INTSXP, nPair, nSNP);
@@ -732,6 +730,37 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 					} else
 						*Out = NA_INTEGER;
 				}
+			}
+		} else if (strcmp(c_Type, "gds.file") == 0)
+		{
+			PdAbstractArray Obj = GDS_R_SEXP2Obj(GDSNode);
+			vector<C_UInt8> Buffer(nPair);
+
+			// for-loop
+			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
+			{
+				C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+				C_UInt8 *Out = &Buffer[0];
+				for (int j=0; j < nPair; j++, Out++)
+				{
+					C_UInt8 g1 = pGeno[c_1[j]];
+					C_UInt8 g2 = pGeno[c_2[j]];
+					if ((g1 < 3) && (g2 < 3))
+					{
+						switch (iMethod)
+						{
+						case 1: // IBS
+							*Out = IBS[g1][g2]; break;
+						case 2: // GVH
+							*Out = GVH[g1][g2]; break;
+						case 3: // HVG
+							*Out = HVG[g1][g2]; break;
+						}
+					} else
+						*Out = 3; // NA
+				}
+
+				GDS_Array_AppendData(Obj, nPair, &Buffer[0], svUInt8);
 			}
 		} else
 			throw ErrCoreArray("Invalid 'type'.");

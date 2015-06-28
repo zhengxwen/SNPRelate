@@ -840,22 +840,6 @@ static void InitSeqArrayProc()
 }
 
 
-/// get the list element named str, or return NULL
-inline static SEXP GetListElement(SEXP list, const char *str)
-{
-	SEXP elmt = R_NilValue;
-	SEXP names = getAttrib(list, R_NamesSymbol);
-	for (R_len_t i = 0; i < XLENGTH(list); i++)
-	{
-		if (strcmp(CHAR(STRING_ELT(names, i)), str) == 0)
-		{
-			elmt = VECTOR_ELT(list, i);
-			break;
-		}
-	}
-	return elmt;
-}
-
 CdSeqWorkSpace::CdSeqWorkSpace(): CdBaseWorkSpace()
 {
 	InitSeqArrayProc();

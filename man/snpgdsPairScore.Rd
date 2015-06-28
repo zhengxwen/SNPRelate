@@ -9,8 +9,9 @@ identity-by-state (IBS) measure
 }
 \usage{
 snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
-    method=c("IBS", "GVH", "HVG"), type=c("per.pair", "per.snp", "matrix"),
-    with.id=TRUE, verbose=TRUE)
+    method=c("IBS", "GVH", "HVG"),
+    type=c("per.pair", "per.snp", "matrix", "gds.file"),
+    with.id=TRUE, output=NULL, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -26,6 +27,7 @@ snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
     \item{type}{\code{"per.pair"}, \code{"per.snp"} or \code{"matrix"},
         see Value}
     \item{with.id}{if \code{TRUE}, returns "sample.id" and "snp.id"; see Value}
+    \item{output}{if \code{type="gds.file"}, the file name}
     \item{verbose}{if TRUE, show information}
 }
 \details{
@@ -109,8 +111,17 @@ z3 <- snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
 dim(z3$score)
 
 
+# output the score matrix to a GDS file
+snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
+    method="IBS", type="gds.file", output="tmp.gds")
+(f <- snpgdsOpen("tmp.gds"))
+snpgdsClose(f)
+
+
 # close the file
 snpgdsClose(genofile)
+
+unlink("tmp.gds", force=TRUE)
 }
 
 \keyword{GDS}

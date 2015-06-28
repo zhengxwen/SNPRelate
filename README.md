@@ -16,14 +16,14 @@ Release Version: v1.2.0
 
 [http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 
-Development Version: v1.3.4
+Development Version: v1.3.5
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
 
 ## News (Development Version)
 
-* supports the sequencing GDS format defined in the [SeqArray](http://www.bioconductor.org/packages/devel/bioc/html/SeqArray.html) package, see [http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/SeqArrayTutorial.html#integration-with-snprelate](http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/SeqArrayTutorial.html#integration-with-snprelate)
+* supports the sequencing GDS format defined in the [SeqArray](http://www.bioconductor.org/packages/devel/bioc/html/SeqArray.html) package, see [the vignette](http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/SeqArrayTutorial.html#integration-with-snprelate).
 
 
 ## Tutorials
@@ -35,7 +35,7 @@ Development Version: v1.3.4
 
 ## Citation
 
-Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS (2012). “A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data”. *Bioinformatics*. [DOI: 10.1093/bioinformatics/bts606](http://dx.doi.org/10.1093/bioinformatics/bts606).
+Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS (2012). A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. *Bioinformatics*. [DOI: 10.1093/bioinformatics/bts606](http://dx.doi.org/10.1093/bioinformatics/bts606).
 
 
 ## Installation

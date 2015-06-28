@@ -73,8 +73,9 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
-    method=c("IBS", "GVH", "HVG"), type=c("per.pair", "per.snp", "matrix"),
-    with.id=TRUE, verbose=TRUE)
+    method=c("IBS", "GVH", "HVG"),
+    type=c("per.pair", "per.snp", "matrix", "gds.file"),
+    with.id=TRUE, output=NULL, verbose=TRUE)
 {
     # check
     if (anyDuplicated(sample1.id) != 0)
@@ -91,12 +92,61 @@ snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
     stopifnot(is.logical(with.id))
     stopifnot(is.logical(verbose))
 
+    if (type == "gds.file")
+    {
+        stopifnot(is.character(output) & is.vector(output))
+        stopifnot(length(output) == 1L)
+    } else {
+        if (!is.null(output))
+            stop("'output' should be NULL, if 'type' is not \"gds.file\".")
+    }
+
     if (verbose)
     {
         cat("Working space: ", ws$n.samp, " sample", .plural(ws$n.samp),
             ", ", ws$n.snp, " SNP", .plural(ws$n.snp), "\n", sep="")
         cat("Method: ", method, "\n", sep="")
     }
+
+    if (type == "gds.file")
+    {
+        ZIP <- "ZIP_RA.max"
+
+        # create GDS file
+        output <- createfn.gds(output)
+        # close the file at the end
+        on.exit({ closefn.gds(output) })
+
+        # add "sample.id"
+        add.gdsn(output, "sample.id", paste(sample1.id, sample2.id, sep="-"),
+            compress=ZIP, closezip=TRUE)
+
+        # SNPs
+        flag <- read.gdsn(index.gdsn(gdsobj, "snp.id")) %in% ws$snp.id
+
+        # add "snp.id"
+        add.gdsn(output, "snp.id", ws$snp.id, compress=ZIP, closezip=TRUE)
+        # add "snp.position"
+        add.gdsn(output, "snp.position",
+            read.gdsn(index.gdsn(gdsobj, "snp.position"))[flag],
+            compress=ZIP, closezip=TRUE)
+        # add "snp.chromosome"
+        add.gdsn(output, "snp.chromosome",
+            read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))[flag],
+            compress=ZIP, closezip=TRUE)
+
+        # add "genotype"
+        gGeno <- add.gdsn(output, "genotype", storage="bit2",
+            valdim = c(length(sample1.id), 0))
+        put.attr.gdsn(gGeno, "sample.order")
+
+        # sync file
+        sync.gds(output)
+
+        if (verbose)
+            cat("Output: ", output$filename, "\n", sep="")
+    } else
+        gGeno <- NULL
 
     # output
     if (with.id)
@@ -106,11 +156,14 @@ snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
 
     # call the C function
     ans$score <- .Call(gnrPairScore, match(sample1.id, ws$sample.id)-1L,
-        match(sample2.id, ws$sample.id)-1L, method, type, verbose)
+        match(sample2.id, ws$sample.id)-1L, method, type, gGeno, verbose)
     if (type == "per.pair")
         colnames(ans$score) <- c("Avg", "SD", "Num")
     else if (type == "per.snp")
         rownames(ans$score) <- c("Avg", "SD", "Num")
 
-    ans
+    if (type == "gds.file")
+        invisible(ans)
+    else
+        ans
 }
