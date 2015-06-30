@@ -313,8 +313,8 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Homo(SEXP NumThread, SEXP _Verbose)
 		DoKINGCalculate(IBD, INTEGER(NumThread)[0], "KING IBD:", verbose);
 
 		// initialize output variables
-		SEXP K0 = PROTECT(allocMatrix(REALSXP, n, n));
-		SEXP K1 = PROTECT(allocMatrix(REALSXP, n, n));
+		SEXP K0 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+		SEXP K1 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 
 		double *pK0 = REAL(K0);
 		double *pK1 = REAL(K1);
@@ -371,8 +371,8 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
 		DoKINGCalculate(IBD, INTEGER(NumThread)[0], "KING IBD:", verbose);
 
 		// initialize output variables
-		SEXP IBS0 = PROTECT(allocMatrix(REALSXP, n, n));
-		SEXP Kinship = PROTECT(allocMatrix(REALSXP, n, n));
+		SEXP IBS0 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+		SEXP Kinship = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 
 		double *pIBS0 = REAL(IBS0);
 		double *pKinship = REAL(Kinship);

@@ -206,6 +206,7 @@ namespace GWAS
 		virtual void Set_SampSelection(C_BOOL flag[]);
 
 	protected:
+		/// used in "SeqArray/src/LinkSNPRelate.cpp"
 		typedef struct
 		{
 			TTypeGenoDim *pGenoDimType;

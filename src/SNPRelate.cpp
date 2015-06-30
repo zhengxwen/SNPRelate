@@ -326,39 +326,39 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGeno(SEXP Node, SEXP snpfirstorder)
 /// copy genotypes to a memory buffer
 COREARRAY_DLL_EXPORT SEXP gnrCopyGenoMem(SEXP snpfirstdim)
 {
-	int if_snp = asLogical(snpfirstdim);
+	int if_snp = Rf_asLogical(snpfirstdim);
 	if (if_snp == NA_LOGICAL)
 		error("'snpfirstdim' must be TRUE, FALSE or NULL.");
 
 	COREARRAY_TRY
 
+		CdBaseWorkSpace &Space = MCWorkingGeno.Space();
 		if (if_snp)
 		{
-			PROTECT(rv_ans = allocMatrix(INTSXP,
-				MCWorkingGeno.Space().SNPNum(), MCWorkingGeno.Space().SampleNum()));
-			int *pMem = INTEGER(rv_ans);
-
-			const long n = MCWorkingGeno.Space().SNPNum();
-			CdBufSpace buf(MCWorkingGeno.Space(), false, CdBufSpace::acInc);
-			for (long i=0; i < buf.IdxCnt(); i++)
-			{
-				C_UInt8 *p = buf.ReadGeno(i);
-				for (long k=n; k > 0; k--, p++)
-					*pMem++ = (*p <= 2) ? (*p) : NA_INTEGER;
-			}
+			rv_ans = Rf_allocMatrix(INTSXP, Space.SNPNum(), Space.SampleNum());
 		} else {
-			PROTECT(rv_ans = allocMatrix(INTSXP,
-				MCWorkingGeno.Space().SampleNum(), MCWorkingGeno.Space().SNPNum()));
-			int *pMem = INTEGER(rv_ans);
+			rv_ans = Rf_allocMatrix(INTSXP, Space.SampleNum(), Space.SNPNum());
+		}
 
-			const long n = MCWorkingGeno.Space().SampleNum();
-			CdBufSpace buf(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
-			for (long i=0; i < buf.IdxCnt(); i++)
-			{
-				C_UInt8 *p = buf.ReadGeno(i);
-				for (long k=n; k > 0; k--, p++)
-					*pMem++ = (*p <= 2) ? (*p) : NA_INTEGER;
-			}
+		int *pMem = INTEGER(PROTECT(rv_ans));
+		C_UInt8 *p8 = (C_UInt8*)pMem;
+
+		// read data
+		if (Space.GenoDimType() == RDim_Sample_X_SNP)
+		{
+			Space.snpRead(0, Space.SNPNum(), p8,
+				if_snp ? RDim_SNP_X_Sample : RDim_Sample_X_SNP);
+		} else {
+			Space.sampleRead(0, Space.SampleNum(), p8,
+				if_snp ? RDim_SNP_X_Sample : RDim_Sample_X_SNP);
+		}
+
+		size_t n = XLENGTH(rv_ans);
+		pMem += n; p8 += n;
+		for (; n > 0; n--)
+		{
+			pMem --; p8 --;
+			*pMem = (*p8 < 3) ? (*p8) : NA_INTEGER;
 		}
 		UNPROTECT(1);
 

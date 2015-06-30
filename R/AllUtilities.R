@@ -995,9 +995,9 @@ snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     {
         cat("Genotype matrix: ")
         if (snpfirstdim)
-            cat(sprintf("%d snps X %d samples\n", ws$n.snp, ws$n.samp))
+            cat(sprintf("%d SNPs X %d samples\n", ws$n.snp, ws$n.samp))
         else
-            cat(sprintf("%d samples X %d snps\n", ws$n.samp, ws$n.snp))
+            cat(sprintf("%d samples X %d SNPs\n", ws$n.samp, ws$n.snp))
     }
 
     # get genotypes

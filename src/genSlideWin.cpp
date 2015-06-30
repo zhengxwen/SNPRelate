@@ -192,10 +192,10 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 		switch (FunIdx)
 		{
 		case 1:	 // snpgdsFst
-			rvlist = PROTECT(allocMatrix(REALSXP, Rf_asInteger(PL[1])+1, nWin));
+			rvlist = PROTECT(Rf_allocMatrix(REALSXP, Rf_asInteger(PL[1])+1, nWin));
 			break;
 		case 2:	 // snpgdsSNPRateFreq
-			rvlist = PROTECT(allocMatrix(REALSXP, 3, nWin));
+			rvlist = PROTECT(Rf_allocMatrix(REALSXP, 3, nWin));
 			break;
 		default:
 			rvlist = PROTECT(NEW_NUMERIC(nWin));

@@ -802,7 +802,7 @@ COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP n_slide, SEXP NumThread,
 
 		if (INTEGER(n_slide)[0] <= 0)
 		{
-			PROTECT(rv_ans = allocMatrix(REALSXP,
+			PROTECT(rv_ans = Rf_allocMatrix(REALSXP,
 				MCWorkingGeno.Space().SNPNum(), MCWorkingGeno.Space().SNPNum()));
 			{
 				double *p = REAL(rv_ans);
@@ -813,7 +813,7 @@ COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP n_slide, SEXP NumThread,
 
 			LD::calcLD_mat(INTEGER(NumThread)[0], REAL(rv_ans));
 		} else {
-			PROTECT(rv_ans = allocMatrix(REALSXP,
+			PROTECT(rv_ans = Rf_allocMatrix(REALSXP,
 				INTEGER(n_slide)[0], MCWorkingGeno.Space().SNPNum()));
 			{
 				double *p = REAL(rv_ans);

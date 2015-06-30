@@ -1295,7 +1295,7 @@ static int GetEigen(double *pMat, int n, int nEig, const char *EigMethod,
 		vt<double>::Sub(REAL(EigVal), 0.0, REAL(EigVal), n);
 
 		// output eigenvectors
-		EigVect = PROTECT(allocMatrix(REALSXP, n, nEig));
+		EigVect = PROTECT(Rf_allocMatrix(REALSXP, n, nEig));
 		nProtected ++;
 
 		for (size_t i=0; i < (size_t)nEig; i++)
@@ -1311,7 +1311,7 @@ static int GetEigen(double *pMat, int n, int nEig, const char *EigMethod,
 		vector<double> tmp_Eigen(n);
 
 		EigVal = PROTECT(NEW_NUMERIC(nEig));
-		EigVect = PROTECT(allocMatrix(REALSXP, n, nEig));
+		EigVect = PROTECT(Rf_allocMatrix(REALSXP, n, nEig));
 		nProtected += 2;
 
 		// DSPEVX -- compute selected eigenvalues and, optionally,
@@ -1394,7 +1394,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP NumThread,
 		if (LOGICAL(NeedGenMat)[0] == TRUE)
 		{
 			SEXP tmp;
-			PROTECT(tmp = allocMatrix(REALSXP, n, n));
+			PROTECT(tmp = Rf_allocMatrix(REALSXP, n, n));
 			nProtected ++;
 			SET_ELEMENT(rv_ans, 1, tmp);
 			Cov.SaveTo(REAL(tmp));
@@ -1451,7 +1451,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCACorr(SEXP LenEig, SEXP EigenVect,
 		// ======== To compute the snp correlation ========
 		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space().SampleNum());
 
-		PROTECT(rv_ans = allocMatrix(REALSXP, INTEGER(LenEig)[0],
+		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, INTEGER(LenEig)[0],
 			MCWorkingGeno.Space().SNPNum()));
 
 		PCA::DoSNPCoeffCalculate(INTEGER(LenEig)[0], REAL(EigenVect),
@@ -1482,7 +1482,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP DimCnt,
 		PROTECT(rv_ans = NEW_LIST(3));
 
 		SEXP loading, afreq, scale;
-		PROTECT(loading = allocMatrix(REALSXP, INTEGER(DimCnt)[1],
+		PROTECT(loading = Rf_allocMatrix(REALSXP, INTEGER(DimCnt)[1],
 			MCWorkingGeno.Space().SNPNum()));
 		SET_ELEMENT(rv_ans, 0, loading);
 
@@ -1516,7 +1516,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
 		// ======== To cache the genotype data ========
 		CachingSNPData("Sample Loading", verbose);
 
-		PROTECT(rv_ans = allocMatrix(REALSXP,
+		PROTECT(rv_ans = Rf_allocMatrix(REALSXP,
 			MCWorkingGeno.Space().SampleNum(), INTEGER(EigenCnt)[0]));
 
 		// ======== To compute the snp correlation ========
@@ -1644,7 +1644,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 			throw ErrCoreArray("Invalid 'method'!");
 
 		// Output
-		PROTECT(rv_ans = allocMatrix(REALSXP, n, n));
+		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, n, n));
 		double *base = REAL(rv_ans);
 		double *p = IBD.get();
 		for (R_xlen_t i=0; i < n; i++)
@@ -1722,7 +1722,7 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
 
 		if (LOGICAL(_NeedIBDMat)[0] == TRUE)
 		{
-			PROTECT(IBDMat = allocMatrix(REALSXP, n, n));
+			PROTECT(IBDMat = Rf_allocMatrix(REALSXP, n, n));
 			nProtected ++;
 
 			double *base = REAL(IBDMat);
@@ -1754,7 +1754,7 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
 			if (eigencnt > n) eigencnt = n;
 
 			PROTECT(EigenVal = NEW_NUMERIC(n));
-			PROTECT(EigenVec = allocMatrix(REALSXP, n, eigencnt));
+			PROTECT(EigenVec = Rf_allocMatrix(REALSXP, n, eigencnt));
 			nProtected += 2;
 
 			{

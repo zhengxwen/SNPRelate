@@ -133,7 +133,7 @@ COREARRAY_DLL_EXPORT SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method)
 			// output
 			PROTECT(rv_ans = NEW_LIST(2));
 			SET_ELEMENT(rv_ans, 0, ScalarReal(1 - H_W/H_B));
-			SEXP beta_mat = PROTECT(allocMatrix(REALSXP, NumPop, NumPop));
+			SEXP beta_mat = PROTECT(Rf_allocMatrix(REALSXP, NumPop, NumPop));
 			double *pmat = REAL(beta_mat);
 			SET_ELEMENT(rv_ans, 1, beta_mat);
 			for (int k1=0; k1 < NumPop; k1++)

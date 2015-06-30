@@ -52,6 +52,9 @@ dim(mat2)
 # 279 1000
 table(c(mat2), exclude=NULL)
 
+identical(t(mat1), mat2)
+# TRUE
+
 # close the file
 snpgdsClose(genofile)
 }

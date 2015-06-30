@@ -573,7 +573,7 @@ COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 			verbose);
 
 		// output
-		PROTECT(rv_ans = allocMatrix(REALSXP, n, n));
+		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, n, n));
 
 		IBS::TS_Dissimilarity *p = Dist.get();
 		double *out_Diss = REAL(rv_ans);
@@ -658,7 +658,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 				}
 			}
 
-			rv_ans = allocMatrix(REALSXP, nPair, 3);
+			rv_ans = Rf_allocMatrix(REALSXP, nPair, 3);
 			double *Out = REAL(rv_ans);
 			for (int i=0; i < nPair; i++)
 			{
@@ -671,7 +671,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 		} else if (strcmp(c_Type, "per.snp") == 0)
 		{
 			vector<double> Buffer(nPair);
-			rv_ans = allocMatrix(REALSXP, 3, nSNP);
+			rv_ans = Rf_allocMatrix(REALSXP, 3, nSNP);
 			double *Out = REAL(rv_ans);
 
 			// for-loop
@@ -705,7 +705,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 			}
 		} else if (strcmp(c_Type, "matrix") == 0)
 		{
-			rv_ans = allocMatrix(INTSXP, nPair, nSNP);
+			rv_ans = Rf_allocMatrix(INTSXP, nPair, nSNP);
 			int *Out = INTEGER(rv_ans);
 
 			// for-loop

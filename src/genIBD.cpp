@@ -1540,13 +1540,13 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE(SEXP AlleleFreq, SEXP KinshipConstraint,
 
 		// output
 		SEXP k0, k1, IterNum=NULL;
-		PROTECT(k0 = allocMatrix(REALSXP, n, n));
+		PROTECT(k0 = Rf_allocMatrix(REALSXP, n, n));
 		SET_ELEMENT(rv_ans, 0, k0);
-		PROTECT(k1 = allocMatrix(REALSXP, n, n));
+		PROTECT(k1 = Rf_allocMatrix(REALSXP, n, n));
 		SET_ELEMENT(rv_ans, 1, k1);
 		if (LOGICAL(IfOutNum)[0] == TRUE)
 		{
-			PROTECT(IterNum = allocMatrix(INTSXP, n, n));
+			PROTECT(IterNum = Rf_allocMatrix(INTSXP, n, n));
 			SET_ELEMENT(rv_ans, 3, IterNum);
 		}
 
@@ -1625,12 +1625,12 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE_Jacquard(SEXP AlleleFreq, SEXP MaxIterCnt,
 		SEXP D[8], IterNum=NULL;
 		for (int i=0; i < 8; i++)
 		{
-			PROTECT(D[i] = allocMatrix(REALSXP, n, n));
+			PROTECT(D[i] = Rf_allocMatrix(REALSXP, n, n));
 			SET_ELEMENT(rv_ans, i, D[i]);
 		}
 		if (LOGICAL(IfOutNum)[0] == TRUE)
 		{
-			PROTECT(IterNum = allocMatrix(INTSXP, n, n));
+			PROTECT(IterNum = Rf_allocMatrix(INTSXP, n, n));
 			SET_ELEMENT(rv_ans, 9, IterNum);
 		}
 
@@ -1740,7 +1740,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_LogLik(SEXP AlleleFreq, SEXP k0, SEXP k1)
 
 		// call
 		const int n = MCWorkingGeno.Space().SampleNum();
-		PROTECT(rv_ans = allocMatrix(REALSXP, n, n));
+		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, n, n));
 		IBD::Do_MLE_LogLik(REAL(AlleleFreq), REAL(k0), REAL(k1),
 			&(tmp_AF[0]), REAL(rv_ans));
 		UNPROTECT(1);
@@ -1764,7 +1764,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_LogLik_k01(SEXP AlleleFreq, SEXP k0, SEXP k1)
 
 		// call
 		const int n = MCWorkingGeno.Space().SampleNum();
-		PROTECT(rv_ans = allocMatrix(REALSXP, n, n));
+		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, n, n));
 		IBD::Do_MLE_LogLik_k01(REAL(AlleleFreq), REAL(k0)[0], REAL(k1)[0],
 			&(tmp_AF[0]), REAL(rv_ans));
 		UNPROTECT(1);
