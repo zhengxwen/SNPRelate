@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: SNP selection</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsSelectSNP {SNPRelate}"><tr><td>snpgdsSelectSNP {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+SNP selection
+</h2>
+
+<h3>Description</h3>
+
+<p>Create a list of candidate SNPs based on specified criteria
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsSelectSNP(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, verbose=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>,
+a SNP GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>a vector of sample id specifying selected samples;
+if <code>NULL</code>, all samples will be used</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>a vector of snp id specifying selected SNPs;
+if <code>NULL</code>, all SNPs will be used</p>
+</td></tr>
+<tr valign="top"><td><code>autosome.only</code></td>
+<td>
+<p>if <code>TRUE</code>, use autosomal SNPs only; if it is a
+numeric or character value, keep SNPs according to the specified
+chromosome</p>
+</td></tr>
+<tr valign="top"><td><code>remove.monosnp</code></td>
+<td>
+<p>if <code>TRUE</code>, remove monomorphic SNPs</p>
+</td></tr>
+<tr valign="top"><td><code>maf</code></td>
+<td>
+<p>to use the SNPs with &quot;&gt;= maf&quot; only; if <code>NaN</code>,
+no any MAF threshold</p>
+</td></tr>
+<tr valign="top"><td><code>missing.rate</code></td>
+<td>
+<p>to use the SNPs with &quot;&lt;= missing.rate&quot; only;
+if <code>NaN</code>, no any missing threshold</p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if <code>TRUE</code>, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Return a list of snp ids.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsSampMissRate.html">snpgdsSampMissRate</a></code>, <code><a href="snpgdsSNPRateFreq.html">snpgdsSNPRateFreq</a></code>,
+<code><a href="snpgdsLDpruning.html">snpgdsLDpruning</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+snpset &lt;- snpgdsSelectSNP(genofile, maf=0.05, missing.rate=0.95)
+length(snpset)
+# 7502
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.3.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

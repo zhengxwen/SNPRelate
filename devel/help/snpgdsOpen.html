@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Open a SNP GDS File</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsOpen {SNPRelate}"><tr><td>snpgdsOpen {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Open a SNP GDS File</h2>
+
+<h3>Description</h3>
+
+<p>Open a SNP GDS file
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsOpen(filename, readonly=TRUE, allow.duplicate=FALSE, allow.fork=FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>filename</code></td>
+<td>
+<p>the file name</p>
+</td></tr>
+<tr valign="top"><td><code>readonly</code></td>
+<td>
+<p>whether read-only or not</p>
+</td></tr>
+<tr valign="top"><td><code>allow.duplicate</code></td>
+<td>
+<p>if <code>TRUE</code>, it is allowed to open a GDS file
+with read-only mode when it has been opened in the same R session,
+see <code><a href="../../gdsfmt/html/openfn.gds.html">openfn.gds</a></code></p>
+</td></tr>
+<tr valign="top"><td><code>allow.fork</code></td>
+<td>
+<p><code>TRUE</code> for parallel environment using forking,
+see <code><a href="../../gdsfmt/html/openfn.gds.html">openfn.gds</a></code></p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>It is strongly suggested to call <code>snpgdsOpen</code> instead of
+<code><a href="../../gdsfmt/html/openfn.gds.html">openfn.gds</a></code>, since <code>snpgdsOpen</code> will perform
+internal checking for data integrality.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsClose.html">snpgdsClose</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+genofile
+
+# close the file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.3.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

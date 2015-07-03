@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Missing Rate of Samples</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsSampMissRate {SNPRelate}"><tr><td>snpgdsSampMissRate {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+Missing Rate of Samples
+</h2>
+
+<h3>Description</h3>
+
+<p>Return the missing fraction for each sample
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsSampMissRate(gdsobj, sample.id=NULL, snp.id=NULL, with.id=FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>,
+a SNP GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>a vector of sample id specifying selected samples;
+if <code>NULL</code>, all samples will be used</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>a vector of snp id specifying selected SNPs;
+if <code>NULL</code>, all SNPs will be used</p>
+</td></tr>
+<tr valign="top"><td><code>with.id</code></td>
+<td>
+<p>if <code>TRUE</code>, the returned value with sample id</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>A vector of numeric values.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsSNPRateFreq.html">snpgdsSNPRateFreq</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+RV &lt;- snpgdsSampMissRate(genofile)
+summary(RV)
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.3.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

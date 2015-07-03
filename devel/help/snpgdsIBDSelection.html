@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Get a table of IBD coefficients</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsIBDSelection {SNPRelate}"><tr><td>snpgdsIBDSelection {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+Get a table of IBD coefficients
+</h2>
+
+<h3>Description</h3>
+
+<p>Return a data frame with IBD coefficients.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsIBDSelection(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>ibdobj</code></td>
+<td>
+<p>an object of <code>snpgdsIBDClass</code> returned by
+<code><a href="snpgdsIBDMLE.html">snpgdsIBDMLE</a></code> or <code><a href="snpgdsIBDMoM.html">snpgdsIBDMoM</a></code></p>
+</td></tr>
+<tr valign="top"><td><code>kinship.cutoff</code></td>
+<td>
+<p>select the individual pairs with kinship coefficients
+&gt;= kinship.cutoff; no filter if <code>kinship.cutoff = NaN</code></p>
+</td></tr>
+<tr valign="top"><td><code>samp.sel</code></td>
+<td>
+<p>a logical vector or integer vector to specify selection
+of samples</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Return a data.frame:
+</p>
+<table summary="R valueblock">
+<tr valign="top"><td><code>ID1</code></td>
+<td>
+<p>the id of the first individual</p>
+</td></tr>
+<tr valign="top"><td><code>ID2</code></td>
+<td>
+<p>the id of the second individual</p>
+</td></tr>
+<tr valign="top"><td><code>k0</code></td>
+<td>
+<p>the probability of sharing ZERO alleles</p>
+</td></tr>
+<tr valign="top"><td><code>k1</code></td>
+<td>
+<p>the probability of sharing ONE alleles</p>
+</td></tr>
+<tr valign="top"><td><code>kinship</code></td>
+<td>
+<p>kinship coefficient</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsIBDMLE.html">snpgdsIBDMLE</a></code>, <code><a href="snpgdsIBDMoM.html">snpgdsIBDMoM</a></code>,
+<code><a href="snpgdsIBDKING.html">snpgdsIBDKING</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+# YRI population
+YRI.id &lt;- read.gdsn(index.gdsn(genofile, "sample.id"))[
+    read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="YRI"]
+pibd &lt;- snpgdsIBDMoM(genofile, sample.id=YRI.id)
+flag &lt;- lower.tri(pibd$k0)
+plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
+lines(c(0,1), c(1,0), col="red", lty=3)
+points(pibd$k0[flag], pibd$k1[flag])
+
+# close the genotype file
+snpgdsClose(genofile)
+
+# IBD coefficients
+dat &lt;- snpgdsIBDSelection(pibd, 1/32)
+head(dat)
+#       ID1     ID2          k0        k1    kinship
+# 1 NA19152 NA19154 0.010749154 0.9892508 0.24731271
+# 2 NA19152 NA19093 0.848207777 0.1517922 0.03794806
+# 3 NA19139 NA19138 0.010788047 0.9770181 0.25035144
+# 4 NA19139 NA19137 0.012900661 0.9870993 0.24677483
+# 5 NA18912 NA18914 0.008633077 0.9913669 0.24784173
+# 6 NA19160 NA19161 0.008635754 0.9847777 0.24948770
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.3.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

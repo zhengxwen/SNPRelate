@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Log likelihood for MLE method in the Identity-By-Descent...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsPairIBDMLELogLik {SNPRelate}"><tr><td>snpgdsPairIBDMLELogLik {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+Log likelihood for MLE method in the Identity-By-Descent (IBD) Analysis
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the log likelihood values from maximum likelihood estimation.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsPairIBDMLELogLik(geno1, geno2, allele.freq, k0=NaN, k1=NaN,
+    relatedness=c("", "self", "fullsib", "offspring", "halfsib",
+    "cousin", "unrelated"), verbose=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>geno1</code></td>
+<td>
+<p>the SNP genotypes for the first individual,
+0 &ndash; BB, 1 &ndash; AB, 2 &ndash; AA, other values &ndash; missing</p>
+</td></tr>
+<tr valign="top"><td><code>geno2</code></td>
+<td>
+<p>the SNP genotypes for the second individual,
+0 &ndash; BB, 1 &ndash; AB, 2 &ndash; AA, other values &ndash; missing</p>
+</td></tr>
+<tr valign="top"><td><code>allele.freq</code></td>
+<td>
+<p>the allele frequencies</p>
+</td></tr>
+<tr valign="top"><td><code>k0</code></td>
+<td>
+<p>specified IBD coefficient</p>
+</td></tr>
+<tr valign="top"><td><code>k1</code></td>
+<td>
+<p>specified IBD coefficient</p>
+</td></tr>
+<tr valign="top"><td><code>relatedness</code></td>
+<td>
+<p>specify a relatedness, otherwise use the values of
+k0 and k1</p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if TRUE, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>If (<code>relatedness</code> == &quot;&quot;) and (k0 == NaN or k1 == NaN), then return
+the log likelihood values for each (k0, k1) stored in ibdobj.
+</p>
+<p>If (<code>relatedness</code> == &quot;&quot;) and (k0 != NaN) and (k1 != NaN), then return
+the log likelihood values for a specific IBD coefficient (k0, k1).
+</p>
+<p>If <code>relatedness</code> is: &quot;self&quot;, then k0 = 0, k1 = 0; &quot;fullsib&quot;, then
+k0 = 0.25, k1 = 0.5; &quot;offspring&quot;, then k0 = 0, k1 = 1; &quot;halfsib&quot;, then
+k0 = 0.5, k1 = 0.5; &quot;cousin&quot;, then k0 = 0.75, k1 = 0.25; &quot;unrelated&quot;, then
+k0 = 1, k1 = 0.
+</p>
+
+
+<h3>Value</h3>
+
+<p>The value of log likelihood.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p>Milligan BG. 2003. Maximum-likelihood estimation of relatedness.
+Genetics 163:1153-1167.
+</p>
+<p>Weir BS, Anderson AD, Hepler AB. 2006.
+Genetic relatedness analysis: modern data and new challenges.
+Nat Rev Genet. 7(10):771-80.
+</p>
+<p>Choi Y, Wijsman EM, Weir BS. 2009.
+Case-control association testing in the presence of unknown relationships.
+Genet Epidemiol 33(8):668-78.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsPairIBD.html">snpgdsPairIBD</a></code>, <code><a href="snpgdsIBDMLE.html">snpgdsIBDMLE</a></code>,
+<code><a href="snpgdsIBDMLELogLik.html">snpgdsIBDMLELogLik</a></code>, <code><a href="snpgdsIBDMoM.html">snpgdsIBDMoM</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+YRI.id &lt;- read.gdsn(index.gdsn(genofile, "sample.id"))[
+    read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="YRI"]
+
+# SNP pruning
+set.seed(10)
+snpset &lt;- snpgdsLDpruning(genofile, sample.id=YRI.id, maf=0.05,
+    missing.rate=0.05)
+snpset &lt;- unname(sample(unlist(snpset), 250))
+
+# the number of samples
+n &lt;- 25
+
+# specify allele frequencies
+RF &lt;- snpgdsSNPRateFreq(genofile, sample.id=YRI.id, snp.id=snpset,
+    with.id=TRUE)
+summary(RF$AlleleFreq)
+
+subMLE &lt;- snpgdsIBDMLE(genofile, sample.id=YRI.id[1:n], snp.id=RF$snp.id,
+    allele.freq=RF$AlleleFreq)
+subMoM &lt;- snpgdsIBDMoM(genofile, sample.id=YRI.id[1:n], snp.id=RF$snp.id,
+    allele.freq=RF$AlleleFreq)
+
+
+# genotype matrix
+mat &lt;- snpgdsGetGeno(genofile, sample.id=YRI.id[1:n], snp.id=snpset,
+    snpfirstdim=TRUE)
+
+
+########################
+
+rv &lt;- NULL
+for (i in 2:n)
+{
+    rv &lt;- rbind(rv, snpgdsPairIBD(mat[,1], mat[,i], RF$AlleleFreq, "EM"))
+    print(snpgdsPairIBDMLELogLik(mat[,1], mat[,i], RF$AlleleFreq,
+        relatedness="unrelated", verbose=TRUE))
+}
+rv
+summary(rv$k0 - subMLE$k0[1, 2:n])
+summary(rv$k1 - subMLE$k1[1, 2:n])
+# ZERO
+
+rv &lt;- NULL
+for (i in 2:n)
+    rv &lt;- rbind(rv, snpgdsPairIBD(mat[,1], mat[,i], RF$AlleleFreq, "MoM"))
+rv
+summary(rv$k0 - subMoM$k0[1, 2:n])
+summary(rv$k1 - subMoM$k1[1, 2:n])
+# ZERO
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.3.5 <a href="00Index.html">Index</a>]</div>
+</body></html>

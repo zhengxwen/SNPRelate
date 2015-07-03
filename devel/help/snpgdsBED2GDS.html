@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Conversion from PLINK BED to GDS</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsBED2GDS {SNPRelate}"><tr><td>snpgdsBED2GDS {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Conversion from PLINK BED to GDS</h2>
+
+<h3>Description</h3>
+
+<p>Convert a PLINK binary ped file to a GDS file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
+    snpfirstdim=NA, compress.annotation="ZIP_RA.max", compress.geno="",
+    option=NULL, cvt.chr=c("int", "char"), cvt.snpid=c("auto", "int"),
+    verbose=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>bed.fn</code></td>
+<td>
+<p>the file name of binary file, genotype information</p>
+</td></tr>
+<tr valign="top"><td><code>fam.fn</code></td>
+<td>
+<p>the file name of first six columns of .ped</p>
+</td></tr>
+<tr valign="top"><td><code>bim.fn</code></td>
+<td>
+<p>the file name of extended MAP file:
+two extra cols = allele names</p>
+</td></tr>
+<tr valign="top"><td><code>out.gdsfn</code></td>
+<td>
+<p>the output GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>family</code></td>
+<td>
+<p>if <code>TRUE</code>, to include family information in the
+sample annotation</p>
+</td></tr>
+<tr valign="top"><td><code>snpfirstdim</code></td>
+<td>
+<p>if TRUE, genotypes are stored in the individual-major
+mode, (i.e, list all SNPs for the first individual, and then list all
+SNPs for the second individual, etc); <code>NA</code>, the dimension is
+determined by the BED file</p>
+</td></tr>
+<tr valign="top"><td><code>compress.annotation</code></td>
+<td>
+<p>the compression method for the GDS variables,
+except &quot;genotype&quot;; optional values are defined in the function
+<code>add.gdsn</code></p>
+</td></tr>
+<tr valign="top"><td><code>compress.geno</code></td>
+<td>
+<p>the compression method for &quot;genotype&quot;; optional
+values are defined in the function <code>add.gdsn</code></p>
+</td></tr>
+<tr valign="top"><td><code>option</code></td>
+<td>
+<p><code>NULL</code> or an object from <code><a href="snpgdsOption.html">snpgdsOption</a></code>,
+see details</p>
+</td></tr>
+<tr valign="top"><td><code>cvt.chr</code></td>
+<td>
+<p><code>"int"</code> &ndash; chromosome code in the GDS file is integer;
+<code>"char"</code> &ndash; chromosome code in the GDS file is character</p>
+</td></tr>
+<tr valign="top"><td><code>cvt.snpid</code></td>
+<td>
+<p><code>"int"</code> &ndash; to create an integer <code>snp.id</code>
+starting from 1; <code>"auto"</code> &ndash; if SNP IDs in the PLINK file are not
+unique, to create an an integer <code>snp.id</code>, otherwise to use SNP
+IDs for <code>snp.id</code></p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if TRUE, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>GDS &ndash; Genomic Data Structures, the extended file name used for storing
+genetic data, and the file format is used in the <a href="../../gdsfmt/html/gdsfmt-package.html">gdsfmt</a> package.
+</p>
+<p>BED &ndash; the PLINK binary ped format.
+</p>
+<p>The user could use <code>option</code> to specify the range of code for autosomes.
+For humans there are 22 autosomes (from 1 to 22), but dogs have 38 autosomes.
+Note that the default settings are used for humans. The user could call
+<code>option = snpgdsOption(autosome.end=38)</code> for importing the BED file of dog.
+It also allow define new chromosome coding, e.g.,
+<code>option = snpgdsOption(Z=27)</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return the file name of GDS format with an absolute path.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p>Purcell S, Neale B, Todd-Brown K, Thomas L, Ferreira MAR, Bender D,
+Maller J, Sklar P, de Bakker PIW, Daly MJ &amp; Sham PC. 2007.
+PLINK: a toolset for whole-genome association and population-based linkage
+analysis. American Journal of Human Genetics, 81.
+</p>
+<p><a href="http://corearray.sourceforge.net/">http://corearray.sourceforge.net/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsOption.html">snpgdsOption</a></code>, <code><a href="snpgdsPED2GDS.html">snpgdsPED2GDS</a></code>,
+<code><a href="snpgdsGDS2PED.html">snpgdsGDS2PED</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# PLINK BED files
+bed.fn &lt;- system.file("extdata", "plinkhapmap.bed.gz", package="SNPRelate")
+fam.fn &lt;- system.file("extdata", "plinkhapmap.fam.gz", package="SNPRelate")
+bim.fn &lt;- system.file("extdata", "plinkhapmap.bim.gz", package="SNPRelate")
+
+# convert
+snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, "HapMap.gds")
+
+# open
+genofile &lt;- snpgdsOpen("HapMap.gds")
+genofile
+
+# close
+snpgdsClose(genofile)
+
+
+# delete the temporary file
+unlink("HapMap.gds", force=TRUE)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.3.5 <a href="00Index.html">Index</a>]</div>
+</body></html>
