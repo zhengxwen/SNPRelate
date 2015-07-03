@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: KING method of moment for the identity-by-descent (IBD)...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsIBDKING {SNPRelate}"><tr><td>snpgdsIBDKING {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+KING method of moment for the identity-by-descent (IBD) analysis
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate IBD coefficients by KING method of moment.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsIBDKING(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    type=c("KING-robust", "KING-homo"), family.id=NULL,
+    num.thread=1, verbose=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>,
+a SNP GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>a vector of sample id specifying selected samples; if NULL,
+all samples are used</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>a vector of snp id specifying selected SNPs;
+if NULL, all SNPs are used</p>
+</td></tr>
+<tr valign="top"><td><code>autosome.only</code></td>
+<td>
+<p>if <code>TRUE</code>, use autosomal SNPs only; if it is a
+numeric or character value, keep SNPs according to the specified
+chromosome</p>
+</td></tr>
+<tr valign="top"><td><code>remove.monosnp</code></td>
+<td>
+<p>if TRUE, remove monomorphic SNPs</p>
+</td></tr>
+<tr valign="top"><td><code>maf</code></td>
+<td>
+<p>to use the SNPs with &quot;&gt;= maf&quot; only; if NaN, no MAF threshold</p>
+</td></tr>
+<tr valign="top"><td><code>missing.rate</code></td>
+<td>
+<p>to use the SNPs with &quot;&lt;= missing.rate&quot; only; if NaN, no
+missing threshold</p>
+</td></tr>
+<tr valign="top"><td><code>type</code></td>
+<td>
+<p><code>"KING-robust"</code> &ndash; relationship inference in the presence
+of population stratification; <code>"KING-homo"</code> &ndash; relationship
+inference in a homogeneous population</p>
+</td></tr>
+<tr valign="top"><td><code>family.id</code></td>
+<td>
+<p>if <code>NULL</code>, all individuals are treated as singletons;
+if family id is given, within- and between-family relationship are
+estimated differently. If <code>sample.id=NULL</code>, <code>family.id</code>
+should have the same length as &quot;sample.id&quot; in the GDS file, otherwise
+<code>family.id</code> should have the same length and order as the argument
+<code>sample.id</code></p>
+</td></tr>
+<tr valign="top"><td><code>num.thread</code></td>
+<td>
+<p>the number of (CPU) cores used; if <code>NA</code>, detect
+the number of cores automatically</p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if TRUE, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>KING IBD estimator is a moment estimator, and it is computationally
+efficient relative to MLE method. The approaches include <code>"KING-robust"</code>
+&ndash; robust relationship inference within or across families in the presence of
+population substructure, and <code>"KING-homo"</code> &ndash; relationship inference in
+a homogeneous population.
+</p>
+<p>With <code>"KING-robust"</code>, the function would return the proportion of SNPs
+with zero IBS (<code>IBS0</code>) and kinship coefficient (<code>kinship</code>). With
+<code>"KING-homo"</code> it would return the probability of sharing one IBD
+(<code>k1</code>) and the probability of sharing zero IBD (<code>k0</code>).
+</p>
+<p>The minor allele frequency and missing rate for each SNP passed in
+<code>snp.id</code> are calculated over all the samples in <code>sample.id</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return a list:
+</p>
+<table summary="R valueblock">
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>the sample ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>the SNP ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>k0</code></td>
+<td>
+<p>IBD coefficient, the probability of sharing zero IBD</p>
+</td></tr>
+<tr valign="top"><td><code>k1</code></td>
+<td>
+<p>IBD coefficient, the probability of sharing one IBD</p>
+</td></tr>
+<tr valign="top"><td><code>IBS0</code></td>
+<td>
+<p>proportion of SNPs with zero IBS</p>
+</td></tr>
+<tr valign="top"><td><code>kinship</code></td>
+<td>
+<p>the estimated kinship coefficients, if the parameter
+<code>kinship=TRUE</code></p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p>Manichaikul A, Mychaleckyj JC, Rich SS, Daly K, Sale M, Chen WM.
+Robust relationship inference in genome-wide association studies.
+Bioinformatics. 2010 Nov 15;26(22):2867-73.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsIBDMLE.html">snpgdsIBDMLE</a></code>, <code><a href="snpgdsIBDMoM.html">snpgdsIBDMoM</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+# CEU population
+samp.id &lt;- read.gdsn(index.gdsn(genofile, "sample.id"))
+CEU.id &lt;- samp.id[
+    read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="CEU"]
+
+
+
+####  KING-robust:
+####  relationship inference in the presence of population stratification
+####               robust relationship inference across family
+
+ibd.robust &lt;- snpgdsIBDKING(genofile, sample.id=CEU.id, family.id=NULL)
+names(ibd.robust)
+# [1] "sample.id" "snp.id"    "afreq"     "IBS0"      "kinship"
+
+# select a set of pairs of individuals
+dat &lt;- snpgdsIBDSelection(ibd.robust, 1/32)
+head(dat)
+
+plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
+    ylab="Estimated Kinship Coefficient (KING-robust)")
+
+
+
+####  KING-robust:
+####  relationship inference in the presence of population stratification
+####               within- and between-family relationship inference
+
+# incorporate with pedigree information
+family.id &lt;- read.gdsn(index.gdsn(genofile, "sample.annot/family.id"))
+family.id &lt;- family.id[match(CEU.id, samp.id)]
+
+ibd.robust2 &lt;- snpgdsIBDKING(genofile, sample.id=CEU.id, family.id=family.id)
+names(ibd.robust2)
+
+# select a set of pairs of individuals
+dat &lt;- snpgdsIBDSelection(ibd.robust2, 1/32)
+head(dat)
+
+plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
+    ylab="Estimated Kinship Coefficient (KING-robust)")
+
+
+
+####  KING-homo: relationship inference in a homogeneous population
+
+ibd.homo &lt;- snpgdsIBDKING(genofile, sample.id=CEU.id, type="KING-homo")
+names(ibd.homo)
+# "sample.id" "snp.id"    "afreq"     "k0"        "k1"
+
+# select a subset of pairs of individuals
+dat &lt;- snpgdsIBDSelection(ibd.homo, 1/32)
+head(dat)
+
+plot(dat$k0, dat$kinship, xlab="Pr(IBD=0)",
+    ylab="Estimated Kinship Coefficient (KING-homo)")
+
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

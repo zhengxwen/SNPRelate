@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: F-statistics (fixation indices)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsFst {SNPRelate}"><tr><td>snpgdsFst {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+F-statistics (fixation indices)
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate relatedness measures F-statistics (also known as fixation
+indices) for given populations
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsFst(gdsobj, population, method=c("W&amp;H02", "W&amp;C84"), sample.id=NULL,
+    snp.id=NULL, autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN,
+    missing.rate=NaN, with.id=FALSE, verbose=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>,
+a SNP GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>population</code></td>
+<td>
+<p>a factor, indicating population information for each
+individual</p>
+</td></tr>
+<tr valign="top"><td><code>method</code></td>
+<td>
+<p><code>"W&amp;H02"</code> &ndash; relative beta estimator in Weir&amp;Hill 2002,
+<code>"W&amp;C84"</code> &ndash; Fst estimator in Weir&amp;Cockerham 1984</p>
+</td></tr>
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>a vector of sample id specifying selected samples;
+if NULL, all samples are used</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>a vector of snp id specifying selected SNPs;
+if NULL, all SNPs are used</p>
+</td></tr>
+<tr valign="top"><td><code>autosome.only</code></td>
+<td>
+<p>if <code>TRUE</code>, use autosomal SNPs only; if it is a
+numeric or character value, keep SNPs according to the specified
+chromosome</p>
+</td></tr>
+<tr valign="top"><td><code>remove.monosnp</code></td>
+<td>
+<p>if TRUE, remove monomorphic SNPs</p>
+</td></tr>
+<tr valign="top"><td><code>maf</code></td>
+<td>
+<p>to use the SNPs with &quot;&gt;= maf&quot; only; if NaN, no MAF threshold</p>
+</td></tr>
+<tr valign="top"><td><code>missing.rate</code></td>
+<td>
+<p>to use the SNPs with &quot;&lt;= missing.rate&quot; only;
+if NaN, no missing threshold</p>
+</td></tr>
+<tr valign="top"><td><code>with.id</code></td>
+<td>
+<p>if <code>TRUE</code>, the returned value with <code>sample.id</code> and
+<code>sample.id</code></p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if <code>TRUE</code>, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>The minor allele frequency and missing rate for each SNP passed in
+<code>snp.id</code> are calculated over all the samples in <code>sample.id</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return a list:
+</p>
+<table summary="R valueblock">
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>the sample ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>the SNP ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>Fst</code></td>
+<td>
+<p>Fst estimator</p>
+</td></tr>
+<tr valign="top"><td><code>Beta</code></td>
+<td>
+<p>Beta matrix</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p>Weir, B. S. &amp; Cockerham, C. C.
+Estimating F-statistics for the analysis of population structure. (1984).
+</p>
+<p>Weir, B. S. &amp; Hill, W. G. Estimating F-statistics.
+Annual review of genetics 36, 721-50 (2002).
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+group &lt;- as.factor(read.gdsn(index.gdsn(
+    genofile, "sample.annot/pop.group")))
+
+# Fst estimation
+snpgdsFst(genofile, population=group, method="W&amp;H02")
+
+# or
+snpgdsFst(genofile, population=group, method="W&amp;C84")
+
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

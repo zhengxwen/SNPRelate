@@ -1,0 +1,139 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Identity-By-State (IBS)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsIBSNum {SNPRelate}"><tr><td>snpgdsIBSNum {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+Identity-By-State (IBS)
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the number of SNPs for identity by state for each pair of
+samples.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsIBSNum(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
+    remove.monosnp = TRUE, maf = NaN, missing.rate = NaN, num.thread = 1,
+    verbose = TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>,
+a SNP GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>a vector of sample id specifying selected samples;
+if NULL, all samples are used</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>a vector of snp id specifying selected SNPs; if NULL,
+all SNPs are used</p>
+</td></tr>
+<tr valign="top"><td><code>autosome.only</code></td>
+<td>
+<p>if <code>TRUE</code>, use autosomal SNPs only; if it is a
+numeric or character value, keep SNPs according to the specified
+chromosome</p>
+</td></tr>
+<tr valign="top"><td><code>remove.monosnp</code></td>
+<td>
+<p>if TRUE, remove monomorphic SNPs</p>
+</td></tr>
+<tr valign="top"><td><code>maf</code></td>
+<td>
+<p>to use the SNPs with &quot;&gt;= maf&quot; only; if NaN, no MAF threshold</p>
+</td></tr>
+<tr valign="top"><td><code>missing.rate</code></td>
+<td>
+<p>to use the SNPs with &quot;&lt;= missing.rate&quot; only; if NaN,
+no missing threshold</p>
+</td></tr>
+<tr valign="top"><td><code>num.thread</code></td>
+<td>
+<p>the number of (CPU) cores used; if <code>NA</code>, detect
+the number of cores automatically</p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if TRUE, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>The minor allele frequency and missing rate for each SNP passed in
+<code>snp.id</code> are calculated over all the samples in <code>sample.id</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return a list (n is the number of samples):
+</p>
+<table summary="R valueblock">
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>the sample ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>the SNP ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>ibs0</code></td>
+<td>
+<p>a n-by-n matrix, the number of SNPs sharing 0 IBS</p>
+</td></tr>
+<tr valign="top"><td><code>ibs1</code></td>
+<td>
+<p>a n-by-n matrix, the number of SNPs sharing 1 IBS</p>
+</td></tr>
+<tr valign="top"><td><code>ibs2</code></td>
+<td>
+<p>a n-by-n matrix, the number of SNPs sharing 2 IBS</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsIBS.html">snpgdsIBS</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+RV &lt;- snpgdsIBSNum(genofile)
+pop &lt;- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
+L &lt;- order(pop)
+image(RV$ibs0[L, L]/length(RV$snp.id))
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

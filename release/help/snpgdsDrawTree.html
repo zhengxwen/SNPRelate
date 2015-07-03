@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Draw a dendrogram</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsDrawTree {SNPRelate}"><tr><td>snpgdsDrawTree {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+Draw a dendrogram
+</h2>
+
+<h3>Description</h3>
+
+<p>To draw a dendrogram or the distribution of Z scores
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsDrawTree(obj, clust.count=NULL, dend.idx=NULL,
+    type=c("dendrogram", "z-score"), yaxis.height=TRUE, yaxis.kinship=TRUE,
+    y.kinship.baseline=NaN, y.label.kinship=FALSE, outlier.n=NULL,
+    shadow.col=c(rgb(0.5, 0.5, 0.5, 0.25), rgb(0.5, 0.5, 0.5, 0.05)),
+    outlier.col=rgb(1, 0.50, 0.50, 0.5), leaflab="none",
+    labels=NULL, y.label=0.2, ...)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>obj</code></td>
+<td>
+<p>an object returned by <code><a href="snpgdsCutTree.html">snpgdsCutTree</a></code></p>
+</td></tr>
+<tr valign="top"><td><code>clust.count</code></td>
+<td>
+<p>the counts for clusters, drawing shadows</p>
+</td></tr>
+<tr valign="top"><td><code>dend.idx</code></td>
+<td>
+<p>the index of sub tree, plot obj$dendrogram[[dend.idx]],
+or NULL for the whole tree</p>
+</td></tr>
+<tr valign="top"><td><code>type</code></td>
+<td>
+<p>&quot;dendrogram&quot;, draw a dendrogram; or &quot;z-score&quot;, draw the
+distribution of Z score</p>
+</td></tr>
+<tr valign="top"><td><code>yaxis.height</code></td>
+<td>
+<p>if TRUE, draw the left Y axis: height of tree</p>
+</td></tr>
+<tr valign="top"><td><code>yaxis.kinship</code></td>
+<td>
+<p>if TRUE, draw the right Y axis: kinship coefficient</p>
+</td></tr>
+<tr valign="top"><td><code>y.kinship.baseline</code></td>
+<td>
+<p>the baseline value of kinship; if NaN, it is the
+height of the first split from top in a dendrogram; only works when
+<code>yaxis.kinship = TRUE</code></p>
+</td></tr>
+<tr valign="top"><td><code>y.label.kinship</code></td>
+<td>
+<p>if TRUE, show 'PO/FS' etc on the right axis</p>
+</td></tr>
+<tr valign="top"><td><code>outlier.n</code></td>
+<td>
+<p>the cluster with size less than or equal to
+<code>outlier.n</code> is considered as outliers; if <code>NULL</code>, let
+<code>outlier.n = obj$outlier.n</code></p>
+</td></tr>
+<tr valign="top"><td><code>shadow.col</code></td>
+<td>
+<p>two colors for shadow</p>
+</td></tr>
+<tr valign="top"><td><code>outlier.col</code></td>
+<td>
+<p>the colors for outliers</p>
+</td></tr>
+<tr valign="top"><td><code>leaflab</code></td>
+<td>
+<p>a string specifying how leaves are labeled. The default
+<code>"perpendicular"</code> write text vertically (by default).
+<code>"textlike"</code> writes text horizontally (in a rectangle), and
+<code>"none"</code> suppresses leaf labels.</p>
+</td></tr>
+<tr valign="top"><td><code>labels</code></td>
+<td>
+<p>the legend for different regions</p>
+</td></tr>
+<tr valign="top"><td><code>y.label</code></td>
+<td>
+<p>y positions of labels</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>Arguments to be passed to the method <code>"plot(, ...)"</code>,
+such as graphical parameters.</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>The details will be described in future.
+</p>
+
+
+<h3>Value</h3>
+
+<p>None.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsCutTree.html">snpgdsCutTree</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+pop.group &lt;- as.factor(read.gdsn(index.gdsn(
+    genofile, "sample.annot/pop.group")))
+pop.level &lt;- levels(pop.group)
+
+diss &lt;- snpgdsDiss(genofile)
+hc &lt;- snpgdsHCluster(diss)
+
+# close the genotype file
+snpgdsClose(genofile)
+
+
+# split
+set.seed(100)
+rv &lt;- snpgdsCutTree(hc, label.H=TRUE, label.Z=TRUE)
+
+# draw dendrogram
+snpgdsDrawTree(rv, main="HapMap Phase II",
+    edgePar=list(col=rgb(0.5,0.5,0.5, 0.75), t.col="black"))
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Linkage Disequilibrium (LD) based SNP pruning</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsLDpruning {SNPRelate}"><tr><td>snpgdsLDpruning {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+Linkage Disequilibrium (LD) based SNP pruning
+</h2>
+
+<h3>Description</h3>
+
+<p>Recursively removes SNPs within a sliding window
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsLDpruning(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
+    remove.monosnp = TRUE, maf = NaN, missing.rate = NaN,
+    method = c("composite", "r", "dprime", "corr"), slide.max.bp = 500000,
+    slide.max.n = NA, ld.threshold = 0.2, num.thread = 1, verbose = TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>,
+a SNP GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>a vector of sample id specifying selected samples;
+if NULL, all samples are used</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>a vector of snp id specifying selected SNPs;
+if NULL, all SNPs are used</p>
+</td></tr>
+<tr valign="top"><td><code>autosome.only</code></td>
+<td>
+<p>if <code>TRUE</code>, use autosomal SNPs only; if it is a
+numeric or character value, keep SNPs according to the specified
+chromosome</p>
+</td></tr>
+<tr valign="top"><td><code>remove.monosnp</code></td>
+<td>
+<p>if TRUE, remove monomorphic SNPs</p>
+</td></tr>
+<tr valign="top"><td><code>maf</code></td>
+<td>
+<p>to use the SNPs with &quot;&gt;= maf&quot; only; if NaN, no MAF threshold</p>
+</td></tr>
+<tr valign="top"><td><code>missing.rate</code></td>
+<td>
+<p>to use the SNPs with &quot;&lt;= missing.rate&quot; only;
+if NaN, no missing threshold</p>
+</td></tr>
+<tr valign="top"><td><code>method</code></td>
+<td>
+<p>&quot;composite&quot;, &quot;r&quot;, &quot;dprime&quot;, &quot;corr&quot;, see details</p>
+</td></tr>
+<tr valign="top"><td><code>slide.max.bp</code></td>
+<td>
+<p>the maximum basepairs in the sliding window</p>
+</td></tr>
+<tr valign="top"><td><code>slide.max.n</code></td>
+<td>
+<p>the maximum number of SNPs in the sliding window</p>
+</td></tr>
+<tr valign="top"><td><code>ld.threshold</code></td>
+<td>
+<p>the LD threshold</p>
+</td></tr>
+<tr valign="top"><td><code>num.thread</code></td>
+<td>
+<p>the number of (CPU) cores used; if <code>NA</code>, detect
+the number of cores automatically</p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if TRUE, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>The minor allele frequency and missing rate for each SNP passed in
+<code>snp.id</code> are calculated over all the samples in <code>sample.id</code>.
+</p>
+<p>Four methods can be used to calculate linkage disequilibrium values:
+&quot;composite&quot; for LD composite measure, &quot;r&quot; for R coefficient (by EM algorithm
+assuming HWE, it could be negative), &quot;dprime&quot; for D', and &quot;corr&quot; for
+correlation coefficient. The method &quot;corr&quot; is equivalent to &quot;composite&quot;,
+when SNP genotypes are coded as: 0 &ndash; BB, 1 &ndash; AB, 2 &ndash; AA. The argument
+<code>ld.threshold</code> is the absolute value of measurement.
+</p>
+<p>It is useful to generate a pruned subset of SNPs that are in approximate
+linkage equilibrium with each other. The function <code>snpgdsLDpruning</code>
+recursively removes SNPs within a sliding window based on the pairwise
+genotypic correlation. SNP pruning is conducted chromosome by chromosome,
+since SNPs in a chromosome can be considered to be independent with the other
+chromosomes.
+</p>
+<p>The pruning algorithm on a chromosome is described as follows (n is
+the total number of SNPs on that chromosome):
+</p>
+<p>1) Randomly select a starting position i, and let the current SNP set
+S = { i };
+</p>
+<p>2) For each right position j from i+1 to n: if any LD between j and k is
+greater than <code>ld.threshold</code>, where k belongs to S, and both of j and k
+are in the sliding window, then skip j; otherwise, let S be S + { j };
+</p>
+<p>3) For each left position j from i-1 to 1: if any LD between j and k is
+greater than <code>ld.threshold</code>, where k belongs to S, and both of j and k
+are in the sliding window, then skip j; otherwise, let S be S + { j };
+</p>
+<p>4) Output S, the final selection of SNPs.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return a list of SNP IDs stratified by chromosomes.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p>Weir B: Inferences about linkage disequilibrium.
+Biometrics 1979; 35: 235-254.
+</p>
+<p>Weir B: Genetic Data Analysis II. Sunderland, MA: Sinauer Associates, 1996.
+</p>
+<p>Weir BS, Cockerham CC:
+Complete characterization of disequilibrium at two loci;
+in Feldman MW (ed): Mathematical Evolutionary Theory.
+Princeton, NJ: Princeton University Press, 1989.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsLDMat.html">snpgdsLDMat</a></code>, <code><a href="snpgdsLDpair.html">snpgdsLDpair</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+set.seed(1000)
+snpset &lt;- snpgdsLDpruning(genofile)
+names(snpset)
+#  [1] "chr1"  "chr2"  "chr3"  "chr4"  "chr5"  "chr6"  "chr7"  "chr8"  "chr9"
+# [10] "chr10" "chr11" "chr12" "chr13" "chr14" "chr15" "chr16" "chr17" "chr18"
+# ......
+head(snpset$chr1)
+# [1] 1 2 3 4 5 6
+
+# get SNP ids
+snp.id &lt;- unlist(snpset)
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

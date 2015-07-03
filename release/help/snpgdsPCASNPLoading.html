@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: SNP loadings in principal component analysis</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsPCASNPLoading {SNPRelate}"><tr><td>snpgdsPCASNPLoading {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+SNP loadings in principal component analysis
+</h2>
+
+<h3>Description</h3>
+
+<p>To calculate the SNP loadings in Principal Component Analysis
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsPCASNPLoading(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>pcaobj</code></td>
+<td>
+<p>the snpgdsPCAClass object returned from the function
+<a href="snpgdsPCA.html">snpgdsPCA</a></p>
+</td></tr>
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>,
+a SNP GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>num.thread</code></td>
+<td>
+<p>the number of (CPU) cores used; if <code>NA</code>, detect
+the number of cores automatically</p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if TRUE, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>Calculate the SNP loadings (or SNP eigenvectors) from the principal
+component analysis conducted in <code>snpgdsPCA</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return a <code>snpgdsPCASNPLoading</code> object, which is a list:
+</p>
+<table summary="R valueblock">
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>the sample ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>the SNP ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>eigenval</code></td>
+<td>
+<p>eigenvalues</p>
+</td></tr>
+<tr valign="top"><td><code>snploading</code></td>
+<td>
+<p>the SNP loadings, or SNP eigenvectors</p>
+</td></tr>
+<tr valign="top"><td><code>TraceXTX</code></td>
+<td>
+<p>the trace of the genetic covariance matrix</p>
+</td></tr>
+<tr valign="top"><td><code>Bayesian</code></td>
+<td>
+<p>whether use bayerisan normalization</p>
+</td></tr>
+<tr valign="top"><td><code>avefreq</code></td>
+<td>
+<p>the allele frequency used in <code>snpgdsPCA</code></p>
+</td></tr>
+<tr valign="top"><td><code>scale</code></td>
+<td>
+<p>internal parameter</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p>Patterson N, Price AL, Reich D (2006)
+Population structure and eigenanalysis. PLoS Genetics 2:e190.
+</p>
+<p>Price AL, Patterson NJ, Plenge RM, Weinblatt ME, Shadick NA, Reich D (2006)
+Principal components analysis corrects for stratification in genome-wide
+association studies. Nat Genet. 38, 904-909.
+</p>
+<p>Zhu, X., Li, S., Cooper, R. S., and Elston, R. C. (2008).
+A unified association analysis approach for family and unrelated samples
+correcting for stratification. Am J Hum Genet, 82(2), 352-365.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsPCA.html">snpgdsPCA</a></code>, <code><a href="snpgdsPCASampLoading.html">snpgdsPCASampLoading</a></code>,
+<code><a href="snpgdsPCACorr.html">snpgdsPCACorr</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+PCARV &lt;- snpgdsPCA(genofile, eigen.cnt=8)
+SnpLoad &lt;- snpgdsPCASNPLoading(PCARV, genofile)
+
+names(SnpLoad)
+# [1] "sample.id"  "snp.id"     "eigenval"   "snploading" "TraceXTX"
+# [6] "Bayesian"   "avefreq"    "scale"
+dim(SnpLoad$snploading)
+# [1]     8 8722
+
+plot(SnpLoad$snploading[1,], type="h", ylab="PC 1")
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

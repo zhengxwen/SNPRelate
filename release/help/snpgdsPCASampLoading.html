@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Project individuals onto existing principal component axes</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsPCASampLoading {SNPRelate}"><tr><td>snpgdsPCASampLoading {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+Project individuals onto existing principal component axes
+</h2>
+
+<h3>Description</h3>
+
+<p>To calculate the sample eigenvectors using the specified SNP loadings
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsPCASampLoading(loadobj, gdsobj, sample.id=NULL, num.thread=1L,
+    verbose=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>loadobj</code></td>
+<td>
+<p>the <code>snpgdsPCASNPLoadingClass</code> object, returned from
+<a href="snpgdsPCASNPLoading.html">snpgdsPCASNPLoading</a></p>
+</td></tr>
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>,
+a SNP GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>a vector of sample id specifying selected samples;
+if NULL, all samples are used</p>
+</td></tr>
+<tr valign="top"><td><code>num.thread</code></td>
+<td>
+<p>the number of CPU cores used</p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if TRUE, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>The <code>sample.id</code> are usually different from the samples used in the
+calculation of SNP loadings.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return a <code>snpgdsPCAClass</code> object, and it is a list:
+</p>
+<table summary="R valueblock">
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>the sample ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>the SNP ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>eigenval</code></td>
+<td>
+<p>eigenvalues</p>
+</td></tr>
+<tr valign="top"><td><code>eigenvect</code></td>
+<td>
+<p>eigenvactors, &ldquo;# of samples&rdquo; x &ldquo;eigen.cnt&rdquo;</p>
+</td></tr>
+<tr valign="top"><td><code>TraceXTX</code></td>
+<td>
+<p>the trace of the genetic covariance matrix</p>
+</td></tr>
+<tr valign="top"><td><code>Bayesian</code></td>
+<td>
+<p>whether use bayerisan normalization</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p>Patterson N, Price AL, Reich D (2006)
+Population structure and eigenanalysis. PLoS Genetics 2:e190.
+</p>
+<p>Zhu, X., Li, S., Cooper, R. S., and Elston, R. C. (2008).
+A unified association analysis approach for family and unrelated samples
+correcting for stratification. Am J Hum Genet, 82(2), 352-365.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsPCA.html">snpgdsPCA</a></code>, <code><a href="snpgdsPCACorr.html">snpgdsPCACorr</a></code>,
+<code><a href="snpgdsPCASNPLoading.html">snpgdsPCASNPLoading</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+sample.id &lt;- read.gdsn(index.gdsn(genofile, "sample.id"))
+
+PCARV &lt;- snpgdsPCA(genofile, eigen.cnt=8)
+SnpLoad &lt;- snpgdsPCASNPLoading(PCARV, genofile)
+
+# calculate sample eigenvectors from SNP loadings
+SL &lt;- snpgdsPCASampLoading(SnpLoad, genofile, sample.id=sample.id[1:100])
+
+diff &lt;- PCARV$eigenvect[1:100,] - SL$eigenvect
+summary(c(diff))
+# ~ ZERO
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

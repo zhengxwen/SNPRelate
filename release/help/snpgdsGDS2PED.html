@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Conversion from GDS to PED</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsGDS2PED {SNPRelate}"><tr><td>snpgdsGDS2PED {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Conversion from GDS to PED</h2>
+
+<h3>Description</h3>
+
+<p>Convert a GDS file to a PLINK ped file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsGDS2PED(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL, use.snp.rsid=TRUE,
+    format=c("A/G/C/T", "A/B", "1/2"), verbose=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>a GDS file object (<code><a href="../../gdsfmt/html/gds.class.html">gds.class</a></code>)</p>
+</td></tr>
+<tr valign="top"><td><code>ped.fn</code></td>
+<td>
+<p>the file name of output</p>
+</td></tr>
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>a vector of sample id specifying selected samples;
+if NULL, all samples are used</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>a vector of snp id specifying selected SNPs; if NULL, all
+SNPs are used</p>
+</td></tr>
+<tr valign="top"><td><code>use.snp.rsid</code></td>
+<td>
+<p>if <code>TRUE</code>, use &quot;snp.rs.id&quot; instead of &quot;snp.id&quot; if
+available</p>
+</td></tr>
+<tr valign="top"><td><code>format</code></td>
+<td>
+<p>specify the coding: &quot;A/G/C/T&quot; &ndash; allelic codes stored in
+&quot;snp.allele&quot; of the GDS file; &quot;A/B&quot; &ndash; A and B codes; &quot;1/2&quot; &ndash; 1 and
+2 codes</p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if TRUE, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>GDS &ndash; Genomic Data Structures, the extended file name used for storing
+genetic data, and the file format used in the <a href="../../gdsfmt/html/gdsfmt-package.html">gdsfmt</a> package.
+</p>
+<p>PED &ndash; the PLINK text ped format.
+</p>
+
+
+<h3>Value</h3>
+
+<p>None.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p>Purcell S, Neale B, Todd-Brown K, Thomas L, Ferreira MAR, Bender D,
+Maller J, Sklar P, de Bakker PIW, Daly MJ &amp; Sham PC. 2007.
+PLINK: a toolset for whole-genome association and
+population-based linkage analysis. American Journal of Human Genetics, 81.
+</p>
+<p><a href="http://corearray.sourceforge.net/">http://corearray.sourceforge.net/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsGDS2BED.html">snpgdsGDS2BED</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+# GDS ==&gt; PED
+snpgdsGDS2PED(genofile, ped.fn="tmp")
+
+# close the GDS file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

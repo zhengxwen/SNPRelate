@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Conversion from Oxford GEN format to GDS</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsGEN2GDS {SNPRelate}"><tr><td>snpgdsGEN2GDS {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Conversion from Oxford GEN format to GDS</h2>
+
+<h3>Description</h3>
+
+<p>Convert an Oxford GEN file (text format) to a GDS file.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsGEN2GDS(gen.fn, sample.fn, out.fn, chr.code=NULL,
+    call.threshold=0.9, version=c("&gt;=2.0", "&lt;=1.1.5"),
+    snpfirstdim=FALSE, compress.annotation="ZIP_RA.max", compress.geno="",
+    verbose=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gen.fn</code></td>
+<td>
+<p>the file name of Oxford GEN text file(s), it could be a
+vector indicate merging all files</p>
+</td></tr>
+<tr valign="top"><td><code>sample.fn</code></td>
+<td>
+<p>the file name of sample annotation</p>
+</td></tr>
+<tr valign="top"><td><code>out.fn</code></td>
+<td>
+<p>the output GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>chr.code</code></td>
+<td>
+<p>a vector of chromosome code according to <code>gen.fn</code>,
+indicating chromosomes. It could be either numeric or character-type</p>
+</td></tr>
+<tr valign="top"><td><code>call.threshold</code></td>
+<td>
+<p>the threshold to determine missing genotypes</p>
+</td></tr>
+<tr valign="top"><td><code>version</code></td>
+<td>
+<p>either <code>"&gt;=2.0"</code> or <code>"&lt;=1.1.5"</code>, see details</p>
+</td></tr>
+<tr valign="top"><td><code>snpfirstdim</code></td>
+<td>
+<p>if TRUE, genotypes are stored in the individual-major
+mode, (i.e, list all SNPs for the first individual, and then list all
+SNPs for the second individual, etc)</p>
+</td></tr>
+<tr valign="top"><td><code>compress.annotation</code></td>
+<td>
+<p>the compression method for the GDS variables,
+except &quot;genotype&quot;; optional values are defined in the function
+<code>add.gdsn</code></p>
+</td></tr>
+<tr valign="top"><td><code>compress.geno</code></td>
+<td>
+<p>the compression method for &quot;genotype&quot;; optional
+values are defined in the function <code>add.gdsn</code></p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if TRUE, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>GDS &ndash; Genomic Data Structures, the extended file name used for storing
+genetic data, and the file format is used in the <a href="../../gdsfmt/html/gdsfmt-package.html">gdsfmt</a> package.
+</p>
+<p>NOTE : the sample file format (<code>sample.fn</code>) has changed with the
+release of SNPTEST v2. Specifically, the way in which covariates and phenotypes
+are coded on the second line of the header file has changed. <code>version</code> has
+to be specified, and the function uses &quot;&gt;=2.0&quot; by default.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return the file name of GDS format with an absolute path.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p><a href="http://www.stats.ox.ac.uk/~marchini/software/gwas/file_format.html">http://www.stats.ox.ac.uk/~marchini/software/gwas/file_format.html</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsBED2GDS.html">snpgdsBED2GDS</a></code>, <code><a href="snpgdsVCF2GDS.html">snpgdsVCF2GDS</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+cat("running snpgdsGEN2GDS ...\n")
+## Not run: 
+snpgdsGEN2GDS("test.gen", "test.sample", "output.gds", chr.code=1)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Select SNPs with a basepair distance</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsApartSelection {SNPRelate}"><tr><td>snpgdsApartSelection {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Select SNPs with a basepair distance</h2>
+
+<h3>Description</h3>
+
+<p>Randomly selects SNPs for which each pair is at least as far apart as the
+specified basepair distance.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsApartSelection(chromosome, position, min.dist=100000,
+    max.n.snp.perchr=-1, verbose=TRUE) 
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>chromosome</code></td>
+<td>
+<p>chromosome codes</p>
+</td></tr>
+<tr valign="top"><td><code>position</code></td>
+<td>
+<p>SNP positions in base pair</p>
+</td></tr>
+<tr valign="top"><td><code>min.dist</code></td>
+<td>
+<p>A numeric value to specify minimum distance required
+(in basepairs)</p>
+</td></tr>
+<tr valign="top"><td><code>max.n.snp.perchr</code></td>
+<td>
+<p>A numeric value specifying the maximum number
+of SNPs to return per chromosome, &quot;-1&quot; means no number limit</p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if TRUE, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>A logical vector indicating which SNPs were selected.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsLDpruning.html">snpgdsLDpruning</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+genofile
+
+chr &lt;- read.gdsn(index.gdsn(genofile, "snp.chromosome"))
+pos &lt;- read.gdsn(index.gdsn(genofile, "snp.position"))
+
+set.seed(1000)
+flag &lt;- snpgdsApartSelection(chr, pos, min.dist=250000, verbose=TRUE)
+table(flag)
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

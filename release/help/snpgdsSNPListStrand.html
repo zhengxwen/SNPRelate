@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Switch allele strand.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsSNPListStrand {SNPRelate}"><tr><td>snpgdsSNPListStrand {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+Switch allele strand.
+</h2>
+
+<h3>Description</h3>
+
+<p>To get a logical vector, indicating whether allele references of
+<code>snplist2</code> need to be switched, with respect to <code>snplist1</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsSNPListStrand(snplist1, snplist2, same.strand=FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>snplist1</code></td>
+<td>
+<p>the first SNP list object &ldquo;snpgdsSNPListClass&rdquo;</p>
+</td></tr>
+<tr valign="top"><td><code>snplist2</code></td>
+<td>
+<p>the second SNP list object &ldquo;snpgdsSNPListClass&rdquo;</p>
+</td></tr>
+<tr valign="top"><td><code>same.strand</code></td>
+<td>
+<p><code>TRUE</code> assuming alleles are on the same strand
+(e.g., forward strand); otherwise, <code>FALSE</code> not assuming whether
+on the same strand or not</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>a logical vector, where TRUE indiciates the allele references need to be
+switched, and NA indiciates that locus is not in the common snp list.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsSNPList.html">snpgdsSNPList</a></code>, <code><a href="snpgdsSNPListStrand.html">snpgdsSNPListStrand</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+# to get a snp list object
+snplist1 &lt;- snpgdsSNPList(genofile)
+snplist2 &lt;- snpgdsSNPList(genofile)
+
+# a common snp list
+L &lt;- snpgdsSNPListStrand(snplist1, snplist2)
+
+table(L, exclude=NULL)
+
+# close the file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

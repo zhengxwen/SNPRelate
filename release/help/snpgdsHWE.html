@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Statistical test of Hardy-Weinberg Equilibrium</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsHWE {SNPRelate}"><tr><td>snpgdsHWE {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+Statistical test of Hardy-Weinberg Equilibrium
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the p-values for the exact SNP test of Hardy-Weinberg
+Equilibrium.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsHWE(gdsobj, sample.id=NULL, snp.id=NULL, with.id=FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>,
+a SNP GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>a vector of sample id specifying selected samples;
+if <code>NULL</code>, all samples will be used</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>a vector of snp id specifying selected SNPs;
+if <code>NULL</code>, all SNPs will be used</p>
+</td></tr>
+<tr valign="top"><td><code>with.id</code></td>
+<td>
+<p>if <code>TRUE</code>, the returned value with sample and SNP IDs</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>If <code>with.id=FALSE</code>, return a vector of numeric values (p-value);
+otherwise, return a list with three components &quot;pvalue&quot;, &quot;sample.id&quot; and
+&quot;snp.id&quot;.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng, Janis E. Wigginton</p>
+
+
+<h3>References</h3>
+
+<p>Wigginton, J. E., Cutler, D. J. &amp; Abecasis, G. R.
+A note on exact tests of Hardy-Weinberg equilibrium.
+Am. J. Hum. Genet. 76, 887-93 (2005).
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsSNPRateFreq.html">snpgdsSNPRateFreq</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+# Japanese samples
+sample.id &lt;- read.gdsn(index.gdsn(genofile, "sample.id"))
+pop &lt;- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
+(samp.sel &lt;- sample.id[pop=="JPT"])
+samp.sel &lt;- samp.sel[nchar(samp.sel) == 7]
+
+# chromosome 1
+snp.id &lt;- snpgdsSelectSNP(genofile, sample.id=samp.sel, autosome.only=1L)
+
+# HWE test
+p &lt;- snpgdsHWE(genofile, sample.id=samp.sel, snp.id=snp.id)
+summary(p)
+
+# QQ plot
+plot(-log10((1:length(p))/length(p)), -log10(p[order(p)]),
+	xlab="-log10(expected P)", ylab="-log10(observed P)", main="QQ plot")
+abline(a=0, b=1, col="blue")
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

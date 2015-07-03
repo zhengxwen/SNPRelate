@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Reformat VCF file(s)</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsVCF2GDS {SNPRelate}"><tr><td>snpgdsVCF2GDS {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Reformat VCF file(s)</h2>
+
+<h3>Description</h3>
+
+<p>Reformat Variant Call Format (VCF) file(s)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsVCF2GDS(vcf.fn, out.fn, method=c("biallelic.only", "copy.num.of.ref"),
+    snpfirstdim=FALSE, compress.annotation="ZIP_RA.max", compress.geno="",
+    ref.allele=NULL, ignore.chr.prefix="chr", verbose=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>vcf.fn</code></td>
+<td>
+<p>the file name of VCF format, <code>vcf.fn</code> can be a vector,
+see details</p>
+</td></tr>
+<tr valign="top"><td><code>out.fn</code></td>
+<td>
+<p>the file name of output GDS</p>
+</td></tr>
+<tr valign="top"><td><code>method</code></td>
+<td>
+<p>either &quot;biallelic.only&quot; by default or &quot;copy.num.of.ref&quot;,
+see details</p>
+</td></tr>
+<tr valign="top"><td><code>snpfirstdim</code></td>
+<td>
+<p>if TRUE, genotypes are stored in the individual-major
+mode, (i.e, list all SNPs for the first individual, and then list all
+SNPs for the second individual, etc)</p>
+</td></tr>
+<tr valign="top"><td><code>compress.annotation</code></td>
+<td>
+<p>the compression method for the GDS variables,
+except &quot;genotype&quot;; optional values are defined in the function
+<code>add.gdsn</code></p>
+</td></tr>
+<tr valign="top"><td><code>compress.geno</code></td>
+<td>
+<p>the compression method for &quot;genotype&quot;; optional
+values are defined in the function <code>add.gdsn</code></p>
+</td></tr>
+<tr valign="top"><td><code>ref.allele</code></td>
+<td>
+<p><code>NULL</code> or a character vector indicating reference
+allele (like <code>"A", "G", "T", NA, ...</code>) for each site where
+<code>NA</code> to use the original reference allele in the VCF file(s).
+The length of character vector should be the total number of variants
+in the VCF file(s).</p>
+</td></tr>
+<tr valign="top"><td><code>ignore.chr.prefix</code></td>
+<td>
+<p>a vector of character, indicating the prefix of
+chromosome which should be ignored, like &quot;chr&quot;; it is not
+case-sensitive</p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if <code>TRUE</code>, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>GDS &ndash; Genomic Data Structures used for storing genetic array-oriented
+data, and the file format used in the <a href="../../gdsfmt/html/gdsfmt-package.html">gdsfmt</a> package.
+</p>
+<p>VCF &ndash; The Variant Call Format (VCF), which is a generic format for
+storing DNA polymorphism data such as SNPs, insertions, deletions
+and structural variants, together with rich annotations.
+</p>
+<p>If there are more than one file names in <code>vcf.fn</code>,
+<code>snpgdsVCF2GDS</code> will merge all dataset together if they all contain
+the same samples. It is useful to combine genetic/genomic data together if
+VCF data are divided by chromosomes.
+</p>
+<p><code>method = "biallelic.only"</code>: to exact bi-allelic and polymorhpic
+SNP data (excluding monomorphic variants);
+<code>method = "copy.num.of.ref"</code>: to extract and store dosage (0, 1, 2)
+of the reference allele for all variant sites, including bi-allelic SNPs,
+multi-allelic SNPs, indels and structural variants.
+</p>
+<p>Haploid and triploid calls are allowed in the transfer, the variable
+<code>snp.id</code> stores the original the row index of variants, and the
+variable <code>snp.rs.id</code> stores the rs id.
+</p>
+<p>When <code>snp.chromosome</code> in the GDS file is character, SNPRelate treats
+a chromosome as autosome only if it can be converted to a numeric value (
+like &quot;1&quot;, &quot;22&quot;). It uses &quot;X&quot; and &quot;Y&quot; for non-autosomes instead of numeric
+codes. However, some software format chromosomes in VCF files with a prefix
+&quot;chr&quot;. Users should remove that prefix when importing VCF files by setting
+<code>ignore.chr.prefix = "chr"</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return the file name of GDS format with an absolute path.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p>The variant call format and VCFtools.
+Danecek P, Auton A, Abecasis G, Albers CA, Banks E, DePristo MA,
+Handsaker RE, Lunter G, Marth GT, Sherry ST, McVean G, Durbin R;
+1000 Genomes Project Analysis Group.
+Bioinformatics. 2011 Aug 1;27(15):2156-8. Epub 2011 Jun 7.
+</p>
+<p><a href="http://corearray.sourceforge.net/">http://corearray.sourceforge.net/</a>
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsBED2GDS.html">snpgdsBED2GDS</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# the VCF file
+vcf.fn &lt;- system.file("extdata", "sequence.vcf", package="SNPRelate")
+cat(readLines(vcf.fn), sep="\n")
+
+snpgdsVCF2GDS(vcf.fn, "test1.gds", method="biallelic.only")
+snpgdsSummary("test1.gds")
+
+snpgdsVCF2GDS(vcf.fn, "test2.gds", method="biallelic.only", snpfirstdim=TRUE)
+snpgdsSummary("test2.gds")
+
+snpgdsVCF2GDS(vcf.fn, "test3.gds", method="copy.num.of.ref", snpfirstdim=TRUE)
+snpgdsSummary("test3.gds")
+
+snpgdsVCF2GDS(vcf.fn, "test4.gds", method="copy.num.of.ref")
+snpgdsSummary("test4.gds")
+
+snpgdsVCF2GDS(vcf.fn, "test5.gds", method="copy.num.of.ref",
+    ref.allele=c("A", "T", "T", "T", "A"))
+snpgdsSummary("test5.gds")
+
+
+
+# open "test1.gds"
+(genofile &lt;- snpgdsOpen("test1.gds"))
+
+read.gdsn(index.gdsn(genofile, "sample.id"))
+read.gdsn(index.gdsn(genofile, "snp.rs.id"))
+read.gdsn(index.gdsn(genofile, "genotype"))
+
+# close the file
+snpgdsClose(genofile)
+
+
+# open "test2.gds"
+(genofile &lt;- snpgdsOpen("test2.gds"))
+
+read.gdsn(index.gdsn(genofile, "sample.id"))
+read.gdsn(index.gdsn(genofile, "snp.rs.id"))
+read.gdsn(index.gdsn(genofile, "genotype"))
+
+# close the file
+snpgdsClose(genofile)
+
+
+# open "test3.gds"
+(genofile &lt;- snpgdsOpen("test3.gds"))
+
+read.gdsn(index.gdsn(genofile, "sample.id"))
+read.gdsn(index.gdsn(genofile, "snp.rs.id"))
+read.gdsn(index.gdsn(genofile, "genotype"))
+
+# close the file
+snpgdsClose(genofile)
+
+
+# open "test4.gds"
+(genofile &lt;- snpgdsOpen("test4.gds"))
+
+read.gdsn(index.gdsn(genofile, "sample.id"))
+read.gdsn(index.gdsn(genofile, "snp.rs.id"))
+read.gdsn(index.gdsn(genofile, "snp.allele"))
+read.gdsn(index.gdsn(genofile, "genotype"))
+
+# close the file
+snpgdsClose(genofile)
+
+
+# open "test5.gds"
+(genofile &lt;- snpgdsOpen("test5.gds"))
+
+read.gdsn(index.gdsn(genofile, "sample.id"))
+read.gdsn(index.gdsn(genofile, "snp.rs.id"))
+read.gdsn(index.gdsn(genofile, "snp.allele"))
+read.gdsn(index.gdsn(genofile, "genotype"))
+
+# close the file
+snpgdsClose(genofile)
+
+
+# delete the temporary files
+unlink(paste("test", 1:5, ".gds", sep=""), force=TRUE)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

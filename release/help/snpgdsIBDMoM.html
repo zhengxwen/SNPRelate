@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: PLINK method of moment (MoM) for the Identity-By-Descent...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsIBDMoM {SNPRelate}"><tr><td>snpgdsIBDMoM {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+PLINK method of moment (MoM) for the Identity-By-Descent (IBD) Analysis
+</h2>
+
+<h3>Description</h3>
+
+<p>Calculate three IBD coefficients for non-inbred individual pairs by
+PLINK method of moment (MoM).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsIBDMoM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, allele.freq=NULL,
+    kinship=FALSE, kinship.constraint=FALSE, num.thread=1, verbose=TRUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>,
+a SNP GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>a vector of sample id specifying selected samples;
+if <code>NULL</code>, all samples are used</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>a vector of snp id specifying selected SNPs; if <code>NULL</code>,
+all SNPs are used</p>
+</td></tr>
+<tr valign="top"><td><code>autosome.only</code></td>
+<td>
+<p>if <code>TRUE</code>, use autosomal SNPs only; if it is a
+numeric or character value, keep SNPs according to the specified
+chromosome</p>
+</td></tr>
+<tr valign="top"><td><code>remove.monosnp</code></td>
+<td>
+<p>if <code>TRUE</code>, remove monomorphic SNPs</p>
+</td></tr>
+<tr valign="top"><td><code>maf</code></td>
+<td>
+<p>to use the SNPs with &quot;&gt;= maf&quot; only; if NaN, no MAF threshold</p>
+</td></tr>
+<tr valign="top"><td><code>missing.rate</code></td>
+<td>
+<p>to use the SNPs with &quot;&lt;= missing.rate&quot; only;
+if NaN, no missing threshold</p>
+</td></tr>
+<tr valign="top"><td><code>allele.freq</code></td>
+<td>
+<p>to specify the allele frequencies; if NULL, determine
+the allele frequencies from <code>gdsobj</code> using the specified samples;
+if <code>snp.id</code> is specified, <code>allele.freq</code> should have
+the same order as <code>snp.id</code></p>
+</td></tr>
+<tr valign="top"><td><code>kinship</code></td>
+<td>
+<p>if <code>TRUE</code>, output the estimated kinship coefficients</p>
+</td></tr>
+<tr valign="top"><td><code>kinship.constraint</code></td>
+<td>
+<p>if TRUE, constrict IBD coefficients
+($k_0,k_1,k_2$) in the geneloical region ($2 k_0 k_1 &gt;= k_2^2$)</p>
+</td></tr>
+<tr valign="top"><td><code>num.thread</code></td>
+<td>
+<p>the number of (CPU) cores used; if <code>NA</code>, detect
+the number of cores automatically</p>
+</td></tr>
+<tr valign="top"><td><code>verbose</code></td>
+<td>
+<p>if TRUE, show information</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>PLINK IBD estimator is a moment estimator, and it is computationally
+efficient relative to MLE method. In the PLINK method of moment, a correction
+factor based on allele counts is used to adjust for sampling. However, if
+allele frequencies are specified, no correction factor is conducted since the
+specified allele frequencies are assumed to be known without sampling.
+</p>
+<p>The minor allele frequency and missing rate for each SNP passed in
+<code>snp.id</code> are calculated over all the samples in <code>sample.id</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p>Return a list:
+</p>
+<table summary="R valueblock">
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>the sample ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>the SNP ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>k0</code></td>
+<td>
+<p>IBD coefficient, the probability of sharing ZERO IBD</p>
+</td></tr>
+<tr valign="top"><td><code>k1</code></td>
+<td>
+<p>IBD coefficient, the probability of sharing ONE IBD</p>
+</td></tr>
+<tr valign="top"><td><code>kinship</code></td>
+<td>
+<p>the estimated kinship coefficients, if the parameter
+<code>kinship=TRUE</code></p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p>Purcell S, Neale B, Todd-Brown K, Thomas L, Ferreira MAR, Bender D,
+Maller J, Sklar P, de Bakker PIW, Daly MJ &amp; Sham PC. 2007.
+PLINK: a toolset for whole-genome association and population-based
+linkage analysis. American Journal of Human Genetics, 81.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsIBDMLE.html">snpgdsIBDMLE</a></code>, <code><a href="snpgdsIBDMLELogLik.html">snpgdsIBDMLELogLik</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+#########################################################
+# CEU population
+
+CEU.id &lt;- read.gdsn(index.gdsn(genofile, "sample.id"))[
+    read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="CEU"]
+pibd &lt;- snpgdsIBDMoM(genofile, sample.id=CEU.id)
+names(pibd)
+
+flag &lt;- lower.tri(pibd$k0)
+plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
+lines(c(0,1), c(1,0), col="red", lty=3)
+points(pibd$k0[flag], pibd$k1[flag])
+
+# select a set of pairs of individuals
+d &lt;- snpgdsIBDSelection(pibd, kinship.cutoff=1/8)
+head(d)
+
+
+#########################################################
+# YRI population
+
+YRI.id &lt;- read.gdsn(index.gdsn(genofile, "sample.id"))[
+    read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))=="YRI"]
+pibd &lt;- snpgdsIBDMoM(genofile, sample.id=YRI.id)
+flag &lt;- lower.tri(pibd$k0)
+plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
+lines(c(0,1), c(1,0), col="red", lty=3)
+points(pibd$k0[flag], pibd$k1[flag])
+
+
+# specify the allele frequencies
+afreq &lt;- snpgdsSNPRateFreq(genofile, sample.id=YRI.id)$AlleleFreq
+aibd &lt;- snpgdsIBDMoM(genofile, sample.id=YRI.id, allele.freq=afreq)
+flag &lt;- lower.tri(aibd$k0)
+plot(NaN, xlim=c(0,1), ylim=c(0,1), xlab="k0", ylab="k1")
+lines(c(0,1), c(1,0), col="red", lty=3)
+points(aibd$k0[flag], aibd$k1[flag])
+
+# analysis on a subset
+subibd &lt;- snpgdsIBDMoM(genofile, sample.id=YRI.id[1:25], allele.freq=afreq)
+summary(c(subibd$k0 - aibd$k0[1:25, 1:25]))
+# ZERO
+summary(c(subibd$k1 - aibd$k1[1:25, 1:25]))
+# ZERO
+
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>

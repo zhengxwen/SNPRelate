@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Create a SNP list object</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsSNPList {SNPRelate}"><tr><td>snpgdsSNPList {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+Create a SNP list object
+</h2>
+
+<h3>Description</h3>
+
+<p>A list object of SNP information including rs, chr, pos, allele and allele
+frequency.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsSNPList(gdsobj, sample.id=NULL)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>gdsobj</code></td>
+<td>
+<p>an object of class <code><a href="SNPGDSFileClass-class.html">SNPGDSFileClass</a></code>,
+a SNP GDS file</p>
+</td></tr>
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>a vector of sample id specifying selected samples;
+if NULL, all samples are used</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Return an object of <code>snpgdsSNPListClass</code> including the following
+components:
+</p>
+<table summary="R valueblock">
+<tr valign="top"><td><code>rs.id</code></td>
+<td>
+<p>SNP id</p>
+</td></tr>
+<tr valign="top"><td><code>chromosome</code></td>
+<td>
+<p>SNP chromosome index</p>
+</td></tr>
+<tr valign="top"><td><code>position</code></td>
+<td>
+<p>SNP physical position in basepair</p>
+</td></tr>
+<tr valign="top"><td><code>allele</code></td>
+<td>
+<p>reference / non-ref alleles</p>
+</td></tr>
+<tr valign="top"><td><code>afreq</code></td>
+<td>
+<p>allele frequency</p>
+</td></tr>
+</table>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsSNPListIntersect.html">snpgdsSNPListIntersect</a></code>, <code><a href="snpgdsSNPListStrand.html">snpgdsSNPListStrand</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+# to get a snp list object
+snplist &lt;- snpgdsSNPList(genofile)
+
+# close the file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+</body></html>
