@@ -1,8 +1,12 @@
 SNPRelate: Parallel computing toolset for relatedness and principal component analysis of SNP data
 ====
 
+![GPLv3](http://www.gnu.org/graphics/gplv3-88x31.png)
+[GNU General Public License, GPLv3](http://www.gnu.org/copyleft/gpl.html)
+
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 [![Build status](https://ci.appveyor.com/api/projects/status/odo1jcrxg65k748g?svg=true)](https://ci.appveyor.com/project/zhengxwen/snprelate)
+[![codecov.io](https://codecov.io/github/zhengxwen/SNPRelate/coverage.svg?branch=master)](https://codecov.io/github/zhengxwen/SNPRelate?branch=master)
 
 
 ## Features
@@ -16,14 +20,14 @@ Release Version: v1.2.0
 
 [http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 
-Development Version: v1.3.5
+Development Version: v1.3.6
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
 
 ## News (Development Version)
 
-* supports the sequencing GDS format defined in the [SeqArray](http://www.bioconductor.org/packages/devel/bioc/html/SeqArray.html) package, see [the vignette](http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/SeqArrayTutorial.html#integration-with-snprelate).
+* Supports the sequencing GDS format defined in the [SeqArray](http://www.bioconductor.org/packages/devel/bioc/html/SeqArray.html) package, see [the vignette](http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/SeqArrayTutorial.html#integration-with-snprelate).
 
 
 ## Tutorials

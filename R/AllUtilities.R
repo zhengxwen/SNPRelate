@@ -1533,7 +1533,7 @@ snpgdsTranspose <- function(gds.fn, snpfirstdim=FALSE, compress=NULL,
             put.attr.gdsn(newnode, "sample.order")
 
         ####
-        moveto.gdsn(newnode, node, relpos="replace")
+        moveto.gdsn(newnode, node, relpos="replace+rename")
         on.exit()
 
         snpgdsClose(gds)
@@ -1619,7 +1619,7 @@ snpgdsAlleleSwitch <- function(gdsobj, A.allele, verbose=TRUE)
 
     # new alleles
     readmode.gdsn(newnode)
-    moveto.gdsn(newnode, allele.node, relpos="replace")
+    moveto.gdsn(newnode, allele.node, relpos="replace+rename")
 
     # synchronize the GDS file
     sync.gds(gdsobj)

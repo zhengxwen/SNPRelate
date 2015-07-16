@@ -284,7 +284,7 @@ snpgdsPED2GDS <- function(ped.fn, map.fn, out.gdsfn, family=TRUE,
         put.attr.gdsn(tm, "sample.order")
         apply.gdsn(gGeno, margin=1, FUN=c, as.is="gdsnode", target.node=tm)
         readmode.gdsn(tm)
-        moveto.gdsn(tm, gGeno, relpos="replace")
+        moveto.gdsn(tm, gGeno, relpos="replace+rename")
     }
 
     on.exit()
@@ -659,7 +659,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
         }
         apply.gdsn(gGeno, margin=1, FUN=c, as.is="gdsnode", target.node=tm)
         readmode.gdsn(tm)
-        moveto.gdsn(tm, gGeno, relpos="replace")
+        moveto.gdsn(tm, gGeno, relpos="replace+rename")
     }
 
     on.exit()
