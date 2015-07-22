@@ -53,10 +53,10 @@ snpgdsLDpair <- function(snp1, snp2,
 
 snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     slide=250, method=c("composite", "r", "dprime", "corr"),
-    num.thread=1, verbose=TRUE)
+    num.thread=1L, verbose=TRUE)
 {
     # check
-    ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id)
+    ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id, with.id=TRUE)
 
     stopifnot(is.numeric(slide))
     stopifnot(is.numeric(num.thread) & (num.thread>0))
@@ -88,21 +88,10 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     }
 
     # call C function
-    rv <- list(sample.id = NULL, snp.id = NULL,
-        LD = .Call(gnrLDMat, method, slide, as.integer(num.thread), verbose),
-        slide = slide)
+    LD <- .Call(gnrLDMat, method, slide, num.thread, verbose)
 
     # output
-
-    rv$sample.id <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
-    if (!is.null(ws$samp.flag))
-        rv$sample.id <- rv$sample.id[ws$samp.flag]
-
-    rv$snp.id <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
-    if (!is.null(ws$snp.flag))
-        rv$snp.id <- rv$snp.id[ws$snp.flag]
-
-    return(rv)
+    list(sample.id=ws$sample.id, snp.id=ws$snp.id, LD=LD, slide=slide)
 }
 
 

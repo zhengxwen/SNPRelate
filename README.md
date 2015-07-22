@@ -6,7 +6,7 @@ SNPRelate: Parallel computing toolset for relatedness and principal component an
 
 [![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
 [![Build status](https://ci.appveyor.com/api/projects/status/odo1jcrxg65k748g?svg=true)](https://ci.appveyor.com/project/zhengxwen/snprelate)
-[![codecov.io](https://codecov.io/github/zhengxwen/SNPRelate/coverage.svg?branch=master)](https://codecov.io/github/zhengxwen/SNPRelate?branch=master)
+[![codecov.io](https://codecov.io/github/Bioconductor-mirror/SNPRelate?branch=master)](https://codecov.io/github/Bioconductor-mirror/SNPRelate?branch=master)
 
 
 ## Features
@@ -20,7 +20,7 @@ Release Version: v1.2.0
 
 [http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 
-Development Version: v1.3.6
+Development Version: v1.3.7
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 

@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.3.0-1.3.6
+CHANGES IN VERSION 1.3.0-1.3.7
 -------------------------
 
     o update GENEVA website address
@@ -10,6 +10,8 @@ CHANGES IN VERSION 1.3.0-1.3.6
     o support the SeqArray data format (requiring SeqArray >= v1.9.2)
 
     o modification according to gdsfmt_1.5.7
+
+    o bug fix in `snpgdsLDMat()` when genotype data are from SeqArray
 
 
 CHANGES IN VERSION 1.2.0

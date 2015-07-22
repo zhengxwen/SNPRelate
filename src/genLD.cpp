@@ -786,24 +786,29 @@ COREARRAY_DLL_EXPORT SEXP gnrLDpair(SEXP snp1, SEXP snp2, SEXP method)
 
 
 /// to compute the IBD coefficients by MLE
-COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP n_slide, SEXP NumThread,
-	SEXP _Verbose)
+COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP NumSlide, SEXP NumThread,
+	SEXP Verbose)
 {
-	bool verbose = SEXP_Verbose(_Verbose);
+	int n_slide = Rf_asInteger(NumSlide);
+	int nThread = Rf_asInteger(NumThread);
+	if (nThread <= 0)
+		error("Invalid 'num.thread'.");
+	bool verbose = SEXP_Verbose(Verbose);
 
 	COREARRAY_TRY
 
-		// ******** To cache the genotype data ********
+		// ======== To cache the genotype data ========
 		CachingSNPData("LD matrix", verbose);
 
 		// initialize the packed genotypes
 		LD::InitPackedGeno();
-		LD::LD_Method = INTEGER(method)[0];
+		LD::LD_Method = Rf_asInteger(method);
 
-		if (INTEGER(n_slide)[0] <= 0)
+		if (n_slide <= 0)
 		{
 			PROTECT(rv_ans = Rf_allocMatrix(REALSXP,
-				MCWorkingGeno.Space().SNPNum(), MCWorkingGeno.Space().SNPNum()));
+				MCWorkingGeno.Space().SNPNum(),
+				MCWorkingGeno.Space().SNPNum()));
 			{
 				double *p = REAL(rv_ans);
 				R_xlen_t N = XLENGTH(rv_ans);
@@ -811,10 +816,10 @@ COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP n_slide, SEXP NumThread,
 					*p ++ = R_NaN;
 			}
 
-			LD::calcLD_mat(INTEGER(NumThread)[0], REAL(rv_ans));
+			LD::calcLD_mat(nThread, REAL(rv_ans));
 		} else {
-			PROTECT(rv_ans = Rf_allocMatrix(REALSXP,
-				INTEGER(n_slide)[0], MCWorkingGeno.Space().SNPNum()));
+			PROTECT(rv_ans = Rf_allocMatrix(REALSXP, n_slide,
+				MCWorkingGeno.Space().SNPNum()));
 			{
 				double *p = REAL(rv_ans);
 				R_xlen_t N = XLENGTH(rv_ans);
@@ -822,8 +827,7 @@ COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP n_slide, SEXP NumThread,
 					*p ++ = R_NaN;
 			}
 
-			LD::calcLD_slide_mat(INTEGER(NumThread)[0], REAL(rv_ans),
-				INTEGER(n_slide)[0]);
+			LD::calcLD_slide_mat(nThread, REAL(rv_ans), n_slide);
 		}
 
 		UNPROTECT(1);

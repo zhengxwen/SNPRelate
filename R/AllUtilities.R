@@ -1532,10 +1532,10 @@ snpgdsTranspose <- function(gds.fn, snpfirstdim=FALSE, compress=NULL,
         else
             put.attr.gdsn(newnode, "sample.order")
 
-        ####
+        # move
         moveto.gdsn(newnode, node, relpos="replace+rename")
-        on.exit()
 
+        on.exit()
         snpgdsClose(gds)
 
         if (optimize)
