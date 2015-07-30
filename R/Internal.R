@@ -59,7 +59,7 @@
         n.samp <- sum(sample.id)
         if (n.samp != n.tmp)
             stop("Some of sample.id do not exist!")
-        if (n.samp <= 0)
+        if (n.samp <= 0L)
             stop("No sample in the working dataset.")
         if (with.id)
             samp.tmp <- samp.tmp[sample.id]
@@ -101,9 +101,9 @@
     # output
     if (with.id)
     {
-        list(n.snp=v[1], n.samp=v[2], sample.id=samp.tmp, snp.id=snp.tmp)
+        list(n.snp=v[1L], n.samp=v[2L], sample.id=samp.tmp, snp.id=snp.tmp)
     } else {
-        list(n.snp=v[1], n.samp=v[2],
+        list(n.snp=v[1L], n.samp=v[2L],
             samp.flag=sample.id, snp.flag=snp.id)
     }
 }
@@ -127,23 +127,13 @@
     stopifnot(is.logical(autosome.only) | is.numeric(autosome.only) |
         is.character(autosome.only))
     stopifnot(is.vector(autosome.only))
-    stopifnot(length(autosome.only) == 1)
+    stopifnot(length(autosome.only) == 1L)
 
-    stopifnot(is.logical(remove.monosnp))
-    stopifnot(is.vector(remove.monosnp))
-    stopifnot(length(remove.monosnp) == 1)
+    stopifnot(is.logical(remove.monosnp), length(remove.monosnp)==1L)
+    stopifnot(is.numeric(maf), length(maf)==1L)
+    stopifnot(is.numeric(missing.rate), length(missing.rate)==1L)
 
-    stopifnot(is.numeric(maf))
-    stopifnot(is.vector(maf))
-    stopifnot(length(maf) == 1)
-
-    stopifnot(is.numeric(missing.rate))
-    stopifnot(is.vector(missing.rate))
-    stopifnot(length(missing.rate) == 1)
-
-    stopifnot(is.numeric(num.thread))
-    stopifnot(is.vector(num.thread))
-    stopifnot(length(num.thread) == 1)
+    stopifnot(is.numeric(num.thread), length(num.thread)==1L)
     num.thread <- as.integer(num.thread)
     if (is.na(num.thread))
     {
@@ -153,7 +143,7 @@
         if (is.na(num.thread))
             stop("parallel::detectCores fails to detect the number of cores.")
     }
-    if (num.thread < 1)
+    if (num.thread < 1L)
         stop("`num.thread' should be a positive value or NA.")
 
     if (!is.null(allele.freq))
@@ -162,9 +152,7 @@
             stop("'allele.freq' should be a numeric vector or NULL.")
     }
 
-    stopifnot(is.logical(verbose))
-    stopifnot(is.vector(verbose))
-    stopifnot(length(verbose) == 1)
+    stopifnot(is.logical(verbose), length(verbose)==1L)
 
 
     # samples
@@ -176,7 +164,7 @@
         n.samp <- sum(sample.id)
         if (n.samp != n.tmp)
             stop("Some of sample.id do not exist!")
-        if (n.samp <= 0)
+        if (n.samp <= 0L)
             stop("No sample in the working dataset.")
         sample.ids <- sample.ids[sample.id]
     }
@@ -212,7 +200,7 @@
         n.snp <- sum(snp.id)
         if (n.snp != n.tmp)
             stop("Some of snp.id do not exist!")
-        if (n.snp <= 0)
+        if (n.snp <= 0L)
             stop("No SNP in the working dataset.")
 
         if (!identical(autosome.only, FALSE))
@@ -332,14 +320,14 @@
             rv <- .Call(gnrSelSNP_Base_Ex, as.double(allele.freq),
                 remove.monosnp, maf, missing.rate)
         }
-        snp.ids <- snp.ids[rv[[2]]]
+        snp.ids <- snp.ids[rv[[2L]]]
         if (!is.null(allele.freq))
-            allele.freq <- allele.freq[rv[[2]]]
+            allele.freq <- allele.freq[rv[[2L]]]
 
         # show
         if (verbose)
         {
-            cat("Excluding ", rv[[1]], " SNP", .plural(rv[[1]]),
+            cat("Excluding ", rv[[1L]], " SNP", .plural(rv[[1L]]),
                 " (monomorphic: ", remove.monosnp, ", < MAF: ", t.maf,
                 ", or > missing rate: ", t.miss, ")\n", sep="")
         }
@@ -351,8 +339,8 @@
 
     if (verbose && verbose.work)
     {
-        cat("Working space: ", dm[2], " sample", .plural(dm[2]), ", ",
-            dm[1], " SNP", .plural(dm[1]), "\n", sep="")
+        cat("Working space: ", dm[2L], " sample", .plural(dm[2L]), ", ",
+            dm[1L], " SNP", .plural(dm[1L]), "\n", sep="")
         if (verbose.numthread)
         {
             cat("\tUsing ", num.thread, " (CPU) core",
@@ -362,7 +350,7 @@
 
     # output
     list(sample.id = sample.ids, snp.id = snp.ids,
-        n.snp = dm[1], n.samp = dm[2], allele.freq = allele.freq,
+        n.snp = dm[1L], n.samp = dm[2L], allele.freq = allele.freq,
         num.thread = num.thread, verbose = verbose)
 }
 

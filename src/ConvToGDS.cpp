@@ -549,7 +549,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP GenoNode, SEXP Num, SEXP File,
 {
 	COREARRAY_TRY
 
-		PdAbstractArray Seq = GDS_R_SEXP2Obj(GenoNode);
+		PdAbstractArray Seq = GDS_R_SEXP2Obj(GenoNode, FALSE);
 		int n = Rf_asInteger(Num);
 
 		int DLen[2];
@@ -677,7 +677,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParseVCF4(SEXP vcf_fn, SEXP gds_root,
 		const bool RaiseError = true;
 
 		// GDS nodes
-		PdGDSObj Root = GDS_R_SEXP2Obj(gds_root);
+		PdGDSObj Root = GDS_R_SEXP2Obj(gds_root, FALSE);
 		PdAbstractArray varIdx = GDS_Node_Path(Root, "snp.id", TRUE);
 		PdAbstractArray varRSID = GDS_Node_Path(Root, "snp.rs.id", TRUE);
 		PdAbstractArray varChr = GDS_Node_Path(Root, "snp.chromosome", TRUE);
@@ -1041,7 +1041,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParseGEN(SEXP gen_fn, SEXP gds_root,
 		const bool RaiseError = true;
 
 		// GDS nodes
-		PdGDSObj Root = GDS_R_SEXP2Obj(gds_root);
+		PdGDSObj Root = GDS_R_SEXP2Obj(gds_root, FALSE);
 		PdAbstractArray varIdx = GDS_Node_Path(Root, "snp.id", TRUE);
 		PdAbstractArray varRSID = GDS_Node_Path(Root, "snp.rs.id", TRUE);
 		PdAbstractArray varPos = GDS_Node_Path(Root, "snp.position", TRUE);
@@ -1221,7 +1221,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParsePED(SEXP ped_fn, SEXP gds_root,
 		// initialize external calling for reading stream
 
 		// GDS nodes
-		PdGDSObj Root = GDS_R_SEXP2Obj(gds_root);
+		PdGDSObj Root = GDS_R_SEXP2Obj(gds_root, FALSE);
 		PdAbstractArray varSample = GDS_Node_Path(Root, "sample.id", TRUE);
 		PdAbstractArray varAllele = GDS_Node_Path(Root, "snp.allele", TRUE);
 		PdAbstractArray varGeno   = GDS_Node_Path(Root, "genotype", TRUE);

@@ -77,7 +77,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSetGenoSpace(SEXP Node, SEXP SelSamp, SEXP SelSNP)
 {
 	COREARRAY_TRY
 
-		PdGDSObj Obj = GDS_R_SEXP2Obj(Node);
+		PdGDSObj Obj = GDS_R_SEXP2Obj(Node, TRUE);
 		MCWorkingGeno.InitSNPGDSFile(Obj, false);
 		if (!Rf_isNull(SelSamp))
 		{
@@ -295,9 +295,7 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGeno(SEXP Node, SEXP snpfirstorder)
 
 	COREARRAY_TRY
 
-		PdAbstractArray obj = GDS_R_SEXP2Obj(Node);
-		GDS_R_NodeValid(obj, TRUE);
-
+		PdAbstractArray obj = GDS_R_SEXP2Obj(Node, TRUE);
 		if (snpdim)
 		{
 			C_Int32 cnt[2] = { 1, MCWorkingGeno.Space().SNPNum() };
@@ -375,7 +373,7 @@ COREARRAY_DLL_EXPORT SEXP gnrAppendGenoSpaceStrand(SEXP Node,
 
 	COREARRAY_TRY
 
-		PdGDSObj Obj = GDS_R_SEXP2Obj(Node);
+		PdGDSObj Obj = GDS_R_SEXP2Obj(Node, FALSE);
 		if (firstorder == TRUE)
 		{
 			const R_xlen_t n = MCWorkingGeno.Space().SNPNum();
@@ -435,12 +433,9 @@ COREARRAY_DLL_EXPORT SEXP gnrStrandSwitch(SEXP Node, SEXP AlleleNode,
 
 	COREARRAY_TRY
 
-		PdGDSObj GenoObj   = GDS_R_SEXP2Obj(Node);
-		GDS_R_NodeValid(GenoObj, TRUE);
-		PdGDSObj AlleleObj = GDS_R_SEXP2Obj(AlleleNode);
-		GDS_R_NodeValid(AlleleObj, TRUE);
-		PdGDSObj NewAObj = GDS_R_SEXP2Obj(NewAlleleNode);
-		GDS_R_NodeValid(NewAObj, FALSE);
+		PdGDSObj GenoObj   = GDS_R_SEXP2Obj(Node, TRUE);
+		PdGDSObj AlleleObj = GDS_R_SEXP2Obj(AlleleNode, TRUE);
+		PdGDSObj NewAObj   = GDS_R_SEXP2Obj(NewAlleleNode, FALSE);
 
 		int NDim[2];
 		GDS_Array_GetDim(GenoObj, NDim, 2);
@@ -1014,9 +1009,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParse(SEXP gdsobj)
 {
 	COREARRAY_TRY
 
-		PdAbstractArray Obj = GDS_R_SEXP2Obj(gdsobj);
-		GDS_R_NodeValid(Obj, TRUE);
-
+		PdAbstractArray Obj = GDS_R_SEXP2Obj(gdsobj, TRUE);
 		C_Int32 st, cnt, TotalCnt;
 		GDS_Array_GetDim(Obj, &TotalCnt, 1);
 
@@ -1074,9 +1067,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromRangeNumeric(SEXP gdsobj, SEXP ChrMin,
 
 	COREARRAY_TRY
 
-		PdAbstractArray Obj = GDS_R_SEXP2Obj(gdsobj);
-		GDS_R_NodeValid(Obj, TRUE);
-
+		PdAbstractArray Obj = GDS_R_SEXP2Obj(gdsobj, TRUE);
 		C_Int32 st, cnt, TotalCnt;
 		GDS_Array_GetDim(Obj, &TotalCnt, 1);
 
@@ -1102,9 +1093,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParseNumeric(SEXP gdsobj)
 {
 	COREARRAY_TRY
 
-		PdAbstractArray Obj = GDS_R_SEXP2Obj(gdsobj);
-		GDS_R_NodeValid(Obj, TRUE);
-
+		PdAbstractArray Obj = GDS_R_SEXP2Obj(gdsobj, TRUE);
 		C_Int32 st, cnt, TotalCnt;
 		GDS_Array_GetDim(Obj, &TotalCnt, 1);
 

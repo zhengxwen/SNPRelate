@@ -9,8 +9,8 @@
 \usage{
 snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("Visscher", "Eigenstrat", "EIGMIX", "WeirBeta"),
-    num.thread=1L, with.id=TRUE, verbose=TRUE)
+    method=c("Visscher", "Eigenstrat", "EIGMIX"), num.thread=1L,
+    with.id=TRUE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -28,8 +28,7 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         no missing threshold}
     \item{method}{"Visscher" -- genetic relationship matrix defined in CGTA;
         "Eigenstrat" -- genetic covariance matrix in EIGENSTRAT;
-        "EIGMIX" -- coancestry matrix defined in Zheng & Weir (2015);
-        "WeirBeta" -- the details will be provided in future}
+        "EIGMIX" -- coancestry matrix defined in Zheng & Weir (2015)}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
     \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id}

@@ -518,8 +518,8 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 
 snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("Visscher", "Eigenstrat", "EIGMIX", "WeirBeta"),
-    num.thread=1L, with.id=TRUE, verbose=TRUE)
+    method=c("Visscher", "Eigenstrat", "EIGMIX"), num.thread=1L,
+    with.id=TRUE, verbose=TRUE)
 {
     # check and initialize ...
     method <- match.arg(method)
@@ -615,4 +615,36 @@ snpgdsFst <- function(gdsobj, population, method=c("W&H02", "W&C84"),
         colnames(rv$Beta) <- rownames(rv$Beta) <- levels(population)
     }
     rv
+}
+
+
+
+#######################################################################
+# Genetic relationship matrix (GRM)
+#
+
+snpRec <- function(gdsobj, sample.id=NULL, snp.id=NULL,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    method=c("OneLocus", "TwoLoci"), num.thread=1L,
+    with.id=TRUE, verbose=TRUE)
+{
+    # check and initialize ...
+    method <- match.arg(method)
+    ws <- .InitFile2(
+        cmd=paste("Genetic Relationship Matrix (GRM/", method, "):", sep=""),
+        gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
+        autosome.only=autosome.only, remove.monosnp=remove.monosnp,
+        maf=maf, missing.rate=missing.rate, num.thread=num.thread,
+        verbose=verbose)
+    stopifnot(is.logical(with.id))
+
+    # call GRM C function
+    rv <- .Call("gnrRecombination", ws$num.thread, method, verbose,
+        PACKAGE="SNPRelate")
+
+    # return
+    if (with.id)
+        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, mat=rv)
+
+    return(rv)
 }

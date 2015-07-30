@@ -733,7 +733,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 			}
 		} else if (strcmp(c_Type, "gds.file") == 0)
 		{
-			PdAbstractArray Obj = GDS_R_SEXP2Obj(GDSNode);
+			PdAbstractArray Obj = GDS_R_SEXP2Obj(GDSNode, FALSE);
 			vector<C_UInt8> Buffer(nPair);
 
 			// for-loop
