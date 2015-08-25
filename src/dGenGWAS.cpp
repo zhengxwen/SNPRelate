@@ -1593,8 +1593,10 @@ void CMultiCoreWorkingGeno::InitSeqGDSFile(SEXP GDSFile, bool _InitSelection)
 void CMultiCoreWorkingGeno::InitParam(bool snp_direction,
 	TTypeGenoDim read_order, long block_size)
 {
-	if (_Mutex == NULL) _Mutex = GDS_Parallel_InitMutex();
-	if (_Suspend == NULL) _Suspend = GDS_Parallel_InitSuspend();
+	if (_Mutex == NULL)
+		_Mutex = GDS_Parallel_InitMutex();
+	if (_Suspend == NULL)
+		_Suspend = GDS_Parallel_InitSuspend();
 
 	_SNP_Direction = snp_direction;
 	_Read_Order = read_order;
@@ -1728,10 +1730,6 @@ void CMultiCoreWorkingGeno::_DoThread_WorkingGeno(PdThread Thread,
 void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[],
 	C_Int64 outMatCnt[])
 {
-	#ifdef COREARRAY_NO_MULTICORE
-		nJob = 1; 
-	#endif
-
 	if (nJob <= 0) nJob = 1;
 	IdMatTri pt(MatSize);
 	double ratio = 0.5*(MatSize+1)*MatSize / nJob, st = 0;
@@ -1748,10 +1746,6 @@ void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[
 void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTriD outMatIdx[],
 	C_Int64 outMatCnt[])
 {
-	#ifdef COREARRAY_NO_MULTICORE
-		nJob = 1; 
-	#endif
-
 	if (nJob <= 0) nJob = 1;
 	IdMatTriD pt(MatSize);
 	double ratio = 0.5*(MatSize-1)*MatSize / nJob, st = 0;

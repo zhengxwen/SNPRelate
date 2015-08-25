@@ -1451,11 +1451,11 @@ COREARRAY_DLL_EXPORT SEXP gnrPCACorr(SEXP LenEig, SEXP EigenVect,
 		// ======== To compute the snp correlation ========
 		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space().SampleNum());
 
-		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, INTEGER(LenEig)[0],
+		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, Rf_asInteger(LenEig),
 			MCWorkingGeno.Space().SNPNum()));
 
-		PCA::DoSNPCoeffCalculate(INTEGER(LenEig)[0], REAL(EigenVect),
-			REAL(rv_ans), INTEGER(NumThread)[0], verbose, "SNP Correlation:");
+		PCA::DoSNPCoeffCalculate(Rf_asInteger(LenEig), REAL(EigenVect),
+			REAL(rv_ans), Rf_asInteger(NumThread), verbose, "SNP Correlation:");
 
 		UNPROTECT(1);
 
@@ -1477,7 +1477,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP DimCnt,
 
 		// ======== To compute the snp correlation ========
 		PCA::AutoDetectSNPBlockSize(MCWorkingGeno.Space().SampleNum());
-		PCA::BayesianNormal = (LOGICAL(Bayesian)[0] == TRUE);
+		PCA::BayesianNormal = (Rf_asLogical(Bayesian) == TRUE);
 
 		PROTECT(rv_ans = NEW_LIST(3));
 
@@ -1495,7 +1495,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP DimCnt,
 		PCA::GetPCAFreqScale(REAL(afreq), REAL(scale));
 		PCA::DoSNPLoadingCalculate(REAL(EigenVal), INTEGER(DimCnt)[1],
 			REAL(EigenVect), REAL(TraceXTX)[0], REAL(loading),
-			INTEGER(NumThread)[0], verbose,
+			Rf_asInteger(NumThread), verbose,
 			"SNP Loading:");
 
 		UNPROTECT(4);
@@ -1523,7 +1523,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
 		PCA::DoSampLoadingCalculate(REAL(AveFreq), REAL(Scale),
 			INTEGER(EigenCnt)[0], REAL(SNPLoadings),
 			REAL(EigenVal), INTEGER(Num)[0], REAL(TraceXTX)[0],
-			REAL(rv_ans), INTEGER(NumThread)[0], "Sample Loading:",
+			REAL(rv_ans), Rf_asInteger(NumThread), "Sample Loading:",
 			verbose);
 
 		UNPROTECT(1);

@@ -67,11 +67,8 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
 {
     # check
     stopifnot(inherits(pcaobj, "snpgdsPCAClass"))
-    ws <- .InitFile(gdsobj, sample.id=pcaobj$sample.id, snp.id=snp.id)
-
-    snp.id <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
-    if (!is.null(ws$snp.flag))
-        snp.id <- snp.id[ws$snp.flag]
+    ws <- .InitFile(gdsobj, sample.id=pcaobj$sample.id, snp.id=snp.id,
+        with.id=TRUE)
 
     stopifnot(is.numeric(num.thread) & (num.thread>0))
     stopifnot(is.logical(verbose))
@@ -98,10 +95,10 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
 
     # call C function
     rv <- .Call(gnrPCACorr, length(eig.which), pcaobj$eigenvect[,eig.which],
-        as.integer(num.thread), verbose)
+        num.thread, verbose)
 
     # return
-    list(sample.id=pcaobj$sample.id, snp.id=snp.id, snpcorr=rv)
+    list(sample.id=pcaobj$sample.id, snp.id=ws$snp.id, snpcorr=rv)
 }
 
 
@@ -115,7 +112,7 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
     # check
     stopifnot(inherits(pcaobj, "snpgdsPCAClass"))
     ws <- .InitFile(gdsobj, sample.id=pcaobj$sample.id, snp.id=pcaobj$snp.id)
-    stopifnot(is.numeric(num.thread) & (num.thread>0))
+    stopifnot(is.numeric(num.thread) & (num.thread>0L))
     stopifnot(is.logical(verbose))
 
     if (verbose)
@@ -131,8 +128,8 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
 
     # call parallel PCA
     rv <- .Call(gnrPCASNPLoading, pcaobj$eigenval, dim(pcaobj$eigenvect),
-        pcaobj$eigenvect, pcaobj$TraceXTX, as.integer(num.thread),
-        pcaobj$Bayesian, verbose)
+        pcaobj$eigenvect, pcaobj$TraceXTX, num.thread, pcaobj$Bayesian,
+        verbose)
 
     # return
     rv <- list(sample.id=pcaobj$sample.id, snp.id=pcaobj$snp.id,

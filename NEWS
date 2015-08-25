@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.3.0-1.3.7
+CHANGES IN VERSION 1.3.0-1.3.9
 -------------------------
 
     o update GENEVA website address
@@ -12,6 +12,8 @@ CHANGES IN VERSION 1.3.0-1.3.7
     o modification according to gdsfmt_1.5.7
 
     o bug fix in `snpgdsLDMat()` when genotype data are from SeqArray
+
+    o bug fix: https://github.com/zhengxwen/SNPRelate/issues/14
 
 
 CHANGES IN VERSION 1.2.0
