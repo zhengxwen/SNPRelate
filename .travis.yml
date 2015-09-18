@@ -1,31 +1,12 @@
-## See https://github.com/metacran/r-builder for details.
+language: r
 
-language: cpp
+warnings_are_errors: true
+bioc_required: true
 
-before_install:
-  - curl -OL https://raw.githubusercontent.com/metacran/r-builder/master/pkg-build.sh
-  - chmod 755 pkg-build.sh
-  - ./pkg-build.sh bootstrap
+r_binary_packages:
+  - RUnit
 
-install:
-  - ./pkg-build.sh install_github zhengxwen/gdsfmt
-  - ./pkg-build.sh install_deps
-  - ./pkg-build.sh install_bioc_deps
-
-script:
-  - ./pkg-build.sh run_tests
-
-after_failure:
-  - ./pkg-build.sh dump_logs
-
-notifications:
-  email:
-    on_success: change
-    on_failure: change
-
-env:
-  matrix:
-    - RVERSION=3.1.2
-    - RVERSION=3.2.0
-    - RVERSION=devel
+# Install packages from github
+r_github_packages:
+  - zhengxwen/gdsfmt
 

@@ -116,7 +116,7 @@ snpgdsOpen <- function(filename, readonly=TRUE, allow.duplicate=FALSE,
     if (!is.null(n))
     {
         dm <- objdesp.gdsn(n)$dim
-        if (length(dm) != 2)
+        if (length(dm) != 2L)
             stop(err, "'genotype' should be a matrix.")
         snpfirstdim <- TRUE
         rd <- names(get.attr.gdsn(n))
@@ -124,10 +124,10 @@ snpgdsOpen <- function(filename, readonly=TRUE, allow.duplicate=FALSE,
         if ("sample.order" %in% rd) snpfirstdim <- FALSE
         if (snpfirstdim)
         {
-            if ((dm[1]!=n.snp) || (dm[2]!=n.samp))
+            if ((dm[1L]!=n.snp) || (dm[2L]!=n.samp))
                 stop(err, "invalid dimension of 'genotype'.")
         } else {
-            if ((dm[1]!=n.samp) || (dm[2]!=n.snp))
+            if ((dm[1L]!=n.samp) || (dm[2L]!=n.snp))
                 stop(err, "invalid dimension of 'genotype'.")
         }
     } else
@@ -1543,10 +1543,7 @@ snpgdsTranspose <- function(gds.fn, snpfirstdim=FALSE, compress=NULL,
 
     } else {
         if (verbose)
-        {
-            cat("No action taken, please set different 'snpfirstdim'.\n",
-                sep="")
-        }
+            cat("No transposing action taken.\n")
 
         if (!is.null(compress))
         {
@@ -1718,7 +1715,7 @@ snpgdsDrawTree <- function(obj, clust.count=NULL, dend.idx=NULL,
 
             ym <- pretty(c(0, 1))
             axis(side=4, (1 - ym) * y.kinship.baseline, ym, line=0)
-            mtext("coancestry / kinship coefficient", 4, line=2.5)
+            mtext("coancestry coefficient", 4, line=2.5)
         }
 
         # draw others

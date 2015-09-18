@@ -188,8 +188,9 @@ snpgdsPED2GDS <- function(ped.fn, map.fn, out.gdsfn, family=TRUE,
     # close the file at the end
     on.exit({ closefn.gds(gfile) })
 
-    # add a flag
+    # add file flag
     put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
+    put.attr.gdsn(gfile$root, "FileVersion", "v1.0")
 
     # add "sample.id"
     add.gdsn(gfile, "sample.id", valdim=0, storage="string",
@@ -436,30 +437,20 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     verbose=TRUE)
 {
     # check
-    stopifnot(is.character(bed.fn))
-    stopifnot(is.vector(bed.fn) & (length(bed.fn)==1L))
+    stopifnot(is.character(bed.fn), length(bed.fn)==1L)
+    stopifnot(is.character(fam.fn), length(fam.fn)==1L)
+    stopifnot(is.character(bim.fn), length(bim.fn)==1L)
+    stopifnot(is.character(out.gdsfn), length(out.gdsfn)==1L)
 
-    stopifnot(is.character(fam.fn))
-    stopifnot(is.vector(fam.fn) & (length(fam.fn)==1L))
-
-    stopifnot(is.character(bim.fn))
-    stopifnot(is.vector(bim.fn) & (length(bim.fn)==1L))
-
-    stopifnot(is.character(out.gdsfn))
-    stopifnot(is.vector(out.gdsfn) & (length(out.gdsfn)==1L))
-
-    stopifnot(is.character(compress.annotation))
-    stopifnot(is.vector(compress.annotation) & (length(compress.annotation)==1L))
-
-    stopifnot(is.character(compress.geno))
-    stopifnot(is.vector(compress.geno) & (length(compress.geno)==1L))
+    stopifnot(is.character(compress.annotation), length(compress.annotation)==1L)
+    stopifnot(is.character(compress.geno), length(compress.geno)==1L)
 
     cvt.chr <- match.arg(cvt.chr)
     cvt.snpid <- match.arg(cvt.snpid)
 
-    stopifnot(is.logical(family))
+    stopifnot(is.logical(family), length(family)==1L)
     stopifnot(is.na(snpfirstdim) | is.logical(snpfirstdim))
-    stopifnot(is.logical(verbose))
+    stopifnot(is.logical(verbose), length(verbose)==1L)
 
     if (verbose)
         cat("Start snpgdsBED2GDS ...\n")
@@ -472,7 +463,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     if (verbose)
     {
         cat("\tBED file: \"", bed.fn, "\"", sep="")
-        if (bed.flag == 0)
+        if (bed.flag == 0L)
             cat(" in the individual-major mode (SNP X Sample)\n")
         else
             cat(" in the SNP-major mode (Sample X SNP)\n")
@@ -485,13 +476,13 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     .CloseConnection(f)
 
     names(famD) <- c("FamilyID", "InvID", "PatID", "MatID", "Sex", "Pheno")
-    if (length(unique(famD$InvID)) == dim(famD)[1])
+    if (anyDuplicated(famD$InvID) == 0L)
     {
         sample.id <- famD$InvID
     } else {
         sample.id <- paste(famD$FamilyID, famD$InvID, sep="-")
         if (length(unique(sample.id)) != dim(famD)[1])
-            stop("IDs in PLINK bed are not unique!")
+            stop("IDs in PLINK BED are not unique!")
     }
     if (verbose)
         cat("\tFAM file: \"", fam.fn, "\", DONE.\n", sep="")
@@ -512,7 +503,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 	    for (i in names(chrcode))
 	        chr[bimD$chr == i] <- chrcode[[i]]
 	    chr <- as.integer(chr)
-	    chr[is.na(chr)] <- 0
+	    chr[is.na(chr)] <- 0L
 	} else {
 		if (!is.null(option))
 			stop("'option' should be NULL when 'cvt.chr=\"int\"'.")
@@ -522,7 +513,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     # snp.id
     if (cvt.snpid == "auto")
     {
-        if (length(unique(bimD$snp.id)) == dim(bimD)[1])
+        if (anyDuplicated(bimD$snp.id) == 0L)
         {
             snp.id <- bimD$snp.id; snp.rs.id <- NULL
         } else {
@@ -540,8 +531,9 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     # close the file at the end
     on.exit({ closefn.gds(gfile) }, add=TRUE)
 
-    # add a flag
+    # add file flag
     put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
+    put.attr.gdsn(gfile$root, "FileVersion", "v1.0")
 
     # add "sample.id"
     add.gdsn(gfile, "sample.id", sample.id, compress=compress.annotation,
@@ -584,7 +576,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     # sync file
     sync.gds(gfile)
 
-    nSamp <- dim(famD)[1]; nSNP <- dim(bimD)[1]
+    nSamp <- dim(famD)[1L]; nSNP <- dim(bimD)[1L]
     if (verbose)
     {
         cat(date(), "\tstore sample id, snp id, position, and chromosome.\n")
@@ -594,7 +586,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     # add "gonetype", 2 bits to store one genotype
     comp.geno <- compress.geno
     transposeflag <- FALSE
-    if (bed.flag == 0)
+    if (bed.flag == 0L)
     {
         if (identical(snpfirstdim, FALSE))
         {
@@ -629,7 +621,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 
     # add "sample.annot"
     sex <- rep("", length(sample.id))
-    sex[famD$Sex==1] <- "M"; sex[famD$Sex==2] <- "F"
+    sex[famD$Sex==1L] <- "M"; sex[famD$Sex==2L] <- "F"
 
     if (family)
     {
@@ -647,17 +639,17 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     {
         if (verbose)
             cat("Transpose the genotypic matrix ...\n")
-        if (bed.flag == 0)
+        if (bed.flag == 0L)
         {
             tm <- add.gdsn(gfile, "~genotype", storage="bit2",
-                valdim=c(nSamp, 0), compress=compress.geno)
+                valdim=c(nSamp, 0L), compress=compress.geno)
             put.attr.gdsn(tm, "sample.order")
         } else {
             tm <- add.gdsn(gfile, "~genotype", storage="bit2",
-                valdim=c(nSNP, 0), compress=compress.geno)
+                valdim=c(nSNP, 0L), compress=compress.geno)
             put.attr.gdsn(tm, "snp.order")
         }
-        apply.gdsn(gGeno, margin=1, FUN=c, as.is="gdsnode", target.node=tm)
+        apply.gdsn(gGeno, margin=1L, FUN=c, as.is="gdsnode", target.node=tm)
         readmode.gdsn(tm)
         moveto.gdsn(tm, gGeno, relpos="replace+rename")
     }
@@ -863,8 +855,9 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
     # close the file at the end
     on.exit(closefn.gds(gfile))
 
-    # add a flag
+    # add file flag
     put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
+    put.attr.gdsn(gfile$root, "FileVersion", "v1.0")
 
     # add sample id
     add.gdsn(gfile, "sample.id", samp.tab[,1], compress=compress.annotation,
@@ -1049,8 +1042,9 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
     # close the file at the end
     on.exit(closefn.gds(gfile))
 
-    # add a flag
+    # add file flag
     put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
+    put.attr.gdsn(gfile$root, "FileVersion", "v1.0")
 
     # add sample id
     add.gdsn(gfile, "sample.id", samp.id, compress=compress.annotation,
@@ -1393,9 +1387,7 @@ snpgdsVCF2GDS_R <- function(vcf.fn, out.fn, nblock=1024,
 
 
     ######################################################################
-    ######################################################################
     # Starting ...
-    ######################################################################
     ######################################################################
 
     if (verbose)
@@ -1465,6 +1457,10 @@ snpgdsVCF2GDS_R <- function(vcf.fn, out.fn, nblock=1024,
     #
     gfile <- createfn.gds(out.fn)
     on.exit({ closefn.gds(gfile) })
+
+    # add file flag
+    put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
+    put.attr.gdsn(gfile$root, "FileVersion", "v1.0")
 
     # add "sample.id"
     add.gdsn(gfile, "sample.id", sample.id, compress=compress.annotation, closezip=TRUE)

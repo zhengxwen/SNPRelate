@@ -8,7 +8,8 @@
 }
 \usage{
 snpgdsLDMat(gdsobj, sample.id=NULL, snp.id=NULL, slide=250,
-    method=c("composite", "r", "dprime", "corr"), num.thread=1, verbose=TRUE)
+    method=c("composite", "r", "dprime", "corr"), num.thread=1, with.id=TRUE,
+    verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -21,6 +22,8 @@ snpgdsLDMat(gdsobj, sample.id=NULL, snp.id=NULL, slide=250,
     \item{method}{"composite", "r", "dprime", "corr", see details}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
+    \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id} and
+        \code{sample.id}}
     \item{verbose}{if TRUE, show information}
 }
 \details{

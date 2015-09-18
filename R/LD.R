@@ -53,14 +53,14 @@ snpgdsLDpair <- function(snp1, snp2,
 
 snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     slide=250, method=c("composite", "r", "dprime", "corr"),
-    num.thread=1L, verbose=TRUE)
+    num.thread=1L, with.id=TRUE, verbose=TRUE)
 {
     # check
-    ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id, with.id=TRUE)
+    ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id, with.id=with.id)
 
-    stopifnot(is.numeric(slide))
-    stopifnot(is.numeric(num.thread) & (num.thread>0))
-    stopifnot(is.logical(verbose))
+    stopifnot(is.numeric(slide), length(slide)==1L)
+    stopifnot(is.numeric(num.thread), num.thread > 0L)
+    stopifnot(is.logical(verbose), length(verbose)==1L)
 
     # method
     method <- match.arg(method)
@@ -72,26 +72,29 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     }
 
     slide <- as.integer(slide)
-    if (is.na(slide)) slide <- as.integer(-1)
+    if (is.na(slide)) slide <- -1L
     if (slide > ws$n.snp) slide <- ws$n.snp
 
     if (verbose)
     {
         cat("Linkage Disequilibrium (LD) analysis on SNP genotypes:\n");
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
-        if (num.thread <= 1)
+        if (num.thread <= 1L)
             cat("\tUsing", num.thread, "(CPU) core.\n")
         else
             cat("\tUsing", num.thread, "(CPU) cores.\n")
-        if (slide > 0)
+        if (slide > 0L)
             cat("\tSliding window size:", slide, "\n")
     }
 
     # call C function
-    LD <- .Call(gnrLDMat, method, slide, num.thread, verbose)
+    m <- .Call(gnrLDMat, method, slide, num.thread, verbose)
 
     # output
-    list(sample.id=ws$sample.id, snp.id=ws$snp.id, LD=LD, slide=slide)
+    if (with.id)
+        list(sample.id=ws$sample.id, snp.id=ws$snp.id, LD=m, slide=slide)
+    else
+        m
 }
 
 

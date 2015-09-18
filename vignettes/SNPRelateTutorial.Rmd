@@ -450,7 +450,7 @@ snpgdsFst(genofile, sample.id=samp.sel, population=as.factor(pop.sel),
 
 ## Relatedness Analysis
 
-For relatedness analysis, identity-by-descent (IBD) estimation in [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html) can be done by either the method of moments (MoM) (Purcell et al., 2007) or maximum likelihood estimation (MLE) (Milligan, 2003; Choi et al., 2009). Although MLE estimates are more reliable than MoM, MLE is significantly more computationally intensive. For both of these methods it is preffered to use a LD pruned SNP set.
+For relatedness analysis, identity-by-descent (IBD) estimation in [SNPRelate](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html) can be done by either the method of moments (MoM) (Purcell et al., 2007) or maximum likelihood estimation (MLE) (Milligan, 2003; Choi et al., 2009). For both of these methods it is preffered to use a LD pruned SNP set.
 
 ```{r}
 # YRI samples

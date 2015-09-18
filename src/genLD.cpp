@@ -785,7 +785,7 @@ COREARRAY_DLL_EXPORT SEXP gnrLDpair(SEXP snp1, SEXP snp2, SEXP method)
 }
 
 
-/// to compute the IBD coefficients by MLE
+/// Calculate LD coefficients
 COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP NumSlide, SEXP NumThread,
 	SEXP Verbose)
 {
@@ -836,7 +836,7 @@ COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP NumSlide, SEXP NumThread,
 }
 
 
-/// to prune SNPs based on LD
+/// Prune SNPs based on LD
 COREARRAY_DLL_EXPORT SEXP gnrLDpruning(SEXP StartIdx, SEXP pos_bp,
 	SEXP slide_max_bp, SEXP slide_max_n, SEXP LD_threshold, SEXP method)
 {

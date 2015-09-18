@@ -12,9 +12,9 @@ snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 }
 \arguments{
     \item{bed.fn}{the file name of binary file, genotype information}
-    \item{fam.fn}{the file name of first six columns of .ped}
+    \item{fam.fn}{the file name of first six columns of \code{".ped"}}
     \item{bim.fn}{the file name of extended MAP file:
-        two extra cols = allele names}
+        two extra columns = allele names}
     \item{out.gdsfn}{the output GDS file}
     \item{family}{if \code{TRUE}, to include family information in the
         sample annotation}

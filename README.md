@@ -27,7 +27,7 @@ Development Version: v1.3.8
 
 ## News (Development Version)
 
-* Supports the sequencing GDS format defined in the [SeqArray](http://www.bioconductor.org/packages/devel/bioc/html/SeqArray.html) package, see [the vignette](http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/SeqArrayTutorial.html#integration-with-snprelate).
+* Supports the sequence GDS format defined in the [SeqArray](http://www.bioconductor.org/packages/devel/bioc/html/SeqArray.html) package, see [the vignette](http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/AnalysisTutorial.html).
 
 
 ## Tutorials
