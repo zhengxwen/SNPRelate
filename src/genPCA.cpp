@@ -424,7 +424,7 @@ namespace PCA
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
-		MCWorkingGeno.SplitJobs(NumThread, PublicCov.N(), Array_Thread_MatIdx,
+		Array_SplitJobs(NumThread, PublicCov.N(), Array_Thread_MatIdx,
 			Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_PCA_ReadBlock, &_Do_PCA_ComputeCov,
 			PublicCov.get());
@@ -912,7 +912,7 @@ namespace PCA
 
 		double *Ptr[2] = { OutIBD.get(), AFreqProd.get() };
 
-		MCWorkingGeno.SplitJobs(NumThread, n, Array_Thread_MatIdx,
+		Array_SplitJobs(NumThread, n, Array_Thread_MatIdx,
 			Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_Admix_RatioOfAvg_ReadBlock,
 			&_Do_Admix_RatioOfAvg_Compute, (void*)Ptr);
@@ -1087,7 +1087,7 @@ namespace PCA
 
 		void *Ptr[2] = { OutIBD.get(), NumValid.get() };
 
-		MCWorkingGeno.SplitJobs(NumThread, n, Array_Thread_MatIdx,
+		Array_SplitJobs(NumThread, n, Array_Thread_MatIdx,
 			Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_Admix_AvgOfRatio_ReadBlock,
 			&_Do_Admix_AvgOfRatio_Compute, (void*)Ptr);
@@ -1240,7 +1240,7 @@ namespace PCA
 
 		void *Ptr[2] = { OutIBD.get(), NumValid.get() };
 
-		MCWorkingGeno.SplitJobs(NumThread, n, Array_Thread_MatIdx,
+		Array_SplitJobs(NumThread, n, Array_Thread_MatIdx,
 			Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_GRM_AvgOfRatio_ReadBlock,
 			&_Do_Admix_AvgOfRatio_Compute, (void*)Ptr);

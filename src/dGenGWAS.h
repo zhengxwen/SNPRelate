@@ -617,11 +617,6 @@ namespace GWAS
 		void Run(int nThread, TDoBlockRead do_read, TDoEachThread do_thread,
 			void *Param);
 
-		static void SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[],
-			C_Int64 outMatCnt[]);
-		static void SplitJobs(int nJob, int MatSize, IdMatTriD outMatIdx[],
-			C_Int64 outMatCnt[]);
-
 		// internal uses
 		void _DoThread_WorkingGeno(PdThread Thread, int ThreadIndex);
 
@@ -667,12 +662,25 @@ namespace GWAS
 
 	extern CMultiCoreWorkingGeno MCWorkingGeno;
 
+
+	// ===================================================================== //
+
 	/// Thread variables
 	const int N_MAX_THREAD = 256;
 
 	extern IdMatTri  Array_Thread_MatIdx[N_MAX_THREAD];
 	extern IdMatTriD Array_Thread_MatIdxD[N_MAX_THREAD];
 	extern C_Int64   Array_Thread_MatCnt[N_MAX_THREAD];
+
+	// Split jobs according to a triangle matrix with diagonals
+	COREARRAY_DLL_LOCAL void Array_SplitJobs(int nJob, int MatSize,
+		IdMatTri outMatIdx[], C_Int64 outMatCnt[]);
+	// Split jobs according to a triangle matrix without diagonals
+	COREARRAY_DLL_LOCAL void Array_SplitJobs(int nJob, int MatSize,
+		IdMatTriD outMatIdx[], C_Int64 outMatCnt[]);
+	// Split jobs
+	COREARRAY_DLL_LOCAL void Array_SplitJobs(int nJob, C_Int64 TotalCount,
+		C_Int64 outStart[], C_Int64 outCount[]);
 
 
 

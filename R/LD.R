@@ -39,7 +39,7 @@ snpgdsLDpair <- function(snp1, snp2,
     {
         names(rv) <- c("ld", "pA_A", "pA_B", "pB_A", "pB_B")
     } else {
-        rv <- rv[1]
+        rv <- rv[1L]
         names(rv) <- "ld"
     }
     rv
@@ -51,8 +51,8 @@ snpgdsLDpair <- function(snp1, snp2,
 # To calculate LD for each pair of SNPs in the region
 #
 
-snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    slide=250, method=c("composite", "r", "dprime", "corr"),
+snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
+    method=c("composite", "r", "dprime", "corr", "cov"), mat.trim=FALSE,
     num.thread=1L, with.id=TRUE, verbose=TRUE)
 {
     # check
@@ -60,16 +60,12 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
     stopifnot(is.numeric(slide), length(slide)==1L)
     stopifnot(is.numeric(num.thread), num.thread > 0L)
+    stopifnot(is.logical(mat.trim), length(mat.trim)==1L)
     stopifnot(is.logical(verbose), length(verbose)==1L)
 
     # method
     method <- match.arg(method)
-    method <- match(method[1], c("composite", "r", "dprime", "corr"))
-    if (is.na(method))
-    {
-        stop("method should be one of ",
-            "\"composite\", \"r\", \"dprime\" and \"corr\"")
-    }
+    method <- match(method, c("composite", "r", "dprime", "corr", "cov"))
 
     slide <- as.integer(slide)
     if (is.na(slide)) slide <- -1L
@@ -88,7 +84,7 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     }
 
     # call C function
-    m <- .Call(gnrLDMat, method, slide, num.thread, verbose)
+    m <- .Call(gnrLDMat, method, slide, mat.trim, num.thread, verbose)
 
     # output
     if (with.id)
@@ -143,7 +139,7 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         slide.max.n <- .Machine$integer.max
 
     # method
-    method <- match(method[1], c("composite", "r", "dprime", "corr"))
+    method <- match(method[1L], c("composite", "r", "dprime", "corr"))
     if (is.na(method))
     {
         stop("method should be one of ",

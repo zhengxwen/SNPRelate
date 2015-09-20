@@ -7,9 +7,9 @@
     Return a LD matrix for SNP pairs.
 }
 \usage{
-snpgdsLDMat(gdsobj, sample.id=NULL, snp.id=NULL, slide=250,
-    method=c("composite", "r", "dprime", "corr"), num.thread=1, with.id=TRUE,
-    verbose=TRUE)
+snpgdsLDMat(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
+    method=c("composite", "r", "dprime", "corr", "cov"), mat.trim=FALSE,
+    num.thread=1L, with.id=TRUE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -19,7 +19,9 @@ snpgdsLDMat(gdsobj, sample.id=NULL, snp.id=NULL, slide=250,
     \item{snp.id}{a vector of snp id specifying selected SNPs;
         if NULL, all SNPs are used}
     \item{slide}{# of SNPs, the size of sliding window, see details}
-    \item{method}{"composite", "r", "dprime", "corr", see details}
+    \item{method}{"composite", "r", "dprime", "corr", "cov", see details}
+    \item{mat.trim}{if \code{TRUE}, trim the matrix when \code{slide > 0}:
+        the function returns a \code{"num_slide x (n_snp - slide)"} matrix}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
     \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id} and
@@ -33,11 +35,10 @@ assuming HWE, it could be negative), "dprime" for D', and "corr" for
 correlation coefficient. The method "corr" is equivalent to "composite",
 when SNP genotypes are coded as: 0 -- BB, 1 -- AB, 2 -- AA.
 
-    if \code{slide} <= 0, output a n-by-n LD matrix; otherwise, output a
-m-by-n LD matrix, where n is the total number of SNPs, m is the size of
-sliding window.
-    For n-by-n matrix, the value of i row and j column is LD of i and j SNPs.
-    For m-by-n matrix, the value of i row and j column is LD of j and j+i SNPs.
+    If \code{slide <= 0}, the function returns a n-by-n LD matrix where the
+value of i row and j column is LD of i and j SNPs. If \code{slide > 0}, it
+returns a m-by-n LD matrix where n is the number of SNPs, m is the size of
+sliding window, and the value of i row and j column is LD of j and j+i SNPs.
 }
 \value{
     Return a list:

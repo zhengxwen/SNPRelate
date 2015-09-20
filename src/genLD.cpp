@@ -96,8 +96,9 @@ namespace LD
 
 	/// Genotype, stored in a packed mode
 	vector<C_UInt8> PackedGeno;
-	/// the number of samples and snps
-	long nPackedSamp, nSNP;
+
+	/// the number of samples and SNPs
+	ssize_t nPackedSamp, NumSNP;
 
 
 	/// initial object
@@ -175,11 +176,12 @@ namespace LD
 	/// Composite LD estimation
 	static double PairComposite(const int *snp1, const int *snp2, int cnt)
 	{
-		// Init data
+		// initialize data
 		long n, naa, naA, nAA, nbb, nbB, nBB, nAABB, naabb, naaBB, nAAbb;
 		n = naa = naA = nAA = nbb = nbB = nBB =
 			nAABB = naabb = naaBB = nAAbb = 0;
 
+		// for-loop
 		for (; cnt > 0; cnt--, snp1++, snp2++)
 		{
 			C_UInt8 g1 = (0<=*snp1 && *snp1<=2) ? (*snp1 | ~0x03) : 0xFF;
@@ -213,11 +215,12 @@ namespace LD
 	}
 	static double PairComposite(const C_UInt8 *snp1, const C_UInt8 *snp2)
 	{
-		// Init data
+		// initialize data
 		long n, naa, naA, nAA, nbb, nbB, nBB, nAABB, naabb, naaBB, nAAbb;
 		n = naa = naA = nAA = nbb = nbB = nBB =
 			nAABB = naabb = naaBB = nAAbb = 0;
 
+		// for-loop
 		for (long cnt=nPackedSamp; cnt > 0; cnt--, snp1++, snp2++)
 		{
 			size_t _p = (size_t(*snp1) << 8) | (*snp2);
@@ -362,7 +365,7 @@ namespace LD
 		long nA_A, nA_B, nB_A, nB_B, nDH2;
 		nA_A = nA_B = nB_A = nB_B = nDH2 = 0;
 
-		// Calculate the numbers of haplotypes
+		// for-loop
 		for (long cnt=nPackedSamp; cnt > 0; cnt--, snp1++, snp2++)
 		{
 			size_t _p = (size_t(*snp1) << 8) | (*snp2);
@@ -391,7 +394,7 @@ namespace LD
 		long nA_A, nA_B, nB_A, nB_B, nDH2;
 		nA_A = nA_B = nB_A = nB_B = nDH2 = 0;
 
-		// Calculate the numbers of haplotypes
+		// for-loop
 		for (; cnt > 0; cnt--, snp1++, snp2++)
 		{
 			C_UInt8 g1 = (0<=*snp1 && *snp1<=2) ? (*snp1 | ~0x03) : 0xFF;
@@ -419,7 +422,7 @@ namespace LD
 		long nA_A, nA_B, nB_A, nB_B, nDH2;
 		nA_A = nA_B = nB_A = nB_B = nDH2 = 0;
 
-		// Calculate the numbers of haplotypes
+		// for-loop
 		for (long cnt=nPackedSamp; cnt > 0; cnt--, snp1++, snp2++)
 		{
 			size_t _p = (size_t(*snp1) << 8) | (*snp2);
@@ -441,15 +444,16 @@ namespace LD
 		return D;
 	}
 
+
 	// ---------------------------------------------------------------------
-	/// D' by EM algorithm
+	/// Correlation
 	static double PairCorr(const int *snp1, const int *snp2, int cnt)
 	{
-		// Init data
-		long n, X, XX, Y, YY, XY;
+		// initialize data
+		ssize_t n, X, XX, Y, YY, XY;
 		n = X = XX = Y = YY = XY = 0;
 
-		// Calculate the numbers of haplotypes
+		// for-loop
 		for (; cnt > 0; cnt--, snp1++, snp2++)
 		{
 			C_UInt8 g1 = (0<=*snp1 && *snp1<=2) ? (*snp1 | ~0x03) : 0xFF;
@@ -473,15 +477,16 @@ namespace LD
 	}
 	static double PairCorr(const C_UInt8 *snp1, const C_UInt8 *snp2)
 	{
-		// Init data
-		long n, X, XX, Y, YY, XY;
+		// initialize data
+		ssize_t n, X, XX, Y, YY, XY;
 		n = X = XX = Y = YY = XY = 0;
 
-		// Calculate the numbers of haplotypes
-		for (long cnt=nPackedSamp; cnt > 0; cnt--, snp1++, snp2++)
+		// for-loop
+		for (size_t cnt=nPackedSamp; cnt > 0; cnt--)
 		{
 			size_t _p = (size_t(*snp1) << 8) | (*snp2);
 			size_t _q = (size_t(*snp2) << 8) | (*snp1);
+			snp1++; snp2++;
 			n += Valid_Num_SNP[_p];
 			X += Sum_X_SNP[_p]; Y += Sum_X_SNP[_q];
 			XX += Sum_X_2_SNP[_p]; YY += Sum_X_2_SNP[_q];
@@ -500,11 +505,32 @@ namespace LD
 
 
 
+	// ---------------------------------------------------------------------
+	/// Covariance
+	static double PairCov(const C_UInt8 *snp1, const C_UInt8 *snp2)
+	{
+		// initialize data
+		ssize_t n=0, X=0, Y=0, XY=0;
+
+		// for-loop
+		for (size_t cnt=nPackedSamp; cnt > 0; cnt--)
+		{
+			size_t _p = (size_t(*snp1) << 8) | (*snp2);
+			size_t _q = (size_t(*snp2) << 8) | (*snp1);
+			snp1 ++; snp2 ++;
+			n += Valid_Num_SNP[_p];
+			X += Sum_X_SNP[_p]; Y += Sum_X_SNP[_q];
+			XY += Sum_XY_SNP[_p];
+		}
+
+		return (n > 1) ? (XY - double(X)*Y/n) / (n - 1) : R_NaN;
+	}
+
 
 
 
 	// ---------------------------------------------------------------------
-	// public parameters
+	// Public parameters
 
 	// the method of Linkage Disequilibrium (LD)
 	// 1 -- "composite"  Composite LD coefficients (by default)
@@ -513,15 +539,15 @@ namespace LD
 	// 4 -- "corr"       Correlation coefficient (BB, AB, AA are codes as 0, 1, 2)
 	int LD_Method = 1;
 
-	/// initialize the variable "Geno" with packed genotypes
-	void InitPackedGeno()
+	/// Initialize the variable "Geno" with packed genotypes
+	COREARRAY_DLL_LOCAL void InitPackedGeno()
 	{
 		// set # of samples and snps
-		nSNP = MCWorkingGeno.Space().SNPNum();
+		NumSNP = MCWorkingGeno.Space().SNPNum();
 		nPackedSamp = (MCWorkingGeno.Space().SampleNum() % 4 > 0) ?
 			(MCWorkingGeno.Space().SampleNum()/4 + 1) :
 			(MCWorkingGeno.Space().SampleNum()/4);
-		PackedGeno.resize(nPackedSamp * nSNP);
+		PackedGeno.resize(nPackedSamp * NumSNP);
 
 		// buffer
 		CdBufSpace Buf(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
@@ -532,15 +558,15 @@ namespace LD
 		}
 	}
 
-	/// destroy the variable "Geno" with packed genotypes
-	void DonePackedGeno()
+	/// Destroy the variable "Geno" with packed genotypes
+	COREARRAY_DLL_LOCAL void DonePackedGeno()
 	{
 		PackedGeno.clear();
 	}
 
 
-	// to compute pair LD
-	double calcLD(const int *snp1, const int *snp2, int cnt,
+	/// Compute pair LD
+	COREARRAY_DLL_LOCAL double Compute_LD(const int *snp1, const int *snp2, int cnt,
 		double &pA_A, double &pA_B, double &pB_A, double &pB_B)
 	{
 		switch (LD_Method)
@@ -557,67 +583,146 @@ namespace LD
 		return R_NaN;
 	}
 
-	// to compute LD matrix (n x n)
-	void calcLD_mat(int nThread, double *out_LD)
+
+
+	/// The thread entry for the calculation of LD measure
+	static void Entry_LD_Matrix(PdThread Thread, int ThreadIndex, void *Param)
 	{
-		for (int i=0; i < nSNP; i++)
+		double *base = (double*)Param;
+		IdMatTri I = Array_Thread_MatIdx[ThreadIndex];
+		C_UInt8 *pGeno = &PackedGeno[0];
+
+		for (C_Int64 n=Array_Thread_MatCnt[ThreadIndex]; n > 0; n--)
 		{
-			out_LD[i*nSNP + i] = 1;
-			for (int j=i+1; j < nSNP; j++)
+			const int i = I.Row(), j = I.Column();
+			double &p1 = base[i*NumSNP + j];
+			double &p2 = base[j*NumSNP + i];
+			C_UInt8 *s1 = pGeno + i*nPackedSamp;
+			C_UInt8 *s2 = pGeno + j*nPackedSamp;
+
+			switch (LD_Method)
 			{
-				double &p1 = out_LD[i*nSNP + j];
-				double &p2 = out_LD[j*nSNP + i];
-				C_UInt8 *s1 = (&PackedGeno[0]) + i*nPackedSamp;
-				C_UInt8 *s2 = (&PackedGeno[0]) + j*nPackedSamp;
-				switch (LD_Method)
-				{
-					case 1:
-						p1 = p2 = PairComposite(s1, s2); break;
-					case 2:
-						p1 = p2 = PairR(s1, s2); break;
-					case 3:
-						p1 = p2 = PairDPrime(s1, s2); break;
-					case 4:
-						p1 = p2 = PairCorr(s1, s2); break;
-					default:
-						p1 = p2 = R_NaN;
-				}
+				case 1:
+					p1 = p2 = PairComposite(s1, s2); break;
+				case 2:
+					p1 = p2 = PairR(s1, s2); break;
+				case 3:
+					p1 = p2 = PairDPrime(s1, s2); break;
+				case 4:
+					p1 = p2 = PairCorr(s1, s2); break;
+				case 5:
+					p1 = p2 = PairCov(s1, s2); break;
+				default:
+					p1 = p2 = R_NaN;
 			}
+
+			++ I;
 		}
 	}
 
-	// to compute LD matrix (n_slide x n)
-	void calcLD_slide_mat(int nThread, double *out_LD, int n_slide)
+	/// Calculate LD matrix (n x n)
+	COREARRAY_DLL_LOCAL void Compute_LD_Matrix(int nThread, double *out_LD)
 	{
-		for (int i=0; i < nSNP; i++)
-		{
-			for (int j=i+1; (j < nSNP) && ((j-i) <= n_slide); j++)
-			{
-				int d = j - i - 1;
-				double &pVal = out_LD[i*n_slide + d];				
-				C_UInt8 *s1 = (&PackedGeno[0]) + i*nPackedSamp;
-				C_UInt8 *s2 = (&PackedGeno[0]) + j*nPackedSamp;
-				switch (LD_Method)
-				{
-					case 1:
-						pVal = PairComposite(s1, s2); break;
-					case 2:
-						pVal = PairR(s1, s2); break;
-					case 3:
-						pVal = PairDPrime(s1, s2); break;
-					case 4:
-						pVal = PairCorr(s1, s2); break;
-					default:
-						pVal = R_NaN;
-				}
-			}
-		}
+		Array_SplitJobs(nThread, NumSNP,
+			Array_Thread_MatIdx, Array_Thread_MatCnt);
+
+		GDS_Parallel_RunThreads(Entry_LD_Matrix, out_LD, nThread);
 	}
 
 
 
-	// ---------------------------------------------------------------------
-	// to prune SNPs
+	struct TParam_LD_SlideMat
+	{
+		int Num_Thread;
+		int Num_Slide;
+		bool TrimMat;
+		C_Int64 TotalCount;
+		double *OutMatrix;
+	};
+
+	/// The thread entry for the calculation of LD measure
+	static void Entry_LD_SlideMat(PdThread Thread, int ThreadIndex, void *Param)
+	{
+		TParam_LD_SlideMat *pm = (TParam_LD_SlideMat*)Param;
+		C_Int64 StartIndex[pm->Num_Thread];
+		Array_SplitJobs(pm->Num_Thread, pm->TotalCount, StartIndex,
+			Array_Thread_MatCnt);
+
+		// starting point
+		C_Int64 st = StartIndex[ThreadIndex];
+		ssize_t snp_i, snp_inc;
+		double *pVal;
+		if (pm->TrimMat)
+		{
+			snp_i = st / pm->Num_Slide;
+			snp_inc = st % pm->Num_Slide + 1;
+			pVal = pm->OutMatrix + (snp_i * pm->Num_Slide) + (snp_inc-1);
+		} else {
+			snp_i = 0; snp_inc = 1;
+			pVal = pm->OutMatrix;
+			for (; st > 0; st--)
+			{
+				pVal ++; snp_inc ++;
+				if ((snp_inc > pm->Num_Slide) || (snp_i+snp_inc >= NumSNP))
+				{
+					snp_inc = 1;
+					snp_i ++;
+					pVal = pm->OutMatrix + (snp_i * pm->Num_Slide) + (snp_inc-1);
+				}
+			}
+		}
+
+		C_UInt8 *pGeno = &PackedGeno[0];
+		for (C_Int64 n=Array_Thread_MatCnt[ThreadIndex]; n > 0; n--)
+		{
+			C_UInt8 *s1 = pGeno + snp_i * nPackedSamp;
+			C_UInt8 *s2 = pGeno + (snp_i+snp_inc) * nPackedSamp;
+			switch (LD_Method)
+			{
+				case 1:
+					*pVal = PairComposite(s1, s2); break;
+				case 2:
+					*pVal = PairR(s1, s2); break;
+				case 3:
+					*pVal = PairDPrime(s1, s2); break;
+				case 4:
+					*pVal = PairCorr(s1, s2); break;
+				case 5:
+					*pVal = PairCov(s1, s2); break;
+				default:
+					*pVal = R_NaN;
+			}
+
+			pVal ++; snp_inc ++;
+			if ((snp_inc > pm->Num_Slide) || (snp_i+snp_inc >= NumSNP))
+			{
+				snp_inc = 1;
+				snp_i ++;
+				pVal = pm->OutMatrix + (snp_i * pm->Num_Slide) + (snp_inc-1);
+			}
+		}
+	}
+
+	/// Compute LD matrix (n_slide x n)
+	COREARRAY_DLL_LOCAL void Compute_LD_Slide_Matrix(int nThread,
+		double *out_LD, int n_slide, bool trim_mat)
+	{
+		TParam_LD_SlideMat param;
+		param.Num_Thread = nThread;
+		param.Num_Slide = n_slide;
+		param.TrimMat = trim_mat;
+		param.TotalCount = trim_mat ? (C_Int64)(NumSNP - n_slide) * n_slide :
+			(C_Int64)NumSNP * n_slide - n_slide*(n_slide+1)/2;
+		param.OutMatrix = out_LD;
+
+		GDS_Parallel_RunThreads(Entry_LD_SlideMat, &param, nThread);
+	}
+
+
+
+	// =====================================================================
+	// Prune SNPs
+	// =====================================================================
 
 	struct TSNP
 	{
@@ -629,7 +734,7 @@ namespace LD
 			{ idx = _idx; pos_bp = _pos; }
 	};
 
-	// to compute pair LD
+	// Compute pair LD
 	static double _CalcLD(const C_UInt8 *snp1, const C_UInt8 *snp2)
 	{
 		switch (LD_Method)
@@ -646,8 +751,9 @@ namespace LD
 		return R_NaN;
 	}
 
-	void calcLDpruning(int StartIdx, int *pos_bp, int slide_max_bp,
-		int slide_max_n, const double LD_threshold, C_BOOL *out_SNP)
+	COREARRAY_DLL_LOCAL void Perform_LD_Pruning(int StartIdx, int *pos_bp,
+		int slide_max_bp, int slide_max_n, const double LD_threshold,
+		C_BOOL *out_SNP)
 	{
 		// initial variables
 		nPackedSamp = (MCWorkingGeno.Space().SampleNum() % 4 > 0) ?
@@ -768,17 +874,14 @@ COREARRAY_DLL_EXPORT SEXP gnrLDpair(SEXP snp1, SEXP snp2, SEXP method)
 {
 	COREARRAY_TRY
 
-		PROTECT(rv_ans = NEW_NUMERIC(5));
-
 		double pA_A, pA_B, pB_A, pB_B;
-		LD::LD_Method = INTEGER(method)[0];
-		REAL(rv_ans)[0] = LD::calcLD(INTEGER(snp1), INTEGER(snp2),
-			XLENGTH(snp1), pA_A, pA_B, pB_A, pB_B);
-		REAL(rv_ans)[1] = pA_A;
-		REAL(rv_ans)[2] = pA_B;
-		REAL(rv_ans)[3] = pB_A;
-		REAL(rv_ans)[4] = pB_B;
+		LD::LD_Method = Rf_asInteger(method);
 
+		PROTECT(rv_ans = NEW_NUMERIC(5));
+		double *p = REAL(rv_ans);
+		p[0] = LD::Compute_LD(INTEGER(snp1), INTEGER(snp2),
+			XLENGTH(snp1), pA_A, pA_B, pB_A, pB_B);
+		p[1] = pA_A; p[2] = pA_B; p[3] = pB_A; p[4] = pB_B;
 		UNPROTECT(1);
 
 	COREARRAY_CATCH
@@ -786,10 +889,13 @@ COREARRAY_DLL_EXPORT SEXP gnrLDpair(SEXP snp1, SEXP snp2, SEXP method)
 
 
 /// Calculate LD coefficients
-COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP NumSlide, SEXP NumThread,
-	SEXP Verbose)
+COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP NumSlide, SEXP MatTrim,
+	SEXP NumThread, SEXP Verbose)
 {
 	int n_slide = Rf_asInteger(NumSlide);
+	int trim_flag = Rf_asLogical(MatTrim);
+	if (trim_flag == NA_INTEGER)
+		error("'mat.trim' should be TRUE or FALSE");
 	int nThread = Rf_asInteger(NumThread);
 	if (nThread <= 0)
 		error("Invalid 'num.thread'.");
@@ -803,31 +909,34 @@ COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP NumSlide, SEXP NumThread,
 		// initialize the packed genotypes
 		LD::InitPackedGeno();
 		LD::LD_Method = Rf_asInteger(method);
+		R_xlen_t nSNP = MCWorkingGeno.Space().SNPNum();
 
 		if (n_slide <= 0)
 		{
-			PROTECT(rv_ans = Rf_allocMatrix(REALSXP,
-				MCWorkingGeno.Space().SNPNum(),
-				MCWorkingGeno.Space().SNPNum()));
-			{
-				double *p = REAL(rv_ans);
-				R_xlen_t N = XLENGTH(rv_ans);
-				for (R_xlen_t i=0; i < N; i++)
-					*p ++ = R_NaN;
-			}
+			// n-by-n matrix
+			PROTECT(rv_ans = Rf_allocMatrix(REALSXP, nSNP, nSNP));
 
-			LD::calcLD_mat(nThread, REAL(rv_ans));
+			LD::Compute_LD_Matrix(nThread, REAL(rv_ans));
+
 		} else {
-			PROTECT(rv_ans = Rf_allocMatrix(REALSXP, n_slide,
-				MCWorkingGeno.Space().SNPNum()));
+			// sliding windows
+			if (n_slide > nSNP) n_slide = nSNP;
+			if (trim_flag)
 			{
-				double *p = REAL(rv_ans);
-				R_xlen_t N = XLENGTH(rv_ans);
-				for (R_xlen_t i=0; i < N; i++)
-					*p ++ = R_NaN;
+				PROTECT(rv_ans = Rf_allocMatrix(REALSXP, n_slide,
+					MCWorkingGeno.Space().SNPNum() - n_slide));
+			} else {
+				PROTECT(rv_ans = Rf_allocMatrix(REALSXP, n_slide,
+					MCWorkingGeno.Space().SNPNum()));
+				{
+					double *p = REAL(rv_ans);
+					for (R_xlen_t n=XLENGTH(rv_ans); n > 0; n--)
+						*p ++ = R_NaN;
+				}
 			}
 
-			LD::calcLD_slide_mat(nThread, REAL(rv_ans), n_slide);
+			LD::Compute_LD_Slide_Matrix(nThread, REAL(rv_ans), n_slide,
+				trim_flag);
 		}
 
 		UNPROTECT(1);
@@ -844,7 +953,7 @@ COREARRAY_DLL_EXPORT SEXP gnrLDpruning(SEXP StartIdx, SEXP pos_bp,
 
 		vector<C_BOOL> flag(MCWorkingGeno.Space().SNPNum());
 		LD::LD_Method = INTEGER(method)[0];
-		LD::calcLDpruning(INTEGER(StartIdx)[0], INTEGER(pos_bp),
+		LD::Perform_LD_Pruning(INTEGER(StartIdx)[0], INTEGER(pos_bp),
 			INTEGER(slide_max_bp)[0], INTEGER(slide_max_n)[0],
 			REAL(LD_threshold)[0], &flag[0]);
 

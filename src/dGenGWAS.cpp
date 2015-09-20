@@ -1727,7 +1727,14 @@ void CMultiCoreWorkingGeno::_DoThread_WorkingGeno(PdThread Thread,
 	GDS_Parallel_WakeUp(_Suspend);
 }
 
-void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[],
+
+// ===================================================================== //
+
+IdMatTri  GWAS::Array_Thread_MatIdx[N_MAX_THREAD];
+IdMatTriD GWAS::Array_Thread_MatIdxD[N_MAX_THREAD];
+C_Int64   GWAS::Array_Thread_MatCnt[N_MAX_THREAD];
+
+void GWAS::Array_SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[],
 	C_Int64 outMatCnt[])
 {
 	if (nJob <= 0) nJob = 1;
@@ -1743,7 +1750,7 @@ void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTri outMatIdx[
 	}
 }
 
-void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTriD outMatIdx[],
+void GWAS::Array_SplitJobs(int nJob, int MatSize, IdMatTriD outMatIdx[],
 	C_Int64 outMatCnt[])
 {
 	if (nJob <= 0) nJob = 1;
@@ -1759,7 +1766,24 @@ void CMultiCoreWorkingGeno::SplitJobs(int nJob, int MatSize, IdMatTriD outMatIdx
 	}
 }
 
+void GWAS::Array_SplitJobs(int nJob, C_Int64 TotalCount, C_Int64 outStart[],
+	C_Int64 outCount[])
+{
+	if (nJob <= 0) nJob = 1;
+	double ratio = (double)TotalCount / nJob, st = 0;
+	C_Int64 s = 0;
+	for (int i=0; i < nJob; i++)
+	{
+		st += ratio;
+		C_Int64 p = (C_Int64)(st + 0.5);
+		outStart[i] = s; outCount[i] = p - s;
+		s = p;
+	}
+}
 
+
+
+// ===================================================================== //
 
 bool GWAS::SEXP_Verbose(SEXP Verbose)
 {
@@ -1793,10 +1817,6 @@ void GWAS::DetectOptimizedNumOfSNP(int nSamp, size_t atleast)
 	if (BlockNumSNP < 16) BlockNumSNP = 16;
 }
 
-
-IdMatTri  GWAS::Array_Thread_MatIdx[N_MAX_THREAD];
-IdMatTriD GWAS::Array_Thread_MatIdxD[N_MAX_THREAD];
-C_Int64   GWAS::Array_Thread_MatCnt[N_MAX_THREAD];
 
 vector<C_UInt8> GWAS::Array_PackedGeno;
 vector<double>  GWAS::Array_AlleleFreq;

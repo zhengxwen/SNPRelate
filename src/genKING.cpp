@@ -259,7 +259,7 @@ namespace KING_IBD
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
-		MCWorkingGeno.SplitJobs(NumThread, PublicKING.N(),
+		Array_SplitJobs(NumThread, PublicKING.N(),
 			Array_Thread_MatIdx, Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_KING_ReadBlock,
 			&_Do_KING_Homo_Compute, PublicKING.get());
@@ -278,7 +278,7 @@ namespace KING_IBD
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
-		MCWorkingGeno.SplitJobs(NumThread, PublicKING.N(),
+		Array_SplitJobs(NumThread, PublicKING.N(),
 			Array_Thread_MatIdx, Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_KING_ReadBlock,
 			&_Do_KING_Robust_Compute, PublicKING.get());
