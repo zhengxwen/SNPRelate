@@ -1308,9 +1308,8 @@ static int GetEigen(double *pMat, int n, int nEig, const char *EigMethod,
 	{
 		vector<double> tmp_Work(n*8);
 		vector<int>    tmp_IWork(n*5);
-		vector<double> tmp_Eigen(n);
 
-		EigVal = PROTECT(NEW_NUMERIC(nEig));
+		EigVal = PROTECT(NEW_NUMERIC(n));
 		EigVect = PROTECT(Rf_allocMatrix(REALSXP, n, nEig));
 		nProtected += 2;
 
@@ -1327,7 +1326,7 @@ static int GetEigen(double *pMat, int n, int nEig, const char *EigMethod,
 
 		F77_NAME(dspevx)("V", "I", "L", &n, pMat,
 			&VL, &VU, &IL, &IU, &ABSTOL,
-			&M, &tmp_Eigen[0], REAL(EigVect), &LDZ,
+			&M, REAL(EigVal), REAL(EigVect), &LDZ,
 			&tmp_Work[0], &tmp_IWork[0], &ifail[0], &info);
 		if (info != 0)
 		{
@@ -1337,8 +1336,9 @@ static int GetEigen(double *pMat, int n, int nEig, const char *EigMethod,
 		}
 
 		// output eigenvalues
-		for (int i=0; i < nEig; i++)
-			REAL(EigVal)[i] = -tmp_Eigen[i];
+		double *p = REAL(EigVal);
+		for (int i=0; i < nEig; i++) p[i] = -p[i];
+		for (int i=nEig; i < n; i++) p[i] = R_NaN;
 	} else
 		throw ErrCoreArray("Unknown 'eigen.method'.");
 
