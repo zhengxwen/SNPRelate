@@ -1,7 +1,7 @@
 \name{snpgdsPCACorr}
 \alias{snpgdsPCACorr}
 \title{
-    PCA-correlated SNPs in principal component analysis
+    PC-correlated SNPs in principal component analysis
 }
 \description{
     To calculate the SNP correlations between eigenvactors and SNP genotypes

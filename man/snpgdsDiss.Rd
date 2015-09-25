@@ -45,6 +45,9 @@ snpgdsDiss(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     Zheng, Xiuwen. 2013. Statistical Prediction of HLA Alleles and
 Relatedness Analysis in Genome-Wide Association Studies. PhD dissertation,
 the department of Biostatistics, University of Washington.
+
+    Weir BS, Zheng X. SNPs and SNVs in Forensic Science. 2015.
+Forensic Science International: Genetics Supplement Series.
 }
 \author{Xiuwen Zheng}
 \seealso{

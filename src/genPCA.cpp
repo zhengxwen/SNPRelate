@@ -1582,7 +1582,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 			// Calculate Zheng's coancestry matrix (EIGMIX)
 			PCA::DoAdmixCalc_RatioOfAvg(IBD, true, nThread, verbose);
 
-		} else if (strcmp(Method, "WeirBeta") == 0)
+		} else if (strcmp(Method, "W&Z15") == 0)
 		{
 			const int nSNP = MCWorkingGeno.Space().SNPNum();
 			CdBufSpace BufSNP(MCWorkingGeno.Space(), true, CdBufSpace::acInc);

@@ -9,7 +9,7 @@
 \usage{
 snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("Visscher", "Eigenstrat", "EIGMIX"), num.thread=1L,
+    method=c("Visscher", "Eigenstrat", "EIGMIX", "W&Z15"), num.thread=1L,
     with.id=TRUE, verbose=TRUE)
 }
 \arguments{
@@ -28,7 +28,8 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         no missing threshold}
     \item{method}{"Visscher" -- genetic relationship matrix defined in CGTA;
         "Eigenstrat" -- genetic covariance matrix in EIGENSTRAT;
-        "EIGMIX" -- coancestry matrix defined in Zheng & Weir (2015)}
+        "EIGMIX" -- coancestry matrix defined in Zheng & Weir (2015),
+        "W&Z15" -- individual beta estimator}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
     \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id}
@@ -53,7 +54,11 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 
     Zheng X, Weir BS.
     Eigenanalysis on SNP Data with an Interpretation of Identity by Descent.
-    2015. Resubmitted to Theoretical Population Biology with a minor revision.
+    2015. Theoretical Population Biology.
+
+    Weir BS, Zheng X.
+    SNPs and SNVs in Forensic Science. 2015.
+    Forensic Science International: Genetics Supplement Series.
 }
 \author{Xiuwen Zheng}
 \seealso{

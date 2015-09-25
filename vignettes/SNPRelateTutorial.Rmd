@@ -566,6 +566,46 @@ snpgdsClose(genofile)
 
 
 
+# Function List
+
+| Function      | Description |
+|:--------------|:-------------------------------------------|
+| **Data Format:** |  |
+| snpgdsBED2GDS | Conversion from PLINK BED to GDS  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsBED2GDS.html) |
+| snpgdsGEN2GDS | Conversion from Oxford GEN format to GDS  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsGEN2GDS.html) |
+| snpgdsPED2GDS | Conversion from PLINK PED to GDS  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPED2GDS.html) |
+| snpgdsVCF2GDS | Reformat VCF file(s)  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsVCF2GDS.html) |
+| **Principal Component Analysis:** |  |
+| snpgdsPCA            | Principal Component Analysis (PCA)  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCA.html) |
+| snpgdsPCACorr	       | PC-correlated SNPs in PCA  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCACorr.html) |
+| snpgdsPCASampLoading | Project individuals onto existing principal component axes  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCASampLoading.html) |
+| snpgdsPCASNPLoading  | SNP loadings in principal component analysis  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCASNPLoading.html) |
+| snpgdsEIGMIX    | Eigen-analysis on SNP genotype data  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsEIGMIX.html) |
+| snpgdsAdmixProp | Estimate ancestral proportions from the eigen-analysis  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsAdmixProp.html) |
+| **Identity By Descent:** |   |
+| snpgdsIBDMLE       | Maximum likelihood estimation (MLE) for the Identity-By-Descent (IBD) Analysis  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBDMLE.html) |
+| snpgdsIBDMLELogLik | Log likelihood for MLE method in the Identity-By-Descent (IBD) Analysis  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBDMLELogLik.html) |
+| snpgdsIBDMoM       | PLINK method of moment (MoM) for the Identity-By-Descent (IBD) Analysis  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBDMoM.html) |
+| snpgdsIBDKING      | KING method of moment for the identity-by-descent (IBD) analysis  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBDKING.html) |
+| snpgdsGRM          | Genetic Relationship Matrix (GRM) for SNP genotype data  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsGRM.html) |
+| snpgdsFst          | F-statistics (fixation indices)  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsFst.html) |
+| snpgdsIndInb       | Individual Inbreeding Coefficients  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIndInb.html) |
+| snpgdsIndInbCoef   | Individual Inbreeding Coefficient  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIndInbCoef.html) |
+| **Clustering:** |   |
+| snpgdsIBS      | Identity-By-State (IBS) proportion  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBS.html) |
+| snpgdsIBSNum   | Identity-By-State (IBS)  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBSNum.html) |
+| snpgdsDiss     | Individual dissimilarity analysis  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsDiss.html) |
+| snpgdsHCluster | Hierarchical cluster analysis  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsHCluster.html) |
+| snpgdsCutTree  | Determine clusters of individuals  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsCutTree.html) |
+| snpgdsDrawTree | Draw a dendrogram  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsDrawTree.html) |
+| **Linkage Disequilibrium:** |   |
+| snpgdsLDMat     | Linkage Disequilibrium (LD) analysis  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsLDMat.html) |
+| snpgdsLDpruning | LD-based SNP pruning  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsLDpruning.html) |
+| snpgdsApartSelection | SNP pruning with a minimum basepair distance  [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsApartSelection.html) |
+| ... | [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/00Index.html) |
+
+
+
 # Resources
 
 1. The CoreArray project: [http://corearray.sourceforge.net/](http://corearray.sourceforge.net/)

@@ -16,18 +16,18 @@ Genome-wide association studies are widely used to investigate the genetic basis
 
 ## Bioconductor:
 
-Release Version: v1.2.0
+Release Version:
 
 [http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 
-Development Version: v1.3.10
+Development Version:
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
 
 ## News (Development Version)
 
-* Supports the sequence GDS format defined in the [SeqArray](http://www.bioconductor.org/packages/devel/bioc/html/SeqArray.html) package, see [the vignette](http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/AnalysisTutorial.html).
+* Supports the [SeqArray](http://bioconductor.org/packages/release/bioc/html/SeqArray.html) GDS format, see [the vignette](http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/AnalysisTutorial.html).
 
 
 ## Tutorials
@@ -65,11 +65,12 @@ The `install_github()` approach requires that you build from source, i.e. `make`
 ```sh
 wget --no-check-certificate https://github.com/zhengxwen/gdsfmt/tarball/master -O gdsfmt_latest.tar.gz
 wget --no-check-certificate https://github.com/zhengxwen/SNPRelate/tarball/master -O SNPRelate_latest.tar.gz
+R CMD INSTALL gdsfmt_latest.tar.gz
+R CMD INSTALL SNPRelate_latest.tar.gz
+
 ## Or
 curl -L https://github.com/zhengxwen/gdsfmt/tarball/master/ -o gdsfmt_latest.tar.gz
 curl -L https://github.com/zhengxwen/SNPRelate/tarball/master/ -o SNPRelate_latest.tar.gz
-
-## Install
 R CMD INSTALL gdsfmt_latest.tar.gz
 R CMD INSTALL SNPRelate_latest.tar.gz
 ```
