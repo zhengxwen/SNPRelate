@@ -23,7 +23,8 @@ CHANGES IN VERSION 1.3.0-1.3.11
 
     o `snpgdsLDMat()` supports multiple threads and covariance
 
-    o `snpgdsPCA()`: non-computed eigenvalues are NaN to avoid misuse of 'eigenval' when `eigen.method="DSPEVX"`
+    o `snpgdsPCA()`: non-computed eigenvalues are NaN to avoid misuse of
+      'eigenval' when `eigen.method="DSPEVX"`
 
 
 CHANGES IN VERSION 1.2.0

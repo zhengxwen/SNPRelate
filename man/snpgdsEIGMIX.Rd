@@ -9,8 +9,7 @@
 \usage{
 snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1L,
-    eigen.cnt=32, need.ibdmat=FALSE, ibdmat.only=FALSE,
-    method=c("Coancestry", "GRM"), verbose=TRUE)
+    eigen.cnt=32L, need.ibdmat=FALSE, ibdmat.only=FALSE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -33,8 +32,6 @@ snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{need.ibdmat}{if TRUE, return the IBD matrix}
     \item{ibdmat.only}{return the IBD matrix only, do not compute the
         eigenvalues and eigenvectors}
-    \item{method}{"Coancestry" -- EIGMIX coancestry matrix (by default);
-        "GRM" -- genetic relationship matrix}
     \item{verbose}{if TRUE, show information}
 }
 \value{
@@ -105,7 +102,8 @@ legend("topright", legend=levels(tab$pop), pch="o", col=1:4)
 
 
 # run eigen-analysis
-RV <- snpgdsEIGMIX(genofile, sample.id=samp.id[pop_code=="JPT"])
+RV <- snpgdsEIGMIX(genofile, sample.id=samp.id[pop_code=="JPT"],
+    need.ibdmat=TRUE)
 z <- RV$ibdmat
 
 mean(c(z))

@@ -1679,8 +1679,7 @@ static bool _EigComp(const TEigPair &i, const TEigPair &j)
 
 /// to compute the eigenvalues and eigenvectors
 COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
-	SEXP _NeedIBDMat, SEXP _IBDMatOnly, SEXP _Method, SEXP _DiagAdj,
-	SEXP _Verbose)
+	SEXP _NeedIBDMat, SEXP _IBDMatOnly, SEXP _Verbose)
 {
 	const bool verbose = SEXP_Verbose(_Verbose);
 
@@ -1700,27 +1699,16 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
 		// the upper-triangle IBD matrix
 		CdMatTri<double> IBD(n);
 
-		// Calculate the genetic covariace
-		switch (INTEGER(_Method)[0])
-		{
-			case 1:
-				PCA::DoAdmixCalc_RatioOfAvg(IBD, LOGICAL(_DiagAdj)[0]==TRUE,
-					INTEGER(_NumThread)[0], verbose);
-				break;
-			case 2:
-				PCA::DoAdmixCalc_AvgOfRatios(IBD, LOGICAL(_DiagAdj)[0]==TRUE,
-					INTEGER(_NumThread)[0], verbose);
-				break;
-			default:
-				throw "Invalid method.";
-		}
+		// calculate the EIGMIX coancestry matrix
+		PCA::DoAdmixCalc_RatioOfAvg(IBD, true, Rf_asInteger(_NumThread),
+			verbose);
 
 		// ======== The calculation of eigenvectors and eigenvalues ========
 
 		int nProtected = 0;
 		SEXP EigenVal=NULL, EigenVec=NULL, IBDMat=NULL;
 
-		if (LOGICAL(_NeedIBDMat)[0] == TRUE)
+		if (Rf_asLogical(_NeedIBDMat) == TRUE)
 		{
 			PROTECT(IBDMat = Rf_allocMatrix(REALSXP, n, n));
 			nProtected ++;
@@ -1737,7 +1725,7 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
 			}
 		}
 
-		if (LOGICAL(_IBDMatOnly)[0] != TRUE)
+		if (Rf_asLogical(_IBDMatOnly) != TRUE)
 		{
 			const size_t NN = n;
 			vector<double> tmp_Work(NN*3);
@@ -1750,7 +1738,7 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP _EigenCnt, SEXP _NumThread,
 					NowDateToStr().c_str());
 			}
 
-			int eigencnt = INTEGER(_EigenCnt)[0];
+			int eigencnt = Rf_asInteger(_EigenCnt);
 			if (eigencnt > n) eigencnt = n;
 
 			PROTECT(EigenVal = NEW_NUMERIC(n));

@@ -195,8 +195,8 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 
 snpgdsEIGMIX <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    num.thread=1L, eigen.cnt=32, need.ibdmat=FALSE, ibdmat.only=FALSE,
-    method=c("Coancestry", "GRM"), verbose=TRUE)
+    num.thread=1L, eigen.cnt=32L, need.ibdmat=FALSE, ibdmat.only=FALSE,
+    verbose=TRUE)
 {
     # check and initialize ...
     ws <- .InitFile2(cmd="Eigen-analysis on SNP genotypes:",
@@ -205,31 +205,16 @@ snpgdsEIGMIX <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
         verbose=verbose)
 
-    stopifnot(is.numeric(eigen.cnt) & is.vector(eigen.cnt))
-    stopifnot(length(eigen.cnt) == 1)
-    eigen.cnt <- as.integer(eigen.cnt)
-    if (eigen.cnt < 1)
-        eigen.cnt <- as.integer(ws$n.samp)
+    stopifnot(is.numeric(eigen.cnt), length(eigen.cnt)==1L)
+    if (eigen.cnt < 1L)
+        eigen.cnt <- ws$n.samp
 
-    stopifnot(is.logical(need.ibdmat) & is.vector(need.ibdmat))
-    stopifnot(length(need.ibdmat) == 1)
+    stopifnot(is.logical(need.ibdmat), length(need.ibdmat)==1L)
+    stopifnot(is.logical(ibdmat.only), length(ibdmat.only)==1L)
 
-    stopifnot(is.logical(ibdmat.only) & is.vector(ibdmat.only))
-    stopifnot(length(ibdmat.only) == 1)
-
-    method <- match.arg(method)
-    diag.adjustment <- (method == "Coancestry")
-
-    in.method <- c("RatioOfAverages", "AverageOfRatios")
-    in.method <- as.character(in.method)[1]
-    in.method <- match(in.method, c("RatioOfAverages", "AverageOfRatios"))
-
-
-    #########################################################
     # call eigen-analysis
-
-    rv <- .Call(gnrEIGMIX, eigen.cnt, ws$num.thread, need.ibdmat,
-        ibdmat.only, in.method, diag.adjustment, verbose)
+    rv <- .Call(gnrEIGMIX, eigen.cnt, ws$num.thread, need.ibdmat, ibdmat.only,
+        verbose)
 
     # return
     rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
