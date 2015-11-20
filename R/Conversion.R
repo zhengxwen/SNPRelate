@@ -1001,7 +1001,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
         {
             if (substr(s, 1, 6) == "#CHROM")
             {
-                samp.id <- scan(text=s, what=character(0),
+                samp.id <- scan(text=s, what=character(0), sep="\t",
                     quiet=TRUE)[-c(1:9)]
                 break
             }
