@@ -16,11 +16,11 @@ Genome-wide association studies are widely used to investigate the genetic basis
 
 ## Bioconductor:
 
-Release Version:
+Release Version: v1.4.0
 
 [http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 
-Development Version:
+Development Version: v1.5.1
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
