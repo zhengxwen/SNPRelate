@@ -71,6 +71,12 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
         with.id=TRUE)
 
     stopifnot(is.numeric(num.thread) & (num.thread>0))
+    if (length(pcaobj$sample.id) != nrow(pcaobj$eigenvect))
+    {
+        stop("Internal error: ",
+            "the number of samples should be ",
+            "equal to the number of rows in 'eigenvect'.")
+    }
     stopifnot(is.logical(verbose))
 
     if (is.null(eig.which))

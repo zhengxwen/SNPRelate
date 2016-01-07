@@ -35,7 +35,8 @@ snpgdsAdmixProp(eigobj, groups, bound=FALSE)
 \references{
     Zheng X, Weir BS.
     Eigenanalysis on SNP Data with an Interpretation of Identity by Descent.
-    2015. Theoretical Population Biology.
+    Theoretical Population Biology. 2015 Oct 23. pii: S0040-5809(15)00089-1.
+    doi: 10.1016/j.tpb.2015.09.004. [Epub ahead of print]
 }
 \author{Xiuwen Zheng}
 \seealso{

@@ -54,11 +54,13 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 
     Zheng X, Weir BS.
     Eigenanalysis on SNP Data with an Interpretation of Identity by Descent.
-    2015. Theoretical Population Biology.
+    Theoretical Population Biology. 2015 Oct 23. pii: S0040-5809(15)00089-1.
+    doi: 10.1016/j.tpb.2015.09.004. [Epub ahead of print]
 
     Weir BS, Zheng X.
-    SNPs and SNVs in Forensic Science. 2015.
-    Forensic Science International: Genetics Supplement Series.
+    SNPs and SNVs in Forensic Science.
+    Forensic Science International: Genetics Supplement Series. 2015.
+    doi:10.1016/j.fsigss.2015.09.106
 }
 \author{Xiuwen Zheng}
 \seealso{
