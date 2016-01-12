@@ -21,7 +21,7 @@ snpgdsHCluster(dist, sample.id=NULL, need.mat=TRUE, hang=0.25)
 }
 \details{
     Call the function \code{\link{hclust}} to perform hierarchical cluster
-analysis, using \code{method = "complete"}.
+analysis, using \code{method="average"}.
 }
 \value{
     Return a list (class "snpgdsHCClass"):
