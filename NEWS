@@ -1,7 +1,9 @@
-CHANGES IN VERSION 1.5.0-1.5.1
+CHANGES IN VERSION 1.5.0-1.5.2
 -------------------------
 
     o fix an issue in `snpgdsVCF2GDS()` if sample.id has white space
+
+    o bug fix in `snpgdsPCASampLoading()` when the input is SeqArray GDS file
 
 
 CHANGES IN VERSION 1.4.0

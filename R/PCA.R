@@ -157,21 +157,20 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 {
     # check
     stopifnot(inherits(loadobj, "snpgdsPCASNPLoadingClass"))
-
     ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=loadobj$snp.id)
 
     sample.id <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
     if (!is.null(ws$samp.flag))
         sample.id <- sample.id[ws$samp.flag]
 
-    stopifnot(is.numeric(num.thread) & (num.thread>0))
-    stopifnot(is.logical(verbose))
+    stopifnot(is.numeric(num.thread), num.thread>0L)
+    stopifnot(is.logical(verbose), length(verbose)==1L)
 
-    eigcnt <- dim(loadobj$snploading)[1]
+    eigcnt <- dim(loadobj$snploading)[1L]
     if (verbose)
     {
         cat("Sample loading:\n")
-        cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
+        cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n")
         if (num.thread <= 1)
             cat("\tUsing", num.thread, "(CPU) core.\n")
         else

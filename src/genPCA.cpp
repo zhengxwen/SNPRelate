@@ -722,7 +722,7 @@ namespace PCA
 			{
 				TdAutoMutex _m(_Mutex);
 				MCWorkingGeno.Progress.Forward(_SampLen);
-            }
+			}
 		}
 	}
 

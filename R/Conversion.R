@@ -497,30 +497,33 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     # chromosome
     if (cvt.chr == "int")
     {
-	    if (is.null(option)) option <- snpgdsOption()
-	    chrcode <- option$chromosome.code
-	    chr <- bimD$chr
-	    for (i in names(chrcode))
-	        chr[bimD$chr == i] <- chrcode[[i]]
-	    chr <- as.integer(chr)
-	    chr[is.na(chr)] <- 0L
-	} else {
-		if (!is.null(option))
-			stop("'option' should be NULL when 'cvt.chr=\"int\"'.")
-	    chr <- as.character(bimD$chr)
-	}
+        if (is.null(option)) option <- snpgdsOption()
+        chrcode <- option$chromosome.code
+        chr <- bimD$chr
+        for (i in names(chrcode))
+            chr[bimD$chr == i] <- chrcode[[i]]
+        chr <- as.integer(chr)
+        chr[is.na(chr)] <- 0L
+    } else {
+        if (!is.null(option))
+            stop("'option' should be NULL when 'cvt.chr=\"char\"'.")
+        chr <- as.character(bimD$chr)
+    }
 
     # snp.id
     if (cvt.snpid == "auto")
     {
         if (anyDuplicated(bimD$snp.id) == 0L)
         {
-            snp.id <- bimD$snp.id; snp.rs.id <- NULL
+            snp.id <- bimD$snp.id
+            snp.rs.id <- NULL
         } else {
-            snp.id <- 1:dim(bimD)[1]; snp.rs.id <- bimD$snp.id
+            snp.id <- seq_len(dim(bimD)[1L])
+            snp.rs.id <- bimD$snp.id
         }
     } else {
-        snp.id <- 1:dim(bimD)[1]; snp.rs.id <- bimD$snp.id
+        snp.id <- seq_len(dim(bimD)[1L])
+        snp.rs.id <- bimD$snp.id
     }
 
     if (verbose)
@@ -554,20 +557,20 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     # add "snp.chromosome"
     if (cvt.chr == "int")
     {
-	    v.chr <- add.gdsn(gfile, "snp.chromosome", chr, storage="uint8",
-	        compress=compress.annotation, closezip=TRUE)
+        v.chr <- add.gdsn(gfile, "snp.chromosome", chr, storage="uint8",
+            compress=compress.annotation, closezip=TRUE)
 
-    	put.attr.gdsn(v.chr, "autosome.start", option$autosome.start)
-	    put.attr.gdsn(v.chr, "autosome.end", option$autosome.end)
-	    for (i in 1:length(option$chromosome.code))
-	    {
-	        put.attr.gdsn(v.chr, names(option$chromosome.code)[i],
-	            option$chromosome.code[[i]])
-	    }
-	} else {
-	    add.gdsn(gfile, "snp.chromosome", chr, compress=compress.annotation,
-	    	closezip=TRUE)
-	}
+        put.attr.gdsn(v.chr, "autosome.start", option$autosome.start)
+        put.attr.gdsn(v.chr, "autosome.end", option$autosome.end)
+        for (i in 1:length(option$chromosome.code))
+        {
+            put.attr.gdsn(v.chr, names(option$chromosome.code)[i],
+                option$chromosome.code[[i]])
+        }
+    } else {
+        add.gdsn(gfile, "snp.chromosome", chr, compress=compress.annotation,
+            closezip=TRUE)
+    }
 
     # add "snp.allele"
     add.gdsn(gfile, "snp.allele", paste(bimD$allele1, bimD$allele2, sep="/"),
