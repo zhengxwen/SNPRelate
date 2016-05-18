@@ -972,7 +972,7 @@ snpgdsSummary <- function(gds, show=TRUE)
 #
 
 snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    snpfirstdim=NULL, with.id=FALSE, verbose=TRUE)
+    snpfirstdim=NA, .snpread=NA, with.id=FALSE, verbose=TRUE)
 {
     if (is.character(gdsobj))
     {
@@ -984,24 +984,8 @@ snpgdsGetGeno <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id,
         with.id=with.id)
 
-    # snp order
-    if (is.null(snpfirstdim))
-        snpfirstdim <- .Call(gnrGetGenoDimInfo)
-    else
-        stopifnot(is.logical(snpfirstdim))
-
-    stopifnot(is.logical(verbose))
-    if (verbose)
-    {
-        cat("Genotype matrix: ")
-        if (snpfirstdim)
-            cat(sprintf("%d SNPs X %d samples\n", ws$n.snp, ws$n.samp))
-        else
-            cat(sprintf("%d samples X %d SNPs\n", ws$n.samp, ws$n.snp))
-    }
-
     # get genotypes
-    ans <- .Call(gnrCopyGenoMem, snpfirstdim)
+    ans <- .Call(gnrCopyGenoMem, snpfirstdim, .snpread, verbose)
 
     if (with.id)
         ans <- list(genotype=ans, sample.id=ws$sample.id, snp.id=ws$snp.id)

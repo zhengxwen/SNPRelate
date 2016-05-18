@@ -7,8 +7,8 @@
     To get a genotype matrix from a specified GDS file
 }
 \usage{
-snpgdsGetGeno(gdsobj, sample.id=NULL, snp.id=NULL, snpfirstdim=NULL,
-    with.id=FALSE, verbose=TRUE)
+snpgdsGetGeno(gdsobj, sample.id=NULL, snp.id=NULL, snpfirstdim=NA,
+    .snpread=NA, with.id=FALSE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -19,8 +19,9 @@ snpgdsGetGeno(gdsobj, sample.id=NULL, snp.id=NULL, snpfirstdim=NULL,
         if NULL, all SNPs are used}
     \item{snpfirstdim}{if \code{TRUE}, genotypes are stored in the
         individual-major mode, (i.e, list all SNPs for the first individual,
-        and then list all SNPs for the second individual, etc); if \code{NULL},
-        determine automatically}
+        and then list all SNPs for the second individual, etc); \code{FALSE}
+        for snp-major mode; if \code{NA}, determine automatically}
+    \item{.snpread}{internal use}
     \item{with.id}{if \code{TRUE}, return \code{sample.id} and \code{snp.id}}
     \item{verbose}{if TRUE, show information}
 }

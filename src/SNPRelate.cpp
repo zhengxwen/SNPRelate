@@ -9,7 +9,7 @@
 // SNPRelate.cpp: Relatedness, Linkage Disequilibrium and
 //				  Principal Component Analysis
 //
-// Copyright (C) 2011 - 2015	Xiuwen Zheng [zhengxwen@gmail.com]
+// Copyright (C) 2011 - 2016	Xiuwen Zheng [zhengxwen@gmail.com]
 //
 // This file is part of SNPRelate.
 //
@@ -322,34 +322,55 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGeno(SEXP Node, SEXP snpfirstorder)
 
 
 /// copy genotypes to a memory buffer
-COREARRAY_DLL_EXPORT SEXP gnrCopyGenoMem(SEXP snpfirstdim)
+COREARRAY_DLL_EXPORT SEXP gnrCopyGenoMem(SEXP snpfirstdim, SEXP snpread,
+	SEXP verbose)
 {
-	int if_snp = Rf_asLogical(snpfirstdim);
-	if (if_snp == NA_LOGICAL)
-		error("'snpfirstdim' must be TRUE, FALSE or NULL.");
+	int snp_first = Rf_asLogical(snpfirstdim);
+	int snp_read  = Rf_asLogical(snpread);
+	int _verbose  = Rf_asLogical(verbose);
 
 	COREARRAY_TRY
 
 		CdBaseWorkSpace &Space = MCWorkingGeno.Space();
-		if (if_snp)
+
+		if (snp_first == NA_INTEGER)
 		{
-			rv_ans = Rf_allocMatrix(INTSXP, Space.SNPNum(), Space.SampleNum());
-		} else {
-			rv_ans = Rf_allocMatrix(INTSXP, Space.SampleNum(), Space.SNPNum());
+			snp_first = (Space.GenoDimType() == RDim_SNP_X_Sample) ?
+				TRUE : FALSE;
+		}
+		if (snp_read == NA_INTEGER)
+		{
+			snp_read = (Space.GenoDimType() == RDim_Sample_X_SNP) ?
+				TRUE : FALSE;
 		}
 
-		int *pMem = INTEGER(PROTECT(rv_ans));
+		if (snp_first)
+		{
+			rv_ans = PROTECT(Rf_allocMatrix(INTSXP, Space.SNPNum(),
+				Space.SampleNum()));
+			if (_verbose == TRUE)
+			{
+				Rprintf("Genotype matrix: %d SNPs X %d samples\n",
+					Space.SNPNum(), Space.SampleNum());
+			}
+		} else {
+			rv_ans = PROTECT(Rf_allocMatrix(INTSXP, Space.SampleNum(),
+				Space.SNPNum()));
+			if (_verbose == TRUE)
+			{
+				Rprintf("Genotype matrix: %d samples X %d SNPs\n",
+					Space.SampleNum(), Space.SNPNum());
+			}
+		}
+
+		int *pMem = INTEGER(rv_ans);
 		C_UInt8 *p8 = (C_UInt8*)pMem;
 
-		// read data
-		if (Space.GenoDimType() == RDim_Sample_X_SNP)
-		{
-			Space.snpRead(0, Space.SNPNum(), p8,
-				if_snp ? RDim_SNP_X_Sample : RDim_Sample_X_SNP);
-		} else {
-			Space.sampleRead(0, Space.SampleNum(), p8,
-				if_snp ? RDim_SNP_X_Sample : RDim_Sample_X_SNP);
-		}
+		TTypeGenoDim dir = snp_first ? RDim_SNP_X_Sample : RDim_Sample_X_SNP;
+		if (snp_read)
+			Space.snpRead(0, Space.SNPNum(), p8, dir);
+		else
+			Space.sampleRead(0, Space.SampleNum(), p8, dir);
 
 		size_t n = XLENGTH(rv_ans);
 		pMem += n; p8 += n;
@@ -1210,7 +1231,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrParseGEN, 9),            CALL(gnrParsePED, 8),
 		CALL(gnrParseVCF4Init, 0),       CALL(gnrParseVCF4, 10),
 
-		CALL(gnrCopyGeno, 2),            CALL(gnrCopyGenoMem, 1),
+		CALL(gnrCopyGeno, 2),            CALL(gnrCopyGenoMem, 3),
 		CALL(gnrGetGenoDim, 0),          CALL(gnrGetGenoDimInfo, 0),
 
 		CALL(gnrSetGenoSpace, 3),        CALL(gnrSetSeqSpace, 3),

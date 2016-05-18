@@ -1,9 +1,17 @@
+CHANGES IN VERSION 1.6.0
+-------------------------
+
+    o the version number was bumped for the Bioconductor release version 3.3
+
+
 CHANGES IN VERSION 1.5.0-1.5.2
 -------------------------
 
     o fix an issue in `snpgdsVCF2GDS()` if sample.id has white space
 
     o bug fix in `snpgdsPCASampLoading()` when the input is SeqArray GDS file
+
+    o improve `snpgdsGetGeno()`
 
 
 CHANGES IN VERSION 1.4.0

@@ -1795,12 +1795,15 @@ bool GWAS::SEXP_Verbose(SEXP Verbose)
 
 void GWAS::CachingSNPData(const char *Msg, bool Verbose)
 {
-	double SumOfGenotype = MCWorkingGeno.Space().SumOfGenotype();
-	if (Verbose)
+	if (dynamic_cast<CdSNPWorkSpace*>(&MCWorkingGeno.Space()))
 	{
-		Rprintf(
-			"%s:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n",
+		double SumOfGenotype = MCWorkingGeno.Space().SumOfGenotype();
+		if (Verbose)
+		{
+			Rprintf(
+				"%s:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n",
 				Msg, SumOfGenotype);
+		}
 	}
 }
 
