@@ -409,8 +409,8 @@ namespace GWAS
 
 #ifndef NO_COREARRAY_VECTORIZATION
 
-	template<typename Tx, size_t vAlign = Vectorization::_SIMD_ALIGN_>
-	class COREARRAY_DLL_LOCAL CdMatTri
+	template<typename Tx, size_t vAlign=VEC_SIMD_ALIGN_BYTE>
+		class COREARRAY_DLL_LOCAL CdMatTri
 	{
 	public:
 		CdMatTri()
@@ -479,13 +479,13 @@ namespace GWAS
 		inline size_t Size() const { return fN*(fN+1)/2; }
 
 	protected:
-		CoreArray::Vectorization::TdAlignPtr<Tx, vAlign> ptr;
+		Vectorization::VEC_AUTO_PTR<Tx, vAlign> ptr;
 		size_t fN;
 	};
 
 
-	template<typename Tx, size_t vAlign = Vectorization::_SIMD_ALIGN_>
-	class COREARRAY_DLL_LOCAL CdMatTriDiag
+	template<typename Tx, size_t vAlign=VEC_SIMD_ALIGN_BYTE>
+		class COREARRAY_DLL_LOCAL CdMatTriDiag
 	{
 	public:
 		CdMatTriDiag()
@@ -535,7 +535,7 @@ namespace GWAS
 		inline Tx &Diag() { return fDiag; }
 
 	protected:
-		CoreArray::Vectorization::TdAlignPtr<Tx, vAlign> ptr;
+		Vectorization::VEC_AUTO_PTR<Tx, vAlign> ptr;
 		size_t fN;
 		Tx fDiag;
 		inline size_t TriPtr(size_t i1, size_t i2, size_t n)

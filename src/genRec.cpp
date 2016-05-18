@@ -37,13 +37,13 @@ namespace Recombination
 	// using namespace
 	using namespace std;
 	using namespace CoreArray;
-	using namespace CoreArray::Vectorization;
+	using namespace Vectorization;
 	using namespace GWAS;
 }
 
 
 using namespace GWAS;
-using namespace CoreArray::Vectorization;
+using namespace Vectorization;
 
 extern "C"
 {

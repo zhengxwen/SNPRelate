@@ -4,19 +4,19 @@
 //
 // Copyright (C) 2007-2015    Xiuwen Zheng
 //
-// This file is part of CoreArray.
+// This file is part of SNPRelate.
 //
-// CoreArray is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License Version 3 as
+// SNPRelate is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License Version 3 as
 // published by the Free Software Foundation.
 //
-// CoreArray is distributed in the hope that it will be useful, but
+// SNPRelate is distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public
-// License along with CoreArray.
+// License along with SNPRelate.
 // If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -199,64 +199,64 @@ COREARRAY_INLINE static float _div(const float v1, const float v2) { return v1 /
 // SSE general functions
 
 // Add
-void CORESSECALL CoreArray::Vectorization::_SSE_Add(float *d, const float *s1,
+void CORESSECALL Vectorization::_SSE_Add(float *d, const float *s1,
 	const float *s2, size_t n) // d := s1 + s2
 {
 	OpSSE_L3_F32(_mm_add_ps, _add);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Add(float *d, const float *s,
+void CORESSECALL Vectorization::_SSE_Add(float *d, const float *s,
 	const float v, size_t n) // d := s + v
 {
 	OpSSE_L2_F32(_mm_add_ps, _add);
 }
 
 // Sub
-void CORESSECALL CoreArray::Vectorization::_SSE_Sub(float *d, const float *s1,
+void CORESSECALL Vectorization::_SSE_Sub(float *d, const float *s1,
 	const float *s2, size_t n) // d := s1 - s2
 {
 	OpSSE_L3_F32(_mm_sub_ps, _sub);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Sub(float *d, const float *s,
+void CORESSECALL Vectorization::_SSE_Sub(float *d, const float *s,
 	const float v, size_t n) // d := s - v
 {
 	OpSSE_L2_F32(_mm_sub_ps, _sub);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Sub(float *d, const float v,
+void CORESSECALL Vectorization::_SSE_Sub(float *d, const float v,
 	const float *s, size_t n) // d := v - s
 {
 	OpSSE_L2v_F32(_mm_sub_ps, _sub);
 }
 
 // Mul
-void CORESSECALL CoreArray::Vectorization::_SSE_Mul(float *d, const float *s1,
+void CORESSECALL Vectorization::_SSE_Mul(float *d, const float *s1,
 	const float *s2, size_t n) // d := s1 * s2
 {
 	OpSSE_L3_F32(_mm_mul_ps, _mul);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Mul(float *d, const float *s,
+void CORESSECALL Vectorization::_SSE_Mul(float *d, const float *s,
 	const float v, size_t n) // d := s * scale
 {
 	OpSSE_L2_F32(_mm_mul_ps, _mul);
 }
 
 // Div
-void CORESSECALL CoreArray::Vectorization::_SSE_Div(float *d, const float *s1,
+void CORESSECALL Vectorization::_SSE_Div(float *d, const float *s1,
 	const float *s2, size_t n) // d := s1 / s2
 {
 	OpSSE_L3_F32(_mm_div_ps, _div);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Div(float *d, const float *s,
+void CORESSECALL Vectorization::_SSE_Div(float *d, const float *s,
 	const float v, size_t n) // d := s / v
 {
 	OpSSE_L2_F32(_mm_div_ps, _div);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Div(float *d, const float v,
+void CORESSECALL Vectorization::_SSE_Div(float *d, const float v,
 	const float *s, size_t n) // d := v / s
 {
 	OpSSE_L2v_F32(_mm_div_ps, _div);
@@ -287,64 +287,64 @@ void CORESSECALL CoreArray::Vectorization::_SSE_Div(float *d, const float v,
 // SSE 16-align functions
 
 // Add
-void CORESSECALL CoreArray::Vectorization::_SSE_Add_16(float *d, const float *s1,
+void CORESSECALL Vectorization::_SSE_Add_16(float *d, const float *s1,
 	const float *s2, size_t n) // d := s1 + s2
 {
 	OpSSE_L3_F32_A(_mm_add_ps, _add);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Add_16(float *d, const float *s,
+void CORESSECALL Vectorization::_SSE_Add_16(float *d, const float *s,
 	const float v, size_t n) // d := s + v
 {
 	OpSSE_L2_F32_A(_mm_add_ps, _add);
 }
 
 // Sub
-void CORESSECALL CoreArray::Vectorization::_SSE_Sub_16(float *d, const float *s1,
+void CORESSECALL Vectorization::_SSE_Sub_16(float *d, const float *s1,
 	const float *s2, size_t n) // d := s1 - s2
 {
 	OpSSE_L3_F32_A(_mm_sub_ps, _sub);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Sub_16(float *d, const float *s,
+void CORESSECALL Vectorization::_SSE_Sub_16(float *d, const float *s,
 	const float v, size_t n) // d := s - v
 {
 	OpSSE_L2_F32_A(_mm_sub_ps, _sub);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Sub_16(float *d, const float v,
+void CORESSECALL Vectorization::_SSE_Sub_16(float *d, const float v,
 	const float *s, size_t n) // d := v - s
 {
 	OpSSE_L2v_F32_A(_mm_sub_ps, _sub);
 }
 
 // Mul
-void CORESSECALL CoreArray::Vectorization::_SSE_Mul_16(float *d, const float *s1,
+void CORESSECALL Vectorization::_SSE_Mul_16(float *d, const float *s1,
 	const float *s2, size_t n) // d := s1 * s2
 {
 	OpSSE_L3_F32_A(_mm_mul_ps, _mul);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Mul_16(float *d, const float *s,
+void CORESSECALL Vectorization::_SSE_Mul_16(float *d, const float *s,
 	const float v, size_t n) // d := s * scale
 {
 	OpSSE_L2_F32_A(_mm_mul_ps, _mul);
 }
 
 // Div
-void CORESSECALL CoreArray::Vectorization::_SSE_Div_16(float *d, const float *s1,
+void CORESSECALL Vectorization::_SSE_Div_16(float *d, const float *s1,
 	const float *s2, size_t n) // d := s1 / s2
 {
 	OpSSE_L3_F32_A(_mm_div_ps, _div);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Div_16(float *d, const float *s,
+void CORESSECALL Vectorization::_SSE_Div_16(float *d, const float *s,
 	const float v, size_t n) // d := s / v
 {
 	OpSSE_L2_F32_A(_mm_div_ps, _div);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE_Div_16(float *d, const float v,
+void CORESSECALL Vectorization::_SSE_Div_16(float *d, const float v,
 	const float *s, size_t n) // d := v / s
 {
 	OpSSE_L2v_F32_A(_mm_div_ps, _div);
@@ -371,7 +371,7 @@ void CORESSECALL CoreArray::Vectorization::_SSE_Div_16(float *d, const float v,
 		return rv4[0]; \
 	}
 
-float CORESSECALL CoreArray::Vectorization::_SSE_DotProd_16(const float *x, const float *y, size_t n)
+float CORESSECALL Vectorization::_SSE_DotProd_16(const float *x, const float *y, size_t n)
 {
 	float rv4[4] __attribute__((aligned(16))) = {0, 0, 0, 0};
 	__m128 rv128 = _mm_load_ps(rv4);
@@ -539,13 +539,13 @@ COREARRAY_INLINE static double _div(const double v1, const double v2) { return v
 
 // Add
 
-void CORESSECALL CoreArray::Vectorization::_SSE2_Add_16(double *d,
+void CORESSECALL Vectorization::_SSE2_Add_16(double *d,
 	const double *s1, const double *s2, size_t n) // d := s1 + s2
 {
 	OpSSE2_L3_F64_A(_mm_add_pd, _add);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE2_Add_16(double *d,
+void CORESSECALL Vectorization::_SSE2_Add_16(double *d,
 	const double *s, const double v, size_t n) // d := s + v
 {
 	OpSSE2_L2_F64_A(_mm_add_pd, _add);
@@ -553,19 +553,19 @@ void CORESSECALL CoreArray::Vectorization::_SSE2_Add_16(double *d,
 
 // Sub
 
-void CORESSECALL CoreArray::Vectorization::_SSE2_Sub_16(double *d,
+void CORESSECALL Vectorization::_SSE2_Sub_16(double *d,
 	const double *s1, const double *s2, size_t n) // d := s1 - s2
 {
 	OpSSE2_L3_F64_A(_mm_sub_pd, _sub);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE2_Sub_16(double *d,
+void CORESSECALL Vectorization::_SSE2_Sub_16(double *d,
 	const double *s, const double v, size_t n) // d := s - v
 {
 	OpSSE2_L2_F64_A(_mm_sub_pd, _sub);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE2_Sub_16(double *d,
+void CORESSECALL Vectorization::_SSE2_Sub_16(double *d,
 	const double v, const double *s, size_t n) // d := v - s
 {
 	OpSSE2_L2v_F64_A(_mm_sub_pd, _sub);
@@ -573,13 +573,13 @@ void CORESSECALL CoreArray::Vectorization::_SSE2_Sub_16(double *d,
 
 // Mul
 
-void CORESSECALL CoreArray::Vectorization::_SSE2_Mul_16(double *d,
+void CORESSECALL Vectorization::_SSE2_Mul_16(double *d,
 	const double *s1, const double *s2, size_t n) // d := s1 * s2
 {
 	OpSSE2_L3_F64_A(_mm_mul_pd, _mul);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE2_Mul_16(double *d,
+void CORESSECALL Vectorization::_SSE2_Mul_16(double *d,
 	const double *s, const double v, size_t n) // d := s * scale
 {
 	OpSSE2_L2_F64_A(_mm_mul_pd, _mul);
@@ -587,19 +587,19 @@ void CORESSECALL CoreArray::Vectorization::_SSE2_Mul_16(double *d,
 
 // Div
 
-void CORESSECALL CoreArray::Vectorization::_SSE2_Div_16(double *d,
+void CORESSECALL Vectorization::_SSE2_Div_16(double *d,
 	const double *s1, const double *s2, size_t n) // d := s1 / s2
 {
 	OpSSE2_L3_F64_A(_mm_div_pd, _div);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE2_Div_16(double *d,
+void CORESSECALL Vectorization::_SSE2_Div_16(double *d,
 	const double *s, const double v, size_t n) // d := s / v
 {
 	OpSSE2_L2_F64_A(_mm_div_pd, _div);
 }
 
-void CORESSECALL CoreArray::Vectorization::_SSE2_Div_16(double *d,
+void CORESSECALL Vectorization::_SSE2_Div_16(double *d,
 	const double v, const double *s, size_t n) // d := v / s
 {
 	OpSSE2_L2v_F64_A(_mm_div_pd, _div);
@@ -626,7 +626,7 @@ void CORESSECALL CoreArray::Vectorization::_SSE2_Div_16(double *d,
 		return rv2[0]; \
 	}
 
-double CORESSECALL CoreArray::Vectorization::_SSE2_DotProd_16(const double *x,
+double CORESSECALL Vectorization::_SSE2_DotProd_16(const double *x,
 	const double *y, size_t n)
 {
 	double rv2[2] __attribute__((aligned(16))) = {0, 0};

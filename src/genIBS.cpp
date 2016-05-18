@@ -47,7 +47,7 @@ namespace IBS
 	// using namespace
 	using namespace std;
 	using namespace CoreArray;
-	using namespace CoreArray::Vectorization;
+	using namespace Vectorization;
 	using namespace GWAS;
 
 
