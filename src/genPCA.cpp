@@ -64,8 +64,6 @@ namespace PCA
 	// ---------------------------------------------------------------------
 	// Vectorization Computing
 
-#if defined(COREARRAY_SIMD_AVX)
-
 	// Mean-adjusted genotype matrix (AVX, N: # of samples, M: # of SNPs)
 	class COREARRAY_DLL_LOCAL CPCAMat
 	{
@@ -75,25 +73,35 @@ namespace PCA
 
 		void Reset(size_t n, size_t m)
 		{
+		#if defined(COREARRAY_SIMD_AVX)
 			// 4-aligned array
 			if (m & 0x03) m += 4 - (m & 0x03);
+		#elif defined(COREARRAY_SIMD_SSE2)
+			// 2-aligned array
+			if (m & 0x01) m += 2 - (m & 0x01);
+		#endif
 			fBuf.Reset(n * m);
 			fN = n; fM = m;
+			PCA_gSum.resize(m);
+			PCA_gNum.resize(m);
+			tmp_var.Reset(m);
 		}
 
 		void SIMD_CALL_FUNC_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt,
-			size_t ArrayLength, double *pOut)
+			size_t Length, double *pOut)
 		{
 			for (; IdxCnt > 0; IdxCnt--, ++Idx)
 			{
 				double *p1 = base() + Idx.Row() * fM;
 				double *p2 = base() + Idx.Column() * fM;
+				size_t n = Length;
+
+			#if defined(COREARRAY_SIMD_AVX)
 
 				// unroll loop
 				__m256d rv4_1 = _mm256_setzero_pd();
 				__m256d rv4_2 = _mm256_setzero_pd();
-				size_t k = ArrayLength;
-				for (; k >= 8; k -= 8)
+				for (; n >= 8; n -= 8)
 				{
 					rv4_1 = _mm256_add_pd(rv4_1, _mm256_mul_pd(
 						_mm256_load_pd(p1), _mm256_load_pd(p2)));
@@ -102,14 +110,14 @@ namespace PCA
 					p1 += 8; p2 += 8;
 				}
 				__m256d rv4 = _mm256_add_pd(rv4_1, rv4_2);
-				if (k >= 4)
+				if (n >= 4)
 				{
 					rv4 = _mm256_add_pd(rv4, _mm256_mul_pd(
 						_mm256_load_pd(p1), _mm256_load_pd(p2)));
-					p1 += 4; p2 += 4; k -= 4;
+					p1 += 4; p2 += 4; n -= 4;
 				}
 				double rv = rv4[0] + rv4[1] + rv4[2] + rv4[3];
-				switch (k)
+				switch (n)
 				{
 					case 3:
 						rv += p1[0]*p2[0] + p1[1]*p2[1] + p1[2]*p2[2]; break;
@@ -120,46 +128,12 @@ namespace PCA
 				}
 
 				(*pOut++) += rv;
-			}
-		}
 
-		inline size_t N() const { return fN; }
-		inline size_t M() const { return fM; }
-		inline double *base() { return fBuf.get(); }
-	private:
-		VEC_AUTO_PTR<double, 32u> fBuf;
-		size_t fN, fM;
-	};
-
-#elif defined(COREARRAY_SIMD_SSE2)
-
-	// Mean-adjusted genotype matrix (SSE, N: # of samples, M: # of SNPs)
-	class COREARRAY_DLL_LOCAL CPCAMat
-	{
-	public:
-		CPCAMat() { fN = fM = 0; }
-		CPCAMat(size_t n, size_t m) { Reset(n, m); }
-
-		void Reset(size_t n, size_t m)
-		{
-			// 2-aligned array
-			if (m & 0x01) m += 2 - (m & 0x01);
-			fBuf.Reset(n * m);
-			fN = n; fM = m;
-		}
-
-		void SIMD_CALL_FUNC_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt,
-			size_t ArrayLength, double *pOut)
-		{
-			for (; IdxCnt > 0; IdxCnt--, ++Idx)
-			{
-				const double *p1 = base() + Idx.Row() * fM;
-				const double *p2 = base() + Idx.Column() * fM;
+			#elif defined(COREARRAY_SIMD_SSE2)
 
 				// unroll loop
 				__m128d rv2 = _mm_setzero_pd();
-				size_t k = ArrayLength;
-				for (; k >= 8; k -= 8)
+				for (; n >= 8; n -= 8)
 				{
 					rv2 = _mm_add_pd(rv2, _mm_mul_pd(_mm_load_pd(&p1[0]),
 						_mm_load_pd(&p2[0])));
@@ -171,15 +145,31 @@ namespace PCA
 						_mm_load_pd(&p2[6])));
 					p1 += 8; p2 += 8;
 				}
-				for (; k >= 2; k -= 2)
+				for (; n >= 2; n -= 2)
 				{
 					rv2 = _mm_add_pd(rv2, _mm_mul_pd(_mm_load_pd(p1),
 						_mm_load_pd(p2)));
 					p1 += 2; p2 += 2;
 				}
 
-				(*pOut++) += (k <= 0) ? (rv2[0] + rv2[1]) :
+				(*pOut++) += (n <= 0) ? (rv2[0] + rv2[1]) :
 					(rv2[0] + rv2[1] + (*p1) * (*p2));
+
+			#else
+
+				double rv = 0;
+				// unroll loop
+				for (; n >= 4; n -= 4)
+				{
+					rv += p1[0] * p2[0]; rv += p1[1] * p2[1];
+					rv += p1[2] * p2[2]; rv += p1[3] * p2[3];
+					p1 += 4; p2 += 4;
+				}
+				for (; n > 0; n--)
+					rv += (*p1++) * (*p2++);
+				(*pOut++) += rv;
+
+			#endif
 			}
 		}
 
@@ -187,59 +177,20 @@ namespace PCA
 		inline size_t M() const { return fM; }
 		inline double *base() { return fBuf.get(); }
 
-	private:
-		VEC_AUTO_PTR<double, 16u> fBuf;
-		size_t fN, fM;
-	};
-
-#else
-
-	// Mean-adjusted genotype matrix (no SIMD, N: # of samples, M: # of SNPs)
-	class COREARRAY_DLL_LOCAL CPCAMat
-	{
-	public:
-		CPCAMat() { fN = fM = 0; }
-		CPCAMat(size_t n, size_t m) { Reset(n, m); }
-
-		void Reset(size_t n, size_t m)
+		vector<int> PCA_gSum, PCA_gNum;
+		inline void ZeroFill()
 		{
-			fBuf.resize(n * m);
-			fN = n; fM = m;
+			memset(&PCA_gSum[0], 0, sizeof(int)*fM);
+			memset(&PCA_gNum[0], 0, sizeof(int)*fM);
 		}
 
-		void MulAdd(IdMatTri &Idx, size_t IdxCnt, size_t ArrayLength,
-			double *pOut)
-		{
-			for (; IdxCnt > 0; IdxCnt--, ++Idx)
-			{
-				const double *p1 = base() + Idx.Row() * fM;
-				const double *p2 = base() + Idx.Column() * fM;
-				double rv = 0;
-				// unroll loop
-				size_t k = ArrayLength;
-				for (; k >= 4; k -= 4)
-				{
-					rv += p1[0] * p2[0]; rv += p1[1] * p2[1];
-					rv += p1[2] * p2[2]; rv += p1[3] * p2[3];
-					p1 += 4; p2 += 4;
-				}
-				for (; k > 0; k--)
-					rv += (*p1++) * (*p2++);
-				(*pOut++) += rv;
-			}
-		}
-
-		inline size_t N() const { return fN; }
-		inline size_t M() const { return fM; }
-		inline double *base() { return &fBuf[0]; }
+		/// the temporary variable
+		VEC_AUTO_PTR<double> tmp_var;
 
 	private:
-		vector<double> fBuf;
+		VEC_AUTO_PTR<double> fBuf;
 		size_t fN, fM;
 	};
-
-#endif
-
 
 
 	// ---------------------------------------------------------------------
@@ -286,21 +237,16 @@ namespace PCA
 
 	// ================== PCA covariate matrix ==================
 
-	/// The temparory variables used in computing
-	static vector<int> PCA_gSum, PCA_gNum;
 	/// The mean-adjusted genotype buffers
 	static CPCAMat PCA_Mat;
-	/// The temporary variable
-	static VEC_AUTO_PTR<double> tmp_var;
 
 	/// Convert the raw genotypes to the mean-adjusted genotypes (GenoBuf: SNP x sample)
-	static void _Do_PCA_ReadBlock_SNPxSamp(C_UInt8 *GenoBuf, long Start, long SNP_Cnt,
-		void *Param)
+	static void _Do_PCA_ReadBlock_SNPxSamp(C_UInt8 *GenoBuf, long Start,
+		long SNP_Cnt, void *Param)
 	{
-		// init ...
+		// initialize
 		const int n = MCWorkingGeno.Space().SampleNum();
-		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
-		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
+		PCA_Mat.ZeroFill();
 
 		C_UInt8 *p;
 		double *pf, *pp;
@@ -316,36 +262,36 @@ namespace PCA
 			{
 				if (*p < 3)
 				{
-					PCA_gSum[iSNP] += *p;
-					PCA_gNum[iSNP]++;
+					PCA_Mat.PCA_gSum[iSNP] += *p;
+					PCA_Mat.PCA_gNum[iSNP]++;
 				}
 				*pf++ = *p++;
 			}
 		}
 
 		// PCA_gSum = 2 * \bar{p}_l
-		pp = tmp_var.get();
+		pp = PCA_Mat.tmp_var.get();
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 		{
-			long gN = PCA_gNum[iSNP];
-			*pp++ = (gN > 0) ? ((double)PCA_gSum[iSNP] / gN) : 0;
+			long gN = PCA_Mat.PCA_gNum[iSNP];
+			*pp++ = (gN > 0) ? ((double)PCA_Mat.PCA_gSum[iSNP] / gN) : 0;
 		}
 
 		// Averaging and set missing values to ZERO
 		pp = PCA_Mat.base(); // G@ij - 2\bar{p}_l
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Sub(pp, pp, tmp_var.get(), SNP_Cnt);
+			vt<double, av16Align>::Sub(pp, pp, PCA_Mat.tmp_var.get(), SNP_Cnt);
 			pp += PCA_Mat.M();
 		}
-		pf = tmp_var.get(); // 1/sqrt(p@j*(1-p@j))
+		pf = PCA_Mat.tmp_var.get(); // 1/sqrt(p@j*(1-p@j))
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++, pf++)
 		{
 			double scale;
 			if (BayesianNormal)
 			{
-				long gN = PCA_gNum[iSNP];
-				scale = (gN > 0) ? ((PCA_gSum[iSNP] + 1.0) / (2*gN + 2)) : 0;
+				long gN = PCA_Mat.PCA_gNum[iSNP];
+				scale = (gN > 0) ? ((PCA_Mat.PCA_gSum[iSNP] + 1.0) / (2*gN + 2)) : 0;
 			} else
 				scale = (*pf) * 0.5;
 			if (0.0 < scale && scale < 1.0)
@@ -357,7 +303,7 @@ namespace PCA
 		pp = PCA_Mat.base();
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Mul(pp, pp, tmp_var.get(), SNP_Cnt);
+			vt<double, av16Align>::Mul(pp, pp, PCA_Mat.tmp_var.get(), SNP_Cnt);
 			pp += PCA_Mat.M();
 		}
 
@@ -374,87 +320,6 @@ namespace PCA
 		}
 	}
 
-	/// Convert the raw genotypes to the mean-adjusted genotypes (GenoBuf: sample x SNP)
-/*	static void _Do_PCA_ReadBlock_SampxSNP(C_UInt8 *GenoBuf, long Start, long SNP_Cnt,
-		void *Param)
-	{
-		// init ...
-		const int n = MCWorkingGeno.Space().SampleNum();
-		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
-		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
-
-		C_UInt8 *p;
-		double *pf, *pp;
-
-		// calculate the averages of genotypes for each SelSNP
-		// store the values in PCA_gSum
-		p = GenoBuf;
-		pp = PCA_Mat.base();
-		for (long iSample=0; iSample < n; iSample++)
-		{
-			pf = pp; pp += PCA_Mat.M();
-			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
-			{
-				if (*p < 3)
-				{
-					PCA_gSum[iSNP] += *p;
-					PCA_gNum[iSNP]++;
-				}
-				*pf++ = *p++;
-			}
-		}
-
-		// PCA_gSum = 2 * \bar{p}_l
-		pp = tmp_var.get();
-		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
-		{
-			long gN = PCA_gNum[iSNP];
-			*pp++ = (gN > 0) ? ((double)PCA_gSum[iSNP] / gN) : 0;
-		}
-
-		// Averaging and set missing values to ZERO
-		pp = PCA_Mat.base(); // G@ij - 2\bar{p}_l
-		for (long iSample=0; iSample < n; iSample++)
-		{
-			vt<double, av16Align>::Sub(pp, pp, tmp_var.get(), SNP_Cnt);
-			pp += PCA_Mat.M();
-		}
-		pf = tmp_var.get(); // 1/sqrt(p@j*(1-p@j))
-		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++, pf++)
-		{
-			double scale;
-			if (BayesianNormal)
-			{
-				long gN = PCA_gNum[iSNP];
-				scale = (gN > 0) ? ((PCA_gSum[iSNP] + 1.0) / (2*gN + 2)) : 0;
-			} else
-				scale = (*pf) * 0.5;
-			if (0.0 < scale && scale < 1.0)
-				*pf = 1.0 / sqrt(scale*(1.0-scale));
-			else
-				*pf = 0;
-		}
-		// (G@ij - 2p@j) / sqrt(p@j*(1-p@j))
-		pp = PCA_Mat.base();
-		for (long iSample=0; iSample < n; iSample++)
-		{
-			vt<double, av16Align>::Mul(pp, pp, tmp_var.get(), SNP_Cnt);
-			pp += PCA_Mat.M();
-		}
-
-		// missing values
-		p = GenoBuf; pp = PCA_Mat.base();
-		for (long iSample=0; iSample < n; iSample++)
-		{
-			pf = pp; pp += PCA_Mat.M();
-			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
-			{
-				if (*p > 2) *pf = 0;
-				p++; pf++;
-			}
-		}
-	}
-*/
 
 	/// Compute the covariate matrix
 	static void _Do_PCA_ComputeCov(int ThreadIndex, long Start, long SNP_Cnt,
@@ -471,10 +336,7 @@ namespace PCA
 		const char *Info, bool verbose)
 	{
 		// Initialize ...
-		PCA_gSum.resize(BlockNumSNP);
-		PCA_gNum.resize(BlockNumSNP);
 		PCA_Mat.Reset(PublicCov.N(), BlockNumSNP);
-		tmp_var.Reset(PCA_Mat.M());
 		memset(PublicCov.get(), 0, sizeof(double)*PublicCov.Size());
 
 		MCWorkingGeno.Progress.Info = Info;
@@ -844,8 +706,7 @@ namespace PCA
 	{
 		// init ...
 		const int n = MCWorkingGeno.Space().SampleNum();
-		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
-		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
+		PCA_Mat.ZeroFill();
 
 		C_UInt8 *p, *pMissing;
 		double *pf, *pp;
@@ -863,8 +724,8 @@ namespace PCA
 			{
 				if (*p < 3)
 				{
-					PCA_gSum[iSNP] += *p;
-					PCA_gNum[iSNP]++;
+					PCA_Mat.PCA_gSum[iSNP] += *p;
+					PCA_Mat.PCA_gNum[iSNP]++;
 					*pAdjGeno += (*p) * (2 - *p);
 					*pMissing++ = true;
 				} else {
@@ -878,10 +739,10 @@ namespace PCA
 		// PCA_gSum = 2 * \bar{p}_l
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 		{
-			double &fv = tmp_var.get()[iSNP];
-			long gN = PCA_gNum[iSNP];
+			double &fv = PCA_Mat.tmp_var.get()[iSNP];
+			long gN = PCA_Mat.PCA_gNum[iSNP];
 			if (gN > 0)
-				fv = (double)PCA_gSum[iSNP] / gN;
+				fv = (double)PCA_Mat.PCA_gSum[iSNP] / gN;
 			else
 				fv = 0;
 		}
@@ -890,7 +751,7 @@ namespace PCA
 		pp = PCA_Mat.base(); // G@ij - 2\bar{p}_l
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Sub(pp, pp, tmp_var.get(), SNP_Cnt);
+			vt<double, av16Align>::Sub(pp, pp, PCA_Mat.tmp_var.get(), SNP_Cnt);
 			pp += PCA_Mat.M();
 		}
 
@@ -909,7 +770,7 @@ namespace PCA
 		// 4 * p_l * (1 - p_l) -> tmp_var
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 		{
-			double &f = tmp_var.get()[iSNP];
+			double &f = PCA_Mat.tmp_var.get()[iSNP];
 			f *= 0.5;
 			f = 4 * f * (1 - f);
 		}
@@ -936,7 +797,7 @@ namespace PCA
 			for (long i=0; i< SNP_Cnt; i++)
 			{
 				if (p1[i] && p2[i])
-					*pAFreq += tmp_var.get()[i];
+					*pAFreq += PCA_Mat.tmp_var.get()[i];
 			}
 			pAFreq ++;
 			++ I;
@@ -950,10 +811,7 @@ namespace PCA
 		// initialize ...
 		const long n = OutIBD.N();  // the number of individuals
 
-		PCA_gSum.resize(BlockNumSNP);
-		PCA_gNum.resize(BlockNumSNP);
 		PCA_Mat.Reset(n, BlockNumSNP);
-		tmp_var.Reset(PCA_Mat.M());
 		Admix_Missing_Flag.resize(BlockNumSNP * n);
 		Admix_Adj_Geno.resize(n);
 
@@ -995,8 +853,7 @@ namespace PCA
 	{
 		// init ...
 		const int n = MCWorkingGeno.Space().SampleNum();
-		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
-		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
+		PCA_Mat.ZeroFill();
 
 		C_UInt8 *p, *pMissing;
 		double *pf, *pp;
@@ -1013,8 +870,8 @@ namespace PCA
 			{
 				if (*p < 3)
 				{
-					PCA_gSum[iSNP] += *p;
-					PCA_gNum[iSNP]++;
+					PCA_Mat.PCA_gSum[iSNP] += *p;
+					PCA_Mat.PCA_gNum[iSNP]++;
 					*pMissing++ = true;
 				} else {
 					*pMissing++ = false;
@@ -1026,10 +883,10 @@ namespace PCA
 		// PCA_gSum = 2 * \bar{p}_l
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 		{
-			double &fv = tmp_var.get()[iSNP];
-			long gN = PCA_gNum[iSNP];
+			double &fv = PCA_Mat.tmp_var.get()[iSNP];
+			long gN = PCA_Mat.PCA_gNum[iSNP];
 			if (gN > 0)
-				fv = (double)PCA_gSum[iSNP] / gN;
+				fv = (double)PCA_Mat.PCA_gSum[iSNP] / gN;
 			else
 				fv = 0;
 		}
@@ -1038,12 +895,12 @@ namespace PCA
 		pp = PCA_Mat.base(); // G@ij - 2\bar{p}_l
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Sub(pp, pp, tmp_var.get(), SNP_Cnt);
+			vt<double, av16Align>::Sub(pp, pp, PCA_Mat.tmp_var.get(), SNP_Cnt);
 			pp += PCA_Mat.M();
 		}
 
 		// 1 / (2*sqrt(p@j*(1-p@j)))
-		pf = tmp_var.get();
+		pf = PCA_Mat.tmp_var.get();
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++, pf++)
 		{
 			double scale = (*pf) * 0.5;
@@ -1058,7 +915,7 @@ namespace PCA
 		p = GenoBuf;
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			pf = tmp_var.get();
+			pf = PCA_Mat.tmp_var.get();
 			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 			{
 				if (*p < 3)
@@ -1072,7 +929,7 @@ namespace PCA
 		pp = PCA_Mat.base();
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Mul(pp, pp, tmp_var.get(), SNP_Cnt);
+			vt<double, av16Align>::Mul(pp, pp, PCA_Mat.tmp_var.get(), SNP_Cnt);
 			pp += PCA_Mat.M();
 		}
 
@@ -1125,10 +982,7 @@ namespace PCA
 		// initialize ...
 		const long n = OutIBD.N();  // the number of individuals
 
-		PCA_gSum.resize(BlockNumSNP);
-		PCA_gNum.resize(BlockNumSNP);
 		PCA_Mat.Reset(n, BlockNumSNP);
-		tmp_var.Reset(PCA_Mat.M());
 		Admix_Missing_Flag.resize(BlockNumSNP * n);
 		Admix_Adj_Geno.resize(n);
 
@@ -1172,8 +1026,7 @@ namespace PCA
 
 		// init ...
 		const int n = MCWorkingGeno.Space().SampleNum();
-		memset(&PCA_gSum[0], 0, SNP_Cnt*sizeof(int));
-		memset(&PCA_gNum[0], 0, SNP_Cnt*sizeof(int));
+		PCA_Mat.ZeroFill();
 
 		C_UInt8 *p, *pMissing;
 		double *pf, *pp;
@@ -1190,8 +1043,8 @@ namespace PCA
 			{
 				if (*p < 3)
 				{
-					PCA_gSum[iSNP] += *p;
-					PCA_gNum[iSNP]++;
+					PCA_Mat.PCA_gSum[iSNP] += *p;
+					PCA_Mat.PCA_gNum[iSNP]++;
 					*pMissing++ = true;
 				} else {
 					*pMissing++ = false;
@@ -1203,10 +1056,10 @@ namespace PCA
 		// PCA_gSum = 2 * \bar{p}_l
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 		{
-			double &fv = tmp_var.get()[iSNP];
-			long gN = PCA_gNum[iSNP];
+			double &fv = PCA_Mat.tmp_var.get()[iSNP];
+			long gN = PCA_Mat.PCA_gNum[iSNP];
 			if (gN > 0)
-				fv = (double)PCA_gSum[iSNP] / gN;
+				fv = (double)PCA_Mat.PCA_gSum[iSNP] / gN;
 			else
 				fv = 0;
 		}
@@ -1215,7 +1068,7 @@ namespace PCA
 		pp = PCA_Mat.base(); // G@ij - 2\bar{p}_l
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Sub(pp, pp, tmp_var.get(), SNP_Cnt);
+			vt<double, av16Align>::Sub(pp, pp, PCA_Mat.tmp_var.get(), SNP_Cnt);
 			pp += PCA_Mat.M();
 		}
 
@@ -1224,7 +1077,7 @@ namespace PCA
 		p = GenoBuf;
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			pf = tmp_var.get();
+			pf = PCA_Mat.tmp_var.get();
 			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 			{
 				double scale = (*pf) * 0.5;
@@ -1240,7 +1093,7 @@ namespace PCA
 		}
 
 		// 1 / (sqrt(2)*sqrt(p@j*(1-p@j)))
-		pf = tmp_var.get();
+		pf = PCA_Mat.tmp_var.get();
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++, pf++)
 		{
 			double scale = (*pf) * 0.5;
@@ -1254,7 +1107,7 @@ namespace PCA
 		pp = PCA_Mat.base();
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Mul(pp, pp, tmp_var.get(), SNP_Cnt);
+			vt<double, av16Align>::Mul(pp, pp, PCA_Mat.tmp_var.get(), SNP_Cnt);
 			pp += PCA_Mat.M();
 		}
 
@@ -1278,10 +1131,7 @@ namespace PCA
 		// initialize ...
 		const long n = OutIBD.N();  // the number of individuals
 
-		PCA_gSum.resize(BlockNumSNP);
-		PCA_gNum.resize(BlockNumSNP);
 		PCA_Mat.Reset(n, BlockNumSNP);
-		tmp_var.Reset(PCA_Mat.M());
 		Admix_Missing_Flag.resize(BlockNumSNP * n);
 		Admix_Adj_Geno.resize(n);
 
