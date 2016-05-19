@@ -27,7 +27,7 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 {
     # check
     ws <- .InitFile2(
-        cmd="Principal Component Analysis (PCA) on SNP genotypes:",
+        cmd="Principal Component Analysis (PCA) on Genotypes:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,

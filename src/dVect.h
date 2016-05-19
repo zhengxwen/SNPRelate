@@ -65,7 +65,9 @@ namespace Vectorization
 				if (alloc) delete []alloc;
 				if (n > 0)
 				{
-					alloc = new char[n*sizeof(TYPE) + Align - 1];
+					size_t m = n*sizeof(TYPE) + Align - 1;
+					alloc = new char[m];
+					memset(alloc, 0, m);
 					size_t r = ((size_t)alloc) % Align;
 					base = (TYPE*)(r ? (alloc+Align-r) : alloc);
 					vlen = n;
