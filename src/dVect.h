@@ -80,6 +80,8 @@ namespace Vectorization
 		COREARRAY_INLINE TYPE *get() { return base; };
 		COREARRAY_INLINE size_t len() { return vlen; };
 
+		COREARRAY_INLINE TYPE &operator[] (size_t i) { return base[i]; }
+
 	private:
 		char *alloc;
 		TYPE *base;
