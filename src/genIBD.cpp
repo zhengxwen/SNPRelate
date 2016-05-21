@@ -1203,8 +1203,8 @@ namespace IBD
 		for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			out_AFreq[i] = MLEAlleleFreq[i];
 
-		IBD = &PublicIBD; pMatIBD = PublicIBD.get();
-		pNIter = (PublicNIter) ? PublicNIter->get() : NULL;
+		IBD = &PublicIBD; pMatIBD = PublicIBD.Get();
+		pNIter = (PublicNIter) ? PublicNIter->Get() : NULL;
 		IBD_idx.reset(nSamp);
 		nMatTriD = PublicIBD.Size(); idxMatTriD = 0;
 
@@ -1233,8 +1233,8 @@ namespace IBD
 		for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
 			out_AFreq[i] = MLEAlleleFreq[i];
 
-		IBD_Jacq = &PublicIBD; pMatIBD_Jacq = PublicIBD.get();
-		pNIter = (PublicNIter) ? PublicNIter->get() : NULL;
+		IBD_Jacq = &PublicIBD; pMatIBD_Jacq = PublicIBD.Get();
+		pNIter = (PublicNIter) ? PublicNIter->Get() : NULL;
 		IBD_idx.reset(nSamp);
 		nMatTriD = PublicIBD.Size(); idxMatTriD = 0;
 
@@ -1553,8 +1553,8 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE(SEXP AlleleFreq, SEXP KinshipConstraint,
 		double *out_k0 = REAL(k0);
 		double *out_k1 = REAL(k1);
 		int *out_niter = (IterNum) ? INTEGER(IterNum) : NULL;
-		IBD::TIBD *p = IBD.get();
-		int *pn = niter.get();
+		IBD::TIBD *p = IBD.Get();
+		int *pn = niter.Get();
 		for (int i=0; i < n; i++)
 		{
 			size_t pp = i*n + i;
@@ -1638,8 +1638,8 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE_Jacquard(SEXP AlleleFreq, SEXP MaxIterCnt,
 			REAL(D[3]), REAL(D[4]), REAL(D[5]), REAL(D[6]), REAL(D[7]) };
 
 		int *out_niter = (IterNum) ? INTEGER(IterNum) : NULL;
-		IBD::TIBD_Jacq *p = IBD.get();
-		int *pn = niter.get();
+		IBD::TIBD_Jacq *p = IBD.Get();
+		int *pn = niter.Get();
 		for (int i=0; i < n; i++)
 		{
 			size_t pp = i*n + i;

@@ -227,14 +227,14 @@ namespace IBS
 	{
 		// Initialize ...
 		GenoPacked.resize(BlockNumSNP * PublicIBS.N());
-		memset(PublicIBS.get(), 0, sizeof(TS_IBS)*PublicIBS.Size());
+		memset(PublicIBS.Get(), 0, sizeof(TS_IBS)*PublicIBS.Size());
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
 		Array_SplitJobs(NumThread, PublicIBS.N(), Array_Thread_MatIdxD, Array_Thread_MatCnt);
-		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_PLINKIBS_Compute, PublicIBS.get());
+		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_PLINKIBS_Compute, PublicIBS.Get());
 	}
 
 	/// Calculate the IBS matrix
@@ -243,14 +243,14 @@ namespace IBS
 	{
 		// Initialize ...
 		GenoPacked.resize(BlockNumSNP * PublicIBS.N());
-		memset(PublicIBS.get(), 0, sizeof(TS_IBS)*PublicIBS.Size());
+		memset(PublicIBS.Get(), 0, sizeof(TS_IBS)*PublicIBS.Size());
 
 		MCWorkingGeno.Progress.Info = Info;
 		MCWorkingGeno.Progress.Show() = verbose;
 		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
 
 		Array_SplitJobs(NumThread, PublicIBS.N(), Array_Thread_MatIdx, Array_Thread_MatCnt);
-		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_IBS_Compute, PublicIBS.get());
+		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_IBS_Compute, PublicIBS.Get());
 	}
 
 
@@ -327,7 +327,7 @@ namespace IBS
 	{
 		// Initialize ...
 		GenoPacked.resize(BlockNumSNP * PublicDiss.N());
-		memset(PublicDiss.get(), 0, sizeof(TS_Dissimilarity)*PublicDiss.Size());
+		memset(PublicDiss.Get(), 0, sizeof(TS_Dissimilarity)*PublicDiss.Size());
 		GenoAlleleFreq.resize(BlockNumSNP);
 
 		MCWorkingGeno.Progress.Info = Info;
@@ -337,7 +337,7 @@ namespace IBS
 		Array_SplitJobs(NumThread, PublicDiss.N(),
 			Array_Thread_MatIdx, Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_Diss_ReadBlock,
-			&_Do_Diss_Compute, PublicDiss.get());
+			&_Do_Diss_Compute, PublicDiss.Get());
 	}
 }
 
@@ -392,7 +392,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)
 		IBS::DoIBSCalculate(IBS, INTEGER(NumThread)[0], "IBS:", verbose);
 
 		// output
-		IBS::TS_IBS *p = IBS.get();
+		IBS::TS_IBS *p = IBS.Get();
 		for (int i=0; i < n; i++)
 		{
 			for (int j=i; j < n; j++, p++)
@@ -448,7 +448,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 		double *out_IBS2    = REAL(IBS2);
 
 		// output
-		IBS::TS_IBS *p = IBS.get();
+		IBS::TS_IBS *p = IBS.Get();
 		for (int i=0; i < n; i++)
 		{
 			for (int j=i; j < n; j++, p++)
@@ -521,7 +521,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 
 		// output
 		bool kc = LOGICAL(KinshipConstrict)[0] == TRUE;
-		IBS::TS_IBS *p = IBS.get();
+		IBS::TS_IBS *p = IBS.Get();
 		for (int i=0; i < n; i++)
 		{
 			out_k0[i*n + i] = out_k1[i*n + i] = 0;
@@ -575,7 +575,7 @@ COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 		// output
 		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, n, n));
 
-		IBS::TS_Dissimilarity *p = Dist.get();
+		IBS::TS_Dissimilarity *p = Dist.Get();
 		double *out_Diss = REAL(rv_ans);
 		for (R_xlen_t i=0; i < n; i++)
 		{

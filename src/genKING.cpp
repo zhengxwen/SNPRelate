@@ -252,7 +252,7 @@ namespace KING_IBD
 	{
 		// Initialize ...
 		Array_PackedGeno.resize(BlockNumSNP * PublicKING.N());
-		memset(PublicKING.get(), 0, sizeof(TS_KINGHomo)*PublicKING.Size());
+		memset(PublicKING.Get(), 0, sizeof(TS_KINGHomo)*PublicKING.Size());
 		Array_AlleleFreq.resize(BlockNumSNP);
 
 		MCWorkingGeno.Progress.Info = Info;
@@ -262,7 +262,7 @@ namespace KING_IBD
 		Array_SplitJobs(NumThread, PublicKING.N(),
 			Array_Thread_MatIdx, Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_KING_ReadBlock,
-			&_Do_KING_Homo_Compute, PublicKING.get());
+			&_Do_KING_Homo_Compute, PublicKING.Get());
 	}
 
 	/// Calculate KING IBD Robust Estimator
@@ -271,7 +271,7 @@ namespace KING_IBD
 	{
 		// Initialize ...
 		Array_PackedGeno.resize(BlockNumSNP * PublicKING.N());
-		memset(PublicKING.get(), 0, sizeof(TS_KINGRobust)*PublicKING.Size());
+		memset(PublicKING.Get(), 0, sizeof(TS_KINGRobust)*PublicKING.Size());
 		Array_AlleleFreq.resize(BlockNumSNP);
 
 		MCWorkingGeno.Progress.Info = Info;
@@ -281,7 +281,7 @@ namespace KING_IBD
 		Array_SplitJobs(NumThread, PublicKING.N(),
 			Array_Thread_MatIdx, Array_Thread_MatCnt);
 		MCWorkingGeno.Run(NumThread, &_Do_KING_ReadBlock,
-			&_Do_KING_Robust_Compute, PublicKING.get());
+			&_Do_KING_Robust_Compute, PublicKING.Get());
 	}
 }
 
@@ -320,7 +320,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Homo(SEXP NumThread, SEXP _Verbose)
 		double *pK1 = REAL(K1);
 
 		// output
-		TS_KINGHomo *p = IBD.get();
+		TS_KINGHomo *p = IBD.Get();
 		for (R_xlen_t i=0; i < n; i++)
 		{
 			pK0[i*n + i] = pK1[i*n + i] = 0;
@@ -379,7 +379,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
 		int *FamID_Ptr = INTEGER(FamilyID);
 
 		// output
-		TS_KINGRobust *p = IBD.get();
+		TS_KINGRobust *p = IBD.Get();
 		for (R_xlen_t i=0; i < n; i++)
 		{
 			pIBS0[i*n + i] = 0; pKinship[i*n + i] = 0.5;

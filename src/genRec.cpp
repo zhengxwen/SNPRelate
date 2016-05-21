@@ -81,7 +81,7 @@ static void OneLocusRun(CdMatTri<double> &IBD, size_t nSamp, size_t nSNP,
 	for (size_t iSNP=0; iSNP < nSNP; iSNP++)
 	{
 		const C_UInt8 *pGeno = BufSNP.ReadGeno(iSNP);
-		C_Int8 *pM = M_ij.get();
+		C_Int8 *pM = M_ij.Get();
 		C_Int64 Sum = 0;
 		int nSum = 0;
 		for (size_t i=0; i < nSamp; i++)
@@ -100,8 +100,8 @@ static void OneLocusRun(CdMatTri<double> &IBD, size_t nSamp, size_t nSNP,
 		if (nSum > 0)
 		{
 			double OneMb = (double)Sum / nSum;
-			double *pI = IBD.get(), *pD = Denom.get();
-			pM = M_ij.get();
+			double *pI = IBD.Get(), *pD = Denom.Get();
+			pM = M_ij.Get();
 			for (size_t i=IBD.Size(); i > 0; i--)
 			{
 				if (*pM != M)
@@ -117,7 +117,7 @@ static void OneLocusRun(CdMatTri<double> &IBD, size_t nSamp, size_t nSNP,
 	}
 
 	// the ratio
-	vt<double>::Div(IBD.get(), IBD.get(), Denom.get(), IBD.Size());
+	vt<double>::Div(IBD.Get(), IBD.Get(), Denom.Get(), IBD.Size());
 }
 
 
@@ -194,7 +194,7 @@ static void TwoLociRun(CdMatTri<double> &IBD, size_t nSamp, size_t nSNP,
 		memcpy((void*)pGeno1, (void*)pGeno2, nSamp);
 		pGeno2 = BufSNP.ReadGeno(iSNP);
 
-		C_Int8 *pM = M_ij.get();
+		C_Int8 *pM = M_ij.Get();
 		C_Int64 Sum = 0;
 		int nSum = 0;
 		for (size_t i=0; i < nSamp; i++)
@@ -215,8 +215,8 @@ static void TwoLociRun(CdMatTri<double> &IBD, size_t nSamp, size_t nSNP,
 		if (nSum > 0)
 		{
 			double OneMb = (double)Sum / nSum;
-			double *pI = IBD.get(), *pD = Denom.get();
-			pM = M_ij.get();
+			double *pI = IBD.Get(), *pD = Denom.Get();
+			pM = M_ij.Get();
 			for (size_t i=IBD.Size(); i > 0; i--)
 			{
 				if (*pM != M)
@@ -232,7 +232,7 @@ static void TwoLociRun(CdMatTri<double> &IBD, size_t nSamp, size_t nSNP,
 	}
 
 	// the ratio
-	vt<double>::Div(IBD.get(), IBD.get(), Denom.get(), IBD.Size());
+	vt<double>::Div(IBD.Get(), IBD.Get(), Denom.Get(), IBD.Size());
 }
 
 
@@ -271,7 +271,7 @@ COREARRAY_DLL_EXPORT SEXP gnrRecombination(SEXP _NumThread, SEXP _Method,
 		// Output
 		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, nSamp, nSamp));
 		double *base = REAL(rv_ans);
-		double *p = IBD.get();
+		double *p = IBD.Get();
 		for (R_xlen_t i=0; i < nSamp; i++)
 		{
 			for (R_xlen_t j=i; j < nSamp; j++)

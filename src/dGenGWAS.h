@@ -433,27 +433,27 @@ namespace GWAS
 		}
 		void Clear(const Tx val)
 		{
-        	Tx IVAL = val, *p = ptr.get();
+        	Tx IVAL = val, *p = ptr.Get();
 			for (size_t n = fN*(fN+1)/2; n > 0; n--)
 				*p++ = IVAL;
 		}
 		void GetRow(Tx *outbuf, size_t i)
 		{
 			for (size_t j = 0; j < i; j++)
-				outbuf[j] = ptr.get()[i + j*(2*fN-j-1)/2];
+				outbuf[j] = ptr[i + j*(2*fN-j-1)/2];
 			for (size_t j = i; j < fN; j++)
-				outbuf[j] = ptr.get()[j + i*(2*fN-i-1)/2];
+				outbuf[j] = ptr[j + i*(2*fN-i-1)/2];
 		}
 		Tx Trace()
 		{
-			Tx rv = 0, *p = ptr.get();
+			Tx rv = 0, *p = ptr.Get();
 			size_t n = fN;
 			while (n > 0) { rv += *p; p += n; n--; }
 			return rv;
 		}
 		Tx Sum()
 		{
-			Tx rv = 0, *p = ptr.get();
+			Tx rv = 0, *p = ptr.Get();
 			size_t n = Size();
 			while (n--) rv += *p++;
 			return rv;
@@ -476,7 +476,7 @@ namespace GWAS
 			}
 		}
 
-		inline Tx *get() { return ptr.get(); }
+		inline Tx *Get() { return ptr.Get(); }
 		inline size_t N() const { return fN; }
 		inline size_t Size() const { return fN*(fN+1)/2; }
 
@@ -510,7 +510,7 @@ namespace GWAS
 		}
 		void Clear(const Tx val)
 		{
-			Tx IVAL = val, *p = ptr.get();
+			Tx IVAL = val, *p = ptr.Get();
 			fDiag = IVAL;
 			for (size_t n = fN*(fN-1)/2; n > 0; n--)
 				*p++ = IVAL;
@@ -518,10 +518,10 @@ namespace GWAS
 		void GetRow(Tx *outbuf, size_t i)
 		{
 			for (size_t j = 0; j < i; j++)
-				outbuf[j] = ptr.get()[TriPtr(i-1, j, fN-1)];
+				outbuf[j] = ptr[TriPtr(i-1, j, fN-1)];
 			outbuf[i] = fDiag;
 			for (size_t j = i+1; j < fN; j++)
-				outbuf[j] = ptr.get()[TriPtr(j-1, i, fN-1)];
+				outbuf[j] = ptr[TriPtr(j-1, i, fN-1)];
 		}
 		size_t Index(size_t row, size_t col)
 		{
@@ -531,7 +531,7 @@ namespace GWAS
 			return TriPtr(col-1, row, fN-1);
 		}
 
-		inline Tx *get() { return ptr.get(); }
+		inline Tx *Get() { return ptr.Get(); }
 		inline size_t N() const { return fN; }
 		inline size_t Size() const { return fN*(fN-1)/2; }
 		inline Tx &Diag() { return fDiag; }

@@ -551,17 +551,22 @@ void CdBaseWorkSpace::Get_AF_MR_perSNP(double AF[], double MR[])
 			MR[i] = 1 - (0.5*n[i]) / fSampleNum;
 
 	} else {
-		// initialize
-		vector<C_UInt8> buf(fSampleNum);
+/*		// initialize
+		VEC_AUTO_PTR<C_UInt8> Geno(fSampleNum);
 
 		// for-loop for each snp
 		for (int isnp=0; isnp < fSNPNum; isnp++)
 		{
+			snpRead(isnp, 1, Geno.Get(), RDim_Sample_X_SNP);
+
+
+
+
+
 			int n = 0;
 			double &val = AF[isnp];
 			double &miss = MR[isnp];
 			val = 0;
-			snpRead(isnp, 1, &buf[0], RDim_Sample_X_SNP);
 			for (int i=0; i < fSampleNum; i++)
 			{
 				C_UInt8 &v = buf[i];
@@ -574,6 +579,7 @@ void CdBaseWorkSpace::Get_AF_MR_perSNP(double AF[], double MR[])
 			val = (n > 0) ? (val/n) : R_NaN;
 			miss = 1.0 - (0.5*n) / fSampleNum;
 		}
+*/
 	}
 }
 

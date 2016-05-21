@@ -85,8 +85,8 @@ namespace Vectorization
 			vlen = 0;
 		}
 
-		COREARRAY_INLINE TYPE *get() { return base; };
-		COREARRAY_INLINE size_t len() { return vlen; };
+		COREARRAY_INLINE TYPE *Get() { return base; };
+		COREARRAY_INLINE size_t Length() { return vlen; };
 
 		COREARRAY_INLINE TYPE &operator[] (size_t i) { return base[i]; }
 
