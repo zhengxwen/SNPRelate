@@ -2,7 +2,7 @@
 //
 // dGenGWAS.h: Workspace of Genome-Wide Association Studies
 //
-// Copyright (C) 2011-2015    Xiuwen Zheng
+// Copyright (C) 2011-2016    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -145,6 +145,8 @@ namespace GWAS
 
 		vector<C_BOOL> fSampleSelection;
 		vector<C_BOOL> fSNPSelection;
+
+		void Get_AF_MR_perSNP(double AF[], double MR[]);
 	};
 
 

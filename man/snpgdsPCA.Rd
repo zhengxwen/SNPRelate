@@ -11,7 +11,8 @@ analysis in GWAS.
 snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, eigen.cnt=32,
     num.thread=1L, bayesian=FALSE, need.genmat=FALSE, genmat.only=FALSE,
-    eigen.method=c("DSPEVX", "DSPEV"), verbose=TRUE)
+    eigen.method=c("DSPEVX", "DSPEV"), covalg=c("arith", "bitops"),
+    verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -40,6 +41,8 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         compatible with SNPRelate_1.1.6 or earlier, using LAPACK::DSPEV;
         "DSPEVX" is significantly faster than "DSPEV" if only top principal
         components are of interest}
+    \item{covalg}{"arith" -- arithmetic operation with SSE/AVX for covariance
+        calculation; "bitops" -- bit manipulation with a lookup table}
     \item{verbose}{if TRUE, show information}
 }
 \details{

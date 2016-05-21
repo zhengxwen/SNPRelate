@@ -2,7 +2,7 @@
 //
 // dVect.h: Classess and functions for vectorization
 //
-// Copyright (C) 2007-2015    Xiuwen Zheng
+// Copyright (C) 2007-2016    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -56,7 +56,7 @@ namespace Vectorization
 		VEC_AUTO_PTR(size_t n)
 			{ alloc = NULL; base = NULL; vlen = 0; Reset(n); }
 		~VEC_AUTO_PTR()
-			{ if (alloc) delete []alloc; }
+			{ Clear(); }
 
 		void Reset(size_t n)
 		{
@@ -75,6 +75,14 @@ namespace Vectorization
 					vlen = 0;
 				}
 			}
+		}
+
+		void Clear()
+		{
+			if (alloc)
+				{ delete []alloc; alloc = NULL; }
+			base = NULL;
+			vlen = 0;
 		}
 
 		COREARRAY_INLINE TYPE *get() { return base; };

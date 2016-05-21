@@ -2,7 +2,7 @@
 //
 // dGenGWAS.cpp: Workspace of Genome-Wide Association Studies
 //
-// Copyright (C) 2011-2015    Xiuwen Zheng
+// Copyright (C) 2011-2016    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -517,6 +517,64 @@ int CdBaseWorkSpace::Select_SNP_Base_Ex(const double afreq[],
 
 	// result
 	return cnt;
+}
+
+void CdBaseWorkSpace::Get_AF_MR_perSNP(double AF[], double MR[])
+{
+	if (fGenoDimType == RDim_SNP_X_Sample)
+	{
+		// initialize
+		vector<C_UInt8> buf(fSNPNum);
+		vector<int> n(fSNPNum);
+		for (int i=0; i < fSNPNum; i++) n[i] = 0;
+		for (int i=0; i < fSNPNum; i++) AF[i] = 0;
+
+		// for-loop for each sample
+		for (int iSamp=0; iSamp < fSampleNum; iSamp++)
+		{
+			sampleRead(iSamp, 1, &buf[0], RDim_SNP_X_Sample);
+			for (int i=0; i < fSNPNum; i++)
+			{
+				C_UInt8 &v = buf[i];
+				if (v <= 2)
+				{
+					AF[i] += v;
+					n[i] += 2;
+				}
+			}
+		}
+
+		// average
+		for (int i=0; i < fSNPNum; i++)
+			AF[i] = (n[i] > 0) ? (AF[i]/n[i]) : R_NaN;
+		for (int i=0; i < fSNPNum; i++)
+			MR[i] = 1 - (0.5*n[i]) / fSampleNum;
+
+	} else {
+		// initialize
+		vector<C_UInt8> buf(fSampleNum);
+
+		// for-loop for each snp
+		for (int isnp=0; isnp < fSNPNum; isnp++)
+		{
+			int n = 0;
+			double &val = AF[isnp];
+			double &miss = MR[isnp];
+			val = 0;
+			snpRead(isnp, 1, &buf[0], RDim_Sample_X_SNP);
+			for (int i=0; i < fSampleNum; i++)
+			{
+				C_UInt8 &v = buf[i];
+				if (v <= 2)
+				{
+					val += v;
+					n += 2;
+				}
+			}
+			val = (n > 0) ? (val/n) : R_NaN;
+			miss = 1.0 - (0.5*n) / fSampleNum;
+		}
+	}
 }
 
 

@@ -9,7 +9,7 @@
 // SNPRelate.cpp: Relatedness, Linkage Disequilibrium and
 //				  Principal Component Analysis
 //
-// Copyright (C) 2011 - 2016	Xiuwen Zheng [zhengxwen@gmail.com]
+// Copyright (C) 2011-2016    Xiuwen Zheng [zhengxwen@gmail.com]
 //
 // This file is part of SNPRelate.
 //
@@ -1182,7 +1182,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrPairScore(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPairIBD(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPairIBDLogLik(SEXP, SEXP, SEXP, SEXP, SEXP);
-	extern SEXP gnrPCA(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrPCA(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCACorr(SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCASampLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCASNPLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1225,7 +1225,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrLDpair, 3),              CALL(gnrLDpruning, 6),
 		CALL(gnrPairScore, 6),
 		CALL(gnrPairIBD, 8),             CALL(gnrPairIBDLogLik, 5),
-		CALL(gnrPCA, 7),                 CALL(gnrPCACorr, 4),
+		CALL(gnrPCA, 8),                 CALL(gnrPCACorr, 4),
 		CALL(gnrPCASampLoading, 9),      CALL(gnrPCASNPLoading, 7),
 
 		CALL(gnrParseGEN, 9),            CALL(gnrParsePED, 8),

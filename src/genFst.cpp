@@ -2,7 +2,7 @@
 //
 // genFst.cpp: Fixation index (Fst) Estimation
 //
-// Copyright (C) 2015    Xiuwen Zheng
+// Copyright (C) 2015-2016    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
