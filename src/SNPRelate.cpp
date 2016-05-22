@@ -192,7 +192,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSelSNP_Base(SEXP remove_mono, SEXP maf,
 		const R_xlen_t n = MCWorkingGeno.Space().SNPNum();
 		vector<C_BOOL> sel(n);
 		int OutNum = MCWorkingGeno.Space().Select_SNP_Base(
-			RM_MONO == TRUE, MAF, MRATE, &sel[0]);
+			RM_MONO==TRUE, MAF, MRATE, &sel[0]);
 
 		rv_ans = PROTECT(NEW_LIST(2));
 		SET_ELEMENT(rv_ans, 0, ScalarInteger(OutNum));
@@ -244,6 +244,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSNPRateFreq()
 {
 	COREARRAY_TRY
 		R_xlen_t L = MCWorkingGeno.Space().SNPNum();
+
 		SEXP AF, MF, MR;
 		PROTECT(rv_ans = NEW_LIST(3));
 		PROTECT(AF = NEW_NUMERIC(L));
@@ -253,11 +254,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSNPRateFreq()
 		PROTECT(MR = NEW_NUMERIC(L));
 		SET_ELEMENT(rv_ans, 2, MR);
 
-		MCWorkingGeno.Space().GetAlleleFreqs(REAL(AF));
-		double *pAF = REAL(AF), *pMF = REAL(MF);
-		for (R_xlen_t i=0; i < L; i++)
-			pMF[i] = min(pAF[i], 1 - pAF[i]);
-		MCWorkingGeno.Space().GetMissingRates(REAL(MR));
+		MCWorkingGeno.Space().Get_AF_MR_perSNP(REAL(AF), REAL(MF), REAL(MR));
 
 		UNPROTECT(4);
 	COREARRAY_CATCH

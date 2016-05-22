@@ -20,10 +20,12 @@
 // If not, see <http://www.gnu.org/licenses/>.
 
 #include "dGenGWAS.h"
+#include "dVect.h"
 #include <R_ext/Rdynload.h>
 
 using namespace std;
 using namespace GWAS;
+using namespace Vectorization;
 
 
 // ===================================================================== //
@@ -359,80 +361,28 @@ void CdBaseWorkSpace::GetABNumPerSNP(int AA[], int AB[], int BB[])
 int CdBaseWorkSpace::Select_SNP_Base(bool remove_mono, double maf,
 	double missrate, C_BOOL *out_sel)
 {
-	// initial variables
-	vector<double> AFreq(fSNPNum);
-	vector<double> MissRate(fSNPNum);
-
-	if (fGenoDimType == RDim_SNP_X_Sample)
-	{
-		// initialize
-		vector<C_UInt8> buf(fSNPNum);
-		vector<int> n(fSNPNum);
-		for (int i=0; i < fSNPNum; i++) n[i] = 0;
-		for (int i=0; i < fSNPNum; i++) AFreq[i] = 0;
-
-		// for-loop for each sample
-		for (int iSamp=0; iSamp < fSampleNum; iSamp++)
-		{
-			sampleRead(iSamp, 1, &buf[0], RDim_SNP_X_Sample);
-			for (int i=0; i < fSNPNum; i++)
-			{
-				C_UInt8 &v = buf[i];
-				if (v <= 2)
-				{
-					AFreq[i] += v;
-					n[i] += 2;
-				}
-			}
-		}
-
-		// average
-		for (int i=0; i < fSNPNum; i++)
-			AFreq[i] = (n[i] > 0) ? (AFreq[i]/n[i]) : R_NaN;
-		for (int i=0; i < fSNPNum; i++)
-			MissRate[i] = 1 - (0.5*n[i]) / fSampleNum;
-
-	} else {
-		// initialize
-		vector<C_UInt8> buf(fSampleNum);
-
-		// for-loop for each snp
-		for (int isnp=0; isnp < fSNPNum; isnp++)
-		{
-			int n = 0;
-			double &val = AFreq[isnp];
-			double &miss = MissRate[isnp];
-			val = 0;
-			snpRead(isnp, 1, &buf[0], RDim_Sample_X_SNP);
-			for (int i=0; i < fSampleNum; i++)
-			{
-				C_UInt8 &v = buf[i];
-				if (v <= 2)
-				{
-					val += v;
-					n += 2;
-				}
-			}
-			val = (n > 0) ? (val/n) : R_NaN;
-			miss = 1.0 - (0.5*n) / fSampleNum;
-		}
-	}
+	vector<double> MAF(fSNPNum);
+	vector<double> MR(fSNPNum);
+	double *pMAF = &MAF[0];
+	double *pMR  = &MR[0];
+	Get_AF_MR_perSNP(NULL, pMAF, pMR);
 
 	// SNP selections
 	vector<C_BOOL> sel(fSNPNum);
+	C_BOOL *s = &sel[0];
+	bool flag;
 	for (int i=0; i < fSNPNum; i++)
 	{
-		bool flag = true;
-		if (R_FINITE(AFreq[i]))
+		if (R_FINITE(*pMAF))
 		{
-			double MF = min(AFreq[i], 1-AFreq[i]);
-			double MR = MissRate[i];
-			if (remove_mono && (MF<=0)) flag = false;
-			if (flag && (MF<maf)) flag = false;
-			if (flag && (MR>missrate)) flag = false;
+			flag = true;
+			if (remove_mono && (*pMAF <= 0)) flag = false;
+			if (flag && (*pMAF < maf)) flag = false;
+			if (flag && (*pMR > missrate)) flag = false;
 		} else
 			flag = false;
-		sel[i] = flag;
+		*s++ = flag;
+		pMAF++; pMR++;
 	}
 	if (out_sel)
 		memmove(out_sel, &sel[0], sizeof(C_BOOL)*fSNPNum);
@@ -519,67 +469,85 @@ int CdBaseWorkSpace::Select_SNP_Base_Ex(const double afreq[],
 	return cnt;
 }
 
-void CdBaseWorkSpace::Get_AF_MR_perSNP(double AF[], double MR[])
+void CdBaseWorkSpace::Get_AF_MR_perSNP(double AF[], double MAF[], double MR[])
 {
 	if (fGenoDimType == RDim_SNP_X_Sample)
 	{
 		// initialize
-		vector<C_UInt8> buf(fSNPNum);
-		vector<int> n(fSNPNum);
-		for (int i=0; i < fSNPNum; i++) n[i] = 0;
-		for (int i=0; i < fSNPNum; i++) AF[i] = 0;
+		VEC_AUTO_PTR<C_UInt8> Geno(fSNPNum);
+		VEC_AUTO_PTR<C_Int32> Sum(fSNPNum);
+		VEC_AUTO_PTR<C_Int32> Num(fSNPNum);
+		memset(Sum.Get(), 0, sizeof(C_Int32)*size_t(fSNPNum));
+		memset(Num.Get(), 0, sizeof(C_Int32)*size_t(fSNPNum));
 
 		// for-loop for each sample
 		for (int iSamp=0; iSamp < fSampleNum; iSamp++)
 		{
-			sampleRead(iSamp, 1, &buf[0], RDim_SNP_X_Sample);
-			for (int i=0; i < fSNPNum; i++)
+			C_UInt8 *p = Geno.Get();
+			sampleRead(iSamp, 1, p, RDim_SNP_X_Sample);
+
+			size_t n = fSNPNum;
+			C_Int32 *pSum = Sum.Get();
+			C_Int32 *pNum = Num.Get();
+
+			for (; n > 0; n--)
 			{
-				C_UInt8 &v = buf[i];
-				if (v <= 2)
-				{
-					AF[i] += v;
-					n[i] += 2;
-				}
+				if (*p <= 2)
+					{ *pSum += *p; (*pNum)++; }
+				p++; pSum++; pNum++;
 			}
 		}
 
 		// average
-		for (int i=0; i < fSNPNum; i++)
-			AF[i] = (n[i] > 0) ? (AF[i]/n[i]) : R_NaN;
-		for (int i=0; i < fSNPNum; i++)
-			MR[i] = 1 - (0.5*n[i]) / fSampleNum;
+		if (AF)
+		{
+			C_Int32 *pSum = Sum.Get(), *pNum = Num.Get();
+			for (size_t n=fSNPNum; n > 0; n--)
+			{
+				*AF++ = (*pNum > 0) ? ((double)*pSum / (2 * (*pNum))) : R_NaN;
+				pSum++; pNum++;
+			}
+		}
+		if (MAF)
+		{
+			C_Int32 *pSum = Sum.Get(), *pNum = Num.Get();
+			for (size_t n=fSNPNum; n > 0; n--)
+			{
+				if (*pNum > 0)
+				{
+					double p = (double)*pSum / (2 * (*pNum));
+					*MAF = min(p, 1-p);
+				} else
+					*MAF = R_NaN;
+				MAF++; pSum++; pNum++;
+			}
+		}
+		if (MR)
+		{
+			C_Int32 *pNum = Num.Get();
+			for (size_t n=fSNPNum; n > 0; n--)
+				*MR++ = double(fSampleNum - *pNum++) / fSampleNum;
+		}
 
 	} else {
-/*		// initialize
+
+		// initialize
 		VEC_AUTO_PTR<C_UInt8> Geno(fSampleNum);
 
 		// for-loop for each snp
 		for (int isnp=0; isnp < fSNPNum; isnp++)
 		{
-			snpRead(isnp, 1, Geno.Get(), RDim_Sample_X_SNP);
+			C_UInt8 *p = Geno.Get();
+			snpRead(isnp, 1, p, RDim_Sample_X_SNP);
 
+			C_Int32 sum, num;
+			vec_u8_geno_count(p, fSampleNum, sum, num);
 
-
-
-
-			int n = 0;
-			double &val = AF[isnp];
-			double &miss = MR[isnp];
-			val = 0;
-			for (int i=0; i < fSampleNum; i++)
-			{
-				C_UInt8 &v = buf[i];
-				if (v <= 2)
-				{
-					val += v;
-					n += 2;
-				}
-			}
-			val = (n > 0) ? (val/n) : R_NaN;
-			miss = 1.0 - (0.5*n) / fSampleNum;
+			double F = (num > 0) ? ((double)sum / (2*num)) : R_NaN;
+			if (AF) *AF++ = F;
+			if (MAF) *MAF++ = min(F, 1-F);
+			if (MR) *MR++ = 1 - ((double)num) / fSampleNum;
 		}
-*/
 	}
 }
 

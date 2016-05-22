@@ -11,6 +11,26 @@ library(SNPRelate)
 # test function
 #
 
+test.AlleleFreq <- function()
+{
+	# open the SNP GDS file
+	genofile <- snpgdsOpen(snpgdsExampleFileName())
+	on.exit({ snpgdsClose(genofile) })
+
+	# get genotype
+	geno <- snpgdsGetGeno(genofile, snpfirstdim=FALSE, verbose=FALSE)
+
+	af <- colMeans(geno, na.rm=TRUE) * 0.5
+	maf <- pmin(af, 1 - af)
+	mr <- colMeans(is.na(geno))
+	x <- snpgdsSNPRateFreq(genofile)
+
+    checkEquals(af, x$AlleleFreq, "allele frequency")
+    checkEquals(mr, x$MissingRate, "missing rate")
+    checkEquals(maf, x$MinorFreq, "minor allele frequency")
+}
+
+
 test.Allele_Switching <- function()
 {
     # the file name of SNP GDS

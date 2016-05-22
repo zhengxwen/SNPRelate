@@ -34,20 +34,10 @@
 #include <algorithm>
 
 
-#ifdef COREARRAY_SIMD_SSE
-#include <xmmintrin.h>
-#endif
-#ifdef COREARRAY_SIMD_SSE2
-#include <emmintrin.h>
-#endif
-#ifdef COREARRAY_SIMD_AVX
-#include <immintrin.h>
-#endif
-
 #if defined(__GNUC__) && (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__>1) && defined(__MINGW32__)
-#   define FUNC_ALIGN    __attribute__((force_align_arg_pointer))
+#   define MULTICORE_FUNC_ALIGN    __attribute__((force_align_arg_pointer))
 #else
-#   define FUNC_ALIGN
+#   define MULTICORE_FUNC_ALIGN
 #endif
 
 
@@ -112,17 +102,12 @@ namespace PCA
 		/// calculate average genotypes (save to PCA_GenoSum and PCA_GenoNum)
 		void SummarizeGeno_SampxSNP(C_UInt8 *pGeno, size_t nSNP)
 		{
-			if (nSNP > fM) nSNP = fM;
 			C_Int32 *pS = PCA_GenoSum.Get();
 			C_Int32 *pN = PCA_GenoNum.Get();
-			// for-loop
 			for (size_t i=0; i < nSNP; i++)
 			{
-				C_Int32 sum=0, num=0;
-				for (size_t n=fN; n > 0; n--, pGeno++)
-					if (*pGeno <= 2) { sum += *pGeno; num++; }
-				*pS++ = sum;
-				*pN++ = num;
+				pGeno = vec_u8_geno_count(pGeno, fN, *pS, *pN);
+				pS++; pN++;
 			}
 			for (; nSNP < fM; nSNP++)
 				*pS++ = *pN++ = 0;
@@ -205,7 +190,7 @@ namespace PCA
 		}
 
 		// time-consuming function
-		void FUNC_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt, double *pOut)
+		void MULTICORE_FUNC_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt, double *pOut)
 		{
 			for (; IdxCnt > 0; IdxCnt--, ++Idx)
 			{
@@ -295,7 +280,7 @@ namespace PCA
 		}
 
 		// time-consuming function
-		void FUNC_ALIGN MulAdd2(IdMatTri &Idx, size_t IdxCnt,
+		void MULTICORE_FUNC_ALIGN MulAdd2(IdMatTri &Idx, size_t IdxCnt,
 			size_t Length, double *pOut)
 		{
 			for (; IdxCnt > 0; IdxCnt--, ++Idx)
@@ -390,7 +375,7 @@ namespace PCA
 		inline double *base() { return fGenotype.Get(); }
 
 		/// mean-adjusted genotypes (fGenotype - tmp_var)
-		void FUNC_ALIGN GenoSub()
+		void MULTICORE_FUNC_ALIGN GenoSub()
 		{
 			double *pGeno = fGenotype.Get();
 			for (size_t num=fN; num > 0; num--, pGeno+=fM)
@@ -418,7 +403,7 @@ namespace PCA
 		}
 
 		/// variance-adjusted genotypes (fGenotype * tmp_var)
-		void FUNC_ALIGN GenoMul()
+		void MULTICORE_FUNC_ALIGN GenoMul()
 		{
 			double *pGeno = fGenotype.Get();
 			for (size_t num=fN; num > 0; num--, pGeno+=fM)

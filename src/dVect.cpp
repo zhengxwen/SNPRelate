@@ -635,3 +635,115 @@ double CORESSECALL Vectorization::_SSE2_DotProd_16(const double *x,
 }
 
 #endif
+
+
+
+// =========================================================================
+
+COREARRAY_DLL_DEFAULT C_UInt8* Vectorization::vec_u8_geno_count(C_UInt8 *p,
+	size_t n, C_Int32 &out_sum, C_Int32 &out_num)
+{
+	C_Int32 sum=0, num=0;
+
+#if defined(COREARRAY_SIMD_AVX2)
+
+	const __m256i three = _mm256_set1_epi8(3);
+	__m256i sum8, num8, sum32, num32;
+	sum8 = num8 = sum32 = num32 = _mm256_setzero_si256();
+	size_t limit_by_U8 = 0;
+
+	for (; n >= 32; )
+	{
+		__m256i v = _mm256_loadu_si256((__m256i const*)p);
+		p += 32;
+		__m256i m = _mm256_cmpgt_epi8(three, _mm256_min_epu8(v, three));
+		sum32 = _mm256_add_epi8(sum32, _mm256_and_si256(v, m));
+		num32 = _mm256_sub_epi8(num32, m);
+		n -= 32;
+		limit_by_U8 ++;
+		if ((limit_by_U8 >= 127) || (n < 32))
+		{
+			const __m256i zero = _mm256_setzero_si256();
+			// add sum16 to sum4
+			__m256i b32 = _mm256_unpacklo_epi8(sum32, zero);
+			b32 = _mm256_add_epi16(b32, _mm256_unpackhi_epi8(sum32, zero));
+			sum8 = _mm256_add_epi32(sum8, _mm256_unpacklo_epi16(b32, zero));
+			sum8 = _mm256_add_epi32(sum8, _mm256_unpackhi_epi16(b32, zero));
+			// add num16 to num4
+			b32 = _mm256_unpacklo_epi8(num32, zero);
+			b32 = _mm256_add_epi16(b32, _mm256_unpackhi_epi8(num32, zero));
+			num8 = _mm256_add_epi32(num8, _mm256_unpacklo_epi16(b32, zero));
+			num8 = _mm256_add_epi32(num8, _mm256_unpackhi_epi16(b32, zero));
+			// reset
+			limit_by_U8 = 0;
+		}
+	}
+
+	// save sum8 to sum
+	sum8 = _mm256_add_epi32(sum8, _mm256_srli_si256(sum8, 8));
+	sum8 = _mm256_add_epi32(sum8, _mm256_srli_si256(sum8, 4));
+	sum8 = _mm256_add_epi32(sum8, _mm256_permute4x64_epi64(sum8, 2));
+	sum += _mm_cvtsi128_si32(_mm256_castsi256_si128(sum8));
+
+	// save num8 to num
+	num8 = _mm256_add_epi32(num8, _mm256_srli_si256(num8, 8));
+	num8 = _mm256_add_epi32(num8, _mm256_srli_si256(num8, 4));
+	num8 = _mm256_add_epi32(num8, _mm256_permute4x64_epi64(num8, 2));
+	num += _mm_cvtsi128_si32(_mm256_castsi256_si128(num8));
+
+#elif defined(COREARRAY_SIMD_SSE2)
+
+	// header, 16-byte aligned
+	size_t h = (16 - ((size_t)p & 0x0F)) & 0x0F;
+	for (; (n > 0) && (h > 0); n--, h--, p++)
+		if (*p <= 2) { sum += *p; num++; }
+
+	const __m128i three = _mm_set1_epi8(3);
+	__m128i sum4, num4, sum16, num16;
+	sum4 = num4 = sum16 = num16 = _mm_setzero_si128();
+	size_t limit_by_U8 = 0;
+
+	for (; n >= 16; )
+	{
+		__m128i v = _mm_load_si128((__m128i const*)p);
+		p += 16;
+		__m128i m = _mm_cmpgt_epi8(three, _mm_min_epu8(v, three));
+		sum16 = _mm_add_epi8(sum16, _mm_and_si128(v, m));
+		num16 = _mm_sub_epi8(num16, m);
+		n -= 16;
+		limit_by_U8 ++;
+		if ((limit_by_U8 >= 127) || (n < 16))
+		{
+			const __m128i zero = _mm_setzero_si128();
+			// add sum16 to sum4
+			__m128i b16 = _mm_unpacklo_epi8(sum16, zero);
+			b16 = _mm_add_epi16(b16, _mm_unpackhi_epi8(sum16, zero));
+			sum4 = _mm_add_epi32(sum4, _mm_unpacklo_epi16(b16, zero));
+			sum4 = _mm_add_epi32(sum4, _mm_unpackhi_epi16(b16, zero));
+			// add num16 to num4
+			b16 = _mm_unpacklo_epi8(num16, zero);
+			b16 = _mm_add_epi16(b16, _mm_unpackhi_epi8(num16, zero));
+			num4 = _mm_add_epi32(num4, _mm_unpacklo_epi16(b16, zero));
+			num4 = _mm_add_epi32(num4, _mm_unpackhi_epi16(b16, zero));
+			// reset
+			limit_by_U8 = 0;
+		}
+	}
+
+	// save sum4 to sum
+	sum4 = _mm_add_epi32(sum4, _mm_srli_si128(sum4, 8));
+	sum4 = _mm_add_epi32(sum4, _mm_srli_si128(sum4, 4));
+	sum += _mm_cvtsi128_si32(sum4);
+	// save num4 to num
+	num4 = _mm_add_epi32(num4, _mm_srli_si128(num4, 8));
+	num4 = _mm_add_epi32(num4, _mm_srli_si128(num4, 4));
+	num += _mm_cvtsi128_si32(num4);
+
+#endif
+	for (; n > 0; n--, p++)
+		if (*p <= 2) { sum += *p; num++; }
+
+	out_sum = sum;
+	out_num = num;
+	return p;
+}

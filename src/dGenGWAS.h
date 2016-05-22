@@ -120,6 +120,9 @@ namespace GWAS
 		void GetMinorAlleleFreqs(double OutFreq[]);
 		void GetABNumPerSNP(int AA[], int AB[], int BB[]);
 
+		/// get allele freq, minor allele freq and missing rate (AF, MAF or MR could be NULL)
+		void Get_AF_MR_perSNP(double AF[], double MAF[], double MR[]);
+
 		/** To select SNPs based on criteria, and return # of SNPs deleted
 		 *  \param remove_mono    whether remove monomorphic snps or not
 		 *  \param maf            the threshold of minor allele frequencies, keeping ">= maf"
@@ -145,8 +148,6 @@ namespace GWAS
 
 		vector<C_BOOL> fSampleSelection;
 		vector<C_BOOL> fSNPSelection;
-
-		void Get_AF_MR_perSNP(double AF[], double MR[]);
 	};
 
 

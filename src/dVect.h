@@ -33,6 +33,16 @@
 
 #include <dType.h>
 
+#ifdef COREARRAY_SIMD_SSE
+#include <xmmintrin.h>
+#endif
+#ifdef COREARRAY_SIMD_SSE2
+#include <emmintrin.h>
+#endif
+#ifdef COREARRAY_SIMD_AVX
+#include <immintrin.h>
+#endif
+
 
 namespace Vectorization
 {
@@ -46,7 +56,7 @@ namespace Vectorization
 #endif
 
 	template<typename TYPE, size_t vAlign=VEC_SIMD_ALIGN_BYTE>
-		struct VEC_AUTO_PTR
+		struct COREARRAY_DLL_DEFAULT VEC_AUTO_PTR
 	{
 	public:
 		static const size_t Align = vAlign;
@@ -403,6 +413,15 @@ namespace Vectorization
 #endif
 
 #endif
+
+
+
+	// ===========================================================
+
+	/// count genotype sum and number of calls, not requiring 16-aligned p
+	COREARRAY_DLL_DEFAULT C_UInt8* vec_u8_geno_count(C_UInt8 *p, size_t n,
+		C_Int32 &out_sum, C_Int32 &out_num);
+
 }
 
 #endif /* _HEADER_VECTORIZATION_ */
