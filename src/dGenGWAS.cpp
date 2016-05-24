@@ -1213,6 +1213,8 @@ void CdProgression::ShowProgress()
 
 // ===================================================================== //
 
+static char time_char[128];
+
 string GWAS::NowDateToStr()
 {
 	time_t tm;
@@ -1222,6 +1224,15 @@ string GWAS::NowDateToStr()
 	return rv;
 }
 
+const char *GWAS::TimeToStr()
+{
+	time_t tm; time(&tm);
+	const char *s = ctime(&tm);
+	size_t n = strlen(s) - 1;
+	if (n > 127) n = 127;
+	strncpy(time_char, s, n);
+	return time_char;
+}
 
 
 
@@ -1815,7 +1826,6 @@ void GWAS::Array_SplitJobs(int nJob, C_Int64 TotalCount, C_Int64 outStart[],
 }
 
 
-
 // ===================================================================== //
 
 SEXP GWAS::RGetListElement(SEXP list, const char *name)
@@ -1917,5 +1927,130 @@ void CSummary_AvgSD::CalcAvgSD()
 		}
 	} else {
 		Avg = SD = R_NaN;
+	}
+}
+
+
+// ===========================================================
+
+CThreadPool::CThreadPool(size_t num_threads)
+{
+	stop = false;
+	if (num_threads > 1)
+	{
+		for(size_t i=0; i < num_threads; i++)
+		{
+			workers.emplace_back([this]
+			{
+				while (true)
+				{
+					function<void()> task;
+					{
+						unique_lock<std::mutex> lock(this->queue_mutex);
+						condition.wait(lock, [this]
+							{ return this->stop || !this->tasks.empty(); });
+						if (this->stop && this->tasks.empty())
+							return;
+						task = move(tasks.front());
+						tasks.pop();
+					}
+					task();
+				}
+			});
+		}
+	}
+}
+
+CThreadPool::~CThreadPool()
+{
+	{
+		unique_lock<mutex> lock(queue_mutex);
+		stop = true;
+	}
+	condition.notify_all();
+	for(thread &worker: workers)
+		worker.join();
+}
+
+
+// ===========================================================
+
+CProgress::CProgress(C_Int64 count)
+{
+	fTotalCount = count;
+	fCounter = 0;
+
+	if (count > 0)
+	{
+		int n = 100;
+		if (n > count) n = count;
+		if (n < 1) n = 1;
+		_start = _step = (double)count / n;
+		_hit = (C_Int64)(_start);
+		double percent = (double)fCounter / count;
+		time_t s; time(&s);
+		_timer.reserve(128);
+		_timer.push_back(pair<double, time_t>(percent, s));
+		ShowProgress();
+	}
+}
+
+CProgress::~CProgress()
+{ }
+
+void CProgress::Forward(C_Int64 val)
+{
+	if (fTotalCount > 0)
+	{
+		fCounter += val;
+		if (fCounter >= _hit)
+		{
+			do {
+				_start += _step;
+				_hit = (C_Int64)(_start);
+			} while (fCounter >= _hit);
+			ShowProgress();
+		}
+	}
+}
+
+void CProgress::ShowProgress()
+{
+	if (fTotalCount > 0)
+	{
+		char ss[ProgressBarNumChar + 1];
+		double percent = (double)fCounter / fTotalCount;
+		int n = (int)round(percent * ProgressBarNumChar);
+		memset(ss, '.', sizeof(ss));
+		memset(ss, '=', n);
+		if (n < ProgressBarNumChar) ss[n] = '>';
+		ss[ProgressBarNumChar] = 0;
+
+		// ETC: estimated time to complete
+		n = (int)_timer.size() - 20;  // 20% as a sliding window size
+		if (n < 0) n = 0;
+		time_t now; time(&now);
+		_timer.push_back(pair<double, time_t>(percent, now));
+
+		double seconds = difftime(now, _timer[n].second);
+		double diff = percent - _timer[n].first;
+		if (diff > 0)
+			seconds = seconds / diff * (1 - percent);
+		else
+			seconds = 999.9 * 60 * 60;
+		percent *= 100;
+
+		// show
+		if (seconds < 60)
+		{
+			Rprintf("\r[%s] %2.0f%%, ETC: %.0fs  ", ss, percent, seconds);
+		} else if (seconds < 3600)
+		{
+			Rprintf("\r[%s] %2.0f%%, ETC: %.1fm  ", ss, percent, seconds/60);
+		} else {
+			Rprintf("\r[%s] %2.0f%%, ETC: %.1fh  ", ss, percent, seconds/(60*60));
+		}
+		if (fCounter >= fTotalCount)
+			Rprintf("\r[%s] 100%%, completed  \n", ss);
 	}
 }

@@ -29,6 +29,16 @@
 #include <algorithm>
 #include <memory>
 
+#include <queue>
+#include <memory>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <future>
+#include <functional>
+#include <stdexcept>
+
+
 #ifndef NO_COREARRAY_VECTORIZATION
 #   include <dVect.h>
 #endif
@@ -326,6 +336,9 @@ namespace GWAS
 
 	/// get a string of current time
 	COREARRAY_DLL_LOCAL string NowDateToStr();
+
+	/// get a string of current time, return const char *
+	COREARRAY_DLL_LOCAL const char *TimeToStr();
 
 
 
@@ -688,7 +701,6 @@ namespace GWAS
 		C_Int64 outStart[], C_Int64 outCount[]);
 
 
-
 	// ===================================================================== //
 
 	class COREARRAY_DLL_LOCAL CSummary_AvgSD
@@ -730,6 +742,82 @@ namespace GWAS
 	extern vector<C_UInt8> Array_PackedGeno;
 	/// The allele frequencies
 	extern vector<double> Array_AlleleFreq;
+
+
+
+	// ===================================================================== //
+
+	/// Object for thread pool, requiring C++11
+	class COREARRAY_DLL_LOCAL CThreadPool
+	{
+	public:
+		CThreadPool(size_t num_threads);
+
+		template<class F, class... Args>
+			auto enqueue(F&& f, Args&&... args)
+			-> future<typename result_of<F(Args...)>::type>
+		{
+			using return_type = typename result_of<F(Args...)>::type;
+			auto task = make_shared< packaged_task<return_type()> >(
+				bind(forward<F>(f), forward<Args>(args)...));
+			future<return_type> res = task->get_future();
+
+			if (workers.empty())
+			{
+				(*task)();
+			} else {
+				{
+					unique_lock<mutex> lock(queue_mutex);
+					if(stop)
+					{
+						throw runtime_error(
+							"internal error: enqueue on stopped CThreadPool");
+					}
+					tasks.emplace([task](){ (*task)(); });
+				}
+				condition.notify_one();
+			}
+
+			return res;
+		}
+
+		~CThreadPool();
+
+	private:
+		/// a collection of threads
+		vector<thread> workers;
+		/// the task queue
+		queue< function<void()> > tasks;
+
+		// synchronization
+		mutex queue_mutex;
+		condition_variable condition;
+		bool stop;
+	};
+ 
+
+	/// Progress object
+	class COREARRAY_DLL_LOCAL CProgress
+	{
+	public:
+		/// the number of characters in the progress bar
+		static const int ProgressBarNumChar = 50;
+
+		CProgress(C_Int64 count);
+		~CProgress();
+
+		void Forward(C_Int64 val);
+		void ShowProgress();
+
+	protected:
+		C_Int64 fTotalCount;  ///< the total number
+		C_Int64 fCounter;  ///< the current counter
+		bool fVerbose;
+		double _start, _step;
+		C_Int64 _hit;
+		vector< pair<double, time_t> > _timer;
+	};
+
 }
 
 #endif /* _HEADER_GWAS_ */

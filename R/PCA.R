@@ -40,25 +40,21 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.logical(bayesian))
     stopifnot(is.logical(need.genmat))
     stopifnot(is.logical(genmat.only))
-
     algorithm <- match.arg(algorithm)
 
     if (genmat.only) need.genmat <- TRUE
     if (eigen.cnt <= 0L) eigen.cnt <- ws$n.samp
 
-	eigen.method <- match.arg(eigen.method)
-	covalg <- match.arg(covalg)
+    eigen.method <- match.arg(eigen.method)
+    covalg <- match.arg(covalg)
 
     # call parallel PCA
-    rv <- .Call(gnrPCA, eigen.cnt, algorithm, ws$num.thread,
-        list(bayesian = bayesian,
-            need.genmat = need.genmat,
-            genmat.only = genmat.only,
-            eigen.method = eigen.method,
-            covalg = covalg,
-            aux.dim = aux.dim,
-            iter.num = iter.num),
-        verbose)
+    param <- list(bayesian=bayesian, need.genmat=need.genmat,
+        genmat.only=genmat.only, eigen.method=eigen.method, covalg=covalg,
+        aux.dim=aux.dim, iter.num=iter.num)
+    if (algorithm == "fast")
+        param$aux.mat <- rnorm(aux.dim * ws$n.samp)
+    rv <- .Call(gnrPCA, eigen.cnt, algorithm, ws$num.thread, param, verbose)
 
     # return
     rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,

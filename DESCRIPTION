@@ -32,6 +32,7 @@ Description: Genome-wide association studies (GWAS) are widely used to
         in the SeqArray package to support the storage of single nucleotide
         variations (SNVs), insertion/deletion polymorphism (indel) and
         structural variation calls.
+SystemRequirements: C++11
 License: GPL-3
 VignetteBuilder: knitr
 URL: http://github.com/zhengxwen/SNPRelate,
