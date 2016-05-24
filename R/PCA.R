@@ -22,9 +22,11 @@
 
 snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    eigen.cnt=32L, num.thread=1L, bayesian=FALSE, need.genmat=FALSE,
+    eigen.cnt=32L, algorithm=c("exact", "fast"), num.thread=1L,
+    bayesian=FALSE, need.genmat=FALSE,
     genmat.only=FALSE, eigen.method=c("DSPEVX", "DSPEV"),
-    covalg=c("arith", "bitops"), verbose=TRUE)
+    covalg=c("arith", "bitops"), aux.dim=eigen.cnt*2L, iter.num=10L,
+    verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -39,6 +41,8 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.logical(need.genmat))
     stopifnot(is.logical(genmat.only))
 
+    algorithm <- match.arg(algorithm)
+
     if (genmat.only) need.genmat <- TRUE
     if (eigen.cnt <= 0L) eigen.cnt <- ws$n.samp
 
@@ -46,8 +50,15 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 	covalg <- match.arg(covalg)
 
     # call parallel PCA
-    rv <- .Call(gnrPCA, eigen.cnt, ws$num.thread, bayesian, need.genmat,
-        genmat.only, eigen.method, covalg, verbose)
+    rv <- .Call(gnrPCA, eigen.cnt, algorithm, ws$num.thread,
+        list(bayesian = bayesian,
+            need.genmat = need.genmat,
+            genmat.only = genmat.only,
+            eigen.method = eigen.method,
+            covalg = covalg,
+            aux.dim = aux.dim,
+            iter.num = iter.num),
+        verbose)
 
     # return
     rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,

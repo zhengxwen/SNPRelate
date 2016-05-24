@@ -1762,6 +1762,7 @@ void CMultiCoreWorkingGeno::_DoThread_WorkingGeno(PdThread Thread,
 
 // ===================================================================== //
 
+int       GWAS::OpenMP_Num_Threads = 1;
 IdMatTri  GWAS::Array_Thread_MatIdx[N_MAX_THREAD];
 IdMatTriD GWAS::Array_Thread_MatIdxD[N_MAX_THREAD];
 C_Int64   GWAS::Array_Thread_MatCnt[N_MAX_THREAD];
@@ -1817,6 +1818,22 @@ void GWAS::Array_SplitJobs(int nJob, C_Int64 TotalCount, C_Int64 outStart[],
 
 // ===================================================================== //
 
+SEXP GWAS::RGetListElement(SEXP list, const char *name)
+{
+	SEXP elmt = R_NilValue;
+	SEXP names = getAttrib(list, R_NamesSymbol);
+	size_t n = (!Rf_isNull(names)) ? XLENGTH(names) : 0;
+	for (size_t i = 0; i < n; i++)
+	{
+		if (strcmp(CHAR(STRING_ELT(names, i)), name) == 0)
+		{
+			elmt = VECTOR_ELT(list, i);
+			break;
+		}
+	}
+	return elmt;
+}
+
 bool GWAS::SEXP_Verbose(SEXP Verbose)
 {
 	int flag = Rf_asLogical(Verbose);
@@ -1833,7 +1850,7 @@ void GWAS::CachingSNPData(const char *Msg, bool Verbose)
 		if (Verbose)
 		{
 			Rprintf(
-				"%s:\tthe sum of all working genotypes (0, 1 and 2) = %.0f\n",
+				"%s:\tthe sum of all selected genotypes (0, 1 and 2) = %.0f\n",
 				Msg, SumOfGenotype);
 		}
 	}

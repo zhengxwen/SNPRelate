@@ -179,12 +179,15 @@ namespace PCA
 		static void PCA_Detect_BlockNumSNP(int nSamp)
 		{
 			C_UInt64 L1Cache = GDS_Mach_GetCPULevelCache(1);
-			if (L1Cache <= 0) L1Cache = 32*1024;
+			if (L1Cache <= 0)
+				L1Cache = 32*1024;
 			C_UInt64 L2Cache = GDS_Mach_GetCPULevelCache(2);
 			C_UInt64 L3Cache = GDS_Mach_GetCPULevelCache(3);
 			C_UInt64 Cache = (L2Cache > L3Cache) ? L2Cache : L3Cache;
-			if ((C_Int64)Cache <= 0) Cache = 1024*1024; // 1M
-			BlockNumSNP = (Cache - 4*L1Cache) / (sizeof(double)*nSamp);
+			if (Cache <= 0)
+				Cache = 1024*1024; // 1M
+			Cache -= (Cache == L3Cache) ? L2Cache : 4*L1Cache;
+			BlockNumSNP = Cache / (sizeof(double)*nSamp);
 			BlockNumSNP = (BlockNumSNP / 4) * 4;
 			if (BlockNumSNP < 16) BlockNumSNP = 16;
 		}
@@ -257,9 +260,9 @@ namespace PCA
 					p1 += 2; p2 += 2;
 				}
 
-				double x[2] __attribute__((aligned(16)));
-				_mm_store_pd(x, rv2);
-				(*pOut++) += x[0] + x[1];
+				// rv2[0] = rv2[0] + rv2[1]
+				rv2 = _mm_add_pd(rv2, _mm_shuffle_pd(rv2, rv2, 1));
+				(*pOut++) += _mm_cvtsd_f64(rv2);
 
 			#else
 
@@ -672,7 +675,6 @@ namespace PCA
 	}
 
 
-
 	// ================== PCA covariance matrix ==================
 
     /// Calculate the genetic covariance
@@ -715,6 +717,42 @@ namespace PCA
 
 		PCA_Mat2.Clear();
 	}
+
+
+	// ---------------------------------------------------------------------
+	// fast randomized PCA
+
+    /// Calculate the genetic covariance
+	void FastPCA(double *AuxMat, int AuxDim, int IterNum, bool verbose)
+	{
+/*		// initialize
+		MCWorkingGeno.Progress.Info = "PCA:";
+		MCWorkingGeno.Progress.Show() = verbose;
+		CdBaseWorkSpace &Space = MCWorkingGeno.Space();
+
+		const size_t nSNP  = Space.SNPNum();
+		const size_t nSamp = Space.SampleNum();
+
+		size_t nIncSNP = (256 / OpenMP_Num_Threads) * OpenMP_Num_Threads;
+		if (nIncSNP < 16) nIncSNP = 16;
+
+		// normalized genotypes, Y
+		vector<double> LookupY(nSNP * 4);
+
+		for (int iter=0; iter <= IterNum; iter++)
+		{
+
+			for (size_t 
+
+			Space.snpRead(_Start_Position, _StepCnt,
+						&_Geno_Block[0], RDim_Sample_X_SNP);
+
+vec_u8_geno_count(pGeno, fN, *pS, *pN);
+
+		}
+*/
+	}
+
 
 
 	// ================== SNP coefficients ==================
@@ -1627,12 +1665,13 @@ static int GetEigen(double *pMat, int n, int nEig, const char *EigMethod,
 // ========================================================================
 
 /// to compute the eigenvalues and eigenvectors
-COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP _NumThread,
-	SEXP _BayesianNormal, SEXP NeedGenMat, SEXP GenMat_Only,
-	SEXP EigenMethod, SEXP CovAlg, SEXP _Verbose)
+COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm,
+	SEXP NumThread, SEXP ParamList, SEXP Verbose)
 {
-	const bool verbose = SEXP_Verbose(_Verbose);
-	int NumThread = Rf_asInteger(_NumThread);
+	const bool verbose = SEXP_Verbose(Verbose);
+
+	OpenMP_Num_Threads = Rf_asInteger(NumThread);
+	if (OpenMP_Num_Threads <= 0) OpenMP_Num_Threads = 1;
 
 	COREARRAY_TRY
 
@@ -1641,82 +1680,99 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP _NumThread,
 
 		// ======== The calculation of genetic covariance matrix ========
 
-		// the number of samples
-		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
-		// set parameters
-		PCA::BayesianNormal = (LOGICAL(_BayesianNormal)[0] == TRUE);
-		// the upper-triangle genetic covariance matrix
-		CdMatTri<double> Cov(n);
-
-		// Calculate the genetic covariace
-		const char *str = CHAR(STRING_ELT(CovAlg, 0));
-		if (strcmp(str, "arith") == 0)
+		// PCA algorithm: exact and fast randomized
+		if (strcmp(CHAR(STRING_ELT(Algorithm, 0)), "exact") == 0)
 		{
-			PCA::CPCAMat_Alg1::PCA_Detect_BlockNumSNP(n);
-			PCA::DoCovCalculate_Alg1(Cov, NumThread, "PCA:", verbose);
-		} else if (strcmp(str, "bitops") == 0)
-		{
-			PCA::CPCAMat_Alg2::PCA_Detect_BlockNumSNP(n);
-			PCA::DoCovCalculate_Alg2(Cov, NumThread, "PCA:", verbose);
-		} else
-			throw "Invalid 'covalg'.";
+			// set parameters
+			PCA::BayesianNormal =
+				Rf_asLogical(RGetListElement(ParamList, "bayesian")) == TRUE;
 
-		// Normalize
-		double TraceXTX = Cov.Trace();
-		double scale = double(n-1) / TraceXTX;
-		vt<double, av16Align>::Mul(Cov.Get(), Cov.Get(), scale, Cov.Size());
-		double TraceVal = Cov.Trace();
+			// the number of samples
+			const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 
-		// ======== output ========
+			// the upper-triangle genetic covariance matrix
+			CdMatTri<double> Cov(n);
 
-		int nProtected = 0;
-		PROTECT(rv_ans = NEW_LIST(5));
-		nProtected ++;
+			// Calculate the genetic covariace
+			const char *str = CHAR(STRING_ELT(RGetListElement(ParamList, "covalg"), 0));
+			if (strcmp(str, "arith") == 0)
+			{
+				PCA::CPCAMat_Alg1::PCA_Detect_BlockNumSNP(n);
+				if (verbose)
+					Rprintf("\tinternal increment: %d\n", (int)BlockNumSNP);
+				PCA::DoCovCalculate_Alg1(Cov, OpenMP_Num_Threads, "PCA:", verbose);
+			} else if (strcmp(str, "bitops") == 0)
+			{
+				PCA::CPCAMat_Alg2::PCA_Detect_BlockNumSNP(n);
+				if (verbose)
+					Rprintf("\tinternal increment: %d\n", (int)BlockNumSNP);
+				PCA::DoCovCalculate_Alg2(Cov, OpenMP_Num_Threads, "PCA:", verbose);
+			} else
+				throw "Invalid 'covalg'.";
 
-		SET_ELEMENT(rv_ans, 0, ScalarReal(TraceXTX));
-		SET_ELEMENT(rv_ans, 4, ScalarReal(TraceVal));
+			// Normalize
+			double TraceXTX = Cov.Trace();
+			double scale = double(n-1) / TraceXTX;
+			vt<double, av16Align>::Mul(Cov.Get(), Cov.Get(), scale, Cov.Size());
+			double TraceVal = Cov.Trace();
 
-		if (LOGICAL(NeedGenMat)[0] == TRUE)
-		{
-			SEXP tmp;
-			PROTECT(tmp = Rf_allocMatrix(REALSXP, n, n));
+			// ======== output ========
+
+			int nProtected = 0;
+			PROTECT(rv_ans = NEW_LIST(5));
 			nProtected ++;
-			SET_ELEMENT(rv_ans, 1, tmp);
-			Cov.SaveTo(REAL(tmp));
-		}
 
-		// ======== eigenvectors and eigenvalues ========
+			SET_ELEMENT(rv_ans, 0, ScalarReal(TraceXTX));
+			SET_ELEMENT(rv_ans, 4, ScalarReal(TraceVal));
 
-		if (LOGICAL(GenMat_Only)[0] != TRUE)
+			if (Rf_asLogical(RGetListElement(ParamList, "need.genmat")) == TRUE)
+			{
+				SEXP tmp;
+				PROTECT(tmp = Rf_allocMatrix(REALSXP, n, n));
+				nProtected ++;
+				SET_ELEMENT(rv_ans, 1, tmp);
+				Cov.SaveTo(REAL(tmp));
+			}
+
+			// ======== eigenvectors and eigenvalues ========
+
+			if (Rf_asLogical(RGetListElement(ParamList, "genmat.only")) != TRUE)
+			{
+				if (verbose)
+				{
+					Rprintf("PCA:\t%s\tBegin (eigenvalues and eigenvectors)\n",
+						NowDateToStr().c_str());
+				}
+
+				vt<double>::Sub(Cov.Get(), 0.0, Cov.Get(), Cov.Size());
+
+				int nEig = Rf_asInteger(EigenCnt);
+				if (nEig <= 0)
+					throw ErrCoreArray("Invalid 'eigen.cnt'.");
+				if (nEig > n) nEig = n;
+
+				SEXP EigVal  = R_NilValue;
+				SEXP EigVect = R_NilValue;
+				nProtected += GetEigen(Cov.Get(), n, nEig,
+					CHAR(STRING_ELT(RGetListElement(ParamList, "eigen.method"), 0)),
+					EigVal, EigVect);
+				SET_ELEMENT(rv_ans, 2, EigVal);
+				SET_ELEMENT(rv_ans, 3, EigVect);
+
+				if (verbose)
+				{
+					Rprintf("PCA:\t%s\tEnd (eigenvalues and eigenvectors)\n",
+						NowDateToStr().c_str());
+				}
+			}
+
+			UNPROTECT(nProtected);
+
+		} else if (strcmp(CHAR(STRING_ELT(Algorithm, 0)), "randomized") == 0)
 		{
-			if (verbose)
-			{
-				Rprintf("PCA:\t%s\tBegin (eigenvalues and eigenvectors)\n",
-					NowDateToStr().c_str());
-			}
-
-			vt<double>::Sub(Cov.Get(), 0.0, Cov.Get(), Cov.Size());
-
-			int nEig = Rf_asInteger(EigenCnt);
-			if (nEig <= 0)
-				throw ErrCoreArray("Invalid 'eigen.cnt'.");
-			if (nEig > n) nEig = n;
-
-			SEXP EigVal  = R_NilValue;
-			SEXP EigVect = R_NilValue;
-			nProtected += GetEigen(Cov.Get(), n, nEig,
-				CHAR(STRING_ELT(EigenMethod, 0)), EigVal, EigVect);
-			SET_ELEMENT(rv_ans, 2, EigVal);
-			SET_ELEMENT(rv_ans, 3, EigVect);
-
-			if (verbose)
-			{
-				Rprintf("PCA:\t%s\tEnd (eigenvalues and eigenvectors)\n",
-					NowDateToStr().c_str());
-			}
-		}
-
-		UNPROTECT(nProtected);
+			
+		} else
+			throw "Invalid 'algorithm'.";
 
 	COREARRAY_CATCH
 }

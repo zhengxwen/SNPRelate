@@ -8,10 +8,12 @@
 analysis in GWAS.
 }
 \usage{
-snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
-    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, eigen.cnt=32,
-    num.thread=1L, bayesian=FALSE, need.genmat=FALSE, genmat.only=FALSE,
-    eigen.method=c("DSPEVX", "DSPEV"), covalg=c("arith", "bitops"),
+snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    eigen.cnt=32L, algorithm=c("exact", "fast"), num.thread=1L,
+    bayesian=FALSE, need.genmat=FALSE,
+    genmat.only=FALSE, eigen.method=c("DSPEVX", "DSPEV"),
+    covalg=c("arith", "bitops"), aux.dim=eigen.cnt*2L, iter.num=10L,
     verbose=TRUE)
 }
 \arguments{
@@ -30,6 +32,8 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         no missing threshold}
     \item{eigen.cnt}{output the number of eigenvectors; if eigen.cnt <= 0, then
         return all eigenvectors}
+    \item{algorithm}{"exact", traditional exact calculation; "fast",
+        fast PCA with randomized algorithm introduced in Galinsky et al. 2016}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
     \item{bayesian}{if TRUE, use bayesian normalization}
@@ -43,6 +47,8 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         components are of interest}
     \item{covalg}{"arith" -- arithmetic operation with SSE/AVX for covariance
         calculation; "bitops" -- bit manipulation with a lookup table}
+    \item{aux.dim}{auxiliary dimension used in fast randomized algorithm}
+    \item{iter.num}{iteration number used in fast randomized algorithm}
     \item{verbose}{if TRUE, show information}
 }
 \details{
@@ -61,8 +67,13 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{genmat}{the genetic covariance matrix}
 }
 \references{
-    Patterson, N., Price, A. L. & Reich, D.
-    Population structure and eigenanalysis. PLoS Genet. 2, e190 (2006).
+    Patterson N, Price AL, Reich D. Population structure and eigenanalysis.
+PLoS Genet. 2006 Dec;2(12):e190.
+
+	Galinsky KJ, Bhatia G, Loh PR, Georgiev S, Mukherjee S, Patterson NJ,
+Price AL. Fast Principal-Component Analysis Reveals Convergent Evolution of
+ADH1B in Europe and East Asia. Am J Hum Genet. 2016 Mar 3;98(3):456-72.
+doi: 10.1016/j.ajhg.2015.12.022. Epub 2016 Feb 25.
 }
 \author{Xiuwen Zheng}
 \seealso{

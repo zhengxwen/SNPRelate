@@ -671,6 +671,8 @@ namespace GWAS
 	/// Thread variables
 	const int N_MAX_THREAD = 256;
 
+	extern int OpenMP_Num_Threads;
+
 	extern IdMatTri  Array_Thread_MatIdx[N_MAX_THREAD];
 	extern IdMatTriD Array_Thread_MatIdxD[N_MAX_THREAD];
 	extern C_Int64   Array_Thread_MatCnt[N_MAX_THREAD];
@@ -707,6 +709,9 @@ namespace GWAS
 
 
 	// ===================================================================== //
+
+	/// get the list element named str, or return R_NilValue
+	COREARRAY_DLL_LOCAL SEXP RGetListElement(SEXP list, const char *name);
 
 	/// Detect the argument 'verbose'
 	COREARRAY_DLL_LOCAL bool SEXP_Verbose(SEXP Verbose);
