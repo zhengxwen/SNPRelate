@@ -27,6 +27,7 @@
 #include <dGenGWAS.h>
 #include <dVect.h>
 #include <R_ext/Lapack.h>
+#include <ThreadPool.h>
 
 // Standard library header
 #include <cmath>
@@ -614,6 +615,13 @@ namespace PCA
 
 	// ================== PCA covariance matrix ==================
 
+	static void thread_eig_outer(size_t i, void *p)
+	{
+		typedef PARAM2<double*, CPCAMat_Alg1*>* PTR;
+		IdMatTri I = Array_Thread_MatIdx[i];
+		PTR(p)->p2->MulAdd(I, Array_Thread_MatCnt[i], PTR(p)->p1 + I.Offset());
+	}
+
     /// Calculate the genetic covariance with eigenstrat
 	void EigenstratPCA(CdMatTri<double> &PublicCov, int NumThread,
 		bool Bayesian, bool verbose)
@@ -635,8 +643,10 @@ namespace PCA
 		PCA_Mat.Reset(nSamp, BlockNumSNP);
 		memset(PublicCov.Get(), 0, sizeof(double)*PublicCov.Size());
 
-		// thread pool
-		CThreadPool pool(NumThread);
+		// thread thpool
+		CThreadPool thpool(NumThread);
+		PARAM2<double*, CPCAMat_Alg1*> thparam(PublicCov.Get(), &PCA_Mat);
+
 		Array_SplitJobs(NumThread, PublicCov.N(), Array_Thread_MatIdx,
 			Array_Thread_MatCnt);
 
@@ -699,20 +709,10 @@ namespace PCA
 			// (G@ij - 2p@j) / sqrt(p@j*(1-p@j))
 			PCA_Mat.GenoMul();
 
-			// outer product, using thread pool
-			{
-				double *base = PublicCov.Get();
-				CPCAMat_Alg1 *alg = &PCA_Mat;
-				vector< future<void> > wait;
-				for (int i=0; i < NumThread; i++)
-				{
-					wait.emplace_back(pool.enqueue([i, base, alg] {
-						IdMatTri I = Array_Thread_MatIdx[i];
-						alg->MulAdd(I, Array_Thread_MatCnt[i], base + I.Offset());
-					}));
-				}
-				for(auto && w: wait) w.get();
-			}
+			// outer product, using thread thpool
+			for (int i=0; i < NumThread; i++)
+				thpool.AddWork(thread_eig_outer, i, &thparam);
+			thpool.Wait();
 
 			// update
 			Progress.Forward(inc_snp);

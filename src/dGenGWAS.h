@@ -747,56 +747,7 @@ namespace GWAS
 
 	// ===================================================================== //
 
-	/// Object for thread pool, requiring C++11
-	class COREARRAY_DLL_LOCAL CThreadPool
-	{
-	public:
-		CThreadPool(size_t num_threads);
-
-		template<class F, class... Args>
-			auto enqueue(F&& f, Args&&... args)
-			-> future<typename result_of<F(Args...)>::type>
-		{
-			using return_type = typename result_of<F(Args...)>::type;
-			auto task = make_shared< packaged_task<return_type()> >(
-				bind(forward<F>(f), forward<Args>(args)...));
-			future<return_type> res = task->get_future();
-
-			if (workers.empty())
-			{
-				(*task)();
-			} else {
-				{
-					unique_lock<mutex> lock(queue_mutex);
-					if(stop)
-					{
-						throw runtime_error(
-							"internal error: enqueue on stopped CThreadPool");
-					}
-					tasks.emplace([task](){ (*task)(); });
-				}
-				condition.notify_one();
-			}
-
-			return res;
-		}
-
-		~CThreadPool();
-
-	private:
-		/// a collection of threads
-		vector<thread> workers;
-		/// the task queue
-		queue< function<void()> > tasks;
-
-		// synchronization
-		mutex queue_mutex;
-		condition_variable condition;
-		bool stop;
-	};
- 
-
-	/// Progress object
+ 	/// Progress object
 	class COREARRAY_DLL_LOCAL CProgress
 	{
 	public:

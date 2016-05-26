@@ -3,7 +3,7 @@ Type: Package
 Title: Parallel Computing Toolset for Relatedness and Principal Component
         Analysis of SNP Data
 Version: 1.7.3
-Date: 2016-05-19
+Date: 2016-05-26
 Depends: R (>= 2.14), gdsfmt (>= 1.8.0)
 LinkingTo: gdsfmt
 Suggests: parallel, RUnit, knitr, MASS, BiocGenerics
@@ -32,7 +32,6 @@ Description: Genome-wide association studies (GWAS) are widely used to
         in the SeqArray package to support the storage of single nucleotide
         variations (SNVs), insertion/deletion polymorphism (indel) and
         structural variation calls.
-SystemRequirements: C++11
 License: GPL-3
 VignetteBuilder: knitr
 URL: http://github.com/zhengxwen/SNPRelate,

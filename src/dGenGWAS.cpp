@@ -1933,48 +1933,6 @@ void CSummary_AvgSD::CalcAvgSD()
 
 // ===========================================================
 
-CThreadPool::CThreadPool(size_t num_threads)
-{
-	stop = false;
-	if (num_threads > 1)
-	{
-		for(size_t i=0; i < num_threads; i++)
-		{
-			workers.emplace_back([this]
-			{
-				while (true)
-				{
-					function<void()> task;
-					{
-						unique_lock<std::mutex> lock(this->queue_mutex);
-						condition.wait(lock, [this]
-							{ return this->stop || !this->tasks.empty(); });
-						if (this->stop && this->tasks.empty())
-							return;
-						task = move(tasks.front());
-						tasks.pop();
-					}
-					task();
-				}
-			});
-		}
-	}
-}
-
-CThreadPool::~CThreadPool()
-{
-	{
-		unique_lock<mutex> lock(queue_mutex);
-		stop = true;
-	}
-	condition.notify_all();
-	for(thread &worker: workers)
-		worker.join();
-}
-
-
-// ===========================================================
-
 CProgress::CProgress(C_Int64 count)
 {
 	fTotalCount = count;
@@ -2032,25 +1990,25 @@ void CProgress::ShowProgress()
 		time_t now; time(&now);
 		_timer.push_back(pair<double, time_t>(percent, now));
 
-		double seconds = difftime(now, _timer[n].second);
+		double sec = difftime(now, _timer[n].second);
 		double diff = percent - _timer[n].first;
 		if (diff > 0)
-			seconds = seconds / diff * (1 - percent);
+			sec = sec / diff * (1 - percent);
 		else
-			seconds = 999.9 * 60 * 60;
+			sec = 999.9 * 60 * 60;
 		percent *= 100;
 
 		// show
-		if (seconds < 60)
+		if (sec < 60)
 		{
-			Rprintf("\r[%s] %2.0f%%, ETC: %.0fs  ", ss, percent, seconds);
-		} else if (seconds < 3600)
+			Rprintf("\r[%s] %2.0f%%, ETC: %.0fs    ", ss, percent, sec);
+		} else if (sec < 3600)
 		{
-			Rprintf("\r[%s] %2.0f%%, ETC: %.1fm  ", ss, percent, seconds/60);
+			Rprintf("\r[%s] %2.0f%%, ETC: %.1fm    ", ss, percent, sec/60);
 		} else {
-			Rprintf("\r[%s] %2.0f%%, ETC: %.1fh  ", ss, percent, seconds/(60*60));
+			Rprintf("\r[%s] %2.0f%%, ETC: %.1fh    ", ss, percent, sec/(60*60));
 		}
 		if (fCounter >= fTotalCount)
-			Rprintf("\r[%s] 100%%, completed  \n", ss);
+			Rprintf("\r[%s] 100%%, completed    \n", ss);
 	}
 }
