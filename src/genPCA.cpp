@@ -623,8 +623,8 @@ namespace PCA
 	}
 
     /// Calculate the genetic covariance with eigenstrat
-	void EigenstratPCA(CdMatTri<double> &PublicCov, int NumThread,
-		bool Bayesian, bool verbose)
+	void EigenstratPCA(CdMatTri<double> &Cov, int NumThread, bool Bayesian,
+		bool verbose)
 	{
 		CdBaseWorkSpace &Space = MCWorkingGeno.Space();
 		const size_t nSamp = Space.SampleNum();
@@ -641,13 +641,12 @@ namespace PCA
 		// initialize
 		CPCAMat_Alg1 PCA_Mat;
 		PCA_Mat.Reset(nSamp, BlockNumSNP);
-		memset(PublicCov.Get(), 0, sizeof(double)*PublicCov.Size());
+		memset(Cov.Get(), 0, sizeof(double)*Cov.Size());
 
 		// thread thpool
 		CThreadPool thpool(NumThread);
-		PARAM2<double*, CPCAMat_Alg1*> thparam(PublicCov.Get(), &PCA_Mat);
-
-		Array_SplitJobs(NumThread, PublicCov.N(), Array_Thread_MatIdx,
+		PARAM2<double*, CPCAMat_Alg1*> thparam(Cov.Get(), &PCA_Mat);
+		Array_SplitJobs(NumThread, nSamp, Array_Thread_MatIdx,
 			Array_Thread_MatCnt);
 
 		// progress bar
@@ -706,7 +705,7 @@ namespace PCA
 				}
 			}
 
-			// (G@ij - 2p@j) / sqrt(p@j*(1-p@j))
+			// (G@ij - 2p@j) / sqrt(p@j*(1-p@j)), get the normalized genotypes
 			PCA_Mat.GenoMul();
 
 			// outer product, using thread thpool
@@ -719,8 +718,6 @@ namespace PCA
 			iSNP += inc_snp;
 		}
 	}
-
-
 
 
     /// Calculate the genetic covariance
@@ -747,49 +744,234 @@ namespace PCA
 	// ---------------------------------------------------------------------
 	// fast randomized PCA
 
-    /// Calculate the genetic covariance
-	void FastPCA(double *AuxMat, int AuxDim, int IterNum, bool verbose)
+	static void svd_vt(double *a, int m, int n, double *d)
 	{
-		// initialize
-		MCWorkingGeno.Progress.Info = "PCA:";
-		MCWorkingGeno.Progress.Show() = verbose;
+		int info = 0;
+		double u=0, vt=0, w=0;
+		vector<double> ds;
+		if (!d)
+			{ ds.resize(min(m, n)); d = &ds[0]; }
+
+		int lwork = -1;
+		F77_NAME(dgesvd)("N", "O", &m, &n, a, &m, d, &u, &m, &vt, &n,
+			&w, &lwork, &info);
+		if (info != 0)
+			throw ErrCoreArray("LAPACK::DGESVD error (%d).", info);
+
+		lwork = (int)w;
+		vector<double> work(lwork);
+		F77_NAME(dgesvd)("N", "O", &m, &n, a, &m, d, &u, &m, &vt, &n,
+			&work[0], &lwork, &info);
+		if (info != 0)
+			throw ErrCoreArray("LAPACK::DGESVD error (%d).", info);
+	}
+
+
+
+    /// Calculate the genetic covariance
+	SEXP FastPCA(double *AuxMat, size_t AuxDim, int IterNum, int NumThread,
+		bool verbose)
+	{
 		CdBaseWorkSpace &Space = MCWorkingGeno.Space();
-
-		const size_t nSNP  = Space.SNPNum();
 		const size_t nSamp = Space.SampleNum();
+		const size_t nSNP  = Space.SNPNum();
 
-		size_t IncSNP = (256 / OpenMP_Num_Threads) * OpenMP_Num_Threads;
+		size_t IncSNP = (256 / NumThread) * NumThread;
 		if (IncSNP < 16) IncSNP = 16;
 
-		// genotypes (0, 1, 2 and NA)
-		vector<C_UInt8> Geno(nSamp * IncSNP);
-		// normalized genotypes, Y
-		vector<double> LookupY(nSNP * 4);
+		if (verbose)
+			Rprintf("%s\n", TimeToStr());
 
+		// genotypes (0, 1, 2 and NA)
+		VEC_AUTO_PTR<C_UInt8> Geno(nSamp * IncSNP);
+		// normalized genotypes, Y
+		VEC_AUTO_PTR<double> LookupY(nSNP * 4);
+		// normalized genotypes at a site
+		VEC_AUTO_PTR<double> Y_i(nSamp);
+		// H matrix
+		size_t hsize = AuxDim * (IterNum + 1);
+		vector<double> H(nSNP * hsize);
+
+		// thread thpool
+		CThreadPool thpool(NumThread);
+		// progress bar
+		CProgress Progress(verbose ? C_Int64(nSNP)*(2*IterNum + 1) : 0);
+
+		// for-loop
 		for (int iter=0; iter <= IterNum; iter++)
 		{
-
 			for (size_t iSNP=0; iSNP < nSNP; )
 			{
 				// read genotypes
 				size_t inc_snp = nSNP - iSNP;
 				if (inc_snp > IncSNP) inc_snp = IncSNP;
-				Space.snpRead(iSNP, inc_snp, &Geno[0], RDim_Sample_X_SNP);
+				Space.snpRead(iSNP, inc_snp, Geno.Get(), RDim_Sample_X_SNP);
 
 				// need to initialize the variable LookupY
 				if (iter == 0)
 				{
 					for (size_t i=0; i < inc_snp; i++)
 					{
-						C_UInt8 *p = &Geno[i*nSamp];
+						C_UInt8 *g = &Geno[i*nSamp];
 						C_Int32 sum, num;
-						vec_u8_geno_count(p, nSamp, sum, num);
+						vec_u8_geno_count(g, nSamp, sum, num);
+
+						double avg = (num>0) ? (double)sum / num : 0;
+						double p = avg * 0.5;
+						double s = (0<p && p<1) ? 1.0 / sqrt(2*p*(1-p)) : 0;
+
+						double *Y = &LookupY[(iSNP + i) * 4];
+						Y[0] = (0 - avg) * s;
+						Y[1] = (1 - avg) * s;
+						Y[2] = (2 - avg) * s;
+						Y[3] = 0;
 					}
 				}
+
+				// update H_i = Y * G_i (G_i stored in AuxMat)
+				double *pH = &H[AuxDim*iter + iSNP*hsize];
+				for (size_t i=0; i < inc_snp; i++)
+				{
+					double *pY = &LookupY[(iSNP + i) * 4];
+					for (size_t j=0; j < AuxDim; j++)
+					{
+						C_UInt8 *pG = &Geno[i*nSamp];
+						double *pA = AuxMat + nSamp * j;
+						double sum = 0;
+						for (size_t k=0; k < nSamp; k++)
+						{
+							sum += pY[(*pG < 3) ? *pG : 3] * (*pA);
+							pG ++; pA ++;
+						}
+						pH[j] = sum;
+					}
+					pH += hsize; pH ++;
+				}
+
+				// update
+				Progress.Forward(inc_snp);
+				iSNP += inc_snp;
 			}
 
+			// update G_{i+1} = Y^T * H_i / nSNP
+			if (iter < IterNum)
+			{
+				memset(AuxMat, 0, sizeof(double)*AuxDim*nSamp);
+				// for-loop
+				for (size_t iSNP=0; iSNP < nSNP; )
+				{
+					// read genotypes
+					size_t inc_snp = nSNP - iSNP;
+					if (inc_snp > IncSNP) inc_snp = IncSNP;
+					Space.snpRead(iSNP, inc_snp, Geno.Get(), RDim_Sample_X_SNP);
 
+					double *pH = &H[AuxDim*iter + iSNP*hsize];
+					for (size_t i=0; i < inc_snp; i++)
+					{
+						// set Y_i
+						double *pY = &LookupY[(iSNP + i) * 4];
+						C_UInt8 *pG = &Geno[i*nSamp];
+						for (size_t j=0; j < nSamp; j++)
+						{
+							Y_i[j] = pY[(*pG < 3) ? *pG : 3];
+							pG ++;
+						}
+						pY = Y_i.Get();
+
+						double *pA = AuxMat;
+						for (size_t j=0; j < AuxDim; j++)
+						{
+							for (size_t k=0; k < nSamp; k++)
+							{
+								(*pA ++) += pH[j] * pY[k];
+							}
+						}
+
+						pH += hsize;
+					}
+
+					// update
+					Progress.Forward(inc_snp);
+					iSNP += inc_snp;
+				}
+				// divide AuxMat by nSNP
+				{
+					double s = 1.0 / nSNP;
+					double *p = AuxMat;
+					for (size_t n=AuxDim*nSamp; n > 0; n--)
+						(*p++) *= s;
+				}
+			}
 		}
+
+		if (verbose)
+			Rprintf("%s    Begin projecting genotypes and SVD\n", TimeToStr());
+
+		SEXP rv_ans = PROTECT(NEW_LIST(2));
+		{
+			SEXP h = allocMatrix(REALSXP, hsize, nSNP);
+			memcpy(REAL(h), &H[0], sizeof(double) * nSNP * hsize);
+			SET_ELEMENT(rv_ans, 0, h);
+		}
+
+		// SVD H, get vt stored in H
+		svd_vt(&H[0], hsize, nSNP, NULL);
+
+		// T = U_H^T * Y
+		vector<double> T(hsize*nSamp, 0);
+
+		// for-loop
+		for (size_t iSNP=0; iSNP < nSNP; )
+		{
+			// read genotypes
+			size_t inc_snp = nSNP - iSNP;
+			if (inc_snp > IncSNP) inc_snp = IncSNP;
+			Space.snpRead(iSNP, inc_snp, Geno.Get(), RDim_Sample_X_SNP);
+
+			double *pH = &H[iSNP*hsize];
+			for (size_t i=0; i < inc_snp; i++)
+			{
+				// set Y_i
+				double *pY = &LookupY[(iSNP + i) * 4];
+				C_UInt8 *pG = &Geno[i*nSamp];
+				for (size_t j=0; j < nSamp; j++)
+				{
+					Y_i[j] = pY[(*pG < 3) ? *pG : 3];
+					pG ++;
+				}
+				pY = Y_i.Get();
+
+				double *pA = &T[0];
+				for (size_t k=0; k < nSamp; k++)
+				{
+					for (size_t j=0; j < hsize; j++)
+					{
+						(*pA ++) += pH[j] * pY[k];
+					}
+				}
+
+				pH += hsize;
+			}
+
+			// update
+			iSNP += inc_snp;
+		}
+
+		vector<double> sigma(nSamp);
+		svd_vt(&T[0], hsize, nSamp, &sigma[0]);
+
+		{
+			SEXP h = allocMatrix(REALSXP, hsize, nSamp);
+			memcpy(REAL(h), &T[0], sizeof(double) * nSamp * hsize);
+			SET_ELEMENT(rv_ans, 1, h);
+		}
+
+		UNPROTECT(1);
+
+		if (verbose)
+			Rprintf("%s    End\n", TimeToStr());
+
+		return rv_ans;
 	}
 
 
@@ -1803,10 +1985,11 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm,
 
 		} else if (strcmp(CHAR(STRING_ELT(Algorithm, 0)), "randomized") == 0)
 		{
-			PCA::FastPCA(REAL(RGetListElement(ParamList, "aux.mat")),
+			rv_ans = PCA::FastPCA(
+				REAL(RGetListElement(ParamList, "aux.mat")),
 				Rf_asInteger(RGetListElement(ParamList, "aux.dim")),
 				Rf_asInteger(RGetListElement(ParamList, "iter.num")),
-				verbose);
+				nThread, verbose);
 		} else
 			throw "Invalid 'algorithm'.";
 

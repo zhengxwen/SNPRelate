@@ -29,15 +29,6 @@
 #include <algorithm>
 #include <memory>
 
-#include <queue>
-#include <memory>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <future>
-#include <functional>
-#include <stdexcept>
-
 
 #ifndef NO_COREARRAY_VECTORIZATION
 #   include <dVect.h>

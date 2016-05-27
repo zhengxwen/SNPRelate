@@ -10,7 +10,7 @@ analysis in GWAS.
 \usage{
 snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    eigen.cnt=32L, algorithm=c("exact", "fast"), num.thread=1L,
+    eigen.cnt=32L, algorithm=c("exact", "randomized"), num.thread=1L,
     bayesian=FALSE, need.genmat=FALSE,
     genmat.only=FALSE, eigen.method=c("DSPEVX", "DSPEV"),
     covalg=c("arith", "bitops"), aux.dim=eigen.cnt*2L, iter.num=10L,
@@ -32,7 +32,7 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL,
         no missing threshold}
     \item{eigen.cnt}{output the number of eigenvectors; if eigen.cnt <= 0, then
         return all eigenvectors}
-    \item{algorithm}{"exact", traditional exact calculation; "fast",
+    \item{algorithm}{"exact", traditional exact calculation; "randomized",
         fast PCA with randomized algorithm introduced in Galinsky et al. 2016}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}

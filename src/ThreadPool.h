@@ -252,10 +252,16 @@ namespace CoreArray
 
 	template<typename T1, typename T2> struct PARAM2
 	{
-		T1 p1;
-		T2 p2;
+		T1 p1; T2 p2;
 		PARAM2() { }
 		PARAM2(T1 v1, T2 v2) { p1=v1; p2=v2; }
+	};
+
+	template<typename T1, typename T2, typename T3> struct PARAM3
+	{
+		T1 p1; T2 p2; T3 p3;
+		PARAM3() { }
+		PARAM3(T1 v1, T2 v2, T3 v3) { p1=v1; p2=v2; p3=v3; }
 	};
 
 

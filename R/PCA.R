@@ -22,7 +22,7 @@
 
 snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    eigen.cnt=32L, algorithm=c("exact", "fast"), num.thread=1L,
+    eigen.cnt=32L, algorithm=c("exact", "randomized"), num.thread=1L,
     bayesian=FALSE, need.genmat=FALSE,
     genmat.only=FALSE, eigen.method=c("DSPEVX", "DSPEV"),
     covalg=c("arith", "bitops"), aux.dim=eigen.cnt*2L, iter.num=10L,
@@ -52,16 +52,19 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     param <- list(bayesian=bayesian, need.genmat=need.genmat,
         genmat.only=genmat.only, eigen.method=eigen.method, covalg=covalg,
         aux.dim=aux.dim, iter.num=iter.num)
-    if (algorithm == "fast")
+    if (algorithm == "randomized")
         param$aux.mat <- rnorm(aux.dim * ws$n.samp)
     rv <- .Call(gnrPCA, eigen.cnt, algorithm, ws$num.thread, param, verbose)
 
     # return
-    rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
-        eigenval = rv[[3]], eigenvect = rv[[4]],
-        varprop = rv[[3]] / rv[[5]],
-        TraceXTX = rv[[1]], Bayesian = bayesian, genmat = rv[[2]])
-    class(rv) <- "snpgdsPCAClass"
+    if (algorithm == "exact")
+    {
+        rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
+            eigenval = rv[[3]], eigenvect = rv[[4]],
+            varprop = rv[[3]] / rv[[5]],
+            TraceXTX = rv[[1]], Bayesian = bayesian, genmat = rv[[2]])
+        class(rv) <- "snpgdsPCAClass"
+    }
     return(rv)
 }
 
