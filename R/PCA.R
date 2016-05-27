@@ -22,8 +22,9 @@
 
 snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    eigen.cnt=32L, algorithm=c("exact", "randomized"), num.thread=1L,
-    bayesian=FALSE, need.genmat=FALSE,
+    algorithm=c("exact", "randomized"),
+    eigen.cnt=ifelse(identical(algorithm, "randomized"), 16L, 32L),
+    num.thread=1L, bayesian=FALSE, need.genmat=FALSE,
     genmat.only=FALSE, eigen.method=c("DSPEVX", "DSPEV"),
     covalg=c("arith", "bitops"), aux.dim=eigen.cnt*2L, iter.num=10L,
     verbose=TRUE)

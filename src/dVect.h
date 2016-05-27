@@ -422,6 +422,9 @@ namespace Vectorization
 	COREARRAY_DLL_DEFAULT C_UInt8* vec_u8_geno_count(C_UInt8 *p, size_t n,
 		C_Int32 &out_sum, C_Int32 &out_num);
 
+	/// multiply *p by v and applied to all n
+	COREARRAY_DLL_DEFAULT void vec_f64_mul(double *p, size_t n, double v);
+
 }
 
 #endif /* _HEADER_VECTORIZATION_ */

@@ -640,8 +640,12 @@ double CORESSECALL Vectorization::_SSE2_DotProd_16(const double *x,
 
 // =========================================================================
 
-COREARRAY_DLL_DEFAULT C_UInt8* Vectorization::vec_u8_geno_count(C_UInt8 *p,
-	size_t n, C_Int32 &out_sum, C_Int32 &out_num)
+namespace Vectorization
+{
+
+// count genotype sum and number of calls, not requiring 16-aligned p
+COREARRAY_DLL_DEFAULT C_UInt8* vec_u8_geno_count(C_UInt8 *p, size_t n,
+	C_Int32 &out_sum, C_Int32 &out_num)
 {
 	C_Int32 sum=0, num=0;
 
@@ -746,4 +750,69 @@ COREARRAY_DLL_DEFAULT C_UInt8* Vectorization::vec_u8_geno_count(C_UInt8 *p,
 	out_sum = sum;
 	out_num = num;
 	return p;
+}
+
+
+// multiply *p by v and applied to all n
+COREARRAY_DLL_DEFAULT void vec_f64_mul(double *p, size_t n, double v)
+{
+#if defined(COREARRAY_SIMD_AVX)
+
+	const __m256d v4 = _mm256_set1_pd(v);
+
+	switch ((size_t)p & 0x1F)
+	{
+	case 0x08:
+		if (n > 0) { (*p++) *= v; n--; }
+	case 0x10:
+		if (n > 0) { (*p++) *= v; n--; }
+	case 0x18:
+		if (n > 0) { (*p++) *= v; n--; }
+	case 0x00:
+		for (; n >= 4; n-=4)
+		{
+			_mm256_store_pd(p, _mm256_mul_pd(_mm256_load_pd(p), v4));
+			p += 4;
+		}
+		if (n >= 2)
+		{
+			_mm_store_pd(p, _mm_mul_pd(_mm_load_pd(p), _mm256_castpd256_pd128(v4)));
+			n -= 2;
+		}
+		break;
+	default:
+		for (; n >= 4; n-=4)
+		{
+			_mm256_storeu_pd(p, _mm256_mul_pd(_mm256_loadu_pd(p), v4));
+			p += 4;
+		}
+		if (n >= 2)
+		{
+			_mm_storeu_pd(p, _mm_mul_pd(_mm_loadu_pd(p), _mm256_castpd256_pd128(v4)));
+			n -= 2;
+		}
+	}
+
+#elif defined(COREARRAY_SIMD_SSE2)
+
+	const __m128d v2 = _mm_set1_pd(v);
+
+	switch ((size_t)p & 0x0F)
+	{
+	case 0x08:
+		if (n > 0) { (*p++) *= v; n--; }
+	case 0x00:
+		for (; n >= 2; n-=2, p+=2)
+			_mm_store_pd(p, _mm_mul_pd(_mm_load_pd(p), v2));
+		break;
+	default:
+		for (; n >= 2; n-=2, p+=2)
+			_mm_storeu_pd(p, _mm_mul_pd(_mm_loadu_pd(p), v2));
+	}
+
+#endif
+
+	for (; n > 0; n--) (*p++) *= v;
+}
+
 }

@@ -120,10 +120,71 @@ namespace PCA
 			double *p = tmp_var.Get();
 			C_Int32 *pS = PCA_GenoSum.Get();
 			C_Int32 *pN = PCA_GenoNum.Get();
-			for (size_t n=fM; n > 0; n--)
+			size_t n = fM;
+
+		#if defined(COREARRAY_SIMD_SSE2)
+			const __m128d zero = _mm_setzero_pd();
+			for (; n >= 4; n-=4)
+			{
+				__m128i S = _mm_load_si128((__m128i const*)pS);
+				pS += 4;
+				__m128i N = _mm_load_si128((__m128i const*)pN);
+				pN += 4;
+
+				__m128d SD = _mm_cvtepi32_pd(S);
+				__m128d ND = _mm_cvtepi32_pd(N);
+				_mm_store_pd(p, _mm_and_pd(_mm_div_pd(SD, ND), _mm_cmplt_pd(zero, ND)));
+				p += 2;
+
+				SD = _mm_cvtepi32_pd(_mm_shuffle_epi32(S, 0x0E));
+				ND = _mm_cvtepi32_pd(_mm_shuffle_epi32(N, 0x0E));
+				_mm_store_pd(p, _mm_and_pd(_mm_div_pd(SD, ND), _mm_cmplt_pd(zero, ND)));
+				p += 2;
+			}
+		#endif
+			for (; n > 0; n--)
 			{
 				*p++ = (*pN > 0) ? ((double)*pS / *pN) : 0;
 				pS ++; pN ++;
+			}
+		}
+
+		/// computing scalar vector
+		void rsqrt_prod()
+		{
+			double *p = tmp_var.Get();
+			size_t n = fM;
+
+		#if defined(COREARRAY_SIMD_AVX)
+			const __m256d half = _mm256_set1_pd(0.5);
+			const __m256d zero = _mm256_set1_pd(0.0);
+			const __m256d one  = _mm256_set1_pd(1.0);
+			for (; n >= 4; n-=4, p+=4)
+			{
+				__m256d s = _mm256_mul_pd(_mm256_load_pd(p), half);
+				__m256d m = _mm256_and_pd(_mm256_cmp_pd(zero, s, _CMP_LT_OQ),
+					_mm256_cmp_pd(s, one, _CMP_LT_OQ));
+				s = _mm256_mul_pd(s, _mm256_sub_pd(one, s));
+				s = _mm256_div_pd(one, _mm256_sqrt_pd(s));
+				_mm256_store_pd(p, _mm256_and_pd(s, m));
+			}
+		#elif defined(COREARRAY_SIMD_SSE2)
+			const __m128d half = _mm_set1_pd(0.5);
+			const __m128d zero = _mm_set1_pd(0.0);
+			const __m128d one  = _mm_set1_pd(1.0);
+			for (; n >= 2; n-=2, p+=2)
+			{
+				__m128d s = _mm_mul_pd(_mm_load_pd(p), half);
+				__m128d m = _mm_and_pd(_mm_cmplt_pd(zero, s), _mm_cmplt_pd(s, one));
+				s = _mm_mul_pd(s, _mm_sub_pd(one, s));
+				s = _mm_div_pd(one, _mm_sqrt_pd(s));
+				_mm_store_pd(p, _mm_and_pd(s, m));
+			}
+		#endif
+			for (; n > 0; n--)
+			{
+				double s = (*p) * 0.5;
+				*p++ = (0<s && s<1) ? (1.0 / sqrt(s*(1-s))) : 0;
 			}
 		}
 
@@ -687,21 +748,17 @@ namespace PCA
 			PCA_Mat.GenoSub();
 
 			// 1 / sqrt(p@j*(1-p@j))
-			p = PCA_Mat.tmp_var.Get();
-			if (Bayesian)
+			if (!Bayesian)
 			{
+				PCA_Mat.rsqrt_prod();
+			} else {
+				p = PCA_Mat.tmp_var.Get();
 				C_Int32 *pSum = PCA_Mat.PCA_GenoSum.Get();
 				C_Int32 *pNum = PCA_Mat.PCA_GenoNum.Get();
 				for (size_t m=inc_snp; m > 0; m--)
 				{
 					double s = ((*pSum++) + 1.0) / (2 * (*pNum++) + 2);
 					*p++ = 1.0 / sqrt(s * (1 - s));
-				}
-			} else {
-				for (size_t m=inc_snp; m > 0; m--)
-				{
-					double s = (*p) * 0.5;
-					*p++ = (0<s && s<1) ? (1.0 / sqrt(s*(1-s))) : 0;
 				}
 			}
 
@@ -894,13 +951,9 @@ namespace PCA
 					Progress.Forward(inc_snp);
 					iSNP += inc_snp;
 				}
+
 				// divide AuxMat by nSNP
-				{
-					double s = 1.0 / nSNP;
-					double *p = AuxMat;
-					for (size_t n=AuxDim*nSamp; n > 0; n--)
-						(*p++) *= s;
-				}
+				vec_f64_mul(AuxMat, AuxDim*nSamp, 1.0/nSNP);
 			}
 		}
 

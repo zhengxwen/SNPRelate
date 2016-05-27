@@ -428,10 +428,7 @@ void CThreadPool::AddWork(TProc proc, size_t i, void *ptr)
 		{
 			CAutoMutex lck(mutex);
 			if(stop)
-			{
-				throw runtime_error(
-					"internal error: AddWork on stopped CThreadPool");
-			}
+				throw "AddWork on stopped CThreadPool";
 			tasks.push(TProcData(proc, i, ptr));
 		}
 		thread_wait_cond.Signal();
