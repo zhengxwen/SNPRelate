@@ -122,7 +122,19 @@ namespace PCA
 			C_Int32 *pN = PCA_GenoNum.Get();
 			size_t n = fM;
 
-		#if defined(COREARRAY_SIMD_SSE2)
+		#if defined(COREARRAY_SIMD_AVX)
+			const __m256d zero = _mm256_setzero_pd();
+			for (; n >= 4; n-=4)
+			{
+				__m256d SD = _mm256_cvtepi32_pd(_mm_load_si128((__m128i const*)pS));
+				pS += 4;
+				__m256d ND = _mm256_cvtepi32_pd(_mm_load_si128((__m128i const*)pN));
+				pN += 4;
+				_mm256_store_pd(p, _mm256_and_pd(_mm256_div_pd(SD, ND),
+					_mm256_cmp_pd(zero, ND, _CMP_LT_OQ)));
+				p += 4;
+			}
+		#elif defined(COREARRAY_SIMD_SSE2)
 			const __m128d zero = _mm_setzero_pd();
 			for (; n >= 4; n-=4)
 			{
@@ -704,7 +716,7 @@ namespace PCA
 		PCA_Mat.Reset(nSamp, BlockNumSNP);
 		memset(Cov.Get(), 0, sizeof(double)*Cov.Size());
 
-		// thread thpool
+		// thread pool
 		CThreadPool thpool(NumThread);
 		PARAM2<double*, CPCAMat_Alg1*> thparam(Cov.Get(), &PCA_Mat);
 		Array_SplitJobs(NumThread, nSamp, Array_Thread_MatIdx,
@@ -720,7 +732,8 @@ namespace PCA
 		{
 			// read genotypes
 			size_t inc_snp = nSNP - iSNP;
-			if (inc_snp > BlockNumSNP) inc_snp = BlockNumSNP;
+			if (inc_snp > BlockNumSNP)
+				inc_snp = BlockNumSNP;
 			C_UInt8 *pGeno = Geno.Get();
 			Space.snpRead(iSNP, inc_snp, pGeno, RDim_Sample_X_SNP);
 
@@ -822,7 +835,6 @@ namespace PCA
 		if (info != 0)
 			throw ErrCoreArray("LAPACK::DGESVD error (%d).", info);
 	}
-
 
 
     /// Calculate the genetic covariance
@@ -938,10 +950,8 @@ namespace PCA
 						double *pA = AuxMat;
 						for (size_t j=0; j < AuxDim; j++)
 						{
-							for (size_t k=0; k < nSamp; k++)
-							{
-								(*pA ++) += pH[j] * pY[k];
-							}
+							// pA += pY * pH[j]
+							pA = vec_f64_addmul(pA, pY, nSamp, pH[j]);
 						}
 
 						pH += hsize;

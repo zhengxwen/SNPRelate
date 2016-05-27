@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2015        Xiuwen Zheng
+# Copyright (C) 2011 - 2016        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -231,7 +231,7 @@
                 {
                     m <- dt$dim - sum(snp.id)
                     cat("Excluding ", m, " SNP", .plural(m),
-                        " on non-autosomes\n", sep="")
+                        " (non-autosomes or non-selection)\n", sep="")
                 } else {
                     m <- sum(snp.id)
                     cat("Keeping ", m, " SNP", .plural(m),
@@ -343,8 +343,8 @@
             dm[1L], " SNP", .plural(dm[1L]), "\n", sep="")
         if (verbose.numthread)
         {
-            cat("\tUsing ", num.thread, " (CPU) core",
-                .plural(num.thread), "\n", sep="")
+            cat("\tusing ", num.thread, " (CPU) core", .plural(num.thread),
+                "\n", sep="")
         }
     }
 

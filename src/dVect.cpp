@@ -644,8 +644,8 @@ namespace Vectorization
 {
 
 // count genotype sum and number of calls, not requiring 16-aligned p
-COREARRAY_DLL_DEFAULT C_UInt8* vec_u8_geno_count(C_UInt8 *p, size_t n,
-	C_Int32 &out_sum, C_Int32 &out_num)
+COREARRAY_DLL_DEFAULT C_UInt8* vec_u8_geno_count(C_UInt8 *p,
+	size_t n, C_Int32 &out_sum, C_Int32 &out_num)
 {
 	C_Int32 sum=0, num=0;
 
@@ -814,5 +814,42 @@ COREARRAY_DLL_DEFAULT void vec_f64_mul(double *p, size_t n, double v)
 
 	for (; n > 0; n--) (*p++) *= v;
 }
+
+
+// *p += (*s) * v
+COREARRAY_DLL_DEFAULT double *vec_f64_addmul(double *p, const double *s,
+	size_t n, double v)
+{
+#if defined(COREARRAY_SIMD_SSE2)
+
+	const __m128d v2 = _mm_set1_pd(v);
+
+	switch ((size_t)p & 0x0F)
+	{
+	case 0x08:
+		if (n > 0) { (*p++) += (*s++) * v; n--; }
+	case 0x00:
+		for (; n >= 2; n-=2)
+		{
+			_mm_store_pd(p, _mm_add_pd(_mm_load_pd(p),
+				_mm_mul_pd(_mm_loadu_pd(s), v2)));
+			p += 2; s += 2;
+		}
+		break;
+	default:
+		for (; n >= 2; n-=2)
+		{
+			_mm_storeu_pd(p, _mm_add_pd(_mm_loadu_pd(p),
+				_mm_mul_pd(_mm_loadu_pd(s), v2)));
+			p += 2; s += 2;
+		}
+	}
+
+#endif
+
+	for (; n > 0; n--) (*p++) += (*s++) * v;
+	return p;
+}
+
 
 }

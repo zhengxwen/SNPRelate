@@ -419,12 +419,15 @@ namespace Vectorization
 	// ===========================================================
 
 	/// count genotype sum and number of calls, not requiring 16-aligned p
-	COREARRAY_DLL_DEFAULT C_UInt8* vec_u8_geno_count(C_UInt8 *p, size_t n,
-		C_Int32 &out_sum, C_Int32 &out_num);
+	COREARRAY_DLL_DEFAULT C_UInt8* vec_u8_geno_count(C_UInt8 *p,
+		size_t n, C_Int32 &out_sum, C_Int32 &out_num);
 
 	/// multiply *p by v and applied to all n
 	COREARRAY_DLL_DEFAULT void vec_f64_mul(double *p, size_t n, double v);
 
+	/// *p += (*s) * v
+	COREARRAY_DLL_DEFAULT double *vec_f64_addmul(double *p, const double *s,
+		size_t n, double v);
 }
 
 #endif /* _HEADER_VECTORIZATION_ */
