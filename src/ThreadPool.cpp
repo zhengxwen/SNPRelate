@@ -19,16 +19,8 @@
 // License along with SNPRelate.
 // If not, see <http://www.gnu.org/licenses/>.
 
-/**
- *	\file     dVect.h
- *	\author   Xiuwen Zheng [zhengxwen@gmail.com]
- *	\version  1.0
- *	\date     2007 - 2015
- *	\brief    Classess and functions for vectorization
- *	\details
-**/
-
 #include "ThreadPool.h"
+#include "dVect.h"
 
 
 namespace CoreArray
@@ -417,7 +409,25 @@ CThreadPool::~CThreadPool()
 	workers.clear();
 }
 
-void CThreadPool::AddBatchWork(TProc proc, size_t n, void *ptr)
+void CThreadPool::AddWork(TProc proc, size_t i, void *ptr)
+{
+	if (workers.empty())
+	{
+		num_threads_working ++;
+		(*proc)(i, 1, ptr);
+		num_threads_working --;
+	} else {
+		{
+			CAutoLock lck(mutex);
+			if(stop)
+				throw "AddWork on stopped CThreadPool";
+			tasks.push(TProcData(proc, i, 1, ptr));
+			thread_wait_cond.Signal();
+		}
+	}
+}
+
+void CThreadPool::BatchWork(TProc proc, size_t n, void *ptr)
 {
 	if (workers.empty())
 	{
@@ -431,20 +441,26 @@ void CThreadPool::AddBatchWork(TProc proc, size_t n, void *ptr)
 		if (n > 0)
 		{
 			size_t wnum = workers.size();
-			size_t m = n / wnum;
-			if (n % wnum) m ++;
-
-			CAutoLock lck(mutex);
-			if(stop)
-				throw "AddWork on stopped CThreadPool";
-			for (size_t i=0; i < n; )
+			size_t m = 1;
+			if (wnum != n)
 			{
-				size_t u = n - i;
-				if (u > m) u = m;
-				tasks.push(TProcData(proc, i, u, ptr));
-				thread_wait_cond.Signal();
-				i += u;
+				size_t m = n / wnum;
+				if (n % wnum) m ++;
 			}
+			{
+				CAutoLock lck(mutex);
+				if(stop)
+					throw "AddWork on stopped CThreadPool";
+				for (size_t i=0; i < n; )
+				{
+					size_t u = n - i;
+					if (u > m) u = m;
+					tasks.push(TProcData(proc, i, u, ptr));
+					thread_wait_cond.Signal();
+					i += u;
+				}
+			}
+			Wait();
 		}
 	}
 }
@@ -458,5 +474,48 @@ void CThreadPool::Wait()
 			main_wait_cond.Wait(mutex);
 	}
 }
+
+void CThreadPool::Split(size_t NumSplit, size_t TotalCount, size_t Start[],
+	size_t Length[])
+{
+	size_t m = TotalCount / NumSplit;
+	if (TotalCount % NumSplit) m ++;
+	size_t st = 0;
+
+	for (size_t i=0; i < NumSplit; i++)
+	{
+		size_t u = TotalCount - st;
+		if (u > m) u = m;
+		Start[i] = st; Length[i] = u;
+		st += u;
+	}
+}
+
+void CThreadPool::thread_vec_f64_add(size_t i, size_t n, void *ptr)
+{
+	PARAM2<double*, const double*> *pm = (PARAM2<double*, const double*> *)ptr;
+	Vectorization::vec_f64_add(pm->p1 + i, pm->p2 + i, n);
+}
+
+void CThreadPool::vec_f64_add(double *p, const double *s, size_t n)
+{
+	PARAM2<double*, const double*> param;
+	param.p1 = p; param.p2 = s;
+	BatchWork(thread_vec_f64_add, n, &param);
+}
+
+void CThreadPool::thread_vec_f64_mul(size_t i, size_t n, void *ptr)
+{
+	PARAM2<double*, double> *pm = (PARAM2<double*, double> *)ptr;
+	Vectorization::vec_f64_mul(pm->p1 + i, n, pm->p2);
+}
+
+void CThreadPool::vec_f64_mul(double *p, size_t n, double v)
+{
+	PARAM2<double*, double> param;
+	param.p1 = p; param.p2 = v;
+	BatchWork(thread_vec_f64_mul, n, &param);
+}
+
 
 }

@@ -1,6 +1,6 @@
 // ===========================================================
 //
-// ThreadPool.h: the C++ implementation of thread pool
+// ThreadPool.h: a C++ implementation of thread pool
 //
 // Copyright (C) 2016    Xiuwen Zheng
 //
@@ -24,7 +24,7 @@
  *	\author   Xiuwen Zheng [zhengxwen@gmail.com]
  *	\version  1.0
  *	\date     2016
- *	\brief    the C++ implementation of thread pool
+ *	\brief    a C++ implementation of thread pool
  *	\details
 **/
 
@@ -208,11 +208,23 @@ namespace CoreArray
 	class COREARRAY_DLL_DEFAULT CThreadPool
 	{
 	public:	
+		/// constructor
 		CThreadPool(int num_threads);
+		/// destructor
 		~CThreadPool();
 
-		void AddBatchWork(TProc proc, size_t n, void *ptr);
+		void AddWork(TProc proc, size_t i, void *ptr);
 		void Wait();
+
+		void BatchWork(TProc proc, size_t n, void *ptr);
+
+		static void Split(size_t NumSplit, size_t TotalCount, size_t Start[],
+			size_t Length[]);
+
+		/// add *p by *s and applied to all n
+		void vec_f64_add(double *p, const double *s, size_t n);
+		/// multiply *p by v and applied to all n
+		void vec_f64_mul(double *p, size_t n, double v);
 
 	protected:
 
@@ -246,8 +258,43 @@ namespace CoreArray
 		CCondition thread_wait_cond;
 		CCondition main_wait_cond;
 		bool stop;
+
+	private:
+		static void thread_vec_f64_add(size_t i, size_t n, void *ptr);
+		static void thread_vec_f64_mul(size_t i, size_t n, void *ptr);
 	};
 
+
+	/// Thread pool with a template class
+	template<typename TCLASS> class COREARRAY_DLL_DEFAULT CThreadPoolEx:
+		public CThreadPool
+	{
+	public:
+		/// constructor
+		CThreadPoolEx(int num_threads): CThreadPool(num_threads) { }
+
+		void BatchWork(TCLASS *self, void (TCLASS::*proc)(size_t, size_t), size_t n)
+		{
+			TStruct s;
+			s.obj = self;
+			s.proc = proc;
+			CThreadPool::BatchWork(InternalProc, n, &s);
+		}
+
+	protected:
+
+		struct TStruct
+		{
+			TCLASS *obj;
+			void (TCLASS::*proc)(size_t i, size_t n);
+		};
+
+		static void InternalProc(size_t i, size_t n, void *ptr)
+		{
+			TStruct &p = *((TStruct *)ptr);
+			(p.obj->*p.proc)(i, n);
+		}
+	};
 
 
 	template<typename T1, typename T2> struct PARAM2
@@ -255,20 +302,6 @@ namespace CoreArray
 		T1 p1; T2 p2;
 		PARAM2() { }
 		PARAM2(T1 v1, T2 v2) { p1=v1; p2=v2; }
-	};
-
-	template<typename T1, typename T2, typename T3> struct PARAM3
-	{
-		T1 p1; T2 p2; T3 p3;
-		PARAM3() { }
-		PARAM3(T1 v1, T2 v2, T3 v3) { p1=v1; p2=v2; p3=v3; }
-	};
-
-	template<typename T1, typename T2, typename T3, typename T4> struct PARAM4
-	{
-		T1 p1; T2 p2; T3 p3; T4 p4;
-		PARAM4() { }
-		PARAM4(T1 v1, T2 v2, T3 v3, T4 v4) { p1=v1; p2=v2; p3=v3; p4=v4; }
 	};
 
 

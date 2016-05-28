@@ -780,6 +780,71 @@ COREARRAY_DLL_DEFAULT void vec_u8_geno_valid(C_UInt8 *p, size_t n)
 }
 
 
+// add *p by *s and applied to all n
+COREARRAY_DLL_DEFAULT void vec_f64_add(double *p, const double *s, size_t n)
+{
+#if defined(COREARRAY_SIMD_AVX)
+
+	switch ((size_t)p & 0x1F)
+	{
+	case 0x08:
+		if (n > 0) { (*p++) += (*s++); n--; }
+	case 0x10:
+		if (n > 0) { (*p++) += (*s++); n--; }
+	case 0x18:
+		if (n > 0) { (*p++) += (*s++); n--; }
+	case 0x00:
+		for (; n >= 4; n-=4)
+		{
+			_mm256_store_pd(p, _mm256_add_pd(_mm256_load_pd(p), _mm256_loadu_pd(s)));
+			p += 4; s += 4;
+		}
+		if (n >= 2)
+		{
+			_mm_store_pd(p, _mm_add_pd(_mm_load_pd(p), _mm_loadu_pd(s)));
+			p += 2; s += 2; n -= 2;
+		}
+		break;
+	default:
+		for (; n >= 4; n-=4)
+		{
+			_mm256_storeu_pd(p, _mm256_add_pd(_mm256_loadu_pd(p), _mm256_loadu_pd(s)));
+			p += 4; s += 4;
+		}
+		if (n >= 2)
+		{
+			_mm_storeu_pd(p, _mm_add_pd(_mm_loadu_pd(p), _mm_loadu_pd(s)));
+			p += 2; s += 2; n -= 2;
+		}
+	}
+
+#elif defined(COREARRAY_SIMD_SSE2)
+
+	switch ((size_t)p & 0x0F)
+	{
+	case 0x08:
+		if (n > 0) { (*p++) += (*s++); n--; }
+	case 0x00:
+		for (; n >= 2; n-=2)
+		{
+			_mm_store_pd(p, _mm_add_pd(_mm_load_pd(p), _mm_loadu_pd(s)));
+			p += 2; s += 2;
+		}
+		break;
+	default:
+		for (; n >= 2; n-=2)
+		{
+			_mm_storeu_pd(p, _mm_add_pd(_mm_loadu_pd(p), _mm_loadu_pd(s)));
+			p += 2; s += 2;
+		}
+	}
+
+#endif
+
+	for (; n > 0; n--) (*p++) += (*s++);
+}
+
+
 // multiply *p by v and applied to all n
 COREARRAY_DLL_DEFAULT void vec_f64_mul(double *p, size_t n, double v)
 {
