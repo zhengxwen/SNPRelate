@@ -753,6 +753,33 @@ COREARRAY_DLL_DEFAULT C_UInt8* vec_u8_geno_count(C_UInt8 *p,
 }
 
 
+/// any (*p > 2) is set to be 3
+COREARRAY_DLL_DEFAULT void vec_u8_geno_valid(C_UInt8 *p, size_t n)
+{
+#if defined(COREARRAY_SIMD_SSE2)
+
+	// header 1, 16-byte aligned
+	size_t h = (16 - ((size_t)p & 0x0F)) & 0x0F;
+	for (; (n > 0) && (h > 0); n--, h--, p++)
+		if (*p > 3) *p = 3;
+
+	const __m128i zero  = _mm_setzero_si128();
+	const __m128i three = _mm_set1_epi8(3);
+	for (; n >= 16; n-=16, p+=16)
+	{
+		__m128i v = _mm_load_si128((__m128i*)p);
+		__m128i mask = _mm_or_si128(_mm_cmplt_epi8(v, zero),
+			_mm_cmplt_epi8(three, v));
+		if (_mm_movemask_epi8(mask) > 0)
+			_mm_store_si128((__m128i*)p, _mm_min_epu8(v, three));
+	}
+
+#endif
+
+	for (; n > 0; n--, p++) if (*p > 3) *p = 3;
+}
+
+
 // multiply *p by v and applied to all n
 COREARRAY_DLL_DEFAULT void vec_f64_mul(double *p, size_t n, double v)
 {

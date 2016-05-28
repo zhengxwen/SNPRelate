@@ -86,12 +86,12 @@ namespace CoreArray
 
 
 	/// Auto object for locking and unlocking a mutex object
-	struct COREARRAY_DLL_DEFAULT CAutoMutex
+	struct COREARRAY_DLL_DEFAULT CAutoLock
 	{
 	public:
-		CAutoMutex(CMutex *m) { mutex = m; if (m) m->Lock(); }
-		CAutoMutex(CMutex &m) { mutex = &m; m.Lock(); }
-		~CAutoMutex() { if (mutex) mutex->Unlock(); mutex = NULL; }
+		CAutoLock(CMutex *m) { mutex = m; if (m) m->Lock(); }
+		CAutoLock(CMutex &m) { mutex = &m; m.Lock(); }
+		~CAutoLock() { if (mutex) mutex->Unlock(); mutex = NULL; }
 
 		/// reset the mutex object
 		void Reset(CMutex *m)
@@ -202,7 +202,7 @@ namespace CoreArray
 
 	// =====================================================================
 
-	typedef void (*TProc)(size_t i, void *ptr);
+	typedef void (*TProc)(size_t i, size_t n, void *ptr);
 
 	/// Thread pool
 	class COREARRAY_DLL_DEFAULT CThreadPool
@@ -211,7 +211,7 @@ namespace CoreArray
 		CThreadPool(int num_threads);
 		~CThreadPool();
 
-		void AddWork(TProc proc, size_t i, void *ptr);
+		void AddBatchWork(TProc proc, size_t n, void *ptr);
 		void Wait();
 
 	protected:
@@ -228,10 +228,10 @@ namespace CoreArray
 		struct TProcData
 		{
 			TProc proc;
-			size_t data;
+			size_t i, n;
 			void *ptr;
 			TProcData() { }
-			TProcData(TProc p, size_t d, void *s) { proc=p; data=d; ptr=s; }
+			TProcData(TProc p, size_t _i, size_t _n, void *s) { proc=p; i=_i; n=_n; ptr=s; }
 		};
 
 		/// a collection of threads
@@ -262,6 +262,13 @@ namespace CoreArray
 		T1 p1; T2 p2; T3 p3;
 		PARAM3() { }
 		PARAM3(T1 v1, T2 v2, T3 v3) { p1=v1; p2=v2; p3=v3; }
+	};
+
+	template<typename T1, typename T2, typename T3, typename T4> struct PARAM4
+	{
+		T1 p1; T2 p2; T3 p3; T4 p4;
+		PARAM4() { }
+		PARAM4(T1 v1, T2 v2, T3 v3, T4 v4) { p1=v1; p2=v2; p3=v3; p4=v4; }
 	};
 
 

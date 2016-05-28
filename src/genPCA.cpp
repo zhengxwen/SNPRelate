@@ -302,10 +302,7 @@ namespace PCA
 					p1 += 4; p2 += 4;
 				}
 
-				rv4 = _mm256_add_pd(_mm256_permute_pd(rv4, 5), rv4);
-				double x[4] __attribute__((aligned(32)));
-				_mm256_store_pd(x, rv4);
-				(*pOut++) += x[0] + x[2];
+				(*pOut++) += vec_sum(rv4);
 
 			#elif defined(COREARRAY_SIMD_SSE2)
 
@@ -334,9 +331,7 @@ namespace PCA
 					p1 += 2; p2 += 2;
 				}
 
-				// rv2[0] = rv2[0] + rv2[1]
-				rv2 = _mm_add_pd(rv2, _mm_shuffle_pd(rv2, rv2, 1));
-				(*pOut++) += _mm_cvtsd_f64(rv2);
+				(*pOut++) += vec_sum(rv2);
 
 			#else
 
@@ -688,7 +683,7 @@ namespace PCA
 
 	// ================== PCA covariance matrix ==================
 
-	static void thread_eig_outer(size_t i, void *p)
+	static void thread_eig_outer(size_t i, size_t n, void *p)
 	{
 		typedef PARAM2<double*, CPCAMat_Alg1*>* PTR;
 		IdMatTri I = Array_Thread_MatIdx[i];
@@ -779,8 +774,7 @@ namespace PCA
 			PCA_Mat.GenoMul();
 
 			// outer product, using thread thpool
-			for (int i=0; i < NumThread; i++)
-				thpool.AddWork(thread_eig_outer, i, &thparam);
+			thpool.AddBatchWork(thread_eig_outer, NumThread, &thparam);
 			thpool.Wait();
 
 			// update
@@ -813,6 +807,97 @@ namespace PCA
 
 	// ---------------------------------------------------------------------
 	// fast randomized PCA
+
+	struct TStructFastPCA
+	{
+		size_t iSNP, AuxDim, nSamp, iteration, hsize;
+		double *LookupY, *AuxMat, *H, *Y_i;
+		C_UInt8 *pGeno;
+	};
+
+	static void th_fastpca_lookup_y(size_t i, size_t n, void *ptr)
+	{
+		const TStructFastPCA *pm = (TStructFastPCA*)ptr;
+
+		C_UInt8 *g = pm->pGeno + (i * pm->nSamp);
+		double *Y = pm->LookupY + (pm->iSNP + i) * 4;
+
+		for (; n > 0; n--)
+		{
+			C_Int32 sum, num;
+			vec_u8_geno_count(g, pm->nSamp, sum, num);
+			g += pm->nSamp;
+
+			double avg = (num>0) ? (double)sum / num : 0;
+			double p = avg * 0.5;
+			double s = (0<p && p<1) ? 1.0 / sqrt(2*p*(1-p)) : 0;
+
+			Y[0] = (0 - avg) * s;
+			Y[1] = (1 - avg) * s;
+			Y[2] = (2 - avg) * s;
+			Y[3] = 0;
+			Y += 4;
+		}
+	}
+
+	static void th_fastpca_matprod1(size_t i, size_t num, void *p)
+	{
+		const TStructFastPCA *pm = (TStructFastPCA*)p;
+
+		size_t ii = pm->iSNP + i;
+		C_UInt8 *pGeno = pm->pGeno + (i * pm->nSamp);
+
+		for (; num > 0; num--, ii++)
+		{
+			double *pH = pm->H + (pm->AuxDim * pm->iteration) + (ii * pm->hsize);
+			double *pY = pm->LookupY + ii * 4;
+			double *pA = pm->AuxMat;
+
+			for (size_t j=0; j < pm->AuxDim; j++)
+			{
+				C_UInt8 *pG = pGeno;
+				size_t n = pm->nSamp;
+				double sum = 0;
+
+			#if defined(COREARRAY_SIMD_AVX)
+
+				__m256d sum4 = _mm256_setzero_pd();
+				for (; n >= 4; n-=4)
+				{
+					__m256d a = _mm256_loadu_pd(pA); pA += 4;
+
+				#if defined(COREARRAY_SIMD_AVX2)
+					__m256i k4 = _mm256_set_epi64x(pG[3], pG[2], pG[1], pG[0]);
+					__m256d y = _mm256_i64gather_pd(pY, k4, sizeof(double));
+				#else
+					__m256d y = _mm256_set_pd(pY[pG[3]], pY[pG[2]],
+						pY[pG[1]], pY[pG[0]]);
+				#endif
+
+					pG += 4;
+					sum4 = _mm256_add_pd(sum4, _mm256_mul_pd(a, y));
+				}
+				sum = vec_sum(sum4);
+
+			#elif defined(COREARRAY_SIMD_SSE2)
+
+				__m128d sum2 = _mm_setzero_pd();
+				for (; n >= 2; n-=2)
+				{
+					__m128d a = _mm_loadu_pd(pA); pA += 2;
+					__m128d y = _mm_set_pd(pY[pG[1]], pY[pG[0]]); pG += 2;
+					sum2 = _mm_add_pd(sum2, _mm_mul_pd(a, y));
+				}
+				sum = vec_sum(sum2);
+
+			#endif
+
+				for (; n > 0; n--)
+					sum += pY[*pG++] * (*pA++);
+				*pH++ = sum;
+			}
+		}
+	}
 
 	static void svd_vt(double *a, int m, int n, double *d)
 	{
@@ -863,59 +948,44 @@ namespace PCA
 
 		// thread thpool
 		CThreadPool thpool(NumThread);
+
+		TStructFastPCA param;
+		param.AuxDim = AuxDim;
+		param.nSamp = nSamp;
+		param.hsize = hsize;
+		param.LookupY = &LookupY[0];
+		param.AuxMat = AuxMat;
+		param.H = &H[0];
+		param.Y_i = &Y_i[0];
+		param.pGeno = &Geno[0];
+
 		// progress bar
 		CProgress Progress(verbose ? C_Int64(nSNP)*(2*IterNum + 1) : 0);
 
 		// for-loop
 		for (int iter=0; iter <= IterNum; iter++)
 		{
+			param.iteration = iter;
+
 			for (size_t iSNP=0; iSNP < nSNP; )
 			{
 				// read genotypes
 				size_t inc_snp = nSNP - iSNP;
 				if (inc_snp > IncSNP) inc_snp = IncSNP;
 				Space.snpRead(iSNP, inc_snp, Geno.Get(), RDim_Sample_X_SNP);
+				vec_u8_geno_valid(Geno.Get(), inc_snp*nSamp);
+				param.iSNP = iSNP;
 
 				// need to initialize the variable LookupY
 				if (iter == 0)
 				{
-					for (size_t i=0; i < inc_snp; i++)
-					{
-						C_UInt8 *g = &Geno[i*nSamp];
-						C_Int32 sum, num;
-						vec_u8_geno_count(g, nSamp, sum, num);
-
-						double avg = (num>0) ? (double)sum / num : 0;
-						double p = avg * 0.5;
-						double s = (0<p && p<1) ? 1.0 / sqrt(2*p*(1-p)) : 0;
-
-						double *Y = &LookupY[(iSNP + i) * 4];
-						Y[0] = (0 - avg) * s;
-						Y[1] = (1 - avg) * s;
-						Y[2] = (2 - avg) * s;
-						Y[3] = 0;
-					}
+					thpool.AddBatchWork(th_fastpca_lookup_y, inc_snp, &param);
+					thpool.Wait();
 				}
 
 				// update H_i = Y * G_i (G_i stored in AuxMat)
-				double *pH = &H[AuxDim*iter + iSNP*hsize];
-				for (size_t i=0; i < inc_snp; i++)
-				{
-					double *pY = &LookupY[(iSNP + i) * 4];
-					for (size_t j=0; j < AuxDim; j++)
-					{
-						C_UInt8 *pG = &Geno[i*nSamp];
-						double *pA = AuxMat + nSamp * j;
-						double sum = 0;
-						for (size_t k=0; k < nSamp; k++)
-						{
-							sum += pY[(*pG < 3) ? *pG : 3] * (*pA);
-							pG ++; pA ++;
-						}
-						pH[j] = sum;
-					}
-					pH += hsize; pH ++;
-				}
+				thpool.AddBatchWork(th_fastpca_matprod1, inc_snp, &param);
+				thpool.Wait();
 
 				// update
 				Progress.Forward(inc_snp);
@@ -933,6 +1003,7 @@ namespace PCA
 					size_t inc_snp = nSNP - iSNP;
 					if (inc_snp > IncSNP) inc_snp = IncSNP;
 					Space.snpRead(iSNP, inc_snp, Geno.Get(), RDim_Sample_X_SNP);
+					vec_u8_geno_valid(Geno.Get(), inc_snp*nSamp);
 
 					double *pH = &H[AuxDim*iter + iSNP*hsize];
 					for (size_t i=0; i < inc_snp; i++)
@@ -941,11 +1012,12 @@ namespace PCA
 						double *pY = &LookupY[(iSNP + i) * 4];
 						C_UInt8 *pG = &Geno[i*nSamp];
 						for (size_t j=0; j < nSamp; j++)
-						{
-							Y_i[j] = pY[(*pG < 3) ? *pG : 3];
-							pG ++;
-						}
+							Y_i[j] = pY[*pG++];
 						pY = Y_i.Get();
+
+						// AuxMat += pY * pH[j]
+						// thpool.AddBatchWork(th_fastpca_matprod2, inc_snp, &param);
+						// thpool.Wait();
 
 						double *pA = AuxMat;
 						for (size_t j=0; j < AuxDim; j++)
@@ -999,7 +1071,7 @@ namespace PCA
 				C_UInt8 *pG = &Geno[i*nSamp];
 				for (size_t j=0; j < nSamp; j++)
 				{
-					Y_i[j] = pY[(*pG < 3) ? *pG : 3];
+					Y_i[j] = pY[(*pG < 4) ? *pG : 3];
 					pG ++;
 				}
 				pY = Y_i.Get();

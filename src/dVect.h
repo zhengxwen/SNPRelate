@@ -418,9 +418,29 @@ namespace Vectorization
 
 	// ===========================================================
 
+#ifdef COREARRAY_SIMD_SSE2
+	inline static double vec_sum(__m128d s)
+	{
+		return _mm_cvtsd_f64(_mm_add_pd(s, _mm_shuffle_pd(s, s, 1)));
+	}
+#endif
+
+#ifdef COREARRAY_SIMD_AVX
+	inline static double vec_sum(__m256d s)
+	{
+		s = _mm256_add_pd(_mm256_permute_pd(s, 5), s);
+		double x[4] __attribute__((aligned(32)));
+		_mm256_store_pd(x, s);
+		return x[0] + x[2];
+	}
+#endif
+
 	/// count genotype sum and number of calls, not requiring 16-aligned p
 	COREARRAY_DLL_DEFAULT C_UInt8* vec_u8_geno_count(C_UInt8 *p,
 		size_t n, C_Int32 &out_sum, C_Int32 &out_num);
+
+	/// any (*p > 3) is set to be 3
+	COREARRAY_DLL_DEFAULT void vec_u8_geno_valid(C_UInt8 *p, size_t n);
 
 	/// multiply *p by v and applied to all n
 	COREARRAY_DLL_DEFAULT void vec_f64_mul(double *p, size_t n, double v);
