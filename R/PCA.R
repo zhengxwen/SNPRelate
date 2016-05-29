@@ -61,9 +61,16 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     if (algorithm == "exact")
     {
         rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
-            eigenval = rv[[3]], eigenvect = rv[[4]],
-            varprop = rv[[3]] / rv[[5]],
-            TraceXTX = rv[[1]], Bayesian = bayesian, genmat = rv[[2]])
+            eigenval = rv[[3L]], eigenvect = rv[[4L]],
+            varprop = rv[[3L]] / rv[[5L]],
+            TraceXTX = rv[[1L]], Bayesian = bayesian, genmat = rv[[2L]])
+        class(rv) <- "snpgdsPCAClass"
+    } else if (algorithm == "randomized")
+    {
+        rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
+            eigenval = rv[[1L]], eigenvect = t(rv[[2]][seq_len(eigen.cnt), ]),
+            varprop = NaN,
+            TraceXTX = NaN, Bayesian = FALSE)
         class(rv) <- "snpgdsPCAClass"
     }
     return(rv)

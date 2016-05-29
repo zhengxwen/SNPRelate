@@ -836,6 +836,7 @@ private:
 	VEC_AUTO_PTR<C_UInt8> Geno;  /// the genotype buffer (0, 1, 2 and NA)
 	VEC_AUTO_PTR<double> Y_mc;  /// normalized genotypes at a site, with multiple cores
 	VEC_AUTO_PTR<double> AuxMat_mc; /// Aux matrices, with multiple cores
+	VEC_AUTO_PTR<double> MatT;  /// T = U_H^T * Y
 
 	size_t iSNP;  /// the starting SNP index
 	int iteration;  /// the iteration
@@ -944,6 +945,30 @@ private:
 			{
 				// pA += Y * pH[j]
 				pA = vec_f64_addmul(pA, Y, nSamp, pH[j]);
+			}
+
+			pY += 4;
+			pH += hsize;
+		}
+	}
+
+	void thread_U_H_x_Y(size_t i, size_t num)
+	{
+		size_t ii = thread_start[i];
+		size_t n  = thread_length[i];
+		double *pH = &MatH[(iSNP + ii) * hsize];
+		double *pY = &LookupY[(iSNP + ii) * 4];
+
+		for (; n > 0; n--, ii++)
+		{
+			C_UInt8 *pG = &Geno[ii * nSamp];
+			double *pT = &MatT[i * hsize * nSamp];
+
+			for (size_t j=0; j < nSamp; j++)
+			{
+				double y = pY[(*pG < 4) ? *pG : 3];
+				pG ++;
+				pT = vec_f64_addmul(pT, pH, hsize, y);
 			}
 
 			pY += 4;
@@ -1071,18 +1096,12 @@ public:
 		if (verbose)
 			Rprintf("%s    Begin projecting genotypes and SVD\n", TimeToStr());
 
-		SEXP rv_ans = PROTECT(NEW_LIST(2));
-		{
-			SEXP h = allocMatrix(REALSXP, hsize, nSNP);
-			memcpy(REAL(h), &MatH[0], sizeof(double) * nSNP * hsize);
-			SET_ELEMENT(rv_ans, 0, h);
-		}
-
 		// SVD MatH, get vt stored in MatH
 		svd_vt(&MatH[0], hsize, nSNP, NULL);
 
 		// T = U_H^T * Y
-		vector<double> T(hsize*nSamp, 0);
+		MatT.Reset(hsize*nSamp*NumThread);
+		memset(MatT.Get(), 0, sizeof(double)*MatT.Length());
 
 		// for-loop
 		for (iSNP=0; iSNP < nSNP; )
@@ -1092,41 +1111,36 @@ public:
 			if (inc_snp > IncSNP) inc_snp = IncSNP;
 			Space.snpRead(iSNP, inc_snp, Geno.Get(), RDim_Sample_X_SNP);
 
-			double *pH = &MatH[iSNP*hsize];
-			for (size_t i=0; i < inc_snp; i++)
+//			thpool.Split(1, inc_snp, &thread_start[0], &thread_length[0]);
+//			CRandomPCA::thread_U_H_x_Y(0, 1);
+
+			// update T = U_H^T * Y
+			thpool.Split(1, inc_snp, &thread_start[0], &thread_length[0]);
+			thpool.BatchWork(this, &CRandomPCA::thread_U_H_x_Y, 1);
+
+/*			if (NumThread > 1)
 			{
-				// set Y_mc
-				double *pY = &LookupY[(iSNP + i) * 4];
-				C_UInt8 *pG = &Geno[i*nSamp];
-				for (size_t j=0; j < nSamp; j++)
-				{
-					Y_mc[j] = pY[(*pG < 4) ? *pG : 3];
-					pG ++;
-				}
-				pY = Y_mc.Get();
-
-				double *pA = &T[0];
-				for (size_t k=0; k < nSamp; k++)
-				{
-					for (size_t j=0; j < hsize; j++)
-					{
-						(*pA ++) += pH[j] * pY[k];
-					}
-				}
-
-				pH += hsize;
+				// update T = U_H^T * Y from MatT
+				size_t n = hsize*nSamp;
+				for (size_t i=1; i < (size_t)NumThread; i++)
+					vec_f64_add(&MatT[0], &MatT[i * n], n);
 			}
-
+*/
 			// update
 			iSNP += inc_snp;
 		}
 
 		vector<double> sigma(nSamp);
-		svd_vt(&T[0], hsize, nSamp, &sigma[0]);
+		svd_vt(&MatT[0], hsize, nSamp, &sigma[0]);
 
+		SEXP rv_ans = PROTECT(NEW_LIST(2));
 		{
+			SEXP d = NEW_NUMERIC(nSamp);
+			memcpy(REAL(d), &sigma[0], sizeof(double) * nSamp);
+			SET_ELEMENT(rv_ans, 0, d);
+
 			SEXP h = allocMatrix(REALSXP, hsize, nSamp);
-			memcpy(REAL(h), &T[0], sizeof(double) * nSamp * hsize);
+			memcpy(REAL(h), &MatT[0], sizeof(double) * nSamp * hsize);
 			SET_ELEMENT(rv_ans, 1, h);
 		}
 
