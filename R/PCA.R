@@ -26,8 +26,7 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     eigen.cnt=ifelse(identical(algorithm, "randomized"), 16L, 32L),
     num.thread=1L, bayesian=FALSE, need.genmat=FALSE,
     genmat.only=FALSE, eigen.method=c("DSPEVX", "DSPEV"),
-    covalg=c("arith", "bitops"), aux.dim=eigen.cnt*2L, iter.num=10L,
-    verbose=TRUE)
+    aux.dim=eigen.cnt*2L, iter.num=10L, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -47,7 +46,7 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     if (eigen.cnt <= 0L) eigen.cnt <- ws$n.samp
 
     eigen.method <- match.arg(eigen.method)
-    covalg <- match.arg(covalg)
+    covalg <- "arith"
 
     # call parallel PCA
     param <- list(bayesian=bayesian, need.genmat=need.genmat,

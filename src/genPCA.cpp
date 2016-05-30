@@ -727,23 +727,22 @@ public:
 		Array_SplitJobs(NumThread, nSamp, Array_Thread_MatIdx,
 			Array_Thread_MatCnt);
 
+		// genotypes (0, 1, 2 and NA)
+		VEC_AUTO_PTR<C_UInt8> Geno(nSamp * BlockNumSNP);
+		C_UInt8 *pGeno = Geno.Get();
+
 		// progress bar
 		CProgress Progress(verbose ? nSNP : 0);
 
-		// genotypes (0, 1, 2 and NA)
-		VEC_AUTO_PTR<C_UInt8> Geno(nSamp * BlockNumSNP);
+		// genotype buffer, false for no memory buffer
+		CGenoReadBySNP WS(Space, BlockNumSNP, false);
 
-		for (size_t iSNP=0; iSNP < nSNP; )
+		// for-loop
+		WS.Init();
+		while (WS.Read(Geno.Get()))
 		{
-			// read genotypes
-			size_t inc_snp = nSNP - iSNP;
-			if (inc_snp > BlockNumSNP)
-				inc_snp = BlockNumSNP;
-			C_UInt8 *pGeno = Geno.Get();
-			Space.snpRead(iSNP, inc_snp, pGeno, RDim_Sample_X_SNP);
-
 			// get the genotype sum and number
-			SummarizeGeno_SampxSNP(pGeno, inc_snp);
+			SummarizeGeno_SampxSNP(pGeno, WS.Count());
 			// get 2 * \bar{p}_l, saved in PCA_Mat.tmp_var
 			DivideGeno();
 
@@ -752,7 +751,7 @@ public:
 			for (size_t i=0; i < nSamp; i++)
 			{
 				double *pp = p; p += M();
-				size_t m = inc_snp;
+				size_t m = WS.Count();
 				for (size_t j=0; j < m; j++)
 				{
 					C_UInt8 g = pGeno[nSamp*j + i];
@@ -773,7 +772,7 @@ public:
 				p = tmp_var.Get();
 				C_Int32 *pSum = PCA_GenoSum.Get();
 				C_Int32 *pNum = PCA_GenoNum.Get();
-				for (size_t m=inc_snp; m > 0; m--)
+				for (size_t m=WS.Count(); m > 0; m--)
 				{
 					double s = ((*pSum++) + 1.0) / (2 * (*pNum++) + 2);
 					*p++ = 1.0 / sqrt(s * (1 - s));
@@ -787,8 +786,7 @@ public:
 			thpool.BatchWork(this, &CExactPCA::thread_cov_outer, NumThread);
 
 			// update
-			Progress.Forward(inc_snp);
-			iSNP += inc_snp;
+			Progress.Forward(WS.Count());
 		}
 	}
 };
@@ -1035,27 +1033,24 @@ public:
 		// progress bar
 		CProgress Progress(verbose ? C_Int64(nSNP)*(2*IterNum + 1) : 0);
 
+		// genotype buffer, false for no memory buffer
+		CGenoReadBySNP WS(Space, IncSNP, false);
+
 		// for-loop
 		for (iteration=0; iteration <= IterNum; iteration++)
 		{
-			for (iSNP=0; iSNP < nSNP; )
+			WS.Init();
+			while (WS.Read(Geno.Get(), iSNP))
 			{
-				// read genotypes
-				size_t inc_snp = nSNP - iSNP;
-				if (inc_snp > IncSNP) inc_snp = IncSNP;
-				Space.snpRead(iSNP, inc_snp, Geno.Get(), RDim_Sample_X_SNP);
-				vec_u8_geno_valid(Geno.Get(), inc_snp*nSamp);
-
 				// need to initialize the variable LookupY
 				if (iteration == 0)
-					thpool.BatchWork(this, &CRandomPCA::thread_lookup_y, inc_snp);
+					thpool.BatchWork(this, &CRandomPCA::thread_lookup_y, WS.Count());
 
 				// update H_i = Y * G_i (G_i stored in AuxMat)
-				thpool.BatchWork(this, &CRandomPCA::thread_Y_x_G_i, inc_snp);
+				thpool.BatchWork(this, &CRandomPCA::thread_Y_x_G_i, WS.Count());
 
 				// update
-				Progress.Forward(inc_snp);
-				iSNP += inc_snp;
+				Progress.Forward(WS.Count());
 			}
 
 			// update G_{i+1} = Y^T * H_i / nSNP
@@ -1063,16 +1058,12 @@ public:
 			{
 				memset(AuxMat, 0, sizeof(double)*AuxDim*nSamp);
 				memset(AuxMat_mc.Get(), 0, sizeof(double)*AuxMat_mc.Length());
-				// for-loop
-				for (iSNP=0; iSNP < nSNP; )
-				{
-					// read genotypes
-					size_t inc_snp = nSNP - iSNP;
-					if (inc_snp > IncSNP) inc_snp = IncSNP;
-					Space.snpRead(iSNP, inc_snp, Geno.Get(), RDim_Sample_X_SNP);
 
+				WS.Init();
+				while (WS.Read(Geno.Get(), iSNP))
+				{
 					// update G_{i+1} = Y^T * H_i
-					thpool.Split(NumThread, inc_snp, &thread_start[0], &thread_length[0]);
+					thpool.Split(NumThread, WS.Count(), &thread_start[0], &thread_length[0]);
 					thpool.BatchWork(this, &CRandomPCA::thread_YT_x_H_i, NumThread);
 
 					if (NumThread > 1)
@@ -1084,8 +1075,7 @@ public:
 					}
 
 					// update
-					Progress.Forward(inc_snp);
-					iSNP += inc_snp;
+					Progress.Forward(WS.Count());
 				}
 
 				// divide AuxMat by nSNP
@@ -1104,18 +1094,14 @@ public:
 		memset(MatT.Get(), 0, sizeof(double)*MatT.Length());
 
 		// for-loop
-		for (iSNP=0; iSNP < nSNP; )
+		WS.Init();
+		while (WS.Read(Geno.Get(), iSNP))
 		{
-			// read genotypes
-			size_t inc_snp = nSNP - iSNP;
-			if (inc_snp > IncSNP) inc_snp = IncSNP;
-			Space.snpRead(iSNP, inc_snp, Geno.Get(), RDim_Sample_X_SNP);
-
 //			thpool.Split(1, inc_snp, &thread_start[0], &thread_length[0]);
 //			CRandomPCA::thread_U_H_x_Y(0, 1);
 
 			// update T = U_H^T * Y
-			thpool.Split(1, inc_snp, &thread_start[0], &thread_length[0]);
+			thpool.Split(1, WS.Count(), &thread_start[0], &thread_length[0]);
 			thpool.BatchWork(this, &CRandomPCA::thread_U_H_x_Y, 1);
 
 /*			if (NumThread > 1)
@@ -1126,8 +1112,6 @@ public:
 					vec_f64_add(&MatT[0], &MatT[i * n], n);
 			}
 */
-			// update
-			iSNP += inc_snp;
 		}
 
 		vector<double> sigma(nSamp);

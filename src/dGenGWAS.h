@@ -271,6 +271,38 @@ namespace GWAS
 
 	// ===================================================================== //
 
+	/// the buffer object for SNP genotypes
+	class COREARRAY_DLL_LOCAL CGenoReadBySNP
+	{
+	public:
+		CGenoReadBySNP(CdBaseWorkSpace &space, size_t MaxCntSNP, bool load);
+		~CGenoReadBySNP();
+
+		void Init();
+		bool Read(C_UInt8 *OutGeno);
+		bool Read(C_UInt8 *OutGeno, size_t &OutIdxSNP);
+
+		void PRead(C_Int32 SnpStart, C_Int32 SnpCount, C_UInt8 *OutGeno);
+
+		inline size_t Index() const { return fIndex; }
+		inline size_t Count() const { return fCount; }
+		inline size_t TotalCount() const { return fTotalCount; }
+
+	protected:
+		CdBaseWorkSpace &fSpace;
+		C_UInt8 *fBuffer;
+		size_t fIndex;  /// the current SNP index
+		size_t fCount;  /// the current SNP count
+		size_t fMaxCount;  /// the max count for each SNP read
+		size_t fTotalCount;  /// the number of selected SNPs
+	};
+
+
+	COREARRAY_DLL_LOCAL C_UInt8 *PackSNPGeno2b(C_UInt8 *p, const C_UInt8 *s, size_t n);
+
+
+	// ===================================================================== //
+
 	/// Four SNP genotypes are packed into one byte
 	/** (s7,s6,s5,s4,s3,s2,s1,s0):
 	 *    genotype 1: (s1,s0), genotype 2: (s3,s2),

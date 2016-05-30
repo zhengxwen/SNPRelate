@@ -1080,6 +1080,151 @@ void CdBufSpace::_RequireIdx(long idx)
 
 // ===================================================================== //
 
+CGenoReadBySNP::CGenoReadBySNP(CdBaseWorkSpace &space, size_t MaxCntSNP,
+	bool load): fSpace(space)
+{
+	if (load)
+	{
+		const size_t nSamp = fSpace.SampleNum();
+		const size_t nSNP  = fSpace.SNPNum();
+		const size_t nPack = (nSamp >> 2) + ((nSamp & 0x03) ? 1 : 0);
+		fTotalCount = nSNP;
+
+		fBuffer = new C_UInt8[nPack * nSNP];
+		vector<C_UInt8> Geno(256*nSamp);
+
+		C_UInt8 *p = fBuffer;
+		for (size_t i=0; i < nSNP; )
+		{
+			size_t inc_snp = nSNP - i;
+			if (inc_snp > 256) inc_snp = 256;
+
+			C_UInt8 *s = &Geno[0];
+			fSpace.snpRead(i, inc_snp, s, RDim_Sample_X_SNP); // read genotypes
+			i += inc_snp;
+
+			for (size_t j=0; j < inc_snp; j++)
+			{
+				p = PackSNPGeno2b(p, s, nSamp);
+				s += nSamp;
+			}
+		}
+	} else {
+		fBuffer = NULL;
+		fTotalCount = fSpace.SNPNum();
+	}
+
+	fIndex = fCount = 0;
+	if (MaxCntSNP <= 0) MaxCntSNP = 1;
+	fMaxCount = MaxCntSNP;
+}
+
+CGenoReadBySNP::~CGenoReadBySNP()
+{
+	if (fBuffer) delete []fBuffer;
+	fBuffer = NULL;
+}
+
+void CGenoReadBySNP::Init()
+{
+	fIndex = fCount = 0;
+}
+
+bool CGenoReadBySNP::Read(C_UInt8 *OutGeno)
+{
+	fIndex += fCount;
+	if (fIndex < fTotalCount)
+	{
+		size_t n = fTotalCount - fIndex;
+		if (n > fMaxCount) n = fMaxCount;
+		fCount = n;
+		PRead(fIndex, n, OutGeno);
+		return true;
+	} else
+		return false;
+}
+
+bool CGenoReadBySNP::Read(C_UInt8 *OutGeno, size_t &OutIdxSNP)
+{
+	fIndex += fCount;
+	if (fIndex < fTotalCount)
+	{
+		OutIdxSNP = fIndex;
+		size_t n = fTotalCount - fIndex;
+		if (n > fMaxCount) n = fMaxCount;
+		fCount = n;
+		PRead(fIndex, n, OutGeno);
+		return true;
+	} else
+		return false;
+}
+
+void CGenoReadBySNP::PRead(C_Int32 SnpStart, C_Int32 SnpCount,
+	C_UInt8 *OutGeno)
+{
+	if (fBuffer)
+	{
+		const size_t nSamp = fSpace.SampleNum();
+		const size_t nPack = nSamp >> 2;
+		const size_t nRe   = nSamp & 0x03;
+
+		const C_UInt8 *s = fBuffer + (nPack + (nRe ? 1 : 0)) * SnpStart;
+		C_UInt8 *p = OutGeno;
+		for (C_Int32 i=0; i < SnpCount; i++)
+		{
+			for (size_t n=nPack; n > 0; n--)
+			{
+				C_UInt8 g = *s++;
+				p[0] = g & 0x03; p[1] = (g >> 2) & 0x03;
+				p[2] = (g >> 4) & 0x03; p[3] = (g >> 6) & 0x03;
+				p += 4;
+			}
+			if (nRe > 0)
+			{
+				C_UInt8 g = *s++;
+				for (size_t n=nRe; n > 0; n--)
+				{
+					*p++ = g & 0x03; g >>= 2;
+				}
+			}
+		}
+	} else {
+		fSpace.snpRead(SnpStart, SnpCount, OutGeno, RDim_Sample_X_SNP);
+		const size_t nSamp = fSpace.SampleNum();
+		vec_u8_geno_valid(OutGeno, SnpCount*nSamp);
+	}
+}
+
+
+// ===================================================================== //
+
+C_UInt8 *GWAS::PackSNPGeno2b(C_UInt8 *p, const C_UInt8 *s, size_t n)
+{
+	for (size_t m=(n >> 2); m > 0; m--)
+	{
+		*p++ =
+			((s[0] < 4) ? s[0] : 3) | (((s[1] < 4) ? s[1] : 3) << 2) |
+			(((s[2] < 4) ? s[2] : 3) << 4) | (((s[3] < 4) ? s[3] : 3) << 6);
+		s += 4;
+	}
+
+	switch (n & 0x03)
+	{
+	case 1:
+		*p++ = ((s[0] < 4) ? s[0] : 3) | 0xFC;
+		break;
+	case 2:
+		*p++ = ((s[0] < 4) ? s[0] : 3) | (((s[0] < 4) ? s[1] : 3) << 2) | 0xF0;
+		break;
+	case 3:
+		*p++ = ((s[0] < 4) ? s[0] : 3) | (((s[1] < 4) ? s[1] : 3) << 2) |
+			(((s[2] < 4) ? s[2] : 3) << 4) | 0xC0;
+		break;
+	}
+
+	return p;
+}
+
 C_UInt8 *GWAS::PackGeno2b(const C_UInt8 *src, size_t cnt, C_UInt8 *dest)
 {
 	for (size_t n=(cnt >> 2); n > 0; n--)

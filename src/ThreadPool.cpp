@@ -456,10 +456,10 @@ void CThreadPool::BatchWork(TProc proc, size_t n, void *ptr)
 					size_t u = n - i;
 					if (u > m) u = m;
 					tasks.push(TProcData(proc, i, u, ptr));
-					thread_wait_cond.Signal();
 					i += u;
 				}
 			}
+			thread_wait_cond.Broadcast();
 			Wait();
 		}
 	}

@@ -14,8 +14,7 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL,
     eigen.cnt=ifelse(identical(algorithm, "randomized"), 16L, 32L),
     num.thread=1L, bayesian=FALSE, need.genmat=FALSE,
     genmat.only=FALSE, eigen.method=c("DSPEVX", "DSPEV"),
-    covalg=c("arith", "bitops"), aux.dim=eigen.cnt*2L, iter.num=10L,
-    verbose=TRUE)
+    aux.dim=eigen.cnt*2L, iter.num=10L, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -46,8 +45,6 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL,
         compatible with SNPRelate_1.1.6 or earlier, using LAPACK::DSPEV;
         "DSPEVX" is significantly faster than "DSPEV" if only top principal
         components are of interest}
-    \item{covalg}{"arith" -- arithmetic operation with SSE/AVX for covariance
-        calculation; "bitops" -- bit manipulation with a lookup table}
     \item{aux.dim}{auxiliary dimension used in fast randomized algorithm}
     \item{iter.num}{iteration number used in fast randomized algorithm}
     \item{verbose}{if TRUE, show information}
