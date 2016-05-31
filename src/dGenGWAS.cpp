@@ -1077,18 +1077,117 @@ void CdBufSpace::_RequireIdx(long idx)
 }
 
 
+// ===================================================================== //
+
+CProgress::CProgress()
+{
+	fTotalCount = 0;
+	fCounter = 0;
+}
+
+CProgress::CProgress(C_Int64 count)
+{
+	fTotalCount = 0;
+	fCounter = 0;
+	Reset(count);
+}
+
+void CProgress::Reset(C_Int64 count)
+{
+	bool flag = (fTotalCount==0) || (fCounter > 0);
+	fTotalCount = count;
+	fCounter = 0;
+	if (count > 0)
+	{
+		int n = 100;
+		if (n > count) n = count;
+		if (n < 1) n = 1;
+		_start = _step = (double)count / n;
+		_hit = (C_Int64)(_start);
+		double percent = (double)fCounter / count;
+		time_t s; time(&s);
+		_timer.clear();
+		_timer.reserve(128);
+		_timer.push_back(pair<double, time_t>(percent, s));
+		if (flag) ShowProgress();
+	}
+}
+
+void CProgress::Forward(C_Int64 val)
+{
+	if (fTotalCount > 0)
+	{
+		fCounter += val;
+		if (fCounter >= _hit)
+		{
+			do {
+				_start += _step;
+				_hit = (C_Int64)(_start);
+			} while (fCounter >= _hit);
+			ShowProgress();
+		}
+	}
+}
+
+void CProgress::ShowProgress()
+{
+	if (fTotalCount > 0)
+	{
+		char ss[ProgressBarNumChar + 1];
+		double percent = (double)fCounter / fTotalCount;
+		int n = (int)round(percent * ProgressBarNumChar);
+		memset(ss, '.', sizeof(ss));
+		memset(ss, '=', n);
+		if (n < ProgressBarNumChar) ss[n] = '>';
+		ss[ProgressBarNumChar] = 0;
+
+		// ETC: estimated time to complete
+		n = (int)_timer.size() - 20;  // 20% as a sliding window size
+		if (n < 0) n = 0;
+		time_t now; time(&now);
+		_timer.push_back(pair<double, time_t>(percent, now));
+
+		double sec = difftime(now, _timer[n].second);
+		double diff = percent - _timer[n].first;
+		if (diff > 0)
+			sec = sec / diff * (1 - percent);
+		else
+			sec = 999.9 * 60 * 60;
+		percent *= 100;
+
+		// show
+		if (sec < 60)
+		{
+			if (fCounter >= fTotalCount)
+				Rprintf("\r[%s] 100%%, completed  \n", ss);
+			else
+				Rprintf("\r[%s] %2.0f%%, ETC: %.0fs  ", ss, percent, sec);
+		} else if (sec < 3600)
+		{
+			Rprintf("\r[%s] %2.0f%%, ETC: %.1fm  ", ss, percent, sec/60);
+		} else {
+			if (sec >= 999.9 * 60 * 60)
+				Rprintf("\r[%s] %2.0f%%, ETC: NA    ", ss, percent);
+			else
+				Rprintf("\r[%s] %2.0f%%, ETC: %.1fh  ", ss, percent, sec/(60*60));
+		}
+	}
+}
+
 
 // ===================================================================== //
 
-CGenoReadBySNP::CGenoReadBySNP(CdBaseWorkSpace &space, size_t MaxCntSNP,
-	bool load): fSpace(space)
+CGenoReadBySNP::CGenoReadBySNP(CdBaseWorkSpace &space, size_t max_cnt_snp,
+	C_Int64 progress_count, bool load, TTypeGenoDim dim): fSpace(space)
 {
+	fTotalCount = fSpace.SNPNum();
+	fProgress.Reset(progress_count < 0 ? fTotalCount : progress_count);
+
 	if (load)
 	{
 		const size_t nSamp = fSpace.SampleNum();
 		const size_t nSNP  = fSpace.SNPNum();
 		const size_t nPack = (nSamp >> 2) + ((nSamp & 0x03) ? 1 : 0);
-		fTotalCount = nSNP;
 
 		fBuffer = new C_UInt8[nPack * nSNP];
 		vector<C_UInt8> Geno(256*nSamp);
@@ -1111,12 +1210,12 @@ CGenoReadBySNP::CGenoReadBySNP(CdBaseWorkSpace &space, size_t MaxCntSNP,
 		}
 	} else {
 		fBuffer = NULL;
-		fTotalCount = fSpace.SNPNum();
 	}
 
 	fIndex = fCount = 0;
-	if (MaxCntSNP <= 0) MaxCntSNP = 1;
-	fMaxCount = MaxCntSNP;
+	if (max_cnt_snp <= 0) max_cnt_snp = 1;
+	fMaxCount = max_cnt_snp;
+	fDim = dim;
 }
 
 CGenoReadBySNP::~CGenoReadBySNP()
@@ -1189,9 +1288,8 @@ void CGenoReadBySNP::PRead(C_Int32 SnpStart, C_Int32 SnpCount,
 			}
 		}
 	} else {
-		fSpace.snpRead(SnpStart, SnpCount, OutGeno, RDim_Sample_X_SNP);
-		const size_t nSamp = fSpace.SampleNum();
-		vec_u8_geno_valid(OutGeno, SnpCount*nSamp);
+		fSpace.snpRead(SnpStart, SnpCount, OutGeno, fDim);
+		vec_u8_geno_valid(OutGeno, SnpCount*size_t(fSpace.SampleNum()));
 	}
 }
 
@@ -1224,6 +1322,56 @@ C_UInt8 *GWAS::PackSNPGeno2b(C_UInt8 *p, const C_UInt8 *s, size_t n)
 
 	return p;
 }
+
+void GWAS::PackSNPGeno1b(C_UInt8 *p1, C_UInt8 *p2, const C_UInt8 *s,
+	size_t n, size_t offset, size_t n_total)
+{
+	#define GENO(g)  ((g < 4) ? g : 3)
+	static C_UInt8 b1[4] = { 0, 1, 1, 0 };  // 0: 0,0; 1: 1,0; 2: 1,1; NA: 0,1
+	static C_UInt8 b2[4] = { 0, 0, 1, 1 };
+
+	for (size_t m=(n >> 3); m > 0; m--)
+	{
+		size_t i0 = GENO(*s); s += offset;
+		size_t i1 = GENO(*s); s += offset;
+		size_t i2 = GENO(*s); s += offset;
+		size_t i3 = GENO(*s); s += offset;
+		size_t i4 = GENO(*s); s += offset;
+		size_t i5 = GENO(*s); s += offset;
+		size_t i6 = GENO(*s); s += offset;
+		size_t i7 = GENO(*s); s += offset;
+
+		*p1++ = b1[i0] | (b1[i1] << 1) | (b1[i2] << 2) | (b1[i3] << 3) |
+			(b1[i4] << 4) | (b1[i5] << 5) | (b1[i6] << 6) | (b1[i7] << 7);
+		*p2++ = b2[i0] | (b2[i1] << 1) | (b2[i2] << 2) | (b2[i3] << 3) |
+			(b2[i4] << 4) | (b2[i5] << 5) | (b2[i6] << 6) | (b2[i7] << 7);
+	}
+
+	if (n & 0x07)
+	{
+		C_UInt8 g1=0, g2=0, miss=0xFF, shift=0;
+		for (size_t m=(n & 0x07); m > 0; m--)
+		{
+			size_t ii = GENO(*s); s += offset;
+			g1 |= b1[ii] << shift;
+			g2 |= b2[ii] << shift;
+			shift ++;
+			miss <<= 1;
+		}
+		*p1++ = g1; *p2++ = g2 | miss;
+	}
+
+	ssize_t nn = ((n >> 3) + ((n & 0x07) ? 1 : 0)) << 3;
+	for (nn = ssize_t(n_total) - nn; nn > 0; nn -= 8)
+	{
+		*p1 ++ = 0;
+		*p2 ++ = 0xFF;
+	}
+
+	#undef GENO
+}
+
+
 
 C_UInt8 *GWAS::PackGeno2b(const C_UInt8 *src, size_t cnt, C_UInt8 *dest)
 {
@@ -1918,7 +2066,6 @@ void CMultiCoreWorkingGeno::_DoThread_WorkingGeno(PdThread Thread,
 
 // ===================================================================== //
 
-int       GWAS::OpenMP_Num_Threads = 1;
 IdMatTri  GWAS::Array_Thread_MatIdx[N_MAX_THREAD];
 IdMatTriD GWAS::Array_Thread_MatIdxD[N_MAX_THREAD];
 C_Int64   GWAS::Array_Thread_MatCnt[N_MAX_THREAD];
@@ -2024,6 +2171,21 @@ void GWAS::DetectOptimizedNumOfSNP(int nSamp, size_t atleast)
 	if (BlockNumSNP < 16) BlockNumSNP = 16;
 }
 
+size_t GWAS::GetOptimzedCache()
+{
+	C_UInt64 L1Cache = GDS_Mach_GetCPULevelCache(1);
+	if (L1Cache <= 0)
+		L1Cache = 32*1024;
+	C_UInt64 L2Cache = GDS_Mach_GetCPULevelCache(2);
+	C_UInt64 L3Cache = GDS_Mach_GetCPULevelCache(3);
+	C_UInt64 Cache = (L2Cache > L3Cache) ? L2Cache : L3Cache;
+	if (Cache <= 0)
+		Cache = 1024*1024; // 1M
+	Cache -= (Cache == L3Cache) ? L2Cache : 4*L1Cache;
+	return Cache;
+}
+
+
 
 vector<C_UInt8> GWAS::Array_PackedGeno;
 vector<double>  GWAS::Array_AlleleFreq;
@@ -2072,92 +2234,5 @@ void CSummary_AvgSD::CalcAvgSD()
 		}
 	} else {
 		Avg = SD = R_NaN;
-	}
-}
-
-
-// ===========================================================
-
-CProgress::CProgress(C_Int64 count)
-{
-	fTotalCount = count;
-	fCounter = 0;
-
-	if (count > 0)
-	{
-		int n = 100;
-		if (n > count) n = count;
-		if (n < 1) n = 1;
-		_start = _step = (double)count / n;
-		_hit = (C_Int64)(_start);
-		double percent = (double)fCounter / count;
-		time_t s; time(&s);
-		_timer.reserve(128);
-		_timer.push_back(pair<double, time_t>(percent, s));
-		ShowProgress();
-	}
-}
-
-CProgress::~CProgress()
-{ }
-
-void CProgress::Forward(C_Int64 val)
-{
-	if (fTotalCount > 0)
-	{
-		fCounter += val;
-		if (fCounter >= _hit)
-		{
-			do {
-				_start += _step;
-				_hit = (C_Int64)(_start);
-			} while (fCounter >= _hit);
-			ShowProgress();
-		}
-	}
-}
-
-void CProgress::ShowProgress()
-{
-	if (fTotalCount > 0)
-	{
-		char ss[ProgressBarNumChar + 1];
-		double percent = (double)fCounter / fTotalCount;
-		int n = (int)round(percent * ProgressBarNumChar);
-		memset(ss, '.', sizeof(ss));
-		memset(ss, '=', n);
-		if (n < ProgressBarNumChar) ss[n] = '>';
-		ss[ProgressBarNumChar] = 0;
-
-		// ETC: estimated time to complete
-		n = (int)_timer.size() - 20;  // 20% as a sliding window size
-		if (n < 0) n = 0;
-		time_t now; time(&now);
-		_timer.push_back(pair<double, time_t>(percent, now));
-
-		double sec = difftime(now, _timer[n].second);
-		double diff = percent - _timer[n].first;
-		if (diff > 0)
-			sec = sec / diff * (1 - percent);
-		else
-			sec = 999.9 * 60 * 60;
-		percent *= 100;
-
-		// show
-		if (sec < 60)
-		{
-			if (fCounter >= fTotalCount)
-				Rprintf("\r[%s] 100%%, completed  \n", ss);
-			else
-				Rprintf("\r[%s] %2.0f%%, ETC: %.0fs  ", ss, percent, sec);
-		} else if (sec < 3600)
-		{
-			Rprintf("\r[%s] %2.0f%%, ETC: %.1fm  ", ss, percent, sec/60);
-		} else {
-			if (sec >= 999.9 * 60 * 60)
-				Rprintf("\r[%s] %2.0f%%, ETC: NA    ", ss, percent);
-			else
-				Rprintf("\r[%s] %2.0f%%, ETC: %.1fh  ", ss, percent, sec/(60*60));
-		}
 	}
 }

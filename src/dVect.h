@@ -419,6 +419,61 @@ namespace Vectorization
 	// ===========================================================
 
 #ifdef COREARRAY_SIMD_SSE2
+#   ifdef __SSE4_1__
+#       define MM_MUL_LO_EPI32(dst, a, b)  dst = _mm_mullo_epi32(a, b)
+#   else
+#       define MM_MUL_LO_EPI32(dst, a, b)  \
+        {  \
+            __m128i i1 = _mm_mul_epu32(a, b);  \
+            __m128i i2 = _mm_mul_epu32(_mm_srli_si128(a, 4), _mm_srli_si128(b, 4));  \
+            dst = _mm_unpacklo_epi32(_mm_shuffle_epi32(i1, _MM_SHUFFLE (0,0,2,0)),  \
+                _mm_shuffle_epi32(i2, _MM_SHUFFLE (0,0,2,0)));  \
+        }
+#   endif
+#endif
+
+
+	// ===========================================================
+
+	inline static int POPCNT_U32(C_UInt32 x)
+	{
+		x = x - ((x >> 1) & 0x55555555);
+		x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
+		return (((x + (x >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+	}
+
+	inline static int POPCNT_U64(C_UInt64 x)
+	{
+		x -= ((x >> 1) & 0x5555555555555555LLU);
+		x = (x & 0x3333333333333333LLU) + ((x >> 2) & 0x3333333333333333LLU);
+		x = (x + (x >> 4)) & 0x0F0F0F0F0F0F0F0FLLU;
+		return (x * 0x0101010101010101LLU) >> 56;
+	}
+
+
+#ifdef COREARRAY_SIMD_SSE2
+
+	#define POPCNT_SSE2_HEAD    \
+		__m128i pop_sse_5 = _mm_set1_epi32(0x55555555);  \
+		__m128i pop_sse_3 = _mm_set1_epi32(0x33333333);  \
+		__m128i pop_sse_f = _mm_set1_epi32(0x0F0F0F0F);  \
+		__m128i pop_sse_1 = _mm_set1_epi32(0x01010101);
+
+	#define POPCNT_SSE2_RUN(x)    \
+		x = _mm_sub_epi32(x, _mm_and_si128(_mm_srli_epi32(x, 1), pop_sse_5));  \
+		x = _mm_add_epi32(_mm_and_si128(x, pop_sse_3),  \
+			_mm_and_si128(_mm_srli_epi32(x, 2), pop_sse_3));  \
+		x = _mm_and_si128(_mm_add(x, _mm_srli_epi32(x, 4)), pop_sse_f);  \
+		MM_MUL_LO_EPI32(x, x, pop_sse_1);  \
+		x = _mm_srli_epi32(x, 24);
+
+#endif
+
+
+
+	// ===========================================================
+
+#ifdef COREARRAY_SIMD_SSE2
 	inline static double vec_sum(__m128d s)
 	{
 		return _mm_cvtsd_f64(_mm_add_pd(s, _mm_shuffle_pd(s, s, 1)));

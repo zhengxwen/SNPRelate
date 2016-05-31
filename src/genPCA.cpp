@@ -26,9 +26,9 @@
 // CoreArray library header
 #include <dGenGWAS.h>
 #include <dVect.h>
-#include <R_ext/Lapack.h>
 #include <ThreadPool.h>
 
+#include <R_ext/Lapack.h>
 // Standard library header
 #include <cmath>
 #include <memory>
@@ -252,15 +252,7 @@ namespace PCA
 		/// detect the effective value for BlockNumSNP
 		static void PCA_Detect_BlockNumSNP(int nSamp)
 		{
-			C_UInt64 L1Cache = GDS_Mach_GetCPULevelCache(1);
-			if (L1Cache <= 0)
-				L1Cache = 32*1024;
-			C_UInt64 L2Cache = GDS_Mach_GetCPULevelCache(2);
-			C_UInt64 L3Cache = GDS_Mach_GetCPULevelCache(3);
-			C_UInt64 Cache = (L2Cache > L3Cache) ? L2Cache : L3Cache;
-			if (Cache <= 0)
-				Cache = 1024*1024; // 1M
-			Cache -= (Cache == L3Cache) ? L2Cache : 4*L1Cache;
+			size_t Cache = GetOptimzedCache();
 			BlockNumSNP = Cache / (sizeof(double)*nSamp);
 			BlockNumSNP = (BlockNumSNP / 4) * 4;
 			if (BlockNumSNP < 16) BlockNumSNP = 16;
@@ -707,7 +699,6 @@ public:
 	{
 		if (NumThread < 1) NumThread = 1;
 		const size_t nSamp = Space.SampleNum();
-		const size_t nSNP  = Space.SNPNum();
 
 		// detect the appropriate block size
 		PCA_Detect_BlockNumSNP(nSamp);
@@ -731,11 +722,8 @@ public:
 		VEC_AUTO_PTR<C_UInt8> Geno(nSamp * BlockNumSNP);
 		C_UInt8 *pGeno = Geno.Get();
 
-		// progress bar
-		CProgress Progress(verbose ? nSNP : 0);
-
 		// genotype buffer, false for no memory buffer
-		CGenoReadBySNP WS(Space, BlockNumSNP, false);
+		CGenoReadBySNP WS(Space, BlockNumSNP, verbose ? -1 : 0, false);
 
 		// for-loop
 		WS.Init();
@@ -786,7 +774,7 @@ public:
 			thpool.BatchWork(this, &CExactPCA::thread_cov_outer, NumThread);
 
 			// update
-			Progress.Forward(WS.Count());
+			WS.ProgressForward(WS.Count());
 		}
 	}
 };
@@ -1030,11 +1018,10 @@ public:
 
 		// thread thpool
 		CThreadPoolEx<CRandomPCA> thpool(NumThread);
-		// progress bar
-		CProgress Progress(verbose ? C_Int64(nSNP)*(2*IterNum + 1) : 0);
 
 		// genotype buffer, false for no memory buffer
-		CGenoReadBySNP WS(Space, IncSNP, false);
+		CGenoReadBySNP WS(Space, IncSNP,
+			verbose ? C_Int64(nSNP)*(2*IterNum + 1) : 0, false);
 
 		// for-loop
 		for (iteration=0; iteration <= IterNum; iteration++)
@@ -1050,7 +1037,7 @@ public:
 				thpool.BatchWork(this, &CRandomPCA::thread_Y_x_G_i, WS.Count());
 
 				// update
-				Progress.Forward(WS.Count());
+				WS.ProgressForward(WS.Count());
 			}
 
 			// update G_{i+1} = Y^T * H_i / nSNP
@@ -1075,7 +1062,7 @@ public:
 					}
 
 					// update
-					Progress.Forward(WS.Count());
+					WS.ProgressForward(WS.Count());
 				}
 
 				// divide AuxMat by nSNP

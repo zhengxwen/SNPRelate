@@ -268,6 +268,30 @@ namespace GWAS
 	};
 
 
+	// ===================================================================== //
+
+ 	/// Progress object
+	class COREARRAY_DLL_LOCAL CProgress
+	{
+	public:
+		/// the number of characters in the progress bar
+		static const int ProgressBarNumChar = 50;
+
+		CProgress();
+		CProgress(C_Int64 count);
+
+		void Reset(C_Int64 count);
+		void Forward(C_Int64 val);
+		void ShowProgress();
+
+	protected:
+		C_Int64 fTotalCount;  ///< the total number
+		C_Int64 fCounter;  ///< the current counter
+		double _start, _step;
+		C_Int64 _hit;
+		vector< pair<double, time_t> > _timer;
+	};
+
 
 	// ===================================================================== //
 
@@ -275,22 +299,28 @@ namespace GWAS
 	class COREARRAY_DLL_LOCAL CGenoReadBySNP
 	{
 	public:
-		CGenoReadBySNP(CdBaseWorkSpace &space, size_t MaxCntSNP, bool load);
+		CGenoReadBySNP(CdBaseWorkSpace &space, size_t max_cnt_snp,
+			C_Int64 progress_count, bool load,
+			TTypeGenoDim dim=RDim_Sample_X_SNP);
 		~CGenoReadBySNP();
 
 		void Init();
 		bool Read(C_UInt8 *OutGeno);
 		bool Read(C_UInt8 *OutGeno, size_t &OutIdxSNP);
-
 		void PRead(C_Int32 SnpStart, C_Int32 SnpCount, C_UInt8 *OutGeno);
+
+		inline void ProgressForward(C_Int64 val) { fProgress.Forward(val); }
 
 		inline size_t Index() const { return fIndex; }
 		inline size_t Count() const { return fCount; }
 		inline size_t TotalCount() const { return fTotalCount; }
+		inline CProgress &Progress() { return fProgress; }
 
 	protected:
 		CdBaseWorkSpace &fSpace;
+		CProgress fProgress;
 		C_UInt8 *fBuffer;
+		TTypeGenoDim fDim;
 		size_t fIndex;  /// the current SNP index
 		size_t fCount;  /// the current SNP count
 		size_t fMaxCount;  /// the max count for each SNP read
@@ -298,7 +328,24 @@ namespace GWAS
 	};
 
 
-	COREARRAY_DLL_LOCAL C_UInt8 *PackSNPGeno2b(C_UInt8 *p, const C_UInt8 *s, size_t n);
+	/// Four SNP genotypes are packed into one byte
+	/** (s7,s6,s5,s4,s3,s2,s1,s0):
+	 *    genotype 1: (s1,s0), genotype 2: (s3,s2),
+	 *    genotype 3: (s5,s4), genotype 4: (s7,s6)
+	**/
+	COREARRAY_DLL_LOCAL C_UInt8 *PackSNPGeno2b(C_UInt8 *p, const C_UInt8 *s,
+		size_t n);
+
+	/// Eight SNP genotypes are packed into two bytes
+	/** (s7,s6,s5,s4,s3,s2,s1,s0):
+	 *    genotype 1: (p1.s0,p2.s0), genotype 2: (p1.s1,p2.s1),
+	 *    genotype 3: (p1.s2,p2.s2), genotype 4: (p1.s3,p2.s3),
+	 *    genotype 5: (p1.s4,p2.s4), genotype 6: (p1.s5,p2.s5),
+	 *    genotype 7: (p1.s6,p2.s6), genotype 8: (p1.s7,p2.s7)
+	**/
+	COREARRAY_DLL_LOCAL void PackSNPGeno1b(C_UInt8 *p1, C_UInt8 *p2,
+		const C_UInt8 *s, size_t n, size_t offset, size_t n_total);
+
 
 
 	// ===================================================================== //
@@ -707,8 +754,6 @@ namespace GWAS
 	/// Thread variables
 	const int N_MAX_THREAD = 256;
 
-	extern int OpenMP_Num_Threads;
-
 	extern IdMatTri  Array_Thread_MatIdx[N_MAX_THREAD];
 	extern IdMatTriD Array_Thread_MatIdxD[N_MAX_THREAD];
 	extern C_Int64   Array_Thread_MatCnt[N_MAX_THREAD];
@@ -761,37 +806,14 @@ namespace GWAS
 	void DetectOptimizedNumOfSNP(int nSamp, size_t atleast);
 
 
+	size_t GetOptimzedCache();
+
+
+
 	/// The packed genotype buffer
 	extern vector<C_UInt8> Array_PackedGeno;
 	/// The allele frequencies
 	extern vector<double> Array_AlleleFreq;
-
-
-
-	// ===================================================================== //
-
- 	/// Progress object
-	class COREARRAY_DLL_LOCAL CProgress
-	{
-	public:
-		/// the number of characters in the progress bar
-		static const int ProgressBarNumChar = 50;
-
-		CProgress(C_Int64 count);
-		~CProgress();
-
-		void Forward(C_Int64 val);
-		void ShowProgress();
-
-	protected:
-		C_Int64 fTotalCount;  ///< the total number
-		C_Int64 fCounter;  ///< the current counter
-		bool fVerbose;
-		double _start, _step;
-		C_Int64 _hit;
-		vector< pair<double, time_t> > _timer;
-	};
-
 }
 
 #endif /* _HEADER_GWAS_ */
