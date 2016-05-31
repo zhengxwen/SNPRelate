@@ -62,17 +62,6 @@ namespace IBS
 	C_UInt8 Gen_Both_Valid[PACKED_SIZE];
 
 
-	//================    KING robust estimator    ================//
-	/// The square value of genotype difference, (X_m^{(i)} - X_m^{(j)})^2
-	C_UInt8 Gen_KING_SqDiff[PACKED_SIZE];
-	/// N1_Aa requiring both genotypes are available
-	C_UInt8 Gen_KING_N1_Aa[PACKED_SIZE];
-	/// N2_Aa requiring both genotypes are available
-	C_UInt8 Gen_KING_N2_Aa[PACKED_SIZE];
-	/// the number of valid loci
-	C_UInt8 Gen_KING_Num_Loci[PACKED_SIZE];
-
-
 	/// The packed genotype buffer
 	vector<C_UInt8> GenoPacked;
 	/// The allele frequencies
@@ -80,12 +69,12 @@ namespace IBS
 
 
 	/// The structure of IBS states
-	struct TS_IBS
+	struct TIBS
 	{
 		C_UInt32 IBS0;  //< the number of loci sharing no allele
 		C_UInt32 IBS1;  //< the number of loci sharing only one allele
 		C_UInt32 IBS2;  //< the number of loci sharing two alleles
-		TS_IBS() { IBS0 = IBS1 = IBS2 = 0; }
+		TIBS() { IBS0 = IBS1 = IBS2 = 0; }
 	};
 
 
@@ -150,77 +139,18 @@ namespace IBS
 		if (BlockNumSNP < 16) BlockNumSNP = 16;
 	}
 
-	/// Convert the raw genotypes
-	static void _Do_IBS_ReadBlock(C_UInt8 *GenoBuf, long Start,
-		long SNP_Cnt, void* Param)
-	{
-		// initialize
-		const int nSamp = MCWorkingGeno.Space().SampleNum();
-		C_UInt8 *pG = GenoBuf;
-		C_UInt8 *pPack = &GenoPacked[0];
-
-		// pack genotypes
-		for (long iSamp=0; iSamp < nSamp; iSamp++)
-		{
-			pPack = PackGeno2b(pG, SNP_Cnt, pPack);
-			pG += SNP_Cnt;
-		}
-	}
-
-	/// Compute the pairwise IBS matrix for PLINK
-	static void _Do_PLINKIBS_Compute(int ThreadIndex, long Start,
-		long SNP_Cnt, void* Param)
-	{
-		C_Int64 Cnt = Array_Thread_MatCnt[ThreadIndex];
-		IdMatTriD I = Array_Thread_MatIdxD[ThreadIndex];
-		TS_IBS *p = ((TS_IBS*)Param) + I.Offset();
-		long _PackSNPLen = (SNP_Cnt / 4) + (SNP_Cnt % 4 ? 1 : 0);
-
-		for (; Cnt > 0; Cnt--, ++I, p++)
-		{
-			C_UInt8 *p1 = &GenoPacked[0] + I.Row()*_PackSNPLen;
-			C_UInt8 *p2 = &GenoPacked[0] + I.Column()*_PackSNPLen;
-			for (long k=_PackSNPLen; k > 0; k--, p1++, p2++)
-			{
-				size_t t = (size_t(*p1) << 8) | (*p2);
-				p->IBS0 += IBS0_Num_SNP[t];
-				p->IBS1 += IBS1_Num_SNP[t];
-				p->IBS2 += IBS2_Num_SNP[t];
-			}
-		}
-	}
-
-	/// Calculate the IBS matrix for PLINK
-	void DoPLINKIBSCalculate(CdMatTriDiag<TS_IBS> &PublicIBS, int NumThread,
-		const char *Info, bool verbose)
-	{
-		// Initialize ...
-		GenoPacked.resize(BlockNumSNP * PublicIBS.N());
-		memset(PublicIBS.Get(), 0, sizeof(TS_IBS)*PublicIBS.Size());
-
-		MCWorkingGeno.Progress.Info = Info;
-		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.InitParam(true, RDim_SNP_X_Sample, BlockNumSNP);
-
-		Array_SplitJobs(NumThread, PublicIBS.N(), Array_Thread_MatIdxD, Array_Thread_MatCnt);
-		MCWorkingGeno.Run(NumThread, &_Do_IBS_ReadBlock, &_Do_PLINKIBS_Compute, PublicIBS.Get());
-	}
-
 
 // ---------------------------------------------------------------------
 // Counting IBS0, IBS1 and IBS2
 
-class COREARRAY_DLL_LOCAL CIBS012
+class COREARRAY_DLL_LOCAL CIBSCount
 {
 private:
 	CdBaseWorkSpace &Space;
 
-	size_t nSamp;  /// the number of selected samples
-	size_t nSNP;   /// the number of selected SNPs
 	size_t nBlock; /// the number of SNPs in a block
-
 	VEC_AUTO_PTR<C_UInt8> Geno1b;  /// the genotype 1b representation
-	TS_IBS *ptrIBS;
+	TIBS *ptrIBS;
 
 	void thread_ibs_num(size_t i, size_t n)
 	{
@@ -230,7 +160,7 @@ private:
 		C_UInt8 *Base = Geno1b.Get();
 		IdMatTri I = Array_Thread_MatIdx[i];
 		C_Int64 N = Array_Thread_MatCnt[i];
-		TS_IBS *p = ptrIBS + I.Offset();
+		TIBS *p = ptrIBS + I.Offset();
 
 		for (; N > 0; N--, ++I, p++)
 		{
@@ -243,11 +173,10 @@ private:
 				C_UInt64 g1_2 = *((C_UInt64*)(p1 + npack));
 				C_UInt64 g2_1 = *((C_UInt64*)p2);
 				C_UInt64 g2_2 = *((C_UInt64*)(p2 + npack));
-				p1 += 8;
-				p2 += 8;
+				p1 += 8; p2 += 8;
 
 				C_UInt64 mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
-				C_UInt64 ibs0 = (~((g1_1 ^ ~g2_1) & (g1_2 ^ ~g2_2))) & mask;
+				C_UInt64 ibs0 = (~((g1_1 ^ ~g2_1) | (g1_2 ^ ~g2_2))) & mask;
 				C_UInt64 ibs2 = (~((g1_1 ^ g2_1) | (g1_2 ^ g2_2))) & mask;
 
 				size_t i0 = POPCNT_U64(ibs0);
@@ -263,14 +192,10 @@ private:
 
 public:
 	/// constructor
-	CIBS012(CdBaseWorkSpace &space): Space(space)
-	{
-		nSamp = Space.SampleNum();
-		nSNP  = Space.SNPNum();
-	}
+	CIBSCount(CdBaseWorkSpace &space): Space(space) { }
 
 	/// run the algorithm
-	void Run(CdMatTri<TS_IBS> &IBS, int NumThread, bool verbose)
+	void Run(CdMatTri<TIBS> &IBS, int NumThread, bool verbose)
 	{
 		if (NumThread < 1) NumThread = 1;
 		const size_t nSamp = Space.SampleNum();
@@ -279,16 +204,17 @@ public:
 		nBlock = GetOptimzedCache() / nSamp;
 		nBlock = (nBlock / 128) * 128;
 		if (nBlock < 128) nBlock = 128;
+		if (nBlock > 65536) nBlock = 65536;
 		const size_t nPack = nBlock / 8;
 		if (verbose)
 			Rprintf("%s    (internal increment: %d)\n", TimeToStr(), (int)nBlock);
 
 		// initialize
 		ptrIBS = IBS.Get();
-		memset(ptrIBS, 0, sizeof(TS_IBS)*IBS.Size());
+		memset(ptrIBS, 0, sizeof(TIBS)*IBS.Size());
 
 		// thread pool
-		CThreadPoolEx<CIBS012> thpool(NumThread);
+		CThreadPoolEx<CIBSCount> thpool(NumThread);
 		Array_SplitJobs(NumThread, nSamp, Array_Thread_MatIdx,
 			Array_Thread_MatCnt);
 
@@ -313,7 +239,7 @@ public:
 			}
 
 			// using thread thpool
-			thpool.BatchWork(this, &CIBS012::thread_ibs_num, NumThread);
+			thpool.BatchWork(this, &CIBSCount::thread_ibs_num, NumThread);
 
 			// update
 			WS.ProgressForward(WS.Count());
@@ -425,46 +351,40 @@ using namespace IBS;
 extern "C"
 {
 // =======================================================================
-// the functions for identity-by-state (IBS)
+// Identity-By-State (IBS)
 //
 
-/// to compute the average IBS
+/// Compute the average IBS
 COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)
 {
 	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
-		// ======== To cache the genotype data ========
+		// cache the genotype data
 		CachingSNPData("IBS", verbose);
-
-		// ======== The calculation of IBS matrix ========
 
 		// the number of samples
 		const size_t n = MCWorkingGeno.Space().SampleNum();
 
 		// the upper-triangle IBS matrix
-		CdMatTri<IBS::TS_IBS> IBS(n);
-
-		// Calculate the IBS matrix
+		CdMatTri<IBS::TIBS> IBS(n);
 		{
-			CIBS012 Work(MCWorkingGeno.Space());
+			// Calculate the IBS matrix
+			CIBSCount Work(MCWorkingGeno.Space());
 			Work.Run(IBS, Rf_asInteger(NumThread), verbose);
 		}
 
-		// initialize output variables
+		// output variables
 		rv_ans = PROTECT(allocMatrix(REALSXP, n, n));
 		double *pIBS = REAL(rv_ans);
-
-		// output
-		IBS::TS_IBS *p = IBS.Get();
+		IBS::TIBS *p = IBS.Get();
 		for (size_t i=0; i < n; i++)
 		{
-			for (size_t j=i; j < n; j++)
+			for (size_t j=i; j < n; j++, p++)
 			{
 				pIBS[i*n + j] = pIBS[j*n + i] =
 					(0.5 * p->IBS1 + p->IBS2) / (p->IBS0 + p->IBS1 + p->IBS2);
-				p++;
 			}
 		}
 
@@ -475,31 +395,28 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)
 	COREARRAY_CATCH
 }
 
-/// to compute the counts of IBS0, IBS1, IBS2
+/// Compute the counts of IBS0, IBS1, IBS2
 COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 {
 	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
-		// ======== To cache the genotype data ========
+		// cache the genotype data
 		CachingSNPData("IBS", verbose);
-
-		// ======== The calculation of IBS matrix ========
 
 		// the number of samples
 		const size_t n = MCWorkingGeno.Space().SampleNum();
 
 		// the upper-triangle IBS matrix
-		CdMatTri<IBS::TS_IBS> IBS(n);
-
-		// Calculate the IBS matrix
+		CdMatTri<IBS::TIBS> IBS(n);
 		{
-			CIBS012 Work(MCWorkingGeno.Space());
+			// Calculate the IBS matrix
+			CIBSCount Work(MCWorkingGeno.Space());
 			Work.Run(IBS, Rf_asInteger(NumThread), verbose);
 		}
 
-		// initialize output variables
+		// output variables
 		SEXP IBS0 = PROTECT(allocMatrix(INTSXP, n, n));
 		SEXP IBS1 = PROTECT(allocMatrix(INTSXP, n, n));
 		SEXP IBS2 = PROTECT(allocMatrix(INTSXP, n, n));
@@ -513,16 +430,14 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 		int *pIBS1 = INTEGER(IBS1);
 		int *pIBS2 = INTEGER(IBS2);
 
-		// output
-		IBS::TS_IBS *p = IBS.Get();
+		IBS::TIBS *p = IBS.Get();
 		for (size_t i=0; i < n; i++)
 		{
-			for (size_t j=i; j < n; j++)
+			for (size_t j=i; j < n; j++, p++)
 			{
 				pIBS0[i*n + j] = pIBS0[j*n + i] = p->IBS0;
 				pIBS1[i*n + j] = pIBS1[j*n + i] = p->IBS1;
 				pIBS2[i*n + j] = pIBS2[j*n + i] = p->IBS2;
-				p ++;
 			}
 		}
 
@@ -535,10 +450,10 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 
 
 // =======================================================================
-// the functions for identity-by-descent (IBD)
+// PLINK Identity-By-Descent (IBD)
 //
 
-/// to compute the IBD coefficients by PLINK method of moment
+/// Compute the IBD coefficients by PLINK method of moment
 COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 	SEXP UseSpecificAFreq, SEXP KinshipConstrict, SEXP _Verbose)
 {
@@ -546,49 +461,40 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 
 	COREARRAY_TRY
 
-		// ======== To cache the genotype data ========
+		// cache the genotype data
 		CachingSNPData("PLINK IBD", verbose);
 
 		// the number of individuals
-		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
-		// the number of SNPs
-		const R_xlen_t m = MCWorkingGeno.Space().SNPNum();
-		// to detect the block size
-		IBS::AutoDetectSNPBlockSize(n);
+		const size_t n = MCWorkingGeno.Space().SampleNum();
 
-		// ======== PLINK method of moment ========
+		// the upper-triangle IBS matrix
+		CdMatTri<IBS::TIBS> IBS(n);
+		{
+			// Calculate the IBS matrix
+			CIBSCount Work(MCWorkingGeno.Space());
+			Work.Run(IBS, Rf_asInteger(NumThread), verbose);
+		}
 
-		// initialize output variables
-		SEXP dim;
-		PROTECT(dim = NEW_INTEGER(2));
-		INTEGER(dim)[0] = n; INTEGER(dim)[1] = n;
-
-		SEXP k0 = NEW_NUMERIC(n*n); PROTECT(k0);
-		setAttrib(k0, R_DimSymbol, dim);
-
-		SEXP k1 = NEW_NUMERIC(n*n); PROTECT(k1);
-		setAttrib(k1, R_DimSymbol, dim);
-
-		SEXP afreq = NEW_NUMERIC(m); PROTECT(afreq);
-		double *out_k0    = REAL(k0);
-		double *out_k1    = REAL(k1);
+		// output variables
+		SEXP afreq = PROTECT(NEW_NUMERIC(MCWorkingGeno.Space().SNPNum()));
 		double *out_afreq = REAL(afreq);
 
 		// initialize the internal matrix
-		IBD::Init_EPrIBD_IBS(LOGICAL(UseSpecificAFreq)[0] ? REAL(AlleleFreq) : NULL,
-			out_afreq, !(LOGICAL(UseSpecificAFreq)[0]));
-		// the upper-triangle genetic covariance matrix
-		CdMatTriDiag<IBS::TS_IBS> IBS(IBS::TS_IBS(), n);
-		// Calculate the IBS matrix
-		IBS::DoPLINKIBSCalculate(IBS, INTEGER(NumThread)[0],
-			"PLINK IBD:", verbose);
+		IBD::Init_EPrIBD_IBS(
+			Rf_asLogical(UseSpecificAFreq)==TRUE ? REAL(AlleleFreq) : NULL,
+			out_afreq, Rf_asLogical(UseSpecificAFreq)!=TRUE);
 
-		// output
-		bool kc = LOGICAL(KinshipConstrict)[0] == TRUE;
-		IBS::TS_IBS *p = IBS.Get();
+		SEXP k0 = PROTECT(allocMatrix(REALSXP, n, n));
+		SEXP k1 = PROTECT(allocMatrix(REALSXP, n, n));
+		double *out_k0    = REAL(k0);
+		double *out_k1    = REAL(k1);
+
+		bool kc = Rf_asLogical(KinshipConstrict) == TRUE;
+		IBS::TIBS *p = IBS.Get();
 		for (int i=0; i < n; i++)
 		{
 			out_k0[i*n + i] = out_k1[i*n + i] = 0;
+			p++;
 			for (int j=i+1; j < n; j++, p++)
 			{
 				double k0, k1;
@@ -603,7 +509,10 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 		SET_ELEMENT(rv_ans, 0, k0);
 		SET_ELEMENT(rv_ans, 1, k1);
 		SET_ELEMENT(rv_ans, 2, afreq);
-		UNPROTECT(5);
+
+		if (verbose)
+			Rprintf("%s    Done\n", TimeToStr());
+		UNPROTECT(4);
 
 	COREARRAY_CATCH
 }
@@ -611,19 +520,17 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 
 
 // =========================================================================
-// the functions for individual dissimilarity
+// Individual dissimilarity
 
-/// to compute the individual dissimilarity
+/// Compute the individual dissimilarity
 COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 {
 	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
 
-		// ======== To cache the genotype data ========
+		// cache the genotype data
 		CachingSNPData("Dissimilarity", verbose);
-
-		// ======== The calculation of genetic covariance matrix ========
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
@@ -637,7 +544,7 @@ COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 			verbose);
 
 		// output
-		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, n, n));
+		rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 
 		IBS::TS_Dissimilarity *p = Dist.Get();
 		double *out_Diss = REAL(rv_ans);
@@ -659,7 +566,7 @@ COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 // =========================================================================
 // the functions for genotype score
 
-/// to compute the individual dissimilarity
+/// Compute the individual dissimilarity
 COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 	SEXP Method, SEXP Type, SEXP GDSNode, SEXP _Verbose)
 {
