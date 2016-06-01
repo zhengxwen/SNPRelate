@@ -294,7 +294,7 @@ namespace PCA
 					p1 += 4; p2 += 4;
 				}
 
-				(*pOut++) += vec_sum(rv4);
+				(*pOut++) += vec_avx_sum_f64(rv4);
 
 			#elif defined(COREARRAY_SIMD_SSE2)
 
@@ -323,7 +323,7 @@ namespace PCA
 					p1 += 2; p2 += 2;
 				}
 
-				(*pOut++) += vec_sum(rv2);
+				(*pOut++) += vec_sum_f64(rv2);
 
 			#else
 
@@ -884,7 +884,7 @@ private:
 					pG += 4;
 					sum4 = _mm256_add_pd(sum4, _mm256_mul_pd(a, y));
 				}
-				sum = vec_sum(sum4);
+				sum = vec_avx_sum_f64(sum4);
 
 			#elif defined(COREARRAY_SIMD_SSE2)
 
@@ -895,7 +895,7 @@ private:
 					__m128d y = _mm_set_pd(pY[pG[1]], pY[pG[0]]); pG += 2;
 					sum2 = _mm_add_pd(sum2, _mm_mul_pd(a, y));
 				}
-				sum = vec_sum(sum2);
+				sum = vec_sum_f64(sum2);
 
 			#endif
 

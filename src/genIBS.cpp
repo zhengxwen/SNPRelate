@@ -74,7 +74,6 @@ namespace IBS
 		C_UInt32 IBS0;  //< the number of loci sharing no allele
 		C_UInt32 IBS1;  //< the number of loci sharing only one allele
 		C_UInt32 IBS2;  //< the number of loci sharing two alleles
-		TIBS() { IBS0 = IBS1 = IBS2 = 0; }
 	};
 
 
@@ -148,7 +147,7 @@ class COREARRAY_DLL_LOCAL CIBSCount
 private:
 	CdBaseWorkSpace &Space;
 
-	size_t nBlock; /// the number of SNPs in a block
+	size_t nBlock; /// the number of SNPs in a block, a multiple of 128
 	VEC_AUTO_PTR<C_UInt8> Geno1b;  /// the genotype 1b representation
 	TIBS *ptrIBS;
 
@@ -166,8 +165,100 @@ private:
 		{
 			C_UInt8 *p1 = Base + I.Row() * npack2;
 			C_UInt8 *p2 = Base + I.Column() * npack2;
+			ssize_t m = npack;
 
-			for (ssize_t m=npack; m > 0; m-=8)
+		#if defined(COREARRAY_SIMD_AVX2_XXX)
+		{	// disable
+			const __m256i ones = _mm256_set1_epi32(-1);
+			POPCNT_AVX2_HEAD
+			__m256i ibs0_sum, ibs1_sum, ibs2_sum;
+			ibs0_sum = ibs1_sum = ibs2_sum = _mm256_setzero_si256();
+
+			for (; m > 0; m-=32)
+			{
+				__m256i g1_1 = _mm256_load_si256((__m256i*)p1);
+				__m256i g1_2 = _mm256_load_si256((__m256i*)(p1 + npack));
+				__m256i g2_1 = _mm256_load_si256((__m256i*)p2);
+				__m256i g2_2 = _mm256_load_si256((__m256i*)(p2 + npack));
+				p1 += 32; p2 += 32;
+
+				__m256i g1_2_x = _mm256_andnot_si256(g1_2, ones);
+				__m256i g2_1_x = _mm256_andnot_si256(g2_1, ones);
+				__m256i g2_2_x = _mm256_andnot_si256(g2_2, ones);
+
+				// (g1_1 | ~g1_2) & (g2_1 | ~g2_2)
+				__m256i mask = _mm256_and_si256(
+					_mm256_or_si256(g1_1, g1_2_x), _mm256_or_si256(g2_1, g2_2_x));
+				// (~((g1_1 ^ ~g2_1) | (g1_2 ^ ~g2_2))) & mask
+				__m256i ibs0 = _mm256_andnot_si256(_mm256_or_si256(
+					_mm256_xor_si256(g1_1, g2_1_x), _mm256_xor_si256(g1_2, g2_2_x)), mask);
+				// (~((g1_1 ^ g2_1) | (g1_2 ^ g2_2))) & mask
+				__m256i ibs2 = _mm256_andnot_si256(_mm256_or_si256(
+					_mm256_xor_si256(g1_1, g2_1), _mm256_xor_si256(g1_2, g2_2)), mask);
+
+				POPCNT_AVX2_RUN(ibs0)
+				ibs0_sum = _mm256_add_epi32(ibs0_sum, ibs0);
+
+				POPCNT_AVX2_RUN(ibs2)
+				ibs2_sum = _mm256_add_epi32(ibs2_sum, ibs2);
+
+				POPCNT_AVX2_RUN(mask)
+				mask = _mm256_sub_epi32(_mm256_sub_epi32(mask, ibs0), ibs2);
+				ibs1_sum = _mm256_add_epi32(ibs1_sum, mask);
+			}
+
+			p->IBS0 += vec_avx_sum_i32(ibs0_sum);
+			p->IBS1 += vec_avx_sum_i32(ibs1_sum);
+			p->IBS2 += vec_avx_sum_i32(ibs2_sum);
+		}
+			if (m > 0)
+		#endif
+		#if defined(COREARRAY_SIMD_SSE2)
+		{
+			const __m128i ones = _mm_set1_epi32(-1);
+			POPCNT_SSE2_HEAD
+			__m128i ibs0_sum, ibs1_sum, ibs2_sum;
+			ibs0_sum = ibs1_sum = ibs2_sum = _mm_setzero_si128();
+
+			for (; m > 0; m-=16)
+			{
+				__m128i g1_1 = _mm_load_si128((__m128i*)p1);
+				__m128i g1_2 = _mm_load_si128((__m128i*)(p1 + npack));
+				__m128i g2_1 = _mm_load_si128((__m128i*)p2);
+				__m128i g2_2 = _mm_load_si128((__m128i*)(p2 + npack));
+				p1 += 16; p2 += 16;
+
+				__m128i g1_2_x = _mm_andnot_si128(g1_2, ones);
+				__m128i g2_1_x = _mm_andnot_si128(g2_1, ones);
+				__m128i g2_2_x = _mm_andnot_si128(g2_2, ones);
+
+				// (g1_1 | ~g1_2) & (g2_1 | ~g2_2)
+				__m128i mask = _mm_and_si128(
+					_mm_or_si128(g1_1, g1_2_x), _mm_or_si128(g2_1, g2_2_x));
+				// (~((g1_1 ^ ~g2_1) | (g1_2 ^ ~g2_2))) & mask
+				__m128i ibs0 = _mm_andnot_si128(_mm_or_si128(
+					_mm_xor_si128(g1_1, g2_1_x), _mm_xor_si128(g1_2, g2_2_x)), mask);
+				// (~((g1_1 ^ g2_1) | (g1_2 ^ g2_2))) & mask
+				__m128i ibs2 = _mm_andnot_si128(_mm_or_si128(
+					_mm_xor_si128(g1_1, g2_1), _mm_xor_si128(g1_2, g2_2)), mask);
+
+				POPCNT_SSE2_RUN(ibs0)
+				ibs0_sum = _mm_add_epi32(ibs0_sum, ibs0);
+
+				POPCNT_SSE2_RUN(ibs2)
+				ibs2_sum = _mm_add_epi32(ibs2_sum, ibs2);
+
+				POPCNT_SSE2_RUN(mask)
+				mask = _mm_sub_epi32(_mm_sub_epi32(mask, ibs0), ibs2);
+				ibs1_sum = _mm_add_epi32(ibs1_sum, mask);
+			}
+
+			p->IBS0 += vec_sum_i32(ibs0_sum);
+			p->IBS1 += vec_sum_i32(ibs1_sum);
+			p->IBS2 += vec_sum_i32(ibs2_sum);
+		}
+		#else
+			for (; m > 0; m-=8)
 			{
 				C_UInt64 g1_1 = *((C_UInt64*)p1);
 				C_UInt64 g1_2 = *((C_UInt64*)(p1 + npack));
@@ -187,6 +278,7 @@ private:
 				p->IBS1 += i1;
 				p->IBS2 += i2;
 			}
+		#endif
 		}
 	}
 

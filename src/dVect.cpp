@@ -869,7 +869,7 @@ COREARRAY_DLL_DEFAULT void vec_f64_mul(double *p, size_t n, double v)
 		if (n >= 2)
 		{
 			_mm_store_pd(p, _mm_mul_pd(_mm_load_pd(p), _mm256_castpd256_pd128(v4)));
-			n -= 2;
+			p += 2; n -= 2;
 		}
 		break;
 	default:
@@ -881,7 +881,7 @@ COREARRAY_DLL_DEFAULT void vec_f64_mul(double *p, size_t n, double v)
 		if (n >= 2)
 		{
 			_mm_storeu_pd(p, _mm_mul_pd(_mm_loadu_pd(p), _mm256_castpd256_pd128(v4)));
-			n -= 2;
+			p += 2; n -= 2;
 		}
 	}
 

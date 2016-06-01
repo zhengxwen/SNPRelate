@@ -454,34 +454,59 @@ namespace Vectorization
 #ifdef COREARRAY_SIMD_SSE2
 
 	#define POPCNT_SSE2_HEAD    \
-		__m128i pop_sse_5 = _mm_set1_epi32(0x55555555);  \
-		__m128i pop_sse_3 = _mm_set1_epi32(0x33333333);  \
-		__m128i pop_sse_f = _mm_set1_epi32(0x0F0F0F0F);  \
-		__m128i pop_sse_1 = _mm_set1_epi32(0x01010101);
+		const __m128i pop_sse_5 = _mm_set1_epi32(0x55555555);  \
+		const __m128i pop_sse_3 = _mm_set1_epi32(0x33333333);  \
+		const __m128i pop_sse_f = _mm_set1_epi32(0x0F0F0F0F);  \
+		const __m128i pop_sse_1 = _mm_set1_epi32(0x01010101);
 
 	#define POPCNT_SSE2_RUN(x)    \
 		x = _mm_sub_epi32(x, _mm_and_si128(_mm_srli_epi32(x, 1), pop_sse_5));  \
 		x = _mm_add_epi32(_mm_and_si128(x, pop_sse_3),  \
 			_mm_and_si128(_mm_srli_epi32(x, 2), pop_sse_3));  \
-		x = _mm_and_si128(_mm_add(x, _mm_srli_epi32(x, 4)), pop_sse_f);  \
+		x = _mm_and_si128(_mm_add_epi32(x, _mm_srli_epi32(x, 4)), pop_sse_f);  \
 		MM_MUL_LO_EPI32(x, x, pop_sse_1);  \
 		x = _mm_srli_epi32(x, 24);
+
+#endif
+
+#ifdef COREARRAY_SIMD_AVX2
+
+	#define POPCNT_AVX2_HEAD    \
+		const __m256i pop_sse_5 = _mm256_set1_epi32(0x55555555);  \
+		const __m256i pop_sse_3 = _mm256_set1_epi32(0x33333333);  \
+		const __m256i pop_sse_f = _mm256_set1_epi32(0x0F0F0F0F);  \
+		const __m256i pop_sse_1 = _mm256_set1_epi32(0x01010101);
+
+	#define POPCNT_AVX2_RUN(x)    \
+		x = _mm256_sub_epi32(x, _mm256_and_si256(_mm256_srli_epi32(x, 1), pop_sse_5));  \
+		x = _mm256_add_epi32(_mm256_and_si256(x, pop_sse_3),  \
+			_mm256_and_si256(_mm256_srli_epi32(x, 2), pop_sse_3));  \
+		x = _mm256_and_si256(_mm256_add_epi32(x, _mm256_srli_epi32(x, 4)), pop_sse_f);  \
+		x = _mm256_mullo_epi32(x, pop_sse_1);  \
+		x = _mm256_srli_epi32(x, 24);
 
 #endif
 
 
 
 	// ===========================================================
+	// Sum all elements in a SIMD register
 
 #ifdef COREARRAY_SIMD_SSE2
-	inline static double vec_sum(__m128d s)
+	inline static double vec_sum_f64(__m128d s)
 	{
 		return _mm_cvtsd_f64(_mm_add_pd(s, _mm_shuffle_pd(s, s, 1)));
+	}
+	inline static int vec_sum_i32(__m128i s)
+	{
+		s = _mm_add_epi32(s, _mm_shuffle_epi32(s, _MM_SHUFFLE(1,0,3,2)));
+		s = _mm_add_epi32(s, _mm_shuffle_epi32(s, _MM_SHUFFLE(0,0,0,1)));
+		return _mm_cvtsi128_si32(s);
 	}
 #endif
 
 #ifdef COREARRAY_SIMD_AVX
-	inline static double vec_sum(__m256d s)
+	inline static double vec_avx_sum_f64(__m256d s)
 	{
 		s = _mm256_add_pd(_mm256_permute_pd(s, 5), s);
 		double x[4] __attribute__((aligned(32)));
@@ -489,6 +514,20 @@ namespace Vectorization
 		return x[0] + x[2];
 	}
 #endif
+
+#ifdef COREARRAY_SIMD_AVX2
+	inline static int vec_avx_sum_i32(__m256i s)
+	{
+		s = _mm256_hadd_epi32(s, s);
+		s = _mm256_add_epi32(s, _mm256_permute4x64_epi64(s, _MM_SHUFFLE(1,0,3,2)));
+		__m128i a = _mm256_castsi256_si128(s);
+		a = _mm_add_epi32(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(0,0,0,1)));
+		return _mm_cvtsi128_si32(a);
+	}
+#endif
+
+
+	// ===========================================================
 
 	/// count genotype sum and number of calls, not requiring 16-aligned p
 	COREARRAY_DLL_DEFAULT C_UInt8* vec_u8_geno_count(C_UInt8 *p,
