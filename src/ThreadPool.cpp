@@ -29,7 +29,13 @@ namespace CoreArray
 #ifdef COREARRAY_PLATFORM_WINDOWS
 inline static string LastSysErrMsg()
 {
-	return SysErrMessage(GetLastOSError());
+	char buf[4096];
+	memset((void*)buf, 0, sizeof(buf));
+	FormatMessage(
+		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
+		FORMAT_MESSAGE_ARGUMENT_ARRAY, NULL, GetLastError(), 0,
+		buf, sizeof(buf), NULL);
+	return string(buf);
 }
 #endif
 
