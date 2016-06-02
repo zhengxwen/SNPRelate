@@ -26,7 +26,7 @@
 // CoreArray library header
 #include "dGenGWAS.h"
 #include "dVect.h"
-#include <ThreadPool.h>
+#include "ThreadPool.h"
 
 // Standard library header
 #include <cmath>

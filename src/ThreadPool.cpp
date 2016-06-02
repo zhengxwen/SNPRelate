@@ -26,6 +26,14 @@
 namespace CoreArray
 {
 
+#ifdef COREARRAY_PLATFORM_WINDOWS
+inline static string LastSysErrMsg()
+{
+	return SysErrMessage(GetLastOSError());
+}
+#endif
+
+
 // =========================================================================
 // CMutex
 
@@ -146,7 +154,7 @@ void CCondition::Signal()
 	if (has_any_waiter)
 	{
 		if (SetEvent(cond.events[0]) == 0)
-			RaiseLastOSError<ErrThread>();
+			throw ErrThread(LastSysErrMsg());
 	}
 #endif
 }
@@ -164,7 +172,7 @@ void CCondition::Broadcast()
 	if (has_any_waiter)
 	{
 		if (SetEvent(cond.events[1]) == 0)
-			RaiseLastOSError<ErrThread>();
+			throw ErrThread(LastSysErrMsg());
 	}
 #endif
 }
@@ -191,7 +199,7 @@ void CCondition::Wait(CMutex &mutex)
 	if (rv == WAIT_TIMEOUT)
 		throw ErrThread("condition object wait time out.");
 	else if (rv == WAIT_FAILED)
-		RaiseLastOSError<ErrThread>();
+		throw ErrThread(LastSysErrMsg());
 
 	// check if we are the last waiter
 	EnterCriticalSection(&cond.waiter_count_mutex);
@@ -203,7 +211,7 @@ void CCondition::Wait(CMutex &mutex)
 	if (IsLast)
 	{
 		if (ResetEvent(cond.events[1]) == 0)
-			RaiseLastOSError<ErrThread>();
+			throw ErrThread(LastSysErrMsg());
 	}
 
 	// Re-acquire the mutex
@@ -294,7 +302,7 @@ void CThread::BeginThread()
 		thread.Handle = CreateThread(&attr, 0, ThreadWrap, (void*)this,
 			0, &thread.ThreadID);
 		if (thread.Handle == NULL)
-			RaiseLastOSError<ErrThread>();
+			throw ErrThread(LastSysErrMsg());
 	} else
 		throw ErrThread("BeginThread");
 #endif
@@ -341,7 +349,7 @@ int CThread::EndThread()
 	if (thread.Handle != NULL)
 	{
 		if (WaitForSingleObject(thread.Handle, INFINITE) == WAIT_FAILED)
-			RaiseLastOSError<ErrThread>();
+			throw ErrThread(LastSysErrMsg());
 		_Done();
 	}
 #endif

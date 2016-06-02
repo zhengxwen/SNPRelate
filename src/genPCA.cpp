@@ -24,9 +24,9 @@
 #define _HEADER_PCA_
 
 // CoreArray library header
-#include <dGenGWAS.h>
-#include <dVect.h>
-#include <ThreadPool.h>
+#include "dGenGWAS.h"
+#include "dVect.h"
+#include "ThreadPool.h"
 
 #include <R_ext/Lapack.h>
 // Standard library header

@@ -921,7 +921,7 @@ COREARRAY_DLL_DEFAULT double *vec_f64_addmul(double *p, const double *s,
 	case 0x08:
 		if (n > 0) { (*p++) += (*s++) * v; n--; }
 	case 0x00:
-		for (; n >= 2; n-=2)
+		for (; n >= 2; n -= 2)
 		{
 			_mm_store_pd(p, _mm_add_pd(_mm_load_pd(p),
 				_mm_mul_pd(_mm_loadu_pd(s), v2)));

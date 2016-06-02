@@ -26,6 +26,7 @@
 // CoreArray library header
 #include <dGenGWAS.h>
 #include <dVect.h>
+#include "ThreadPool.h"
 
 // Standard library header
 #include <cmath>
@@ -352,7 +353,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
 
 	COREARRAY_TRY
 
-		// ======= To cache the genotype data =======
+		// cache the genotype data
 		CachingSNPData("KING IBD", verbose);
 
 		// ======= The calculation of genetic covariance matrix =======

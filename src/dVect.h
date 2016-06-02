@@ -509,9 +509,8 @@ namespace Vectorization
 	inline static double vec_avx_sum_f64(__m256d s)
 	{
 		s = _mm256_add_pd(_mm256_permute_pd(s, 5), s);
-		double x[4] __attribute__((aligned(32)));
-		_mm256_store_pd(x, s);
-		return x[0] + x[2];
+		s = _mm256_add_pd(s, _mm256_permute2f128_pd(s, s, 1));
+		return _mm_cvtsd_f64(_mm256_castpd256_pd128(s));
 	}
 #endif
 
