@@ -29,18 +29,9 @@
 #include "ThreadPool.h"
 
 #include <R_ext/Lapack.h>
-// Standard library header
 #include <cmath>
 #include <memory>
 #include <algorithm>
-
-
-#if defined(__GNUC__) && (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__>1) && defined(__MINGW32__)
-#   define MULTICORE_FUNC_ALIGN    __attribute__((force_align_arg_pointer))
-#else
-#   define MULTICORE_FUNC_ALIGN
-#endif
-
 
 
 namespace PCA
@@ -259,7 +250,7 @@ namespace PCA
 		}
 
 		// time-consuming function
-		void MULTICORE_FUNC_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt, double *pOut)
+		void COREARRAY_CALL_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt, double *pOut)
 		{
 			for (; IdxCnt > 0; IdxCnt--, ++Idx)
 			{
@@ -344,7 +335,7 @@ namespace PCA
 		}
 
 		// time-consuming function
-		void MULTICORE_FUNC_ALIGN MulAdd2(IdMatTri &Idx, size_t IdxCnt,
+		void COREARRAY_CALL_ALIGN MulAdd2(IdMatTri &Idx, size_t IdxCnt,
 			size_t Length, double *pOut)
 		{
 			for (; IdxCnt > 0; IdxCnt--, ++Idx)
@@ -439,7 +430,7 @@ namespace PCA
 		inline double *base() { return fGenotype.Get(); }
 
 		/// mean-adjusted genotypes (fGenotype - tmp_var)
-		void MULTICORE_FUNC_ALIGN GenoSub()
+		void COREARRAY_CALL_ALIGN GenoSub()
 		{
 			double *pGeno = fGenotype.Get();
 			for (size_t num=fN; num > 0; num--, pGeno+=fM)
@@ -467,7 +458,7 @@ namespace PCA
 		}
 
 		/// variance-adjusted genotypes (fGenotype * tmp_var)
-		void MULTICORE_FUNC_ALIGN GenoMul()
+		void COREARRAY_CALL_ALIGN GenoMul()
 		{
 			double *pGeno = fGenotype.Get();
 			for (size_t num=fN; num > 0; num--, pGeno+=fM)
@@ -1110,7 +1101,7 @@ public:
 			memcpy(REAL(d), &sigma[0], sizeof(double) * nSamp);
 			SET_ELEMENT(rv_ans, 0, d);
 
-			SEXP h = allocMatrix(REALSXP, hsize, nSamp);
+			SEXP h = Rf_allocMatrix(REALSXP, hsize, nSamp);
 			memcpy(REAL(h), &MatT[0], sizeof(double) * nSamp * hsize);
 			SET_ELEMENT(rv_ans, 1, h);
 		}

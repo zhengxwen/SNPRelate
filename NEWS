@@ -1,7 +1,14 @@
-CHANGES IN VERSION 1.6.0
+CHANGES IN VERSION 1.7.0-1.7.3
+-------------------------
+
+
+CHANGES IN VERSION 1.6.0-1.6.3
 -------------------------
 
     o the version number was bumped for the Bioconductor release version 3.3
+
+    o bitwise intrinsics (SSE2/AVX2) to accelerate `snpgdsIBSNum()`,
+      `snpgdsIBS()`, `snpgdsIBDMoM()`, `snpgdsIBDKing()` (+50% to +300%)
 
 
 CHANGES IN VERSION 1.5.0-1.5.2

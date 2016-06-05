@@ -338,6 +338,7 @@ namespace GWAS
 
 	/// Eight SNP genotypes are packed into two bytes
 	/** (s7,s6,s5,s4,s3,s2,s1,s0):
+	 *    0 -> 00, 1 -> 10, 2 -> 11, NA -> 01
 	 *    genotype 1: (p1.s0,p2.s0), genotype 2: (p1.s1,p2.s1),
 	 *    genotype 3: (p1.s2,p2.s2), genotype 4: (p1.s3,p2.s3),
 	 *    genotype 5: (p1.s4,p2.s4), genotype 6: (p1.s5,p2.s5),

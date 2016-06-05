@@ -69,7 +69,7 @@ namespace IBS
 
 
 	/// The structure of IBS states
-	struct TIBS
+	struct COREARRAY_ATTR_PACKED TIBS
 	{
 		C_UInt32 IBS0;  //< the number of loci sharing no allele
 		C_UInt32 IBS1;  //< the number of loci sharing only one allele
@@ -79,7 +79,7 @@ namespace IBS
 
 	/// The pointer to the variable 'PublicDiss' in the function "DoDissCalculate"
 	/// The structure of genetic distance
-	struct TS_Dissimilarity
+	struct COREARRAY_ATTR_PACKED TS_Dissimilarity
 	{
 		C_Int64 SumGeno;
 		double SumAFreq;
@@ -215,7 +215,6 @@ private:
 		#endif
 		#if defined(COREARRAY_SIMD_SSE2)
 		{
-			const __m128i ones = _mm_set1_epi32(-1);
 			POPCNT_SSE2_HEAD
 			__m128i ibs0_sum, ibs1_sum, ibs2_sum;
 			ibs0_sum = ibs1_sum = ibs2_sum = _mm_setzero_si128();
@@ -228,19 +227,9 @@ private:
 				__m128i g2_2 = _mm_load_si128((__m128i*)(p2 + npack));
 				p1 += 16; p2 += 16;
 
-				__m128i g1_2_x = _mm_andnot_si128(g1_2, ones);
-				__m128i g2_1_x = _mm_andnot_si128(g2_1, ones);
-				__m128i g2_2_x = _mm_andnot_si128(g2_2, ones);
-
-				// (g1_1 | ~g1_2) & (g2_1 | ~g2_2)
-				__m128i mask = _mm_and_si128(
-					_mm_or_si128(g1_1, g1_2_x), _mm_or_si128(g2_1, g2_2_x));
-				// (~((g1_1 ^ ~g2_1) | (g1_2 ^ ~g2_2))) & mask
-				__m128i ibs0 = _mm_andnot_si128(_mm_or_si128(
-					_mm_xor_si128(g1_1, g2_1_x), _mm_xor_si128(g1_2, g2_2_x)), mask);
-				// (~((g1_1 ^ g2_1) | (g1_2 ^ g2_2))) & mask
-				__m128i ibs2 = _mm_andnot_si128(_mm_or_si128(
-					_mm_xor_si128(g1_1, g2_1), _mm_xor_si128(g1_2, g2_2)), mask);
+				__m128i mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
+				__m128i ibs0 = (~((g1_1 ^ ~g2_1) | (g1_2 ^ ~g2_2))) & mask;
+				__m128i ibs2 = (~((g1_1 ^ g2_1) | (g1_2 ^ g2_2))) & mask;
 
 				POPCNT_SSE2_RUN(ibs0)
 				ibs0_sum = _mm_add_epi32(ibs0_sum, ibs0);
@@ -332,7 +321,6 @@ public:
 
 			// using thread thpool
 			thpool.BatchWork(this, &CIBSCount::thread_ibs_num, NumThread);
-
 			// update
 			WS.ProgressForward(WS.Count());
 		}
@@ -468,7 +456,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)
 		}
 
 		// output variables
-		rv_ans = PROTECT(allocMatrix(REALSXP, n, n));
+		rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 		double *pIBS = REAL(rv_ans);
 		IBS::TIBS *p = IBS.Get();
 		for (size_t i=0; i < n; i++)
@@ -509,9 +497,9 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 		}
 
 		// output variables
-		SEXP IBS0 = PROTECT(allocMatrix(INTSXP, n, n));
-		SEXP IBS1 = PROTECT(allocMatrix(INTSXP, n, n));
-		SEXP IBS2 = PROTECT(allocMatrix(INTSXP, n, n));
+		SEXP IBS0 = PROTECT(Rf_allocMatrix(INTSXP, n, n));
+		SEXP IBS1 = PROTECT(Rf_allocMatrix(INTSXP, n, n));
+		SEXP IBS2 = PROTECT(Rf_allocMatrix(INTSXP, n, n));
 
 		PROTECT(rv_ans = NEW_LIST(3));
 		SET_ELEMENT(rv_ans, 0, IBS0);
@@ -576,8 +564,8 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 			Rf_asLogical(UseSpecificAFreq)==TRUE ? REAL(AlleleFreq) : NULL,
 			out_afreq, Rf_asLogical(UseSpecificAFreq)!=TRUE);
 
-		SEXP k0 = PROTECT(allocMatrix(REALSXP, n, n));
-		SEXP k1 = PROTECT(allocMatrix(REALSXP, n, n));
+		SEXP k0 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+		SEXP k1 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 		double *out_k0    = REAL(k0);
 		double *out_k1    = REAL(k1);
 
