@@ -24,6 +24,7 @@
 #define _HEADER_IBS_
 
 // CoreArray library header
+#include <CoreDEF.h>
 #include "dGenGWAS.h"
 #include "dVect.h"
 #include "ThreadPool.h"
@@ -69,22 +70,22 @@ namespace IBS
 
 
 	/// The structure of IBS states
-	struct COREARRAY_ATTR_PACKED TIBS
+	struct TIBS
 	{
 		C_UInt32 IBS0;  //< the number of loci sharing no allele
 		C_UInt32 IBS1;  //< the number of loci sharing only one allele
 		C_UInt32 IBS2;  //< the number of loci sharing two alleles
-	};
+	} COREARRAY_ATTR_PACKED;
 
 
 	/// The pointer to the variable 'PublicDiss' in the function "DoDissCalculate"
 	/// The structure of genetic distance
-	struct COREARRAY_ATTR_PACKED TS_Dissimilarity
+	struct TS_Dissimilarity
 	{
 		C_Int64 SumGeno;
 		double SumAFreq;
 		TS_Dissimilarity() { SumGeno = 0; SumAFreq = 0; }
-	};
+	} COREARRAY_ATTR_PACKED;
 
 
 
@@ -284,7 +285,7 @@ public:
 		// detect the appropriate block size
 		nBlock = GetOptimzedCache() / nSamp;
 		nBlock = (nBlock / 128) * 128;
-		if (nBlock < 128) nBlock = 128;
+		if (nBlock < 256) nBlock = 256;
 		if (nBlock > 65536) nBlock = 65536;
 		const size_t nPack = nBlock / 8;
 		if (verbose)

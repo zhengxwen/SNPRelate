@@ -24,6 +24,7 @@
 #define _HEADER_IBD_KING_
 
 // CoreArray library header
+#include <CoreDEF.h>
 #include <dGenGWAS.h>
 #include <dVect.h>
 #include "ThreadPool.h"
@@ -37,24 +38,24 @@
 
 namespace KING_IBD
 {
-	// using namespace
-	using namespace std;
-	using namespace CoreArray;
-	using namespace Vectorization;
-	using namespace GWAS;
+
+using namespace std;
+using namespace CoreArray;
+using namespace Vectorization;
+using namespace GWAS;
 
 
 // ---------------------------------------------------------------------
 // Counting IBS variables for KING homo method
 
 /// The structure of KING IBD Homo estimator
-struct COREARRAY_ATTR_PACKED TS_KINGHomo
+struct TS_KINGHomo
 {
 	C_UInt32 IBS0;     ///< the number of loci sharing no allele
 	C_UInt32 SumSq;    ///< \sum_m (g_m^{(i)} - g_m^{(j)})^2
 	double SumAFreq;   ///< \sum_m p_m (1 - p_m)
 	double SumAFreq2;  ///< \sum_m p_m^2 (1 - p_m)^2
-};
+} COREARRAY_ATTR_PACKED;
 
 class COREARRAY_DLL_LOCAL CKINGHomo
 {
@@ -204,7 +205,7 @@ public:
 		// detect the appropriate block size
 		nBlock = GetOptimzedCache() / nSamp;
 		nBlock = (nBlock / 128) * 128;
-		if (nBlock < 128) nBlock = 128;
+		if (nBlock < 256) nBlock = 256;
 		if (nBlock > 65536) nBlock = 65536;
 		const size_t nPack = nBlock / 8;
 		if (verbose)
@@ -271,14 +272,14 @@ public:
 // Counting IBS variables for KING robust method
 
 /// The structure of KING IBD Robust Estimator
-struct COREARRAY_ATTR_PACKED TS_KINGRobust
+struct TS_KINGRobust
 {
 	C_UInt32 IBS0;   ///< the number of loci sharing no allele
 	C_UInt32 nLoci;  ///< the total number of loci
 	C_UInt32 SumSq;  ///< \sum_m (g_m^{(i)} - g_m^{(j)})^2
 	C_UInt32 N1_Aa;  ///< the number of hetet loci for the first individual
 	C_UInt32 N2_Aa;  ///< the number of hetet loci for the second individual
-};
+} COREARRAY_ATTR_PACKED;
 
 class COREARRAY_DLL_LOCAL CKINGRobust
 {
@@ -305,6 +306,50 @@ private:
 			C_UInt8 *p2 = Base + I.Column() * npack2;
 			ssize_t m = npack;
 
+		#if defined(COREARRAY_SIMD_AVX2)
+			POPCNT_AVX2_HEAD
+			__m256i ibs0_sum, nloci_sum, sumsq_sum, n1_Aa, n2_Aa;
+			ibs0_sum = nloci_sum = sumsq_sum = n1_Aa = n2_Aa = _mm256_setzero_si256();
+
+			for (; m >= 32; m-=32)
+			{
+				__m256i g1_1 = _mm256_load_si256((__m256i*)p1);
+				__m256i g1_2 = _mm256_load_si256((__m256i*)(p1 + npack));
+				__m256i g2_1 = _mm256_load_si256((__m256i*)p2);
+				__m256i g2_2 = _mm256_load_si256((__m256i*)(p2 + npack));
+				p1 += 32; p2 += 32;
+
+				__m256i mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
+				__m256i ibs0 = (~((g1_1 ^ ~g2_1) | (g1_2 ^ ~g2_2))) & mask;
+				__m256i het  = ((g1_1 ^ g1_2) ^ (g2_1 ^ g2_2)) & mask;
+				__m256i Aa1  = g1_1 & ~g1_2 & mask;
+				__m256i Aa2  = g2_1 & ~g2_2 & mask;
+
+				POPCNT_AVX2_RUN(ibs0)
+				ibs0_sum = _mm256_add_epi32(ibs0_sum, ibs0);
+
+				POPCNT_AVX2_RUN(mask)
+				nloci_sum = _mm256_add_epi32(nloci_sum, mask);
+
+				POPCNT_AVX2_RUN(het)
+				sumsq_sum = _mm256_add_epi32(_mm256_add_epi32(sumsq_sum, het),
+					_mm256_slli_epi32(ibs0, 2));
+
+				POPCNT_AVX2_RUN(Aa1)
+				n1_Aa = _mm256_add_epi32(n1_Aa, Aa1);
+
+				POPCNT_AVX2_RUN(Aa2)
+				n2_Aa = _mm256_add_epi32(n2_Aa, Aa2);
+			}
+
+			p->IBS0  += vec_avx_sum_i32(ibs0_sum);
+			p->nLoci += vec_avx_sum_i32(nloci_sum);
+			p->SumSq += vec_avx_sum_i32(sumsq_sum);
+			p->N1_Aa += vec_avx_sum_i32(n1_Aa);
+			p->N2_Aa += vec_avx_sum_i32(n2_Aa);
+
+			if (m >= 16)
+		#endif
 		#if defined(COREARRAY_SIMD_SSE2)
 		{
 			POPCNT_SSE2_HEAD
@@ -386,7 +431,7 @@ public:
 		// detect the appropriate block size
 		nBlock = GetOptimzedCache() / nSamp;
 		nBlock = (nBlock / 128) * 128;
-		if (nBlock < 128) nBlock = 128;
+		if (nBlock < 256) nBlock = 256;
 		if (nBlock > 65536) nBlock = 65536;
 		const size_t nPack = nBlock / 8;
 		if (verbose)
