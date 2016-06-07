@@ -30,7 +30,7 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 {
     # check
     ws <- .InitFile2(
-        cmd="Principal Component Analysis (PCA) on Genotypes:",
+        cmd="Principal Component Analysis (PCA) on SNP genotypes:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
@@ -89,7 +89,7 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
     ws <- .InitFile(gdsobj, sample.id=pcaobj$sample.id, snp.id=snp.id,
         with.id=TRUE)
 
-    stopifnot(is.numeric(num.thread) & (num.thread>0))
+    stopifnot(is.numeric(num.thread), num.thread>0L)
     if (length(pcaobj$sample.id) != nrow(pcaobj$eigenvect))
     {
         stop("Internal error: ",
@@ -109,7 +109,7 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
 
     if (verbose)
     {
-        cat("SNP correlations:\n")
+        cat("SNP correlation:\n")
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
         if (num.thread <= 1)
             cat("\tUsing", num.thread, "(CPU) core.\n")

@@ -24,7 +24,6 @@
 #define _HEADER_IBD_KING_
 
 // CoreArray library header
-#include <CoreDEF.h>
 #include <dGenGWAS.h>
 #include <dVect.h>
 #include "ThreadPool.h"
@@ -55,7 +54,7 @@ struct TS_KINGHomo
 	C_UInt32 SumSq;    ///< \sum_m (g_m^{(i)} - g_m^{(j)})^2
 	double SumAFreq;   ///< \sum_m p_m (1 - p_m)
 	double SumAFreq2;  ///< \sum_m p_m^2 (1 - p_m)^2
-} COREARRAY_ATTR_PACKED;
+};
 
 class COREARRAY_DLL_LOCAL CKINGHomo
 {
@@ -279,7 +278,7 @@ struct TS_KINGRobust
 	C_UInt32 SumSq;  ///< \sum_m (g_m^{(i)} - g_m^{(j)})^2
 	C_UInt32 N1_Aa;  ///< the number of hetet loci for the first individual
 	C_UInt32 N2_Aa;  ///< the number of hetet loci for the second individual
-} COREARRAY_ATTR_PACKED;
+};
 
 class COREARRAY_DLL_LOCAL CKINGRobust
 {

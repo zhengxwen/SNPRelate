@@ -400,13 +400,13 @@ parcoord(pca$eigenvect[,1:16], col=datpop)
 
 
 To calculate the SNP correlations between eigenvactors and SNP genotypes:
-```{r fig.width=8, fig.height=5, fig.align='center'}
+```{r fig.width=8, fig.height=4, fig.align='center'}
 # Get chromosome index
 chr <- read.gdsn(index.gdsn(genofile, "snp.chromosome"))
 CORR <- snpgdsPCACorr(pca, genofile, eig.which=1:4)
 
-savepar <- par(mfrow=c(3,1), mai=c(0.3, 0.55, 0.1, 0.25))
-for (i in 1:3)
+savepar <- par(mfrow=c(2,1), mai=c(0.45, 0.55, 0.1, 0.25))
+for (i in 1:2)
 {
     plot(abs(CORR$snpcorr[i,]), ylim=c(0,1), xlab="", ylab=paste("PC", i),
         col=chr, pch="+")

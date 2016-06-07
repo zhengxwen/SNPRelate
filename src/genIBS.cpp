@@ -24,7 +24,6 @@
 #define _HEADER_IBS_
 
 // CoreArray library header
-#include <CoreDEF.h>
 #include "dGenGWAS.h"
 #include "dVect.h"
 #include "ThreadPool.h"
@@ -75,7 +74,7 @@ namespace IBS
 		C_UInt32 IBS0;  //< the number of loci sharing no allele
 		C_UInt32 IBS1;  //< the number of loci sharing only one allele
 		C_UInt32 IBS2;  //< the number of loci sharing two alleles
-	} COREARRAY_ATTR_PACKED;
+	};
 
 
 	/// The pointer to the variable 'PublicDiss' in the function "DoDissCalculate"
@@ -85,7 +84,7 @@ namespace IBS
 		C_Int64 SumGeno;
 		double SumAFreq;
 		TS_Dissimilarity() { SumGeno = 0; SumAFreq = 0; }
-	} COREARRAY_ATTR_PACKED;
+	};
 
 
 
@@ -572,11 +571,11 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 
 		bool kc = Rf_asLogical(KinshipConstrict) == TRUE;
 		IBS::TIBS *p = IBS.Get();
-		for (int i=0; i < n; i++)
+		for (size_t i=0; i < n; i++)
 		{
 			out_k0[i*n + i] = out_k1[i*n + i] = 0;
 			p++;
-			for (int j=i+1; j < n; j++, p++)
+			for (size_t j=i+1; j < n; j++, p++)
 			{
 				double k0, k1;
 				IBD::Est_PLINK_Kinship(p->IBS0, p->IBS1, p->IBS2, k0, k1, kc);
