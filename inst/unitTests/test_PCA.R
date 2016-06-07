@@ -43,7 +43,8 @@ test.PCA <- function()
 		num.thread=1, need.genmat=TRUE, verbose=FALSE)
 	checkEquals(pca.1$genmat, valid.dta$genmat, "PCA (one core)")
 
-	corr.1 <- round(snpgdsPCACorr(pca.1, genofile, eig.which=1:2)$snpcorr, 3)
+	corr.1 <- round(snpgdsPCACorr(pca.1, genofile, eig.which=1:2,
+		num.thread=1)$snpcorr, 3)
 	checkEquals(corr.1, valid.dta$corr, "PCA correlation (one core)")
 
 
@@ -52,7 +53,8 @@ test.PCA <- function()
 		num.thread=2, need.genmat=TRUE, verbose=FALSE)
 	checkEquals(pca.2$genmat, valid.dta$genmat, "PCA (two cores)")
 
-	corr.2 <- round(snpgdsPCACorr(pca.2, genofile, eig.which=1:2)$snpcorr, 3)
+	corr.2 <- round(snpgdsPCACorr(pca.2, genofile, eig.which=1:2,
+		num.thread=2)$snpcorr, 3)
 	checkEquals(corr.2, valid.dta$corr, "PCA correlation (two cores)")
 
 

@@ -1121,18 +1121,21 @@ public:
 
 // ==================== SNP Correlations =====================
 
-class COREARRAY_DLL_LOCAL CPCACorr
+class COREARRAY_DLL_LOCAL CPCASNPCorr
 {
 private:
-	CdBaseWorkSpace &Space;
+	CdBaseWorkSpace &Space;  ///< working genotypes
+	VEC_AUTO_PTR<C_UInt8> Geno;  ///< genotypes (0, 1, 2 and NA)
+	size_t nSamp;      ///< the number of samples
+	size_t NumEigVal;  ///< the number of eigenvalues
+	double *pCorr;     ///< the pointer to correlation
+	double *pEigVect;  ///< the pointer to eigenvectors
 
 	// Correlation
-	static double SNP_PC_Corr(double *pX, C_UInt8 *pY, long n)
+	static double SNP_PC_Corr(double *pX, C_UInt8 *pY, size_t n)
 	{
-		long m = 0;
-		double XY, X, XX, Y, YY;
-
-		XY = X = XX = Y = YY = 0;
+		size_t m=0;
+		double XY=0, X=0, XX=0, Y=0, YY=0, ans=R_NaN;
 		while (n > 0)
 		{
 			if (*pY < 3)
@@ -1140,42 +1143,60 @@ private:
 				XY += (*pX) * (*pY);
 				X += *pX; XX += (*pX) * (*pX);
 				Y += *pY; YY += (*pY) * (*pY);
-				m++;
+				m ++;
 			}
 			pX++; pY++; n--;
 		}
 		if (m > 1)
 		{
-			double c1 = XX-X*X/m, c2 = YY-Y*Y/m, val = c1*c2;
+			double c1 = XX - X*X/m, c2 = YY - Y*Y/m, val = c1*c2;
 			if (val > 0)
-				return (XY-X*Y/m) / sqrt(val);
-			else
-				return R_NaN;
-		} else
-			return R_NaN;
+				ans = (XY - X*Y/m) / sqrt(val);
+		}
+		return ans;
+	}
+
+	void thread_corr(size_t i, size_t num)
+	{
+		C_UInt8 *pGeno = Geno.Get() + nSamp * i;
+		double *pOut = pCorr + NumEigVal * i;
+		for (; num > 0; num--, i++)
+		{
+			double *pEig = pEigVect;
+			for (size_t j=0; j < NumEigVal; j++)
+			{
+				*pOut++ = SNP_PC_Corr(pEig, pGeno, nSamp);
+				pEig += nSamp;
+			}
+			pGeno += nSamp;
+		}
 	}
 
 public:
-	CPCACorr(CdBaseWorkSpace &space): Space(space) { }
+	/// constructor
+	CPCASNPCorr(CdBaseWorkSpace &space): Space(space) { }
 
 	/// run the algorithm
 	void Run(double OutSNPCorr[], size_t NumEig, double EigVect[],
 		int NumThread, bool verbose)
 	{
 		if (NumThread < 1) NumThread = 1;
-		const size_t nSamp = Space.SampleNum();
+		nSamp = Space.SampleNum();
+		NumEigVal = NumEig; pEigVect = EigVect;
 
 		// detect the appropriate block size
 		size_t Cache = GetOptimzedCache();
 		size_t nBlock = Cache / nSamp;
 		nBlock = (nBlock / 4) * 4;
-		if (nBlock < 16) nBlock = 16;
+		if (nBlock < 128) nBlock = 128;
 		if (nBlock > 65536) nBlock = 65536;
 		if (verbose)
 			Rprintf("%s    (internal increment: %d)\n", TimeToStr(), (int)nBlock);
 
+		// thread thpool
+		CThreadPoolEx<CPCASNPCorr> thpool(NumThread);
 		// genotypes (0, 1, 2 and NA)
-		VEC_AUTO_PTR<C_UInt8> Geno(nSamp * nBlock);
+		Geno.Reset(nSamp * nBlock);
 		// genotype buffer, false for no memory buffer
 		CGenoReadBySNP WS(Space, nBlock, verbose ? -1 : 0, false);
 
@@ -1183,20 +1204,9 @@ public:
 		WS.Init();
 		while (WS.Read(Geno.Get()))
 		{
-			C_UInt8 *pGeno = Geno.Get();
-			double *pOut = OutSNPCorr + WS.Index() * NumEig;
-
-			for (size_t i=0; i < WS.Count(); i ++)
-			{
-				double *pEig = EigVect;
-				for (size_t j=0; j < NumEig; j++)
-				{
-					*pOut++ = SNP_PC_Corr(pEig, pGeno, nSamp);
-					pEig += nSamp;
-				}
-				pGeno += nSamp;
-			}
-
+			pCorr = OutSNPCorr + WS.Index() * NumEig;
+			// using thread thpool
+			thpool.BatchWork(this, &CPCASNPCorr::thread_corr, WS.Count());
 			// update
 			WS.ProgressForward(WS.Count());
 		}
@@ -2154,7 +2164,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCACorr(SEXP LenEig, SEXP EigenVect,
 		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, Rf_asInteger(LenEig),
 			MCWorkingGeno.Space().SNPNum()));
 		{
-			CPCACorr Work(MCWorkingGeno.Space());
+			CPCASNPCorr Work(MCWorkingGeno.Space());
 			Work.Run(REAL(rv_ans), Rf_asInteger(LenEig), REAL(EigenVect),
 				Rf_asInteger(NumThread), verbose);
 		}
@@ -2175,7 +2185,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP DimCnt,
 
 	COREARRAY_TRY
 
-		// ======== To cache the genotype data ========
+		// cache the genotype data
 		CachingSNPData("SNP Loading", verbose);
 
 		// ======== To compute the snp correlation ========
