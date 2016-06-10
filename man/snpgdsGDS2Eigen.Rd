@@ -51,6 +51,10 @@ snpgdsGDS2Eigen(genofile, eigen.fn="tmpeigen", snp.id=snpset)
 
 # close the genotype file
 snpgdsClose(genofile)
+
+
+# delete the temporary files
+unlink(c("tmpeigen.eigenstratgeno", "tmpeigen.ind", "tmpeigen.snp"), force=TRUE)
 }
 
 \keyword{GDS}

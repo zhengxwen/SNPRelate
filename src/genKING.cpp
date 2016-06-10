@@ -202,7 +202,7 @@ public:
 		const size_t nSamp = Space.SampleNum();
 
 		// detect the appropriate block size
-		nBlock = GetOptimzedCache() / nSamp;
+		nBlock = 4 * GetOptimzedCache() / nSamp;
 		nBlock = (nBlock / 128) * 128;
 		if (nBlock < 256) nBlock = 256;
 		if (nBlock > 65536) nBlock = 65536;
@@ -428,7 +428,7 @@ public:
 		const size_t nSamp = Space.SampleNum();
 
 		// detect the appropriate block size
-		nBlock = GetOptimzedCache() / nSamp;
+		nBlock = 4 * GetOptimzedCache() / nSamp;
 		nBlock = (nBlock / 128) * 128;
 		if (nBlock < 256) nBlock = 256;
 		if (nBlock > 65536) nBlock = 65536;

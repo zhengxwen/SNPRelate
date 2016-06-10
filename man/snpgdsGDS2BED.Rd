@@ -53,6 +53,10 @@ snpgdsGDS2BED(genofile, bed.fn="test", snp.id=snpset)
 
 # close the genotype file
 snpgdsClose(genofile)
+
+
+# delete the temporary files
+unlink(c("test.bed", "test.bim", "test.fam"), force=TRUE)
 }
 
 \keyword{GDS}

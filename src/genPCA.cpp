@@ -1215,7 +1215,7 @@ public:
 
 
 
-	// ================== SNP loadings ==================
+// ================== SNP loadings ==================
 
 	/// Normalize the genotype
 	/** \param Geno   genotype: 0 -- BB, 1 -- AB, 2 -- AA, 3 -- missing
