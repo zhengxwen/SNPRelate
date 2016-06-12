@@ -377,12 +377,17 @@ int CThreadPool::CThread_in_Pool::RunThread()
 		CThreadPool::TProcData pc;
 		{
 			CAutoLock lck(Owner->mutex);
-			while (!Owner->stop && Owner->tasks.empty())
+			while (!Owner->stop && (Owner->task_empty()))
 				Owner->thread_wait_cond.Wait(Owner->mutex);
-			if (Owner->stop && Owner->tasks.empty())
+			if (Owner->stop && Owner->task_empty())
 				return 0;
-			pc = Owner->tasks.front();
-			Owner->tasks.pop();
+			pc = Owner->task_list[Owner->task_head];
+			Owner->task_head ++;
+			if (Owner->task_empty())
+			{
+				Owner->task_head = 0;
+				Owner->task_list.clear();
+			}
 			Owner->num_threads_working ++;
 		}
 		(*pc.proc)(pc.i, pc.n, pc.ptr);
@@ -401,8 +406,10 @@ CThreadPool::CThreadPool(int num_threads)
 {
 	stop = false;
 	num_threads_working = 0;
+	task_head = 0;
 	if (num_threads > 1)
 	{
+		task_list.reserve(num_threads);
 		workers.resize(num_threads);
 		for(int i=0; i < num_threads; i++)
 		{
@@ -435,9 +442,9 @@ void CThreadPool::AddWork(TProc proc, size_t i, void *ptr)
 			CAutoLock lck(mutex);
 			if(stop)
 				throw "AddWork on stopped CThreadPool";
-			tasks.push(TProcData(proc, i, 1, ptr));
-			thread_wait_cond.Signal();
+			task_list.push_back(TProcData(proc, i, 1, ptr));
 		}
+		thread_wait_cond.Signal();
 	}
 }
 
@@ -469,7 +476,7 @@ void CThreadPool::BatchWork(TProc proc, size_t n, void *ptr)
 				{
 					size_t u = n - i;
 					if (u > m) u = m;
-					tasks.push(TProcData(proc, i, u, ptr));
+					task_list.push_back(TProcData(proc, i, u, ptr));
 					i += u;
 				}
 			}
@@ -484,7 +491,7 @@ void CThreadPool::Wait()
 	if (!workers.empty())
 	{
 		CAutoLock lck(mutex);
-		while (!stop && (num_threads_working>0 || !tasks.empty()))
+		while (!stop && (num_threads_working>0 || !task_empty()))
 			main_wait_cond.Wait(mutex);
 	}
 }

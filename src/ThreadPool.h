@@ -226,6 +226,8 @@ namespace CoreArray
 		/// multiply *p by v and applied to all n
 		void vec_f64_mul(double *p, size_t n, double v);
 
+		inline bool task_empty() const { return (task_head>=task_list.size()); }
+
 	protected:
 
 		class COREARRAY_DLL_DEFAULT CThread_in_Pool: public CThread
@@ -249,7 +251,8 @@ namespace CoreArray
 		/// a collection of threads
 		vector<CThread_in_Pool> workers;
 		/// the task queue
-		queue<TProcData> tasks;
+		size_t task_head;
+		vector<TProcData> task_list;
 		/// the number of working threads
 		size_t num_threads_working;
 
