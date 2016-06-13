@@ -227,7 +227,7 @@ public:
 		AF_1_AF_2.Reset(nBlock);
 
 		// genotype buffer, false for no memory buffer
-		CGenoReadBySNP WS(Space, nBlock, verbose ? -1 : 0, false);
+		CGenoReadBySNP WS(NumThread, Space, nBlock, verbose ? -1 : 0, false);
 
 		// for-loop
 		WS.Init();
@@ -450,7 +450,7 @@ public:
 		VEC_AUTO_PTR<C_UInt8> Geno(nSamp * nBlock);
 
 		// genotype buffer, false for no memory buffer
-		CGenoReadBySNP WS(Space, nBlock, verbose ? -1 : 0, false);
+		CGenoReadBySNP WS(NumThread, Space, nBlock, verbose ? -1 : 0, false);
 
 		// for-loop
 		WS.Init();

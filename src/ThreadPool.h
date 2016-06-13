@@ -209,11 +209,12 @@ namespace CoreArray
 	{
 	public:	
 		/// constructor
-		CThreadPool(int num_threads);
+		CThreadPool(int num_threads, bool force=false);
 		/// destructor
 		~CThreadPool();
 
 		void AddWork(TProc proc, size_t i, void *ptr);
+		void AddWork(TProc proc, size_t i, size_t n, void *ptr);
 		void Wait();
 
 		void BatchWork(TProc proc, size_t n, void *ptr);
@@ -225,8 +226,6 @@ namespace CoreArray
 		void vec_f64_add(double *p, const double *s, size_t n);
 		/// multiply *p by v and applied to all n
 		void vec_f64_mul(double *p, size_t n, double v);
-
-		inline bool task_empty() const { return (task_head>=task_list.size()); }
 
 	protected:
 
@@ -245,7 +244,8 @@ namespace CoreArray
 			size_t i, n;
 			void *ptr;
 			TProcData() { }
-			TProcData(TProc p, size_t _i, size_t _n, void *s) { proc=p; i=_i; n=_n; ptr=s; }
+			TProcData(TProc p, size_t _i, size_t _n, void *s)
+				{ proc=p; i=_i; n=_n; ptr=s; }
 		};
 
 		/// a collection of threads
@@ -261,6 +261,7 @@ namespace CoreArray
 		CCondition thread_wait_cond;
 		CCondition main_wait_cond;
 		bool stop;
+		inline bool task_empty() const { return (task_head>=task_list.size()); }
 
 	private:
 		static void thread_vec_f64_add(size_t i, size_t n, void *ptr);
@@ -274,14 +275,23 @@ namespace CoreArray
 	{
 	public:
 		/// constructor
-		CThreadPoolEx(int num_threads): CThreadPool(num_threads) { }
+		CThreadPoolEx(int num_threads, bool force=false):
+			CThreadPool(num_threads, force) { }
 
-		void BatchWork(TCLASS *self, void (TCLASS::*proc)(size_t, size_t), size_t n)
+		inline void AddWork(TCLASS *self, void (TCLASS::*proc)(size_t, size_t),
+			size_t i, size_t n)
 		{
 			TStruct s;
-			s.obj = self;
-			s.proc = proc;
-			CThreadPool::BatchWork(InternalProc, n, &s);
+			s.obj = self; s.proc = proc;
+			CThreadPool::AddWork(ThreadProc, i, n, &s);
+		}
+
+		inline void BatchWork(TCLASS *self, void (TCLASS::*proc)(size_t, size_t),
+			size_t n)
+		{
+			TStruct s;
+			s.obj = self; s.proc = proc;
+			CThreadPool::BatchWork(ThreadProc, n, &s);
 		}
 
 	protected:
@@ -292,7 +302,7 @@ namespace CoreArray
 			void (TCLASS::*proc)(size_t i, size_t n);
 		};
 
-		static void InternalProc(size_t i, size_t n, void *ptr)
+		static void ThreadProc(size_t i, size_t n, void *ptr)
 		{
 			TStruct &p = *((TStruct *)ptr);
 			(p.obj->*p.proc)(i, n);

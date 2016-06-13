@@ -29,10 +29,8 @@
 #include <algorithm>
 #include <memory>
 
-
-#ifndef NO_COREARRAY_VECTORIZATION
-#   include <dVect.h>
-#endif
+#include "ThreadPool.h"
+#include "dVect.h"
 
 
 namespace GWAS
@@ -299,14 +297,19 @@ namespace GWAS
 	class COREARRAY_DLL_LOCAL CGenoReadBySNP
 	{
 	public:
-		CGenoReadBySNP(CdBaseWorkSpace &space, size_t max_cnt_snp,
-			C_Int64 progress_count, bool load,
+		CGenoReadBySNP(int num_thread, CdBaseWorkSpace &space,
+			size_t max_cnt_snp, C_Int64 progress_count, bool mem_load,
 			TTypeGenoDim dim=RDim_Sample_X_SNP);
 		~CGenoReadBySNP();
 
+		/// users should call Init() before calling Read()
 		void Init();
+		/// sequential read
 		bool Read(C_UInt8 *OutGeno);
+		/// sequential read
 		bool Read(C_UInt8 *OutGeno, size_t &OutIdxSNP);
+
+		/// read with start and count
 		void PRead(C_Int32 SnpStart, C_Int32 SnpCount, C_UInt8 *OutGeno);
 
 		inline void ProgressForward(C_Int64 val) { fProgress.Forward(val); }
@@ -319,12 +322,18 @@ namespace GWAS
 	protected:
 		CdBaseWorkSpace &fSpace;
 		CProgress fProgress;
-		C_UInt8 *fBuffer;
+		C_UInt8 *fGenoMemory;
 		TTypeGenoDim fDim;
 		size_t fIndex;  /// the current SNP index
 		size_t fCount;  /// the current SNP count
 		size_t fMaxCount;  /// the max count for each SNP read
 		size_t fTotalCount;  /// the number of selected SNPs
+
+		CThreadPoolEx<CGenoReadBySNP> thread_pool;  /// thread switch
+		C_UInt8 *thread_geno_buf;
+		size_t thread_snpcnt;
+
+		void load_proc(size_t i, size_t n);
 	};
 
 
@@ -452,20 +461,19 @@ namespace GWAS
 	{
 	public:
 		IdMatTri() {};
-
 		IdMatTri(int n); // n-by-n matrix
 
-		IdMatTri & operator+=(int val);
-		IdMatTri & operator-=(int val);
+		IdMatTri & operator+=(ssize_t val);
+		IdMatTri & operator-=(ssize_t val);
 		IdMatTri & operator++ ();
 		IdMatTri & operator-- ();
 		IdMatTri & operator= (C_Int64 val);
 
-		inline int Row() const { return fRow; }
-		inline int Column() const { return fColumn; }
+		inline ssize_t Row() const { return fRow; }
+		inline ssize_t Column() const { return fColumn; }
 		inline C_Int64 Offset() const { return fOffset; }
 	private:
-		int fN, fRow, fColumn;
+		ssize_t fN, fRow, fColumn;
 		C_Int64 fOffset;
 	};
 
@@ -473,7 +481,6 @@ namespace GWAS
 	{
 	public:
 		IdMatTriD() {};
-
 		IdMatTriD(int n); // n-by-n matrix
 
 		IdMatTriD & operator+=(int val);
@@ -496,15 +503,14 @@ namespace GWAS
 
 #ifndef NO_COREARRAY_VECTORIZATION
 
-	template<typename Tx, size_t vAlign=VEC_SIMD_ALIGN_BYTE>
-		class COREARRAY_DLL_LOCAL CdMatTri
+	template<typename TYPE> class COREARRAY_DLL_LOCAL CdMatTri
 	{
 	public:
 		CdMatTri()
 			{ fN = 0; }
 		CdMatTri(size_t n)
 			{ fN = 0; Reset(n); }
-		CdMatTri(size_t n, const Tx InitVal)
+		CdMatTri(size_t n, const TYPE InitVal)
 			{ fN = 0; Reset(n); Clear(InitVal); }
 
 		void Reset(size_t n)
@@ -516,29 +522,29 @@ namespace GWAS
 				fN = n;
 			}
 		}
-		void Clear(const Tx val)
+		void Clear(const TYPE val)
 		{
-        	Tx IVAL = val, *p = ptr.Get();
+        	TYPE IVAL = val, *p = ptr.Get();
 			for (size_t n = fN*(fN+1)/2; n > 0; n--)
 				*p++ = IVAL;
 		}
-		void GetRow(Tx *outbuf, size_t i)
+		void GetRow(TYPE *outbuf, size_t i)
 		{
 			for (size_t j = 0; j < i; j++)
 				outbuf[j] = ptr[i + j*(2*fN-j-1)/2];
 			for (size_t j = i; j < fN; j++)
 				outbuf[j] = ptr[j + i*(2*fN-i-1)/2];
 		}
-		Tx Trace()
+		TYPE Trace()
 		{
-			Tx rv = 0, *p = ptr.Get();
+			TYPE rv = 0, *p = ptr.Get();
 			size_t n = fN;
 			while (n > 0) { rv += *p; p += n; n--; }
 			return rv;
 		}
-		Tx Sum()
+		TYPE Sum()
 		{
-			Tx rv = 0, *p = ptr.Get();
+			TYPE rv = 0, *p = ptr.Get();
 			size_t n = Size();
 			while (n--) rv += *p++;
 			return rv;
@@ -552,7 +558,7 @@ namespace GWAS
 
 		template<typename OUTTYPE> void SaveTo(OUTTYPE *n_n_buffer)
 		{
-			vector<Tx> buf(fN);
+			vector<TYPE> buf(fN);
 			for (size_t i=0; i < fN; i++)
 			{
 				GetRow(&buf[0], i);
@@ -561,27 +567,27 @@ namespace GWAS
 			}
 		}
 
-		inline Tx *Get() { return ptr.Get(); }
+		inline TYPE *Get() { return ptr.Get(); }
 		inline size_t N() const { return fN; }
 		inline size_t Size() const { return fN*(fN+1)/2; }
 
 	protected:
-		Vectorization::VEC_AUTO_PTR<Tx, vAlign> ptr;
+		Vectorization::VEC_AUTO_PTR<TYPE> ptr;
 		size_t fN;
 	};
 
 
-	template<typename Tx, size_t vAlign=VEC_SIMD_ALIGN_BYTE>
+	template<typename TYPE, size_t vAlign=VEC_SIMD_ALIGN_BYTE>
 		class COREARRAY_DLL_LOCAL CdMatTriDiag
 	{
 	public:
 		CdMatTriDiag()
 			{ fN = 0; }
-		CdMatTriDiag(const Tx vDiag)
+		CdMatTriDiag(const TYPE vDiag)
 			{ fN = 0; fDiag = vDiag; }
-		CdMatTriDiag(const Tx vDiag, size_t n)
+		CdMatTriDiag(const TYPE vDiag, size_t n)
 			{ fN = 0; fDiag = vDiag; Reset(n); }
-		CdMatTriDiag(const Tx vDiag, size_t n, const Tx InitVal)
+		CdMatTriDiag(const TYPE vDiag, size_t n, const TYPE InitVal)
 			{ fN = 0; fDiag = vDiag; Reset(n); Clear(InitVal); }
 
 		void Reset(size_t n)
@@ -593,14 +599,14 @@ namespace GWAS
 				fN = n;
 			}
 		}
-		void Clear(const Tx val)
+		void Clear(const TYPE val)
 		{
-			Tx IVAL = val, *p = ptr.Get();
+			TYPE IVAL = val, *p = ptr.Get();
 			fDiag = IVAL;
 			for (size_t n = fN*(fN-1)/2; n > 0; n--)
 				*p++ = IVAL;
 		}
-		void GetRow(Tx *outbuf, size_t i)
+		void GetRow(TYPE *outbuf, size_t i)
 		{
 			for (size_t j = 0; j < i; j++)
 				outbuf[j] = ptr[TriPtr(i-1, j, fN-1)];
@@ -616,15 +622,15 @@ namespace GWAS
 			return TriPtr(col-1, row, fN-1);
 		}
 
-		inline Tx *Get() { return ptr.Get(); }
+		inline TYPE *Get() { return ptr.Get(); }
 		inline size_t N() const { return fN; }
 		inline size_t Size() const { return fN*(fN-1)/2; }
-		inline Tx &Diag() { return fDiag; }
+		inline TYPE &Diag() { return fDiag; }
 
 	protected:
-		Vectorization::VEC_AUTO_PTR<Tx, vAlign> ptr;
+		Vectorization::VEC_AUTO_PTR<TYPE, vAlign> ptr;
 		size_t fN;
-		Tx fDiag;
+		TYPE fDiag;
 		inline size_t TriPtr(size_t i1, size_t i2, size_t n)
 		{
 			return i1 + i2*(2*n-i2-1)/2;

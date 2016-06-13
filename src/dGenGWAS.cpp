@@ -1177,22 +1177,23 @@ void CProgress::ShowProgress()
 
 // ===================================================================== //
 
-CGenoReadBySNP::CGenoReadBySNP(CdBaseWorkSpace &space, size_t max_cnt_snp,
-	C_Int64 progress_count, bool load, TTypeGenoDim dim): fSpace(space)
+CGenoReadBySNP::CGenoReadBySNP(int num_thread, CdBaseWorkSpace &space,
+	size_t max_cnt_snp, C_Int64 progress_count, bool mem_load,
+	TTypeGenoDim dim): fSpace(space), thread_pool(1, num_thread>1)
 {
 	fTotalCount = fSpace.SNPNum();
 	fProgress.Reset(progress_count < 0 ? fTotalCount : progress_count);
 
-	if (load)
+	// whether genotypes are loaded into memory
+	if (mem_load)
 	{
 		const size_t nSamp = fSpace.SampleNum();
 		const size_t nSNP  = fSpace.SNPNum();
 		const size_t nPack = (nSamp >> 2) + ((nSamp & 0x03) ? 1 : 0);
-
-		fBuffer = new C_UInt8[nPack * nSNP];
+		fGenoMemory = new C_UInt8[nPack * nSNP];
 		vector<C_UInt8> Geno(256*nSamp);
 
-		C_UInt8 *p = fBuffer;
+		C_UInt8 *p = fGenoMemory;
 		for (size_t i=0; i < nSNP; )
 		{
 			size_t inc_snp = nSNP - i;
@@ -1209,24 +1210,45 @@ CGenoReadBySNP::CGenoReadBySNP(CdBaseWorkSpace &space, size_t max_cnt_snp,
 			}
 		}
 	} else {
-		fBuffer = NULL;
+		fGenoMemory = NULL;
 	}
 
 	fIndex = fCount = 0;
 	if (max_cnt_snp <= 0) max_cnt_snp = 1;
 	fMaxCount = max_cnt_snp;
 	fDim = dim;
+
+	// thread switch to load genotypes
+	if (num_thread > 1)
+	{
+		thread_geno_buf = new C_UInt8[max_cnt_snp * fSpace.SampleNum()];
+	} else {
+		thread_geno_buf = NULL;
+	}
+	thread_snpcnt = 0;
 }
 
 CGenoReadBySNP::~CGenoReadBySNP()
 {
-	if (fBuffer) delete []fBuffer;
-	fBuffer = NULL;
+	if (fGenoMemory) delete []fGenoMemory;
+	fGenoMemory = NULL;
+	if (thread_geno_buf) delete []thread_geno_buf;
+	thread_geno_buf = NULL;
 }
 
 void CGenoReadBySNP::Init()
 {
 	fIndex = fCount = 0;
+	if (thread_geno_buf)
+	{
+		thread_pool.Wait();
+		if (thread_snpcnt <= 0)
+		{
+			size_t n = fTotalCount;
+			if (n > fMaxCount) n = fMaxCount;
+			// thread_pool.AddWork(this, &CGenoReadBySNP::load_proc, fIndex, n);
+		}
+	}
 }
 
 bool CGenoReadBySNP::Read(C_UInt8 *OutGeno)
@@ -1261,13 +1283,14 @@ bool CGenoReadBySNP::Read(C_UInt8 *OutGeno, size_t &OutIdxSNP)
 void CGenoReadBySNP::PRead(C_Int32 SnpStart, C_Int32 SnpCount,
 	C_UInt8 *OutGeno)
 {
-	if (fBuffer)
+	if (fGenoMemory)
 	{
+		// TODO handle fDim
 		const size_t nSamp = fSpace.SampleNum();
 		const size_t nPack = nSamp >> 2;
 		const size_t nRe   = nSamp & 0x03;
 
-		const C_UInt8 *s = fBuffer + (nPack + (nRe ? 1 : 0)) * SnpStart;
+		const C_UInt8 *s = fGenoMemory + (nPack + (nRe ? 1 : 0)) * SnpStart;
 		C_UInt8 *p = OutGeno;
 		for (C_Int32 i=0; i < SnpCount; i++)
 		{
@@ -1291,6 +1314,12 @@ void CGenoReadBySNP::PRead(C_Int32 SnpStart, C_Int32 SnpCount,
 		fSpace.snpRead(SnpStart, SnpCount, OutGeno, fDim);
 		vec_u8_geno_valid(OutGeno, SnpCount*size_t(fSpace.SampleNum()));
 	}
+}
+
+void CGenoReadBySNP::load_proc(size_t i, size_t n)
+{
+	PRead(i, n, thread_geno_buf);
+	thread_snpcnt = n;
 }
 
 
@@ -1607,7 +1636,7 @@ IdMatTri::IdMatTri(int n)
 	fN = n; fRow = fColumn = fOffset = 0;
 }
 
-IdMatTri & IdMatTri::operator+= (int val)
+IdMatTri & IdMatTri::operator+= (ssize_t val)
 {
 	if (val > 0)
 	{
@@ -1650,7 +1679,7 @@ IdMatTri & IdMatTri::operator+= (int val)
 	return *this;
 }
 
-IdMatTri & IdMatTri::operator-= (int val)
+IdMatTri & IdMatTri::operator-= (ssize_t val)
 {
 	*this += (-val);
 	return *this;
@@ -2181,7 +2210,7 @@ size_t GWAS::GetOptimzedCache()
 	C_UInt64 Cache = (L2Cache > L3Cache) ? L2Cache : L3Cache;
 	if (Cache <= 0)
 		Cache = 1024*1024; // 1M
-	Cache -= (Cache == L3Cache) ? L2Cache : 4*L1Cache;
+	Cache -= (Cache == L3Cache) ? (L2Cache+L1Cache) : 4*L1Cache;
 	return Cache;
 }
 

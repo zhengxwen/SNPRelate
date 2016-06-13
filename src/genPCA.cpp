@@ -716,7 +716,7 @@ public:
 		C_UInt8 *pGeno = Geno.Get();
 
 		// genotype buffer, false for no memory buffer
-		CGenoReadBySNP WS(Space, BlockNumSNP, verbose ? -1 : 0, false);
+		CGenoReadBySNP WS(NumThread, Space, BlockNumSNP, verbose ? -1 : 0, false);
 
 		// for-loop
 		WS.Init();
@@ -1013,7 +1013,7 @@ public:
 		CThreadPoolEx<CRandomPCA> thpool(NumThread);
 
 		// genotype buffer, false for no memory buffer
-		CGenoReadBySNP WS(Space, IncSNP,
+		CGenoReadBySNP WS(NumThread, Space, IncSNP,
 			verbose ? C_Int64(nSNP)*(2*IterNum + 1) : 0, false);
 
 		// for-loop
@@ -1198,7 +1198,7 @@ public:
 		// genotypes (0, 1, 2 and NA)
 		Geno.Reset(nSamp * nBlock);
 		// genotype buffer, false for no memory buffer
-		CGenoReadBySNP WS(Space, nBlock, verbose ? -1 : 0, false);
+		CGenoReadBySNP WS(NumThread, Space, nBlock, verbose ? -1 : 0, false);
 
 		// for-loop
 		WS.Init();

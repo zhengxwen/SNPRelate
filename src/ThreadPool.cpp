@@ -402,12 +402,12 @@ int CThreadPool::CThread_in_Pool::RunThread()
 }
 
 
-CThreadPool::CThreadPool(int num_threads)
+CThreadPool::CThreadPool(int num_threads, bool force)
 {
 	stop = false;
 	num_threads_working = 0;
 	task_head = 0;
-	if (num_threads > 1)
+	if ((num_threads > 1) || force)
 	{
 		task_list.reserve(num_threads);
 		workers.resize(num_threads);
@@ -443,6 +443,24 @@ void CThreadPool::AddWork(TProc proc, size_t i, void *ptr)
 			if(stop)
 				throw "AddWork on stopped CThreadPool";
 			task_list.push_back(TProcData(proc, i, 1, ptr));
+		}
+		thread_wait_cond.Signal();
+	}
+}
+
+void CThreadPool::AddWork(TProc proc, size_t i, size_t n, void *ptr)
+{
+	if (workers.empty())
+	{
+		num_threads_working ++;
+		(*proc)(i, n, ptr);
+		num_threads_working --;
+	} else {
+		{
+			CAutoLock lck(mutex);
+			if(stop)
+				throw "AddWork on stopped CThreadPool";
+			task_list.push_back(TProcData(proc, i, n, ptr));
 		}
 		thread_wait_cond.Signal();
 	}
@@ -537,6 +555,5 @@ void CThreadPool::vec_f64_mul(double *p, size_t n, double v)
 	param.p1 = p; param.p2 = v;
 	BatchWork(thread_vec_f64_mul, n, &param);
 }
-
 
 }
