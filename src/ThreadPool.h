@@ -278,14 +278,6 @@ namespace CoreArray
 		CThreadPoolEx(int num_threads, bool force=false):
 			CThreadPool(num_threads, force) { }
 
-		inline void AddWork(TCLASS *self, void (TCLASS::*proc)(size_t, size_t),
-			size_t i, size_t n)
-		{
-			TStruct s;
-			s.obj = self; s.proc = proc;
-			CThreadPool::AddWork(ThreadProc, i, n, &s);
-		}
-
 		inline void BatchWork(TCLASS *self, void (TCLASS::*proc)(size_t, size_t),
 			size_t n)
 		{

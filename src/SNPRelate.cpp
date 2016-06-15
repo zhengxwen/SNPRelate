@@ -243,15 +243,15 @@ COREARRAY_DLL_EXPORT SEXP gnrSelSNP_Base_Ex(SEXP afreq, SEXP remove_mono,
 COREARRAY_DLL_EXPORT SEXP gnrSNPRateFreq()
 {
 	COREARRAY_TRY
-		R_xlen_t L = MCWorkingGeno.Space().SNPNum();
+		R_xlen_t n = MCWorkingGeno.Space().SNPNum();
 
 		SEXP AF, MF, MR;
 		PROTECT(rv_ans = NEW_LIST(3));
-		PROTECT(AF = NEW_NUMERIC(L));
+		PROTECT(AF = NEW_NUMERIC(n));
 		SET_ELEMENT(rv_ans, 0, AF);
-		PROTECT(MF = NEW_NUMERIC(L));
+		PROTECT(MF = NEW_NUMERIC(n));
 		SET_ELEMENT(rv_ans, 1, MF);
-		PROTECT(MR = NEW_NUMERIC(L));
+		PROTECT(MR = NEW_NUMERIC(n));
 		SET_ELEMENT(rv_ans, 2, MR);
 
 		MCWorkingGeno.Space().Get_AF_MR_perSNP(REAL(AF), REAL(MF), REAL(MR));

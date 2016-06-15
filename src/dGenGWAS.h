@@ -328,12 +328,13 @@ namespace GWAS
 		size_t fCount;  /// the current SNP count
 		size_t fMaxCount;  /// the max count for each SNP read
 		size_t fTotalCount;  /// the number of selected SNPs
+		size_t fSampNum;  /// the number of samples
 
 		CThreadPoolEx<CGenoReadBySNP> thread_pool;  /// thread switch
 		C_UInt8 *thread_geno_buf;
 		size_t thread_snpcnt;
 
-		void load_proc(size_t i, size_t n);
+		static void load_proc(size_t i, size_t n, void *ptr);
 	};
 
 

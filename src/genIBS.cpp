@@ -469,7 +469,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)
 		}
 
 		if (verbose)
-			Rprintf("%s    Done\n", TimeToStr());
+			Rprintf("%s    Done.\n", TimeToStr());
 		UNPROTECT(1);
 
 	COREARRAY_CATCH
@@ -522,7 +522,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 		}
 
 		if (verbose)
-			Rprintf("%s    Done\n", TimeToStr());
+			Rprintf("%s    Done.\n", TimeToStr());
 		UNPROTECT(4);
 
 	COREARRAY_CATCH
@@ -591,7 +591,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 		SET_ELEMENT(rv_ans, 2, afreq);
 
 		if (verbose)
-			Rprintf("%s    Done\n", TimeToStr());
+			Rprintf("%s    Done.\n", TimeToStr());
 		UNPROTECT(4);
 
 	COREARRAY_CATCH

@@ -2143,7 +2143,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm,
 			throw "Invalid 'algorithm'.";
 
 		if (verbose)
-			Rprintf("%s    Done\n", TimeToStr());
+			Rprintf("%s    Done.\n", TimeToStr());
 
 	COREARRAY_CATCH
 }
@@ -2169,7 +2169,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCACorr(SEXP LenEig, SEXP EigenVect,
 				Rf_asInteger(NumThread), verbose);
 		}
 		if (verbose)
-			Rprintf("%s    Done\n", TimeToStr());
+			Rprintf("%s    Done.\n", TimeToStr());
 		UNPROTECT(1);
 
 	COREARRAY_CATCH
