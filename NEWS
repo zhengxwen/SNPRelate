@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.6.0-1.6.4
+CHANGES IN VERSION 1.6.0-1.6.5
 -------------------------
 
     o the version number was bumped for the Bioconductor release version 3.3
@@ -9,6 +9,8 @@ CHANGES IN VERSION 1.6.0-1.6.4
       `snpgdsIBS()`, `snpgdsIBDMoM()`, `snpgdsIBDKing()` (+50% to +300%)
 
     o v1.6.4: bug fix in v1.6.3 (allele counting error with SSE2 implement)
+
+    o v1.6.5: `snpgdsGRM()`, renames the option "Visscher" to "GCTA"
 
 
 CHANGES IN VERSION 1.5.0-1.5.2

@@ -2283,7 +2283,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 			double scale = double(n-1) / TraceXTX;
 			vt<double, av16Align>::Mul(IBD.Get(), IBD.Get(), scale, IBD.Size());
 
-		} else if (strcmp(Method, "Visscher") == 0)
+		} else if (strcmp(Method, "GCTA") == 0)
 		{
 			// Calculate Visscher's GRM
 			PCA::DoGRMCalc(IBD, nThread, verbose);

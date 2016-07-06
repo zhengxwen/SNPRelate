@@ -9,7 +9,7 @@
 \usage{
 snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("Visscher", "Eigenstrat", "EIGMIX", "W&Z15"), num.thread=1L,
+    method=c("GCTA", "Eigenstrat", "EIGMIX", "W&Z15"), num.thread=1L,
     with.id=TRUE, verbose=TRUE)
 }
 \arguments{
@@ -72,8 +72,8 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 genofile <- snpgdsOpen(snpgdsExampleFileName())
 
 
-rv <- snpgdsGRM(genofile, method="Visscher")
-eig <- eigen(rv$grm)  # Eigendecomposition
+rv <- snpgdsGRM(genofile, method="GCTA")
+eig <- eigen(rv$grm)  # Eigen-decomposition
 
 pop <- factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group")))
 plot(eig$vectors[,1], eig$vectors[,2], col=pop)
