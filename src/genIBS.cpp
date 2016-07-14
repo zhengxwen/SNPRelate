@@ -648,14 +648,23 @@ COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 
 /// Compute the individual dissimilarity
 COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
-	SEXP Method, SEXP Type, SEXP GDSNode, SEXP _Verbose)
+	SEXP Method, SEXP Type, SEXP Dosage, SEXP GDSNode, SEXP _Verbose)
 {
-	static const int IBS[3][3] =
-		{ { 2, 1, 0 }, { 1, 2, 1 }, { 0, 1, 2 } };
-	static const int GVH[3][3] =
-		{ { 0, 0, 2 }, { 1, 0, 1 }, { 2, 0, 0 } };
-	static const int HVG[3][3] =
-		{ { 0, 1, 2 }, { 0, 0, 0 }, { 2, 1, 0 } };
+	typedef int TMat[4][4];
+
+	const int M = -1;
+	static const TMat IBS =
+		{ { 2, 1, 0, M }, { 1, 2, 1, M }, { 0, 1, 2, M }, { M, M, M, M } };
+	static const TMat IBS_1 =
+		{ { 1, 1, 0, M }, { 1, 1, 1, M }, { 0, 1, 1, M }, { M, M, M, M } };
+	static const TMat GVH =
+		{ { 0, 0, 2, M }, { 1, 0, 1, M }, { 2, 0, 0, M }, { M, M, M, M } };
+	static const TMat GVH_1 =
+		{ { 0, 0, 1, M }, { 1, 0, 1, M }, { 1, 0, 0, M }, { M, M, M, M } };
+	static const TMat HVG =
+		{ { 0, 1, 2, M }, { 0, 0, 0, M }, { 2, 1, 0, M }, { M, M, M, M } };
+	static const TMat HVG_1 =
+		{ { 0, 1, 1, M }, { 0, 0, 0, M }, { 1, 1, 0, M }, { M, M, M, M } };
 
 	const int *c_1 = INTEGER(SampIdx1);
 	const int *c_2 = INTEGER(SampIdx2);
@@ -664,17 +673,22 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 	const char *c_Type = CHAR(STRING_ELT(Type, 0));
 	const bool verbose = SEXP_Verbose(_Verbose);
 
+	const int dosage = Rf_asLogical(Dosage);
+	if (dosage == NA_LOGICAL)
+		error("'dosage' must be TRUE or FALSE.");
+
 	COREARRAY_TRY
 
-		int iMethod;
+		const TMat *m;
 		if (strcmp(c_Method, "IBS") == 0)
-			iMethod = 1;
+			m = dosage ? &IBS : &IBS_1;
 		else if (strcmp(c_Method, "GVH") == 0)
-			iMethod = 2;
+			m = dosage ? &GVH : &GVH_1;
 		else if (strcmp(c_Method, "HVG") == 0)
-			iMethod = 3;
+			m = dosage ? &HVG : &HVG_1;
 		else
 			throw ErrCoreArray("Invalid 'method'.");
+		const TMat &map = *m;
 
 		// ======== To cache the genotype data ========
 		CachingSNPData("Genotype Score", verbose);
@@ -695,17 +709,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 					C_UInt8 g1 = pGeno[c_1[j]];
 					C_UInt8 g2 = pGeno[c_2[j]];
 					if ((g1 < 3) && (g2 < 3))
-					{
-						switch (iMethod)
-						{
-						case 1: // IBS
-							Sums[j].Add(IBS[g1][g2]); break;
-						case 2: // GVH
-							Sums[j].Add(GVH[g1][g2]); break;
-						case 3: // HVG
-							Sums[j].Add(HVG[g1][g2]); break;
-						}
-					}
+						Sums[j].Add(map[g1][g2]);
 				}
 			}
 
@@ -734,17 +738,8 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 					C_UInt8 g1 = pGeno[c_1[j]];
 					C_UInt8 g2 = pGeno[c_2[j]];
 					if ((g1 < 3) && (g2 < 3))
-					{
-						switch (iMethod)
-						{
-						case 1: // IBS
-							Buffer[j] = IBS[g1][g2]; break;
-						case 2: // GVH
-							Buffer[j] = GVH[g1][g2]; break;
-						case 3: // HVG
-							Buffer[j] = HVG[g1][g2]; break;
-						}
-					} else
+						Buffer[j] = map[g1][g2];
+					else
 						Buffer[j] = R_NaN;
 				}
 
@@ -768,17 +763,8 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 					C_UInt8 g1 = pGeno[c_1[j]];
 					C_UInt8 g2 = pGeno[c_2[j]];
 					if ((g1 < 3) && (g2 < 3))
-					{
-						switch (iMethod)
-						{
-						case 1: // IBS
-							*Out = IBS[g1][g2]; break;
-						case 2: // GVH
-							*Out = GVH[g1][g2]; break;
-						case 3: // HVG
-							*Out = HVG[g1][g2]; break;
-						}
-					} else
+						*Out = map[g1][g2];
+					else
 						*Out = NA_INTEGER;
 				}
 			}
@@ -797,17 +783,8 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 					C_UInt8 g1 = pGeno[c_1[j]];
 					C_UInt8 g2 = pGeno[c_2[j]];
 					if ((g1 < 3) && (g2 < 3))
-					{
-						switch (iMethod)
-						{
-						case 1: // IBS
-							*Out = IBS[g1][g2]; break;
-						case 2: // GVH
-							*Out = GVH[g1][g2]; break;
-						case 3: // HVG
-							*Out = HVG[g1][g2]; break;
-						}
-					} else
+						*Out = map[g1][g2];
+					else
 						*Out = 3; // NA
 				}
 

@@ -12,6 +12,8 @@ CHANGES IN VERSION 1.6.0-1.6.5
 
     o v1.6.5: `snpgdsGRM()`, renames the option "Visscher" to "GCTA"
 
+    o v1.6.5: new option 'dosage' in `snpgdsPairScore()`
+
 
 CHANGES IN VERSION 1.5.0-1.5.2
 -------------------------

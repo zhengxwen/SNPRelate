@@ -1176,7 +1176,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrLDpruning(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrSlidingNumWin(SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrSlidingWindow(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-	extern SEXP gnrPairScore(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrPairScore(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPairIBD(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPairIBDLogLik(SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCA(SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1220,7 +1220,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrIndInb, 4),              CALL(gnrIndInbCoef, 3),
 		CALL(gnrSSEFlag, 0),             CALL(gnrLDMat, 5),
 		CALL(gnrLDpair, 3),              CALL(gnrLDpruning, 6),
-		CALL(gnrPairScore, 6),
+		CALL(gnrPairScore, 7),
 		CALL(gnrPairIBD, 8),             CALL(gnrPairIBDLogLik, 5),
 		CALL(gnrPCA, 5),                 CALL(gnrPCACorr, 4),
 		CALL(gnrPCASampLoading, 9),      CALL(gnrPCASNPLoading, 7),

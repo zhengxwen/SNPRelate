@@ -75,7 +75,7 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
     method=c("IBS", "GVH", "HVG"),
     type=c("per.pair", "per.snp", "matrix", "gds.file"),
-    with.id=TRUE, output=NULL, verbose=TRUE)
+    dosage=TRUE, with.id=TRUE, output=NULL, verbose=TRUE)
 {
     # check
     if (anyDuplicated(sample1.id) != 0)
@@ -89,7 +89,8 @@ snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
 
     method <- match.arg(method)
     type <- match.arg(type)
-    stopifnot(is.logical(with.id))
+    stopifnot(is.logical(with.id), length(with.id)==1L)
+    stopifnot(is.logical(dosage), length(dosage)==1L)
     stopifnot(is.logical(verbose))
 
     if (type == "gds.file")
@@ -156,10 +157,17 @@ snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
 
     # call the C function
     ans$score <- .Call(gnrPairScore, match(sample1.id, ws$sample.id)-1L,
-        match(sample2.id, ws$sample.id)-1L, method, type, gGeno, verbose)
+        match(sample2.id, ws$sample.id)-1L, method, type, dosage, gGeno,
+        verbose)
     if (type == "per.pair")
-        colnames(ans$score) <- c("Avg", "SD", "Num")
-    else if (type == "per.snp")
+    {
+        x <- as.data.frame(ans$score)
+        colnames(x) <- c("Avg", "SD", "Num")
+        storage.mode(x$Num) <- "integer"
+        x <- cbind(x, data.frame(
+            Sample1=sample1.id, Sample2=sample2.id, stringsAsFactors=FALSE))
+        ans$score <- x
+    } else if (type == "per.snp")
         rownames(ans$score) <- c("Avg", "SD", "Num")
 
     if (type == "gds.file")

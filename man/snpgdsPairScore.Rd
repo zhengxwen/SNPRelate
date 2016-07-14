@@ -11,7 +11,7 @@ identity-by-state (IBS) measure
 snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
     method=c("IBS", "GVH", "HVG"),
     type=c("per.pair", "per.snp", "matrix", "gds.file"),
-    with.id=TRUE, output=NULL, verbose=TRUE)
+    dosage=TRUE, with.id=TRUE, output=NULL, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -26,6 +26,8 @@ snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
         or \code{"HVG"}, see Details}
     \item{type}{\code{"per.pair"}, \code{"per.snp"} or \code{"matrix"},
         see Value}
+    \item{dosage}{TRUE, uses dosages 0, 1, 2; FALSE, uses 0, 1 (changing a
+        return value of 1 or 2 to be 1)}
     \item{with.id}{if \code{TRUE}, returns "sample.id" and "snp.id"; see Value}
     \item{output}{if \code{type="gds.file"}, the file name}
     \item{verbose}{if TRUE, show information}
@@ -53,9 +55,10 @@ snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
         if \code{with.id=TRUE}}
     \item{snp.id}{the SNP ids used in the analysis, if \code{with.id=TRUE}}
     \item{score}{a matrix of genotype score:
-        if \code{type="per.pair"}, a \code{# of pairs}-by-3 matrix with the
+        if \code{type="per.pair"}, a \code{data.frame} with the
         first column for average scores, the second column for standard
         deviation and the third column for the valid number of SNPs;
+        the additional columns for pairs of samples.
         if \code{type="per.snp"}, a 3-by-\code{# of SNPs} matrix with the first
         row for average scores, the second row for standard deviation and
         the third row for the valid number of individual pairs;
@@ -92,7 +95,13 @@ father.id <- father.id[father.id != ""]
 z1 <- snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
     method="IBS", type="per.pair")
 names(z1)
-z1$score
+head(z1$score)
+
+# calculate average genotype scores
+z1 <- snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
+    method="IBS", type="per.pair", dosage=FALSE)
+names(z1)
+head(z1$score)
 
 
 # calculate average genotype scores
