@@ -1,5 +1,6 @@
 \name{snpgdsPCA}
 \alias{snpgdsPCA}
+\alias{plot.snpgdsPCAClass}
 \title{
     Principal Component Analysis (PCA) on SNP genotype data
 }
@@ -15,6 +16,7 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL,
     num.thread=1L, bayesian=FALSE, need.genmat=FALSE,
     genmat.only=FALSE, eigen.method=c("DSPEVX", "DSPEV"),
     aux.dim=eigen.cnt*2L, iter.num=10L, verbose=TRUE)
+\method{plot}{snpgdsPCAClass}(x, eig=c(1L,2L), ...)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -48,6 +50,10 @@ snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL,
     \item{aux.dim}{auxiliary dimension used in fast randomized algorithm}
     \item{iter.num}{iteration number used in fast randomized algorithm}
     \item{verbose}{if TRUE, show information}
+    \item{x}{a \code{snpgdsPCAClass} object}
+    \item{eig}{indices of eigenvectors, like \code{1:2} or \code{1:4}}
+    \item{...}{the arguments passed to or from other methods, like
+        \code{pch}, \code{col}}
 }
 \details{
     The minor allele frequency and missing rate for each SNP passed in
@@ -92,6 +98,10 @@ head(RV$eigenval)
 # variance proportion (%)
 head(round(RV$varprop*100, 2))
 # [1] 12.23  5.84  1.01  0.95  0.84  0.74
+
+
+plot(RV)
+plot(RV, 1:4)
 
 
 ####  there is no population information  ####

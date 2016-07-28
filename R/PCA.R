@@ -335,3 +335,30 @@ snpgdsAdmixProp <- function(eigobj, groups, bound=FALSE)
 
     new.p
 }
+
+
+
+#######################################################################
+# plot PCA results
+#
+
+plot.snpgdsPCAClass <- function(x, eig=c(1L,2L), ...)
+{
+    stopifnot(inherits(x, "snpgdsPCAClass"))
+    stopifnot(is.numeric(eig), length(eig) >= 2L)
+
+    if (length(eig) == 2L)
+    {
+        v <- x$varprop[eig] * 100
+        plot(x$eigenvect[,eig[1L]], x$eigenvect[,eig[2L]],
+            xlab=sprintf("Eigenvector %d (%.1f%%)", eig[1L], v[eig[1L]]),
+            ylab=sprintf("Eigenvector %d (%.1f%%)", eig[2L], v[eig[2L]]),
+            ...)
+    } else {
+        pairs(x$eigenvect[, eig],
+            labels=sprintf("Eig %d\n(%.1f%%)", eig, x$varprop[eig]*100),
+            ...)
+    }
+
+    invisible()
+}

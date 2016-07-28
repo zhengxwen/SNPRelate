@@ -14,6 +14,8 @@ CHANGES IN VERSION 1.6.0-1.6.5
 
     o v1.6.5: new option 'dosage' in `snpgdsPairScore()`
 
+    o v1.6.5: new function `plot.snpgdsPCAClass()`
+
 
 CHANGES IN VERSION 1.5.0-1.5.2
 -------------------------

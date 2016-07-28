@@ -566,6 +566,12 @@ snpgdsClose(genofile)
 
 
 
+# Integration with SeqArray
+
+See: [R Integration](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html).
+
+
+
 # Function List
 
 | Function      | Description |
