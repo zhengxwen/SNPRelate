@@ -288,6 +288,7 @@ namespace GWAS
 		double _start, _step;
 		C_Int64 _hit;
 		vector< pair<double, time_t> > _timer;
+		time_t _last_time;
 	};
 
 

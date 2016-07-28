@@ -1109,6 +1109,7 @@ void CProgress::Reset(C_Int64 count)
 		_timer.clear();
 		_timer.reserve(128);
 		_timer.push_back(pair<double, time_t>(percent, s));
+		_last_time = s;
 		if (flag) ShowProgress();
 	}
 }
@@ -1144,9 +1145,11 @@ void CProgress::ShowProgress()
 		// ETC: estimated time to complete
 		n = (int)_timer.size() - 20;  // 20% as a sliding window size
 		if (n < 0) n = 0;
+
 		time_t now; time(&now);
 		_timer.push_back(pair<double, time_t>(percent, now));
 
+		double int_sec = difftime(now, _last_time);
 		double sec = difftime(now, _timer[n].second);
 		double diff = percent - _timer[n].first;
 		if (diff > 0)
@@ -1156,21 +1159,24 @@ void CProgress::ShowProgress()
 		percent *= 100;
 
 		// show
-		if (sec < 5)
+		if (fCounter >= fTotalCount)
 		{
-			if (fCounter >= fTotalCount)
-				Rprintf("\r[%s] 100%%, completed  \n", ss);
-		} else if (sec < 60)
+			Rprintf("\r[%s] 100%%, completed  \n", ss);
+		} else if ((int_sec >= 5) || (fCounter <= 0))
 		{
-			Rprintf("\r[%s] %2.0f%%, ETC: %.0fs  ", ss, percent, sec);
-		} else if (sec < 3600)
-		{
-			Rprintf("\r[%s] %2.0f%%, ETC: %.1fm  ", ss, percent, sec/60);
-		} else {
-			if (sec >= 999.9 * 60 * 60)
-				Rprintf("\r[%s] %2.0f%%, ETC: NA    ", ss, percent);
-			else
-				Rprintf("\r[%s] %2.0f%%, ETC: %.1fh  ", ss, percent, sec/(60*60));
+			_last_time = now;
+			if (sec < 60)
+			{
+				Rprintf("\r[%s] %2.0f%%, ETC: %.0fs  ", ss, percent, sec);
+			} else if (sec < 3600)
+			{
+				Rprintf("\r[%s] %2.0f%%, ETC: %.1fm  ", ss, percent, sec/60);
+			} else {
+				if (sec >= 999.9 * 60 * 60)
+					Rprintf("\r[%s] %2.0f%%, ETC: NA    ", ss, percent);
+				else
+					Rprintf("\r[%s] %2.0f%%, ETC: %.1fh  ", ss, percent, sec/(60*60));
+			}
 		}
 	}
 }
