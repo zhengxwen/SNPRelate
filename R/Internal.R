@@ -343,7 +343,7 @@
             dm[1L], " SNP", .plural(dm[1L]), "\n", sep="")
         if (verbose.numthread)
         {
-            cat("\tusing ", num.thread, " (CPU) core", .plural(num.thread),
+            cat("    using ", num.thread, " (CPU) core", .plural(num.thread),
                 "\n", sep="")
         }
     }

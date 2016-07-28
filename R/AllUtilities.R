@@ -1906,7 +1906,7 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
     if (verbose)
     {
-        cat("\tWindow size: ", winsize, ", shift: ", shift, sep="")
+        cat("    window size: ", winsize, ", shift: ", shift, sep="")
         cat(if (unit == "basepair") " (basepair)\n" else " (locus index)\n")
     }
 
@@ -1933,15 +1933,28 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     if (with.id %in% c("snp.id", "snp.id.in.window"))
         ans$snp.id <- ws$snp.id
 
-    total.snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
-    snp.flag <- total.snp.ids %in% ws$snp.id
+    if (inherits(gdsobj, "SeqVarGDSClass"))
+    {
+        total.snp.ids <- read.gdsn(index.gdsn(gdsobj, "variant.id"))
+        snp.flag <- total.snp.ids %in% ws$snp.id
 
-    chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
-    snp.flag[is.na(chr)] <- FALSE
+        chr <- read.gdsn(index.gdsn(gdsobj, "chromosome"))
+        snp.flag[is.na(chr)] <- FALSE
 
-    position <- read.gdsn(index.gdsn(gdsobj, "snp.position"))
-    snp.flag[!is.finite(position)] <- FALSE
-    snp.flag[position <= 0] <- FALSE
+        position <- read.gdsn(index.gdsn(gdsobj, "position"))
+        snp.flag[!is.finite(position)] <- FALSE
+        snp.flag[position <= 0] <- FALSE
+    } else {
+        total.snp.ids <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
+        snp.flag <- total.snp.ids %in% ws$snp.id
+
+        chr <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
+        snp.flag[is.na(chr)] <- FALSE
+
+        position <- read.gdsn(index.gdsn(gdsobj, "snp.position"))
+        snp.flag[!is.finite(position)] <- FALSE
+        snp.flag[position <= 0] <- FALSE
+    }
 
     if (is.numeric(chr))
         chrset <- setdiff(unique(chr[snp.flag]), c(0, NA))
@@ -2075,7 +2088,7 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             v <- .Call(gnrSlidingWindow, FunIdx, winsize, shift, unit, winst,
                 as.is, chflag, chpos, param, verbose)
 
-            ans[[paste("chr", ch, sep="")]] <- v[[1]]
+            ans[[paste("chr", ch, ".val", sep="")]] <- v[[1]]
             ans[[paste("chr", ch, ".num", sep="")]] <- v[[2]]
             ans[[paste("chr", ch, ".pos", sep="")]] <- v[[3]]
             ans[[paste("chr", ch, ".posrange", sep="")]] <- v[[4]]

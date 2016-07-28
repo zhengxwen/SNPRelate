@@ -159,8 +159,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	bool verbose = (Rf_asLogical(Verbose) == TRUE);
 	if (verbose)
 		Rprintf(", %d windows\n", nWin);
-	CdProgression Progress(1, verbose);
-	Progress.Init(nWin, true);
+	CProgress Progress(verbose ? nWin : 0);
 
 	// get the parameter
 	SEXP PL[64];

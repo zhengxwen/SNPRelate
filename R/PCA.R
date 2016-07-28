@@ -111,11 +111,9 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
     {
         cat("SNP correlation:\n")
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
-        if (num.thread <= 1)
-            cat("\tUsing", num.thread, "(CPU) core.\n")
-        else
-            cat("\tUsing", num.thread, "(CPU) cores.\n")
-        cat("\tUsing the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
+        cat("    using ", num.thread, " (CPU) core", .plural(num.thread), "\n",
+            sep="")
+        cat("    using the top", dim(pcaobj$eigenvect)[2], "eigenvectors\n")
     }
 
     # call C function
@@ -144,11 +142,9 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
     {
         cat("SNP loading:\n")
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
-        if (num.thread <= 1)
-            cat("\tUsing", num.thread, "(CPU) core.\n")
-        else
-            cat("\tUsing", num.thread, "(CPU) cores.\n")
-        cat("\tUsing the top", dim(pcaobj$eigenvect)[2], "eigenvectors.\n")
+        cat("    using ", num.thread, " (CPU) core", .plural(num.thread), "\n",
+            sep="")
+        cat("    using the top", dim(pcaobj$eigenvect)[2], "eigenvectors\n")
     }
 
     # call parallel PCA
@@ -190,11 +186,9 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
     {
         cat("Sample loading:\n")
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n")
-        if (num.thread <= 1)
-            cat("\tUsing", num.thread, "(CPU) core.\n")
-        else
-            cat("\tUsing", num.thread, "(CPU) cores.\n")
-        cat("\tUsing the top", eigcnt, "eigenvectors.\n")
+        cat("    using ", num.thread, " (CPU) core", .plural(num.thread), "\n",
+            sep="")
+        cat("    using the top", eigcnt, "eigenvectors\n")
     }
 
     # call C function

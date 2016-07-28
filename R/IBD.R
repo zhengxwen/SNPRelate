@@ -577,7 +577,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     if (ws$verbose)
     {
         x <- table(population)
-        cat("# of Populations: ", nlevels(population), "\n\t",
+        cat("# of Populations: ", nlevels(population), "\n    ",
             paste(sprintf("%s (%d)", names(x), x), collapse=", "),
             "\n", sep="")
     }
