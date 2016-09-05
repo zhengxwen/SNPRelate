@@ -1172,7 +1172,7 @@ void CProgress::ShowProgress()
 			{
 				Rprintf("\r[%s] %2.0f%%, ETC: %.1fm  ", ss, percent, sec/60);
 			} else {
-				if (sec >= 999.9 * 60 * 60)
+				if (sec >= 999 * 60 * 60)
 					Rprintf("\r[%s] %2.0f%%, ETC: NA    ", ss, percent);
 				else
 					Rprintf("\r[%s] %2.0f%%, ETC: %.1fh  ", ss, percent, sec/(60*60));

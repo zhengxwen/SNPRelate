@@ -135,7 +135,7 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
     # check
     stopifnot(inherits(pcaobj, "snpgdsPCAClass"))
     ws <- .InitFile(gdsobj, sample.id=pcaobj$sample.id, snp.id=pcaobj$snp.id)
-    stopifnot(is.numeric(num.thread) & (num.thread>0L))
+    stopifnot(is.numeric(num.thread), num.thread > 0L)
     stopifnot(is.logical(verbose))
 
     if (verbose)
@@ -351,7 +351,7 @@ plot.snpgdsPCAClass <- function(x, eig=c(1L,2L), ...)
     } else {
         pairs(x$eigenvect[, eig],
             labels=sprintf("Eig %d\n(%.1f%%)", eig, x$varprop[eig]*100),
-            ...)
+            gap=0.2, ...)
     }
 
     invisible()

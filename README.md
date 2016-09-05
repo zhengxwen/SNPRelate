@@ -30,7 +30,7 @@ Development Version: v1.7.2
 
 ## News
 
-* Supports the [SeqArray](http://bioconductor.org/packages/release/bioc/html/SeqArray.html) GDS format, see [the vignette](http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/AnalysisTutorial.html).
+* Supports the [SeqArray](http://bioconductor.org/packages/release/bioc/html/SeqArray.html) GDS format, see [the vignette](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html#integration-with-snprelate).
 
 
 ## Tutorials
