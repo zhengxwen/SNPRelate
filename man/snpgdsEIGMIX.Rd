@@ -45,8 +45,8 @@ snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 \references{
     Zheng X, Weir BS.
     Eigenanalysis on SNP Data with an Interpretation of Identity by Descent.
-    Theoretical Population Biology. 2015 Oct 23. pii: S0040-5809(15)00089-1.
-    doi: 10.1016/j.tpb.2015.09.004. [Epub ahead of print]
+    Theoretical Population Biology. 2016 Feb;107:65-76.
+    doi: 10.1016/j.tpb.2015.09.004
 }
 \author{Xiuwen Zheng}
 \seealso{

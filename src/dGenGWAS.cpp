@@ -1079,6 +1079,12 @@ void CdBufSpace::_RequireIdx(long idx)
 
 // ===================================================================== //
 
+static const int PROGRESS_BAR_CHAR_NUM = 50;
+static const double S_MIN  =  60;
+static const double S_HOUR =  60 * S_MIN;
+static const double S_DAY  =  24 * S_HOUR;
+static const double S_YEAR = 365 * S_DAY;
+
 CProgress::CProgress()
 {
 	fTotalCount = 0;
@@ -1125,6 +1131,7 @@ void CProgress::Forward(C_Int64 val)
 				_start += _step;
 				_hit = (C_Int64)(_start);
 			} while (fCounter >= _hit);
+			if (_hit > fTotalCount) _hit = fTotalCount;
 			ShowProgress();
 		}
 	}
@@ -1134,48 +1141,53 @@ void CProgress::ShowProgress()
 {
 	if (fTotalCount > 0)
 	{
-		char ss[ProgressBarNumChar + 1];
-		double percent = (double)fCounter / fTotalCount;
-		int n = (int)round(percent * ProgressBarNumChar);
-		memset(ss, '.', sizeof(ss));
-		memset(ss, '=', n);
-		if (n < ProgressBarNumChar) ss[n] = '>';
-		ss[ProgressBarNumChar] = 0;
+		char bar[PROGRESS_BAR_CHAR_NUM + 1];
+		double p = (double)fCounter / fTotalCount;
+		int n = (int)round(p * PROGRESS_BAR_CHAR_NUM);
+		memset(bar, '.', sizeof(bar));
+		memset(bar, '=', n);
+		if ((fCounter > 0) && (n < PROGRESS_BAR_CHAR_NUM))
+			bar[n] = '>';
+		bar[PROGRESS_BAR_CHAR_NUM] = 0;
 
 		// ETC: estimated time to complete
 		n = (int)_timer.size() - 20;  // 20% as a sliding window size
 		if (n < 0) n = 0;
 
 		time_t now; time(&now);
-		_timer.push_back(pair<double, time_t>(percent, now));
+		_timer.push_back(pair<double, time_t>(p, now));
 
-		double int_sec = difftime(now, _last_time);
-		double sec = difftime(now, _timer[n].second);
-		double diff = percent - _timer[n].first;
+		// in seconds
+		double interval = difftime(now, _last_time);
+		double s = difftime(now, _timer[n].second);
+		double diff = p - _timer[n].first;
 		if (diff > 0)
-			sec = sec / diff * (1 - percent);
+			s = s / diff * (1 - p);
 		else
-			sec = 999.9 * 60 * 60;
-		percent *= 100;
+			s = R_NaN;
+		p *= 100;
 
 		// show
 		if (fCounter >= fTotalCount)
 		{
-			Rprintf("\r[%s] 100%%, completed  \n", ss);
-		} else if ((int_sec >= 5) || (fCounter <= 0))
+			Rprintf("\r[%s] 100%%, completed      \n", bar);
+		} else if ((interval >= 5) || (fCounter <= 0))
 		{
 			_last_time = now;
-			if (sec < 60)
+			if (R_FINITE(s))
 			{
-				Rprintf("\r[%s] %2.0f%%, ETC: %.0fs  ", ss, percent, sec);
-			} else if (sec < 3600)
-			{
-				Rprintf("\r[%s] %2.0f%%, ETC: %.1fm  ", ss, percent, sec/60);
-			} else {
-				if (sec >= 999 * 60 * 60)
-					Rprintf("\r[%s] %2.0f%%, ETC: NA    ", ss, percent);
+				if (s < S_MIN)
+					Rprintf("\r[%s] %2.0f%%, ETC: %.0fs  ", bar, p, s);
+				else if (s < S_HOUR)
+					Rprintf("\r[%s] %2.0f%%, ETC: %.1fm  ", bar, p, s/S_MIN);
+				else if (s < S_DAY)
+					Rprintf("\r[%s] %2.0f%%, ETC: %.1fh  ", bar, p, s/S_HOUR);
+				else if (s < S_YEAR)
+					Rprintf("\r[%s] %2.0f%%, ETC: %.1fd  ", bar, p, s/S_DAY);
 				else
-					Rprintf("\r[%s] %2.0f%%, ETC: %.1fh  ", ss, percent, sec/(60*60));
+					Rprintf("\r[%s] %2.0f%%, ETC: %.1f years  ", bar, p, s/S_YEAR);
+			} else {
+				Rprintf("\r[%s] %2.0f%%, ETC: ---    ", bar, p);
 			}
 		}
 	}

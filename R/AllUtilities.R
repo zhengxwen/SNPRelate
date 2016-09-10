@@ -2095,6 +2095,8 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         }
     }
 
+    if (verbose) cat(date(), "\tDone.\n")
+
     # output
     ans
 }

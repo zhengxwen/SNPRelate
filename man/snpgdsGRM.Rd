@@ -40,22 +40,23 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     Return a list if \code{with.id = TRUE}:
         \item{sample.id}{the sample ids used in the analysis}
         \item{snp.id}{the SNP ids used in the analysis}
-        \item{grm}{the genetic relationship matrix}
+        \item{grm}{the genetic relationship matrix; different methods might
+            have different meanings and interpretation for estimates}
     If \code{with.id = FALSE}, this function returns the genetic relationship
     matrix (GRM) without sample and SNP IDs.
 }
 \references{
+    Patterson, N., Price, A. L. & Reich, D.
+    Population structure and eigenanalysis. PLoS Genet. 2, e190 (2006).
+
     Yang, J., Lee, S. H., Goddard, M. E. & Visscher, P. M.
     GCTA: a tool for genome-wide complex trait analysis.
     American journal of human genetics 88, 76-82 (2011).
 
-    Patterson, N., Price, A. L. & Reich, D.
-    Population structure and eigenanalysis. PLoS Genet. 2, e190 (2006).
-
     Zheng X, Weir BS.
     Eigenanalysis on SNP Data with an Interpretation of Identity by Descent.
-    Theoretical Population Biology. 2015 Oct 23. pii: S0040-5809(15)00089-1.
-    doi: 10.1016/j.tpb.2015.09.004. [Epub ahead of print]
+    Theoretical Population Biology. 2016 Feb;107:65-76.
+    doi: 10.1016/j.tpb.2015.09.004
 
     Weir BS, Zheng X.
     SNPs and SNVs in Forensic Science.

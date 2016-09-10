@@ -272,9 +272,6 @@ namespace GWAS
 	class COREARRAY_DLL_LOCAL CProgress
 	{
 	public:
-		/// the number of characters in the progress bar
-		static const int ProgressBarNumChar = 50;
-
 		CProgress();
 		CProgress(C_Int64 count);
 

@@ -221,8 +221,8 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	nProtected ++;
 
 	// for-loop
-	int x = PosMin, iWin = 0;
-	while (iWin < nWin)
+	int x = PosMin;
+	for (int iWin = 0; iWin < nWin; iWin++, x+=shift)
 	{
 		C_BOOL *pb = MCWorkingGeno.Space().SNPSelection();
 		size_t n=XLENGTH(chflag), ip = 0;
@@ -317,9 +317,6 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 		} else {
 			REAL(poslist)[iWin] = R_NaN;
 		}
-
-		// poslist[i] <- median(ppos)
-		x += shift; iWin ++;
 
 		Progress.Forward(1);
 	}
