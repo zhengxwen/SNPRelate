@@ -1319,89 +1319,92 @@ public:
 
 
 
-	// ================== Sample loadings ==================
+// ================== Sample Loadings ==================
 
-	/// The thread entry for the calculation of genetic covariace matrix
-	void Entry_SampLoadingCalc(PdThread Thread, int IdxThread, void *Param)
+class COREARRAY_DLL_LOCAL CPCA_SampleLoad
+{
+private:
+	CdBaseWorkSpace &Space;  ///< working genotypes
+	VEC_AUTO_PTR<C_UInt8> Geno;  ///< genotypes (0, 1, 2 and NA)
+	size_t nSamp;      ///< the number of samples
+	size_t nEigVal;    ///< the number of eigenvalues
+	size_t nSubSNP;    ///< the number of genotypes in a block
+	double *pLoading;  ///< the pointer to SNP eigenvectors
+	double *pAFreq;    ///< the pointer to allele frequency
+	double *pScale;    ///< the pointer to scale factor
+	double *pOutEig;   ///< the pointer to sample eigenvectors
+
+	void thread_loading(size_t i, size_t num)
 	{
-		// the number of working samples
-		const long n = MCWorkingGeno.Space().SNPNum();
-		vector<C_UInt8> GenoBlock(n * BlockSamp);
-		vector<double> buf(n);
-
-		long _SampStart, _SampLen;
-		while (RequireWorkSamp(&GenoBlock[0], _SampStart, _SampLen, RDim_SNP_X_Sample))
+		// for-loop each individual i
+		for (; num > 0; num--, i++)
 		{
-			// for-loop each sample
-			for (long iS=0; iS < _SampLen; iS++)
-			{
-				// fill the buffer
-				C_UInt8 *g = (&GenoBlock[0]) + iS*n;
-				double *p = &buf[0];
-				for (long i=0; i < n; i++, p++, g++)
-					*p = (*g <= 2) ? (*g - In_AveFreq[i]) : 0.0;
+			C_UInt8 *pGeno = Geno.Get() + i;
+			double *pLoad = pLoading;
 
-				// for-loop each eigenvector
-				double *out = Out_Buffer + _SampStart + iS;
-				for (int i=0; i < OutputEigenDim; i++)
+			for (size_t j=0; j < nSubSNP; j++)
+			{
+				double g = (*pGeno < 3) ? (*pGeno - pAFreq[j]) * pScale[j] : 0.0;
+				pGeno += nSamp;
+
+				double *p = pOutEig + i;
+				for (size_t k=0; k < nEigVal; k++)
 				{
-					double *p1 = In_EigenVect + i;
-					double *p2 = &buf[0];
-					double sum = 0;
-					for (int j=0; j < n; j++)
-					{
-						sum += (*p1) * (*p2);
-						p1 += OutputEigenDim; p2 ++;
-					}
-					*out = sum;
-					out += MCWorkingGeno.Space().SampleNum();
+					*p += g * (*pLoad++);
+					p += nSamp;
 				}
 			}
-			// Update progress
-			{
-				TdAutoMutex _m(_Mutex);
-				MCWorkingGeno.Progress.Forward(_SampLen);
-			}
 		}
 	}
 
-    /// Calculate the genetic covariace
-	void DoSampLoadingCalculate(double *Ave_Freq, double *Scale, int EigenCnt,
-		double *SNP_Loadings, double *EigenVal, int Num, double TraceXTX,
-		double *out_SampLoadings, int NumThread, const char *Info,
-		bool verbose)
+public:
+	/// constructor
+	CPCA_SampleLoad(CdBaseWorkSpace &space): Space(space) { }
+
+	/// run the algorithm
+	void Run(double OutSampLoad[], size_t NumEig, double SNPLoading[],
+		double AFreq[], double Scale[], int NumThread, bool verbose)
 	{
-		// initialize mutex objects
-		InitMutexObject();
+		if (NumThread < 1) NumThread = 1;
+		nSamp = Space.SampleNum();
+		nEigVal = NumEig;
+		pOutEig = OutSampLoad;
 
-		// Initialize progress information
-		const int n = MCWorkingGeno.Space().SNPNum();
-		MCWorkingGeno.Progress.Info = Info;
-		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space().SampleNum());
+		// detect the appropriate block size
+		size_t Cache = GetOptimzedCache();
+		size_t nBlock = Cache / nSamp;
+		nBlock = (nBlock / 4) * 4;
+		if (nBlock < 128) nBlock = 128;
+		if (nBlock > 65536) nBlock = 65536;
+		if (verbose)
+			Rprintf("%s    (internal increment: %d)\n", TimeToStr(), (int)nBlock);
 
-		double ss = double(Num-1) / TraceXTX;
-		vector<double> eigen(EigenCnt);
-		for (long i=0; i < EigenCnt; i++)
-			eigen[i] = sqrt(ss / EigenVal[i]);
+		// thread thpool
+		CThreadPoolEx<CPCA_SampleLoad> thpool(NumThread);
+		// genotypes (0, 1, 2 and NA)
+		Geno.Reset(nSamp * nBlock);
+		// genotype buffer, false for no memory buffer
+		CGenoReadBySNP WS(NumThread, Space, nBlock, verbose ? -1 : 0, false);
 
-		OutputEigenDim = EigenCnt;
-		In_AveFreq = Ave_Freq; In_EigenVect = SNP_Loadings;
-		Out_Buffer = out_SampLoadings;
-		double *p = SNP_Loadings;
-		for (int i=0; i < n; i++)
+		// zero filling
+		memset(OutSampLoad, 0, sizeof(double)*NumEig*nSamp);
+
+		// for-loop
+		WS.Init();
+		while (WS.Read(Geno.Get()))
 		{
-			for (int j=0; j < EigenCnt; j++)
-				*p++ *= Scale[i] * eigen[j];
+			pLoading = SNPLoading + WS.Index() * NumEig;
+			pAFreq = AFreq + WS.Index();
+			pScale = Scale + WS.Index();
+			nSubSNP = WS.Count();
+			// using thread thpool
+			thpool.BatchWork(this, &CPCA_SampleLoad::thread_loading, nSamp);
+			// update
+			WS.ProgressForward(WS.Count());
 		}
-
-		// threads
-		SampStart = 0;
-		GDS_Parallel_RunThreads(Entry_SampLoadingCalc, NULL, NumThread);
-
-		// destory the mutex objects
-		DoneMutexObject();
 	}
+};
+
 
 
 
@@ -2094,7 +2097,6 @@ COREARRAY_DLL_EXPORT SEXP gnrPCACorr(SEXP LenEig, SEXP EigenVect,
 	SEXP NumThread, SEXP _Verbose)
 {
 	const bool verbose = SEXP_Verbose(_Verbose);
-
 	COREARRAY_TRY
 
 		// cache the genotype data
@@ -2122,7 +2124,6 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP LenEig,
 	SEXP _Verbose)
 {
 	const bool verbose = SEXP_Verbose(_Verbose);
-
 	COREARRAY_TRY
 
 		// cache the genotype data
@@ -2162,34 +2163,32 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP LenEig,
 		}
 		if (verbose)
 			Rprintf("%s    Done.\n", TimeToStr());
+
 		UNPROTECT(5);
 
 	COREARRAY_CATCH
 }
 
 
-/// to calculate the sample loadings from SNP loadings
-COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
-	SEXP EigenCnt, SEXP SNPLoadings, SEXP TraceXTX, SEXP AveFreq, SEXP Scale,
-	SEXP NumThread, SEXP _Verbose)
+/// Calculate the sample loadings from SNP loadings
+COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP EigenCnt, SEXP SNPLoadings,
+	SEXP AveFreq, SEXP Scale, SEXP NumThread, SEXP _Verbose)
 {
 	const bool verbose = SEXP_Verbose(_Verbose);
-
 	COREARRAY_TRY
 
-		// ======== To cache the genotype data ========
+		// cache the genotype data
 		CachingSNPData("Sample Loading", verbose);
 
 		PROTECT(rv_ans = Rf_allocMatrix(REALSXP,
 			MCWorkingGeno.Space().SampleNum(), Rf_asInteger(EigenCnt)));
-
-		// ======== To compute the SNP correlation ========
-		PCA::DoSampLoadingCalculate(REAL(AveFreq), REAL(Scale),
-			INTEGER(EigenCnt)[0], REAL(SNPLoadings),
-			REAL(EigenVal), INTEGER(Num)[0], REAL(TraceXTX)[0],
-			REAL(rv_ans), Rf_asInteger(NumThread), "Sample Loading:",
-			verbose);
-
+		{
+			CPCA_SampleLoad Work(MCWorkingGeno.Space());
+			Work.Run(REAL(rv_ans), Rf_asInteger(EigenCnt), REAL(SNPLoadings),
+				REAL(AveFreq), REAL(Scale), Rf_asInteger(NumThread), verbose);
+		}
+		if (verbose)
+			Rprintf("%s    Done.\n", TimeToStr());
 		UNPROTECT(1);
 
 	COREARRAY_CATCH
@@ -2201,7 +2200,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP Num, SEXP EigenVal,
 // Genetic relationship matrix
 // =======================================================================
 
-/// to compute the eigenvalues and eigenvectors
+/// Compute the eigenvalues and eigenvectors
 COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 {
 	const int nThread  = Rf_asInteger(_NumThread);

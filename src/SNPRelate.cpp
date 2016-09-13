@@ -1181,7 +1181,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrPairIBDLogLik(SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCA(SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCACorr(SEXP, SEXP, SEXP, SEXP);
-	extern SEXP gnrPCASampLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrPCASampLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCASNPLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrPCASNPLoading(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrParseGEN(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1223,7 +1223,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrPairScore, 7),
 		CALL(gnrPairIBD, 8),             CALL(gnrPairIBDLogLik, 5),
 		CALL(gnrPCA, 5),                 CALL(gnrPCACorr, 4),
-		CALL(gnrPCASampLoading, 9),      CALL(gnrPCASNPLoading, 7),
+		CALL(gnrPCASampLoading, 6),      CALL(gnrPCASNPLoading, 7),
 
 		CALL(gnrParseGEN, 9),            CALL(gnrParsePED, 8),
 		CALL(gnrParseVCF4Init, 0),       CALL(gnrParseVCF4, 10),

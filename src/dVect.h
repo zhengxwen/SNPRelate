@@ -39,6 +39,9 @@
 #ifdef COREARRAY_SIMD_SSE2
 #include <emmintrin.h>
 #endif
+#ifdef COREARRAY_SIMD_SSE4_1
+#include <smmintrin.h>
+#endif
 #ifdef COREARRAY_SIMD_AVX
 #include <immintrin.h>
 #endif
@@ -419,7 +422,7 @@ namespace Vectorization
 	// ===========================================================
 
 #ifdef COREARRAY_SIMD_SSE2
-#   ifdef __SSE4_1__
+#   ifdef COREARRAY_SIMD_SSE4_1
 #       define MM_MUL_LO_EPI32(dst, a, b)  dst = _mm_mullo_epi32(a, b)
 #   else
 #       define MM_MUL_LO_EPI32(dst, a, b)  \

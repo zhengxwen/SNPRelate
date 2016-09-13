@@ -177,11 +177,10 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
     sample.id <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
     if (!is.null(ws$samp.flag))
         sample.id <- sample.id[ws$samp.flag]
-
-    stopifnot(is.numeric(num.thread), num.thread>0L)
+    stopifnot(is.numeric(num.thread), length(num.thread)==1L)
     stopifnot(is.logical(verbose), length(verbose)==1L)
 
-    eigcnt <- dim(loadobj$snploading)[1L]
+    eigcnt <- nrow(loadobj$snploading)
     if (verbose)
     {
         cat("Sample loading:\n")
@@ -191,10 +190,14 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
         cat("    using the top", eigcnt, "eigenvectors\n")
     }
 
+    # prepare post-eigenvectors
+    ss <- (length(loadobj$sample.id) - 1) / loadobj$TraceXTX
+    sqrt_eigval <- sqrt(ss / loadobj$eigenval[1:eigcnt])
+    sload <- loadobj$snploading * sqrt_eigval
+
     # call C function
-    rv <- .Call(gnrPCASampLoading, length(loadobj$sample.id),
-        loadobj$eigenval, eigcnt, loadobj$snploading, loadobj$TraceXTX,
-        loadobj$avefreq, loadobj$scale, as.integer(num.thread), verbose)
+    rv <- .Call(gnrPCASampLoading, eigcnt, sload, loadobj$avefreq,
+        loadobj$scale, num.thread, verbose)
 
     # return
     rv <- list(sample.id = sample.id, snp.id = loadobj$snp.id,
