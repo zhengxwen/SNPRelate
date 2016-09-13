@@ -1128,8 +1128,8 @@ private:
 	VEC_AUTO_PTR<C_UInt8> Geno;  ///< genotypes (0, 1, 2 and NA)
 	size_t nSamp;      ///< the number of samples
 	size_t NumEigVal;  ///< the number of eigenvalues
-	double *pCorr;     ///< the pointer to correlation
 	double *pEigVect;  ///< the pointer to eigenvectors
+	double *pCorr;     ///< the pointer to correlation
 
 	// Correlation
 	static double SNP_PC_Corr(double *pX, C_UInt8 *pY, size_t n)
@@ -1216,7 +1216,7 @@ public:
 
 
 // ================== SNP Loadings ==================
-/*
+
 class COREARRAY_DLL_LOCAL CPCA_SNPLoad
 {
 private:
@@ -1224,47 +1224,53 @@ private:
 	VEC_AUTO_PTR<C_UInt8> Geno;  ///< genotypes (0, 1, 2 and NA)
 	size_t nSamp;      ///< the number of samples
 	size_t NumEigVal;  ///< the number of eigenvalues
-	double *pCorr;     ///< the pointer to correlation
 	double *pEigVect;  ///< the pointer to eigenvectors
+	double *pLoading;  ///< the pointer to correlation
+	double *pAFreq;    ///< the pointer to allele frequency
+	double *pScale;    ///< the pointer to scale factor
 
-	// Correlation
-	static double SNP_PC_Corr(double *pX, C_UInt8 *pY, size_t n)
-	{
-		size_t m=0;
-		double XY=0, X=0, XX=0, Y=0, YY=0, ans=R_NaN;
-		while (n > 0)
-		{
-			if (*pY < 3)
-			{
-				XY += (*pX) * (*pY);
-				X += *pX; XX += (*pX) * (*pX);
-				Y += *pY; YY += (*pY) * (*pY);
-				m ++;
-			}
-			pX++; pY++; n--;
-		}
-		if (m > 1)
-		{
-			double c1 = XX - X*X/m, c2 = YY - Y*Y/m, val = c1*c2;
-			if (val > 0)
-				ans = (XY - X*Y/m) / sqrt(val);
-		}
-		return ans;
-	}
-
-	void thread_corr(size_t i, size_t num)
+	void thread_loading(size_t i, size_t num)
 	{
 		C_UInt8 *pGeno = Geno.Get() + nSamp * i;
-		double *pOut = pCorr + NumEigVal * i;
+		double *pOut = pLoading + NumEigVal * i;
 		for (; num > 0; num--, i++)
 		{
-			double *pEig = pEigVect;
-			for (size_t j=0; j < NumEigVal; j++)
+			double avg, scale;
+			C_Int32 gSum, gNum;
+			vec_u8_geno_count(pGeno, nSamp, gSum, gNum);
+			if (gNum > 0)
 			{
-				*pOut++ = SNP_PC_Corr(pEig, pGeno, nSamp);
-				pEig += nSamp;
+				avg = double(gSum) / gNum;
+				if (!BayesianNormal)
+				{
+					scale = avg * 0.5;
+					scale = ((0.0 < scale) && (scale < 1.0)) ?
+						(1.0 / sqrt(scale*(1.0-scale))) : 0.0;
+				} else {
+					scale = double(gSum + 1) / (2*gNum + 2);
+					scale = 1.0 / sqrt(scale*(1.0-scale));
+				}
+			} else {
+				avg = scale = 0;
 			}
-			pGeno += nSamp;
+			pAFreq[i] = avg;
+			pScale[i] = scale;
+
+			// zero filling
+			memset(pOut, 0, sizeof(double)*NumEigVal);
+			// dot product
+			for (size_t j=0; j < nSamp; j++)
+			{
+				double g = (*pGeno < 3) ? ((*pGeno - avg) * scale) : 0.0;
+				pGeno ++;
+				double *pEig = pEigVect + j;
+				for (size_t k=0; k < NumEigVal; k++)
+				{
+					pOut[k] += g * (*pEig);
+					pEig += nSamp;
+				}
+			}
+			pOut += NumEigVal;
 		}
 	}
 
@@ -1273,8 +1279,8 @@ public:
 	CPCA_SNPLoad(CdBaseWorkSpace &space): Space(space) { }
 
 	/// run the algorithm
-	void Run(double OutSNPCorr[], size_t NumEig, double EigVect[],
-		int NumThread, bool verbose)
+	void Run(double OutSNPLoading[], double OutAFreq[], double OutScale[],
+		size_t NumEig, double EigVect[], int NumThread, bool verbose)
 	{
 		if (NumThread < 1) NumThread = 1;
 		nSamp = Space.SampleNum();
@@ -1300,177 +1306,17 @@ public:
 		WS.Init();
 		while (WS.Read(Geno.Get()))
 		{
-			pCorr = OutSNPCorr + WS.Index() * NumEig;
+			pLoading = OutSNPLoading + WS.Index() * NumEig;
+			pAFreq = OutAFreq + WS.Index();
+			pScale = OutScale + WS.Index();
 			// using thread thpool
-			thpool.BatchWork(this, &CPCA_SNPCorr::thread_corr, WS.Count());
+			thpool.BatchWork(this, &CPCA_SNPLoad::thread_loading, WS.Count());
 			// update
 			WS.ProgressForward(WS.Count());
 		}
 	}
 };
-*/
 
-
-	/// Normalize the genotype
-	/** \param Geno   genotype: 0 -- BB, 1 -- AB, 2 -- AA, 3 -- missing
-	 *  \param NormalizedGeno  normalized genotype
-	 *  \param NumGeno    the number of total genotype
-	**/
-	inline static void NormalizeGeno(C_UInt8 *Geno, double *NormalizedGeno, long NumGeno)
-	{
-		// the sum of genotype, and the number of non-missing snps
-		long n;
-		long sum = GENO_Get_Sum_ValidNumSNP(Geno, NumGeno, &n);
-		if (n > 0)
-		{
-			double ave = double(sum) / n;
-			double scale = BayesianNormal ? ((sum+1.0) / (2*n+2)) : (ave/2);
-			scale = ((0.0 < scale) && (scale < 1.0)) ?
-				(1.0 / sqrt(scale*(1.0-scale))) : 0.0;
-			C_UInt8 *pGeno = Geno;
-			for (long i=NumGeno; i > 0; i--)
-			{
-				*NormalizedGeno++ = (*pGeno < 3) ? (*pGeno-ave)*scale : 0.0;
-				pGeno++;
-			}
-		} else {
-			for (; NumGeno > 0; NumGeno--)
-				*NormalizedGeno ++ = 0.0;
-		}
-	}
-
-	/// The thread entry for the calculation of SNP loadings
-	void Entry_SNPLoadingCalc(PdThread Thread, int IdxThread, void *Param)
-	{
-		// The number of working samples
-		const long n = MCWorkingGeno.Space().SampleNum();
-		vector<C_UInt8> GenoBlock(n * BlockNumSNP);
-		VEC_AUTO_PTR<double> NormalGeno(n);
-
-		long _SNPstart, _SNPlen;
-		while (RequireWork(&GenoBlock[0], _SNPstart, _SNPlen, RDim_Sample_X_SNP))
-		{
-			for (long iSNP=0; iSNP < _SNPlen; iSNP++)
-			{
-				// Normalize genotypes
-				NormalizeGeno((&GenoBlock[0]) + iSNP*n, NormalGeno.Get(), n);
-				// SNP loadings, X'W
-				double *Out = Out_Buffer + ((_SNPstart+iSNP)*OutputEigenDim);
-				double *pEig = _EigenVectBuf->base();
-				for (long iEig=0; iEig < OutputEigenDim; iEig++)
-				{
-					*Out++ = vt<double, av16Align>::DotProd(pEig, NormalGeno.Get(), n);
-					pEig += _EigenVectBuf->M();
-				}
-			}
-			// Update progress
-			{
-				TdAutoMutex _m(_Mutex);
-				MCWorkingGeno.Progress.Forward(_SNPlen);
-			}
-		}
-	}
-
-	/// Calculate the SNP loadings
-	void GetPCAFreqScale(double OutFreq[], double OutScale[])
-	{
-		if (MCWorkingGeno.Space().GenoDimType() == RDim_SNP_X_Sample)
-		{
-			// initialize
-			const int nsnp = MCWorkingGeno.Space().SNPNum();
-			vector<C_UInt8> buf(nsnp);
-			vector<int> n(nsnp);
-			for (int i=0; i < nsnp; i++)
-			{
-				n[i] = 0;
-				OutFreq[i] = 0;
-			}
-
-			// for-loop for each sample
-			for (int iSamp=0; iSamp < MCWorkingGeno.Space().SampleNum(); iSamp++)
-			{
-				MCWorkingGeno.Space().sampleRead(iSamp, 1, &buf[0], RDim_SNP_X_Sample);
-				for (int i=0; i < nsnp; i++)
-				{
-					C_UInt8 &v = buf[i];
-					if (v <= 2)
-					{
-						OutFreq[i] += v;
-						n[i] ++;
-					}
-				}
-			}
-			// average
-			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
-			{
-				const int nn = n[i];
-				const double sum = OutFreq[i];
-				double ave = sum / nn;
-				double scale = BayesianNormal ? ((sum+1.0)/(2*nn+2)) : (0.5*ave);
-				scale = ((0.0 < scale) && (scale < 1.0)) ?
-					(1.0 / sqrt(scale*(1.0-scale))) : 0.0;
-				OutFreq[i] = ave;
-				OutScale[i] = scale;
-			}
-		} else {
-			// initialize
-			vector<C_UInt8> buf(MCWorkingGeno.Space().SampleNum());
-
-			// for-loop for each snp
-			for (int isnp=0; isnp < MCWorkingGeno.Space().SNPNum(); isnp++)
-			{
-				int n = 0;
-				double sum = 0;
-				MCWorkingGeno.Space().snpRead(isnp, 1, &buf[0], RDim_Sample_X_SNP);
-				for (int i=0; i < MCWorkingGeno.Space().SampleNum(); i++)
-				{
-					C_UInt8 &v = buf[i];
-					if (v <= 2) { sum += v; n ++; }
-				}
-				double ave = sum / n;
-				double scale = BayesianNormal ? ((sum+1.0)/(2*n+2)) : (0.5*ave);
-				scale = ((0.0 < scale) && (scale < 1.0)) ?
-					(1.0 / sqrt(scale*(1.0-scale))) : 0.0;
-				OutFreq[isnp] = ave;
-				OutScale[isnp] = scale;
-			}
-		}
-	}
-
-	/// Calculate the SNP loadings
-	void DoSNPLoadingCalculate(double *EigenVal, int nEig, double *EigenVect,
-		double TraceXTX, double *out_snploading, int NumThread, bool verbose,
-		const char *Info)
-	{
-		// initialize mutex objects
-		InitMutexObject();
-
-		// Initialize progress information
-		MCWorkingGeno.Progress.Info = Info;
-		MCWorkingGeno.Progress.Show() = verbose;
-		MCWorkingGeno.Progress.Init(MCWorkingGeno.Space().SNPNum());
-		SNPStart = 0;
-		OutputEigenDim = nEig;
-		Out_Buffer = out_snploading;
-
-		// Array of eigenvectors
-		const long n = MCWorkingGeno.Space().SampleNum();
-		double Scale = double(n-1) / TraceXTX;
-		_EigenVectBuf = new CPCAMat_Alg1(OutputEigenDim, n);
-		for (long i=0; i < OutputEigenDim; i++)
-		{
-			vt<double>::Mul(_EigenVectBuf->base() + i*_EigenVectBuf->M(),
-				EigenVect, sqrt(Scale / EigenVal[i]), n);
-			EigenVect += n;
-		}
-
-		// Threads
-		GDS_Parallel_RunThreads(Entry_SNPLoadingCalc, NULL, NumThread);
-
-		// destory the mutex objects
-		DoneMutexObject();
-		delete _EigenVectBuf; _EigenVectBuf = NULL;
-	}
 
 
 	// ================== Sample loadings ==================
@@ -2270,8 +2116,8 @@ COREARRAY_DLL_EXPORT SEXP gnrPCACorr(SEXP LenEig, SEXP EigenVect,
 }
 
 
-/// to calculate the SNP loadings
-COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP DimCnt,
+/// Calculate the SNP loadings
+COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP LenEig,
 	SEXP EigenVect, SEXP TraceXTX, SEXP NumThread, SEXP Bayesian,
 	SEXP _Verbose)
 {
@@ -2282,41 +2128,41 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP DimCnt,
 		// cache the genotype data
 		CachingSNPData("SNP Loading", verbose);
 
-		// ======== To compute the snp correlation ========
-		PCA::CPCAMat_Alg1::PCA_Detect_BlockNumSNP(MCWorkingGeno.Space().SampleNum());
-		PCA::BayesianNormal = (Rf_asLogical(Bayesian) == TRUE);
+		// scale eigenvectors with eigenvalues
+		SEXP EigVect = PROTECT(duplicate(EigenVect));
+		{
+			const size_t n = MCWorkingGeno.Space().SampleNum();
+			const double Scale = double(n - 1) / Rf_asReal(TraceXTX);
+			for (int i=0; i < Rf_asInteger(LenEig); i++)
+			{
+				vec_f64_mul(REAL(EigVect) + i*n, n,
+					sqrt(Scale / REAL(EigenVal)[i]));
+			}
+		}
 
+		PCA::BayesianNormal = (Rf_asLogical(Bayesian) == TRUE);
+		const size_t n = MCWorkingGeno.Space().SNPNum();
 		PROTECT(rv_ans = NEW_LIST(3));
 
 		SEXP loading, afreq, scale;
-		PROTECT(loading = Rf_allocMatrix(REALSXP, INTEGER(DimCnt)[1],
-			MCWorkingGeno.Space().SNPNum()));
+		PROTECT(loading = Rf_allocMatrix(REALSXP, Rf_asInteger(LenEig), n));
 		SET_ELEMENT(rv_ans, 0, loading);
 
-		PROTECT(afreq = NEW_NUMERIC(MCWorkingGeno.Space().SNPNum()));
+		PROTECT(afreq = NEW_NUMERIC(n));
 		SET_ELEMENT(rv_ans, 1, afreq);
 
-		PROTECT(scale = NEW_NUMERIC(MCWorkingGeno.Space().SNPNum()));
+		PROTECT(scale = NEW_NUMERIC(n));
 		SET_ELEMENT(rv_ans, 2, scale);
 
-		PCA::GetPCAFreqScale(REAL(afreq), REAL(scale));
-
-/*
 		{
 			CPCA_SNPLoad Work(MCWorkingGeno.Space());
-			Work.Run(REAL(rv_ans), Rf_asInteger(LenEig), REAL(EigenVect),
+			Work.Run(REAL(loading), REAL(afreq), REAL(scale),
+				Rf_asInteger(LenEig), REAL(EigVect),
 				Rf_asInteger(NumThread), verbose);
 		}
 		if (verbose)
 			Rprintf("%s    Done.\n", TimeToStr());
-*/
-
-		PCA::DoSNPLoadingCalculate(REAL(EigenVal), INTEGER(DimCnt)[1],
-			REAL(EigenVect), REAL(TraceXTX)[0], REAL(loading),
-			Rf_asInteger(NumThread), verbose,
-			"SNP Loading:");
-
-		UNPROTECT(4);
+		UNPROTECT(5);
 
 	COREARRAY_CATCH
 }

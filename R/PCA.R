@@ -148,7 +148,7 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
     }
 
     # call parallel PCA
-    rv <- .Call(gnrPCASNPLoading, pcaobj$eigenval, dim(pcaobj$eigenvect),
+    rv <- .Call(gnrPCASNPLoading, pcaobj$eigenval, ncol(pcaobj$eigenvect),
         pcaobj$eigenvect, pcaobj$TraceXTX, num.thread, pcaobj$Bayesian,
         verbose)
 
