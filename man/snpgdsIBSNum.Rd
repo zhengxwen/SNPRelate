@@ -9,7 +9,7 @@ samples.
 }
 \usage{
 snpgdsIBSNum(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
-    remove.monosnp = TRUE, maf = NaN, missing.rate = NaN, num.thread = 1,
+    remove.monosnp = TRUE, maf = NaN, missing.rate = NaN, num.thread = 1L,
     verbose = TRUE)
 }
 \arguments{

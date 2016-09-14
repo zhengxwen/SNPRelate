@@ -17,7 +17,7 @@
 #######################################################################
 
 #######################################################################
-# To calculate the IBD matrix (PLINK method of moment) for SNP genotypes
+# Calculate the IBD matrix (PLINK method of moment)
 #
 
 snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
@@ -27,7 +27,7 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 {
     # check
     ws <- .InitFile2(
-        cmd="IBD analysis (PLINK method of moment) on SNP genotypes:",
+        cmd="IBD analysis (PLINK method of moment) on genotypes:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, allele.freq=allele.freq,
@@ -66,7 +66,7 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
 
 #######################################################################
-# To calculate the identity-by-descent (IBD) matrix (MLE) for SNP genotypes
+# Calculate the identity-by-descent (IBD) matrix (MLE)
 #
 
 snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
@@ -78,7 +78,7 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 {
     # check
     ws <- .InitFile2(
-        cmd="Identity-By-Descent analysis (MLE) on SNP genotypes:",
+        cmd="Identity-By-Descent analysis (MLE) on genotypes:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, allele.freq=allele.freq,
@@ -149,7 +149,7 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
 
 #######################################################################
-# To calculate the identity-by-descent (IBD) matrix (MLE) for SNP genotypes
+# Calculate the identity-by-descent (IBD) matrix (MLE)
 #
 
 snpgdsIBDMLELogLik <- function(gdsobj, ibdobj, k0=NaN, k1=NaN,
@@ -256,7 +256,7 @@ snpgdsPairIBD <- function(geno1, geno2, allele.freq,
 
 
 #######################################################################
-# To calculate the identity-by-descent (IBD) matrix (MLE) for SNP genotypes
+# Calculate the identity-by-descent (IBD) matrix (MLE)
 #
 
 snpgdsPairIBDMLELogLik <- function(geno1, geno2, allele.freq, k0=NaN, k1=NaN,
@@ -322,7 +322,7 @@ snpgdsPairIBDMLELogLik <- function(geno1, geno2, allele.freq, k0=NaN, k1=NaN,
 #######################################################################
 
 #######################################################################
-# To calculate the identity-by-descent (IBD) matrix (KING) for SNP genotypes
+# Calculate the identity-by-descent (IBD) matrix (KING)
 #
 
 snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
@@ -332,7 +332,7 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 {
     # check
     ws <- .InitFile2(
-        cmd="IBD analysis (KING method of moment) on SNP genotypes:",
+        cmd="IBD analysis (KING method of moment) on genotypes:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
@@ -414,7 +414,7 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #######################################################################
 
 #######################################################################
-# To calculate the genetic dissimilarity matrix for SNP genotypes
+# Calculate the genetic dissimilarity matrix
 #
 
 snpgdsDiss <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
@@ -422,7 +422,7 @@ snpgdsDiss <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 {
     # check
     ws <- .InitFile2(
-        cmd="Individual dissimilarity analysis on SNP genotypes:",
+        cmd="Individual dissimilarity analysis on genotypes:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
@@ -591,7 +591,7 @@ snpgdsFst <- function(gdsobj, population, method=c("W&H02", "W&C84"),
 {
     # check
     ws <- .InitFile2(
-        cmd="Fst estimation on SNP genotypes:",
+        cmd="Fst estimation on genotypes:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=1L,

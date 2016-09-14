@@ -17,16 +17,16 @@
 #######################################################################
 
 #######################################################################
-# To calculate the identity-by-state (IBS) matrix for SNP genotypes
+# Calculate the identity-by-state (IBS) matrix
 #
 
 snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    num.thread=1, verbose=TRUE)
+    num.thread=1L, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
-        cmd="Identity-By-State (IBS) analysis on SNP genotypes:",
+        cmd="Identity-By-State (IBS) analysis on genotypes:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
@@ -43,16 +43,16 @@ snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
 
 #######################################################################
-# To calculate the identity-by-state (IBS) matrix for SNP genotypes
+# Calculate the identity-by-state (IBS) matrix
 #
 
 snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    num.thread=1, verbose=TRUE)
+    num.thread=1L, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
-        cmd="Identity-By-State (IBS) analysis on SNP genotypes:",
+        cmd="Identity-By-State (IBS) analysis on genotypes:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,

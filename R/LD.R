@@ -73,7 +73,7 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
 
     if (verbose)
     {
-        cat("Linkage Disequilibrium (LD) analysis on SNP genotypes:\n");
+        cat("Linkage Disequilibrium (LD) analysis on genotypes:\n");
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
         if (num.thread <= 1L)
             cat("\tUsing", num.thread, "(CPU) core.\n")
@@ -106,8 +106,9 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     num.thread=1, verbose=TRUE)
 {
     # check
+    SSS <- if (inherits(gdsobj, "SeqVarGDSClass")) "SNV" else "SNP"
     ws <- .InitFile2(
-        cmd="SNP pruning based on LD:",
+        cmd=paste0(SSS, " pruning based on LD:"),
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,

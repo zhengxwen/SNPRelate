@@ -17,7 +17,7 @@
 #######################################################################
 
 #######################################################################
-# To conduct Principal Component Analysis
+# Conduct Principal Component Analysis (PCA)
 #
 
 snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
@@ -30,7 +30,7 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 {
     # check
     ws <- .InitFile2(
-        cmd="Principal Component Analysis (PCA) on SNP genotypes:",
+        cmd="Principal Component Analysis (PCA) on genotypes:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
@@ -211,7 +211,7 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 
 
 #######################################################################
-# Eigen-Analysis on SNP genotypes
+# Eigen-Analysis on genotypes
 #
 
 snpgdsEIGMIX <- function(gdsobj, sample.id=NULL, snp.id=NULL,
@@ -220,7 +220,7 @@ snpgdsEIGMIX <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     verbose=TRUE)
 {
     # check and initialize ...
-    ws <- .InitFile2(cmd="Eigen-analysis on SNP genotypes:",
+    ws <- .InitFile2(cmd="Eigen-analysis on genotypes:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,

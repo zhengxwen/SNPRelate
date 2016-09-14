@@ -21,6 +21,12 @@
     if (num > 1) "s" else ""
 }
 
+.pretty <- function(x)
+{
+    prettyNum(x, big.mark=",", scientific=FALSE)
+}
+
+
 
 #######################################################################
 # Check whether SNP GDS file or not
@@ -80,8 +86,13 @@
         n.snp <- sum(snp.id)
         if (n.snp != n.tmp)
             stop("Some of snp.id do not exist!")
-        if (n.snp <= 0)
-            stop("No SNP in the working dataset.")
+        if (n.snp <= 0L)
+        {
+            if (inherits(gdsobj, "SeqVarGDSClass"))
+                stop("No SNV in the working dataset.")
+            else
+                stop("No SNP in the working dataset.")
+        }
         if (with.id)
             snp.tmp <- snp.tmp[snp.id]
     } else {
@@ -178,10 +189,12 @@
     # SNPs
     snp.var <- "snp.id"
     chr.var <- "snp.chromosome"
+    SSS <- "SNP"
     if (inherits(gdsobj, "SeqVarGDSClass"))
     {
         snp.var <- "variant.id"
         chr.var <- "chromosome"
+        SSS <- "SNV"
     }
 
     snp.ids <- read.gdsn(index.gdsn(gdsobj, snp.var))
@@ -201,7 +214,7 @@
         if (n.snp != n.tmp)
             stop("Some of snp.id do not exist!")
         if (n.snp <= 0L)
-            stop("No SNP in the working dataset.")
+            stop("No ", SSS, " in the working dataset.")
 
         if (!identical(autosome.only, FALSE))
         {
@@ -230,11 +243,11 @@
                 if (identical(autosome.only, TRUE))
                 {
                     m <- dt$dim - sum(snp.id)
-                    cat("Excluding ", m, " SNP", .plural(m),
+                    cat("Excluding ", .pretty(m), " ", SSS, .plural(m),
                         " (non-autosomes or non-selection)\n", sep="")
                 } else {
                     m <- sum(snp.id)
-                    cat("Keeping ", m, " SNP", .plural(m),
+                    cat("Keeping ", .pretty(m), " ", SSS, .plural(m),
                         " according to chromosome ", autosome.only, "\n", sep="")
                 }
             }
@@ -250,7 +263,7 @@
         if (!is.null(allele.freq))
         {
             if (length(allele.freq) != length(snp.ids))
-                stop("'length(allele.freq)' should be the number of SNPs.")
+                stop("'length(allele.freq)' should be the number of ", SSS, ".")
         }
 
         if (!identical(autosome.only, FALSE))
@@ -280,11 +293,11 @@
                 if (identical(autosome.only, TRUE))
                 {
                     m <- dt$dim - sum(snp.id)
-                    cat("Excluding ", m, " SNP", .plural(m),
+                    cat("Excluding ", .pretty(m), " ", SSS, .plural(m),
                         " on non-autosomes\n", sep="")
                 } else {
                     m <- sum(snp.id)
-                    cat("Keeping ", m, " SNP", .plural(m),
+                    cat("Keeping ", .pretty(m), " ", SSS, .plural(m),
                         " according to chromosome ", autosome.only, "\n", sep="")
                 }
             }
@@ -327,7 +340,7 @@
         # show
         if (verbose)
         {
-            cat("Excluding ", rv[[1L]], " SNP", .plural(rv[[1L]]),
+            cat("Excluding ", .pretty(rv[[1L]]), " ", SSS, .plural(rv[[1L]]),
                 " (monomorphic: ", remove.monosnp, ", < MAF: ", t.maf,
                 ", or > missing rate: ", t.miss, ")\n", sep="")
         }
@@ -339,8 +352,8 @@
 
     if (verbose && verbose.work)
     {
-        cat("Working space: ", dm[2L], " sample", .plural(dm[2L]), ", ",
-            dm[1L], " SNP", .plural(dm[1L]), "\n", sep="")
+        cat("Working space: ", .pretty(dm[2L]), " sample", .plural(dm[2L]),
+            ", ", .pretty(dm[1L]), " ", SSS, .plural(dm[1L]), "\n", sep="")
         if (verbose.numthread)
         {
             cat("    using ", num.thread, " (CPU) core", .plural(num.thread),
