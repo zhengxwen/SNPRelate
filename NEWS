@@ -1,3 +1,11 @@
+CHANGES IN VERSION 1.7.0-1.7.5
+-------------------------
+
+    o the version number was bumped for the Bioconductor develop version 3.4
+
+    o add a new function `snpgdsIndivBeta()`
+
+
 CHANGES IN VERSION 1.6.0-1.6.6
 -------------------------
 

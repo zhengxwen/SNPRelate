@@ -16,8 +16,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License along
-// with SNPRelate.
-// If not, see <http://www.gnu.org/licenses/>.
+// with SNPRelate.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #ifndef _HEADER_IBD_KING_
@@ -35,7 +34,7 @@
 #include <algorithm>
 
 
-namespace KING_IBD
+namespace IBD_KING
 {
 
 using namespace std;
@@ -479,7 +478,7 @@ public:
 extern "C"
 {
 
-using namespace KING_IBD;
+using namespace IBD_KING;
 
 /// Compute the IBD coefficients by KING method of moment (KING-homo)
 COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Homo(SEXP NumThread, SEXP _Verbose)

@@ -620,18 +620,16 @@ snpgdsFst <- function(gdsobj, population, method=c("W&H02", "W&C84"),
 
 
 #######################################################################
-# Genetic relationship matrix (GRM)
+# Individual inbreeding and relatedness (beta)
 #
 
-snpRec <- function(gdsobj, sample.id=NULL, snp.id=NULL,
+snpgdsIndivBeta <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("OneLocus", "TwoLoci"), num.thread=1L,
-    with.id=TRUE, verbose=TRUE)
+    method=c("weighted"), num.thread=1L, with.id=TRUE, verbose=TRUE)
 {
     # check and initialize ...
     method <- match.arg(method)
-    ws <- .InitFile2(
-        cmd=paste("Genetic Relationship Matrix (GRM/", method, "):", sep=""),
+    ws <- .InitFile2(cmd="Individual Inbreeding and Relatedness:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
@@ -639,12 +637,10 @@ snpRec <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.logical(with.id))
 
     # call GRM C function
-    rv <- .Call("gnrRecombination", ws$num.thread, method, verbose,
-        PACKAGE="SNPRelate")
+    rv <- .Call(gnrIBD_Beta, ws$num.thread, verbose)
 
     # return
     if (with.id)
-        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, mat=rv)
-
+        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, beta=rv)
     return(rv)
 }
