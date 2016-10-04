@@ -181,7 +181,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_Beta(SEXP NumThread, SEXP _Verbose)
 	COREARRAY_TRY
 
 		// cache the genotype data
-		CachingSNPData("Beta IBD", verbose);
+		CachingSNPData("Individual Beta", verbose);
 
 		// the number of samples
 		const size_t n = MCWorkingGeno.Space().SampleNum();
@@ -210,10 +210,11 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_Beta(SEXP NumThread, SEXP _Verbose)
 				avg += s;
 			}
 		}
+
 		avg /= C_Int64(n) * (n-1) / 2;
+		double bt = 1.0 / (1 - avg);
 
 		// for-loop, final update
-		double bt = 1.0 / (1 - avg);
 		for (size_t i=0; i < n; i++)
 		{
 			pBeta[i*n + i] = (pBeta[i*n + i] - avg) * bt;

@@ -1955,8 +1955,7 @@ static int GetEigen(double *pMat, int n, int nEig, const char *EigMethod,
 		vector<int> ifail(n);
 		int info = 0;
 
-		F77_NAME(dspevx)("V", "I", "L", &n, pMat,
-			&VL, &VU, &IL, &IU, &ABSTOL,
+		F77_NAME(dspevx)("V", "I", "L", &n, pMat, &VL, &VU, &IL, &IU, &ABSTOL,
 			&M, REAL(EigVal), REAL(EigVect), &LDZ,
 			&tmp_Work[0], &tmp_IWork[0], &ifail[0], &info);
 		if (info != 0)
