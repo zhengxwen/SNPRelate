@@ -23,7 +23,7 @@ Release Version: v1.6.6
 
 [http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 
-Development Version: v1.7.4
+Development Version: v1.7.5
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
@@ -43,6 +43,27 @@ Development Version: v1.7.4
 ## Citation
 
 Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS (2012). A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. *Bioinformatics*. [DOI: 10.1093/bioinformatics/bts606](http://dx.doi.org/10.1093/bioinformatics/bts606).
+
+
+## Acceleration with Intel Intrinsics
+
+| Function             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
+|:---------------------|:-------:|:----:|:---:|:----:|:-------:|
+| snpgdsDiss           | X |
+| snpgdsEIGMIX         | X |
+| snpgdsGRM            | X | . |
+| snpgdsIBDKING        | X | X |   | X |
+| snpgdsIBDMoM         | X |
+| snpgdsIBS            | X | X |
+| snpgdsIBSNum         | X | X |
+| snpgdsIndivBeta      | X |
+| snpgdsPCA            | X | X |
+| snpgdsPCACorr        | X |
+| snpgdsPCASampLoading | X |
+| snpgdsPCASNPLoading  | X |
+
+`X`: fully supported;  `.`: partially supported.
+
 
 
 ## Installation
