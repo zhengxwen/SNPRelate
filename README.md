@@ -45,27 +45,6 @@ Development Version: v1.7.5
 Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS (2012). A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. *Bioinformatics*. [DOI: 10.1093/bioinformatics/bts606](http://dx.doi.org/10.1093/bioinformatics/bts606).
 
 
-## Acceleration with Intel Intrinsics
-
-| Function             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
-|:---------------------|:-------:|:----:|:---:|:----:|:-------:|
-| snpgdsDiss           | X |
-| snpgdsEIGMIX         | X |
-| snpgdsGRM            | X | . |
-| snpgdsIBDKING        | X | X |   | X |
-| snpgdsIBDMoM         | X |
-| snpgdsIBS            | X | X |
-| snpgdsIBSNum         | X | X |
-| snpgdsIndivBeta      | X |
-| snpgdsPCA            | X | X |
-| snpgdsPCACorr        | X |
-| snpgdsPCASampLoading | X |
-| snpgdsPCASNPLoading  | X |
-
-`X`: fully supported;  `.`: partially supported.
-
-
-
 ## Installation
 
 * Bioconductor repository:
@@ -105,3 +84,24 @@ R CMD INSTALL SNPRelate_latest.tar.gz
 install.packages("gdsfmt", repos="http://R-Forge.R-project.org")
 install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
 ```
+
+
+
+## Acceleration with Intel Intrinsics
+
+| Function             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
+|:---------------------|:-------:|:----:|:---:|:----:|:-------:|
+| snpgdsDiss           | X |
+| snpgdsEIGMIX         | X |
+| snpgdsGRM            | X | . |
+| snpgdsIBDKING        | X | X |   | X |
+| snpgdsIBDMoM         | X |
+| snpgdsIBS            | X | X |
+| snpgdsIBSNum         | X | X |
+| snpgdsIndivBeta      | X | X |
+| snpgdsPCA            | X | X |
+| snpgdsPCACorr        | X |
+| snpgdsPCASampLoading | X |
+| snpgdsPCASNPLoading  | X |
+
+`X`: fully supported;  `.`: partially supported.

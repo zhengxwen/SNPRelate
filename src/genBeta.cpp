@@ -80,7 +80,43 @@ private:
 
 			if (p1 != p2)
 			{
-				// off-diagonal
+			// off-diagonal
+			#if defined(COREARRAY_SIMD_SSE2)
+			{
+				POPCNT_SSE2_HEAD
+				__m128i ibscnt4i, num4i;
+				ibscnt4i = num4i = _mm_setzero_si128();
+
+				for (; m > 0; m-=16)
+				{
+					__m128i g1_1 = _mm_load_si128((__m128i*)p1);
+					__m128i g1_2 = _mm_load_si128((__m128i*)(p1 + npack));
+					__m128i g2_1 = _mm_load_si128((__m128i*)p2);
+					__m128i g2_2 = _mm_load_si128((__m128i*)(p2 + npack));
+					p1 += 16; p2 += 16;
+
+					__m128i mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
+					__m128i het  = (g1_1 ^ g1_2) | (g2_1 ^ g2_2);
+					__m128i ibs2 = ~(het | (g1_1 ^ g2_1));
+					het &= mask;
+					ibs2 &= mask;
+
+					POPCNT_SSE2_RUN(het)
+					ibscnt4i = _mm_add_epi32(ibscnt4i, het);
+
+					POPCNT_SSE2_RUN(ibs2)
+					ibscnt4i = _mm_add_epi32(ibscnt4i, ibs2);
+					ibscnt4i = _mm_add_epi32(ibscnt4i, ibs2);
+
+					POPCNT_SSE2_RUN(mask)
+					num4i = _mm_add_epi32(num4i, mask);
+				}
+
+				p->ibscnt += vec_sum_i32(ibscnt4i);
+				p->num    += vec_sum_i32(num4i);
+			}
+			#else
+				// No SIMD
 				for (; m > 0; m-=8)
 				{
 					C_UInt64 g1_1 = *((C_UInt64*)p1);
@@ -95,6 +131,8 @@ private:
 					p->ibscnt += POPCNT_U64(het & mask) + 2*POPCNT_U64(ibs2 & mask);
 					p->num    += POPCNT_U64(mask);
 				}
+			#endif
+
 			} else {
 				// diagonal
 				for (; m > 0; m-=8)
