@@ -50,7 +50,7 @@ snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 }
 \author{Xiuwen Zheng}
 \seealso{
-    \code{\link{snpgdsEIGMIX}}, \code{\link{snpgdsPCA}}
+    \code{\link{snpgdsAdmixProp}}, \code{\link{snpgdsPCA}}
 }
 
 \examples{

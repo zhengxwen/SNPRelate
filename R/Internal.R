@@ -341,8 +341,8 @@
         if (verbose)
         {
             cat("Excluding ", .pretty(rv[[1L]]), " ", SSS, .plural(rv[[1L]]),
-                " (monomorphic: ", remove.monosnp, ", < MAF: ", t.maf,
-                ", or > missing rate: ", t.miss, ")\n", sep="")
+                " (monomorphic: ", remove.monosnp, ", MAF: ", t.maf,
+                ", missing rate: ", t.miss, ")\n", sep="")
         }
     }
 
