@@ -28,7 +28,8 @@ export(.onAttach)
 import(gdsfmt)
 
 importFrom(grDevices, rgb)
-importFrom(graphics, abline, axis, mtext, par, plot, rect, text, pairs)
+importFrom(graphics, abline, axis, barplot, mtext, par, plot, rect, text,
+    pairs)
 importFrom(stats, as.dendrogram, as.dist, dendrapply, hclust, is.leaf, sd,
     rnorm)
 importFrom(utils, count.fields, read.table, write.table)

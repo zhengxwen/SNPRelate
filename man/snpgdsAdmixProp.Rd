@@ -40,7 +40,8 @@ snpgdsAdmixProp(eigobj, groups, bound=FALSE)
 }
 \author{Xiuwen Zheng}
 \seealso{
-    \code{\link{snpgdsEIGMIX}}, \code{\link{snpgdsPCA}}
+    \code{\link{snpgdsEIGMIX}}, \code{\link{snpgdsPCA}},
+    \code{\link{snpgdsAdmixPlot}}
 }
 
 \examples{

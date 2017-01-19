@@ -335,6 +335,72 @@ snpgdsAdmixProp <- function(eigobj, groups, bound=FALSE)
 
 
 
+snpgdsAdmixPlot <- function(propmat, group=NULL, ylim=TRUE, na.rm=TRUE)
+{
+    # check
+    stopifnot(is.numeric(propmat), is.matrix(propmat))
+    stopifnot(is.null(group) | is.vector(group) | is.factor(group))
+    if (!is.null(group))
+        stopifnot(nrow(propmat) == length(group))
+    stopifnot(is.logical(ylim) | is.numeric(ylim))
+    if (is.numeric(ylim))
+        stopifnot(length(ylim) == 2L)
+    stopifnot(is.logical(na.rm), length(na.rm)==1L)
+
+    if (is.logical(ylim))
+    {
+        if (isTRUE(ylim))
+            ylim <- c(0, 1)
+        else
+            ylim <- range(propmat, na.rm=TRUE)
+    }
+
+    if (!is.null(group))
+    {
+        if (anyNA(group) & !isTRUE(na.rm))
+        {
+            group <- as.character(group)
+            group[is.na(group)] <- "<NA>"
+        }
+        grp_name <- levels(factor(group))
+        idx <- list()
+        for (n in grp_name)
+        {
+            i <- which(group == n)
+            i <- i[order(propmat[i, 1L], decreasing=TRUE)]
+            idx <- c(idx, list(i))
+        }
+        propmat <- propmat[unlist(idx), ]
+        grp_len <- lengths(idx, use.names=FALSE)
+        xl <- c(0, cumsum(grp_len))
+        x <- xl[-1L] - 0.5*grp_len
+    }
+
+    opar <- par(mfrow=c(ncol(propmat), 1L), mar=c(1.25, 5, 1.75, 2),
+        oma=c(0, 0, 4, 0))
+    on.exit(par(opar))
+    grp <- colnames(propmat)
+    if (is.null(grp))
+        grp <- paste("group", seq_len(ncol(propmat)))
+    ylab <- paste("Prop. of", grp)
+
+	for (i in seq_len(ncol(propmat)))
+	{
+        barplot(unname(propmat[, i]), space=0, border=NA, ylab=ylab[i],
+            ylim=ylim)
+        abline(h=c(0, 1))
+        if (!is.null(group))
+        {
+            abline(v=xl, col="blue")
+            text(x, 0.5, labels=grp_name, srt=30)
+        }
+    }
+    invisible()
+}
+
+
+
+
 #######################################################################
 # plot PCA results
 #

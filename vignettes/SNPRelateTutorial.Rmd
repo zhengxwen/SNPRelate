@@ -86,7 +86,7 @@ The output lists all variables stored in the GDS file. At the first level, it st
 * *snp.id*, a unique identifier for each SNP.
 * *snp.position*, the base position of each SNP on the chromosome, and 0 for unknown position; it does not allow NA.
 * *snp.chromosome*, an integer or character mapping for each chromosome. Integer: numeric values 1-26, mapped in order from 1-22,  23=X, 24=XY (the pseudoautosomal region), 25=Y, 26=M (the mitochondrial probes), and 0 for probes with unknown positions; it does not allow NA. Character: "X", "XY", "Y" and "M" can be used here, and a blank string indicating unknown position.
-* *genotype*, a SNP genotypic matrix. SNP-major mode: $n_{sample} \times n_{snp}$, individual-major mode: $n_{snp} \times n_{sample}$.
+* *genotype*, a SNP genotypic matrix (i.e., the number of A alleles). SNP-major mode: $n_{sample} \times n_{snp}$, individual-major mode: $n_{snp} \times n_{sample}$.
 
 Users can define the numeric chromosome codes which are stored with the variable *snp.chromosome* as its attributes when
 *snp.chromosome* is numeric only. For example, *snp.chromosome* has the attributes of chromosome coding:

@@ -1157,12 +1157,12 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
     # sample.id
     add.gdsn(destobj, "sample.id", ws.samp.id, compress=compress.annotation,
         closezip=TRUE)
-    if (verbose) cat("\twrite sample.id\n");
+    if (verbose) cat("    write sample.id\n");
 
     # snp.id
     add.gdsn(destobj, "snp.id", ws.snp.id, compress=compress.annotation,
         closezip=TRUE)
-    if (verbose) cat("\twrite snp.id\n");
+    if (verbose) cat("    write snp.id\n");
 
     # snp.rs.id
     if (!is.null(index.gdsn(srcobj, "snp.rs.id", silent=TRUE)))
@@ -1173,7 +1173,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
         add.gdsn(destobj, "snp.rs.id", rs.id, compress=compress.annotation,
             closezip=TRUE)
         if (verbose)
-            cat("\twrite snp.rs.id\n");
+            cat("    write snp.rs.id\n");
     }
 
     # snp.position
@@ -1183,7 +1183,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
     add.gdsn(destobj, "snp.position", pos, compress=compress.annotation,
         closezip=TRUE)
     if (verbose)
-        cat("\twrite snp.position\n");
+        cat("    write snp.position\n");
 
     # snp.chromosome
     chr <- read.gdsn(index.gdsn(srcobj, "snp.chromosome"))
@@ -1192,7 +1192,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
     add.gdsn(destobj, "snp.chromosome", chr, compress=compress.annotation,
         closezip=TRUE)
     if (verbose)
-        cat("\twrite snp.chromosome\n");
+        cat("    write snp.chromosome\n");
 
     # snp.allele
     if (!is.null(index.gdsn(srcobj, "snp.allele", silent=TRUE)))
@@ -1203,7 +1203,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
         add.gdsn(destobj, "snp.allele", allele, compress=compress.annotation,
             closezip=TRUE)
         if (verbose)
-            cat("\twrite snp.allele\n");
+            cat("    write snp.allele\n");
     }
 
     # snp order

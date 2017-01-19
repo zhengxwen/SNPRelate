@@ -1,3 +1,15 @@
+CHANGES IN VERSION 1.9.1
+-------------------------
+
+    o new function `snpgdsAdmixPlot()`
+
+
+CHANGES IN VERSION 1.8.0
+-------------------------
+
+    o the version number was bumped for the Bioconductor release version 3.4
+
+
 CHANGES IN VERSION 1.7.0-1.7.5
 -------------------------
 
