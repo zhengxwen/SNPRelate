@@ -1,7 +1,7 @@
 CHANGES IN VERSION 1.9.1
 -------------------------
 
-    o new function `snpgdsAdmixPlot()`
+    o new functions `snpgdsAdmixPlot()` and `snpgdsAdmixTable()`
 
 
 CHANGES IN VERSION 1.8.0

@@ -1,5 +1,6 @@
 \name{snpgdsAdmixPlot}
 \alias{snpgdsAdmixPlot}
+\alias{snpgdsAdmixTable}
 \title{
     Plot Ancestry Proportions
 }
@@ -7,25 +8,32 @@
     Plot the admixture proportions according to their ancestries.
 }
 \usage{
-snpgdsAdmixPlot(propmat, group=NULL, ylim=TRUE, na.rm=TRUE)
+snpgdsAdmixPlot(propmat, group=NULL, shownum=TRUE, ylim=TRUE, na.rm=TRUE)
+snpgdsAdmixTable(propmat, group, sort=FALSE)
 }
 \arguments{
     \item{propmat}{a sample-by-ancestry matrix of proportion estimates,
         returned from \code{\link{snpgdsAdmixProp}()}}
     \item{group}{a character vector of a factor according to the samples
         in \code{propmat}}
+    \item{shownum}{\code{TRUE}: show the number of each group in the figure}
     \item{ylim}{\code{TRUE}: y-axis is limited to [0, 1];
         \code{FALSE}: \code{ylim <- range(propmat)};
         a 2-length numeric vector: \code{ylim} used in \code{plot()}}
     \item{na.rm}{\code{TRUE}: remove the sample(s) according to the
         missing value(s) in \code{group}}
+    \item{sort}{\code{TRUE}: rearranges the rows of proportion matrices
+        into descending order}
 }
 \details{
     The minor allele frequency and missing rate for each SNP passed in
 \code{snp.id} are calculated over all the samples in \code{sample.id}.
 }
 \value{
-    None.
+    \code{snpgdsAdmixPlot()}: none.
+
+    \code{snpgdsAdmixTable()}: a list of \code{data.frame} consisting of
+        \code{group, num, mean, sd, min, max}
 }
 
 \references{

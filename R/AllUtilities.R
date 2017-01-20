@@ -1410,6 +1410,12 @@ snpgdsCombineGeno <- function(gds.fn, out.fn,
             sampid <- sample.ids %in% sampid
         # SNPs
         L <- snpgdsSNPListStrand(snpobj, snpgdsSNPList(gdsobj))
+        if (anyNA(L))
+        {
+            warning(sprintf(
+                "%d SNPs allele mis-matched and removed.", sum(is.na(L)),
+                immediate.=TRUE))
+        }
 
         if (verbose)
         {
@@ -1421,7 +1427,7 @@ snpgdsCombineGeno <- function(gds.fn, out.fn,
         # set genotype working space
         rv <- .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
             sampid, !is.na(L))
-        if (rv[1] != length(snpobj$position))
+        if (rv[1L] != length(snpobj$position))
             stop("Invalid snp alleles.")
 
         # write genotypes

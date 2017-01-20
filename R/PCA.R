@@ -335,13 +335,15 @@ snpgdsAdmixProp <- function(eigobj, groups, bound=FALSE)
 
 
 
-snpgdsAdmixPlot <- function(propmat, group=NULL, ylim=TRUE, na.rm=TRUE)
+snpgdsAdmixPlot <- function(propmat, group=NULL, shownum=TRUE, ylim=TRUE,
+    na.rm=TRUE)
 {
     # check
     stopifnot(is.numeric(propmat), is.matrix(propmat))
     stopifnot(is.null(group) | is.vector(group) | is.factor(group))
     if (!is.null(group))
         stopifnot(nrow(propmat) == length(group))
+    stopifnot(is.logical(shownum), length(shownum)==1L)
     stopifnot(is.logical(ylim) | is.numeric(ylim))
     if (is.numeric(ylim))
         stopifnot(length(ylim) == 2L)
@@ -388,16 +390,57 @@ snpgdsAdmixPlot <- function(propmat, group=NULL, ylim=TRUE, na.rm=TRUE)
 	{
         barplot(unname(propmat[, i]), space=0, border=NA, ylab=ylab[i],
             ylim=ylim)
-        abline(h=c(0, 1))
+        lines(c(1, nrow(propmat)), c(0, 0))
+        lines(c(1, nrow(propmat)), c(1, 1))
         if (!is.null(group))
         {
             abline(v=xl, col="blue")
-            text(x, 0.5, labels=grp_name, srt=30)
+            s <- grp_name
+            text(x, 0.5, labels=s, srt=30)
+            if ((i == 1L) & shownum)
+            {
+                axis(1, c(0, x, nrow(propmat)),
+                    c("", as.character(lengths(idx)), ""), cex.axis=0.75)
+            }
         }
     }
     invisible()
 }
 
+
+
+snpgdsAdmixTable <- function(propmat, group, sort=FALSE)
+{
+    # check
+    stopifnot(is.numeric(propmat), is.matrix(propmat))
+    stopifnot(is.vector(group) | is.factor(group), nrow(propmat)==length(group))
+    stopifnot(is.logical(sort), length(sort)==1L)
+
+    ans <- vector("list", ncol(propmat))
+    names(ans) <- colnames(propmat)
+    for (i in seq_along(ans))
+    {
+        rv <- NULL
+        for (grp in levels(factor(group)))
+        {
+            x <- group == grp
+            x[is.na(x)] <- FALSE
+            if (any(x))
+            {
+                y <- propmat[x, i]
+                v <- data.frame(group=grp, num=sum(x),
+                    mean = mean(y, na.rm=TRUE),  sd  = sd(y, na.rm=TRUE),
+                    min  = min(y, na.rm=TRUE),   max = max(y, na.rm=TRUE),
+                    stringsAsFactors=FALSE)
+                rv <- rbind(rv, v)
+            }
+        }
+        if (sort)
+            rv <- rv[order(rv$mean, decreasing=TRUE), ]
+        ans[[i]] <- rv
+    }
+    ans
+}
 
 
 

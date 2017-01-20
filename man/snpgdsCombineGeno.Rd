@@ -34,6 +34,8 @@ snpgdsCombineGeno(gds.fn, out.fn, sample.id=NULL, snpobj=NULL,
 \details{
     The typical variables specified in \code{other.vars} are ``sample.annot''
 and ``snp.annot'', which are data.frame objects.
+
+    WARNING: the functionality of \code{snpgdsCombineGeno()} is limited.
 }
 \value{
     None.
