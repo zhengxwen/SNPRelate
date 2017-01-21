@@ -2,7 +2,7 @@
 //
 // dVect.h: Classess and functions for vectorization
 //
-// Copyright (C) 2007-2016    Xiuwen Zheng
+// Copyright (C) 2007-2017    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -18,15 +18,6 @@
 // You should have received a copy of the GNU General Public
 // License along with SNPRelate.
 // If not, see <http://www.gnu.org/licenses/>.
-
-/**
- *	\file     dVect.h
- *	\author   Xiuwen Zheng [zhengxwen@gmail.com]
- *	\version  1.0
- *	\date     2007 - 2015
- *	\brief    Classess and functions for vectorization
- *	\details
-**/
 
 #ifndef _HEADER_VECTORIZATION_
 #define _HEADER_VECTORIZATION_

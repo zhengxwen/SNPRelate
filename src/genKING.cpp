@@ -2,7 +2,7 @@
 //
 // genKING.cpp: KINK Identity-by-descent (IBD) Analysis on GWAS
 //
-// Copyright (C) 2011-2016    Xiuwen Zheng
+// Copyright (C) 2011-2017    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //

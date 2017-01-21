@@ -2,7 +2,7 @@
 //
 // genSlideWin.cpp: The Method of Sliding Windows
 //
-// Copyright (C) 2015-2016    Xiuwen Zheng
+// Copyright (C) 2015-2017    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //

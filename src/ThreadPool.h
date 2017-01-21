@@ -2,7 +2,7 @@
 //
 // ThreadPool.h: a C++ implementation of thread pool
 //
-// Copyright (C) 2016    Xiuwen Zheng
+// Copyright (C) 2016-2017    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -23,7 +23,7 @@
  *	\file     ThreadPool.h
  *	\author   Xiuwen Zheng [zhengxwen@gmail.com]
  *	\version  1.0
- *	\date     2016
+ *	\date     2016-2017
  *	\brief    a C++ implementation of thread pool
  *	\details
 **/
