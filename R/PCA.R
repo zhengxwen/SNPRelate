@@ -216,8 +216,7 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 
 snpgdsEIGMIX <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    num.thread=1L, eigen.cnt=32L, need.ibdmat=FALSE, ibdmat.only=FALSE,
-    verbose=TRUE)
+    num.thread=1L, eigen.cnt=32L, ibdmat=FALSE, verbose=TRUE)
 {
     # check and initialize ...
     ws <- .InitFile2(cmd="Eigen-analysis on genotypes:",
@@ -227,20 +226,17 @@ snpgdsEIGMIX <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         verbose=verbose)
 
     stopifnot(is.numeric(eigen.cnt), length(eigen.cnt)==1L)
-    if (eigen.cnt < 1L)
+    if (eigen.cnt < 0L)
         eigen.cnt <- ws$n.samp
-
-    stopifnot(is.logical(need.ibdmat), length(need.ibdmat)==1L)
-    stopifnot(is.logical(ibdmat.only), length(ibdmat.only)==1L)
+    stopifnot(is.logical(ibdmat), length(ibdmat)==1L)
 
     # call eigen-analysis
-    rv <- .Call(gnrEIGMIX, eigen.cnt, ws$num.thread, need.ibdmat, ibdmat.only,
-        verbose)
+    rv <- .Call(gnrEIGMIX, eigen.cnt, ws$num.thread, ibdmat, verbose)
 
     # return
     rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
-        eigenval = rv$eigenval, eigenvect = rv$eigenvect,
-        ibdmat = rv$ibdmat)
+        eigenval = rv[[1L]], eigenvect = rv[[2L]],
+        ibd = rv[[3L]])
     class(rv) <- "snpgdsEigMixClass"
     return(rv)
 }

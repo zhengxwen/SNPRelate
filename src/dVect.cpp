@@ -761,6 +761,13 @@ COREARRAY_DLL_DEFAULT void vec_u8_geno_valid(C_UInt8 *p, size_t n)
 }
 
 
+// add *p by v and applied to all n
+COREARRAY_DLL_DEFAULT void vec_f64_add(double *p, size_t n, double v)
+{
+	for (; n > 0; n--) (*p++) += v;
+}
+
+
 // add *p by *s and applied to all n
 COREARRAY_DLL_DEFAULT void vec_f64_add(double *p, const double *s, size_t n)
 {

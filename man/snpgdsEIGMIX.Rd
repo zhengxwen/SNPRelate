@@ -9,7 +9,7 @@
 \usage{
 snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1L,
-    eigen.cnt=32L, need.ibdmat=FALSE, ibdmat.only=FALSE, verbose=TRUE)
+    eigen.cnt=32L, ibdmat=FALSE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -21,18 +21,16 @@ snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{autosome.only}{if \code{TRUE}, use autosomal SNPs only; if it is a
         numeric or character value, keep SNPs according to the specified
         chromosome}
-    \item{remove.monosnp}{if TRUE, remove monomorphic SNPs}
+    \item{remove.monosnp}{if \code{TRUE}, remove monomorphic SNPs}
     \item{maf}{to use the SNPs with ">= maf" only; if NaN, no MAF threshold}
     \item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN,
         no missing threshold}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
-    \item{eigen.cnt}{output the number of eigenvectors; if eigen.cnt <= 0, then
-        return all eigenvectors}
-    \item{need.ibdmat}{if TRUE, return the IBD matrix}
-    \item{ibdmat.only}{return the IBD matrix only, do not compute the
-        eigenvalues and eigenvectors}
-    \item{verbose}{if TRUE, show information}
+    \item{eigen.cnt}{output the number of eigenvectors; if \code{eigen.cnt < 0},
+        returns all eigenvectors; if \code{eigen.cnt==0}, no eigen calculation}
+    \item{ibdmat}{if \code{TRUE}, returns the IBD matrix}
+    \item{verbose}{if \code{TRUE}, show information}
 }
 \value{
     Return a \code{snpgdsEigMixClass} object, and it is a list:
@@ -40,7 +38,7 @@ snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{snp.id}{the SNP ids used in the analysis}
     \item{eigenval}{eigenvalues}
     \item{eigenvect}{eigenvactors, "# of samples" x "eigen.cnt"}
-    \item{ibdmat}{the IBD matrix}
+    \item{ibd}{the IBD matrix when \code{ibdmat=TRUE}}
 }
 \references{
     Zheng X, Weir BS.
@@ -100,16 +98,6 @@ abline(v=0, col="gray25", lty=2)
 abline(h=0, col="gray25", lty=2)
 abline(a=1, b=-1, col="gray25", lty=2)
 legend("topright", legend=levels(tab$pop), pch="o", col=1:4)
-
-
-
-# run eigen-analysis
-RV <- snpgdsEIGMIX(genofile, sample.id=samp.id[pop_code=="JPT"],
-    need.ibdmat=TRUE)
-z <- RV$ibdmat
-
-mean(c(z))
-mean(diag(z))
 
 
 # close the genotype file

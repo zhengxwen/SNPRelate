@@ -96,15 +96,6 @@ legend("topright", legend=levels(tab$pop), pch="o", col=1:4)
 snpgdsAdmixPlot(prop, group=pop_code)
 
 
-# run eigen-analysis
-RV <- snpgdsEIGMIX(genofile, sample.id=samp.id[pop_code=="JPT"],
-    need.ibdmat=TRUE)
-z <- RV$ibdmat
-
-mean(c(z))
-mean(diag(z))
-
-
 # close the genotype file
 snpgdsClose(genofile)
 }

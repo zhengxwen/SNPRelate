@@ -203,6 +203,7 @@ namespace CoreArray
 	// =====================================================================
 
 	typedef void (*TProc)(size_t i, size_t n, void *ptr);
+	typedef void (*TProc2)(int thread_idx, size_t i, size_t n, void *ptr);
 
 	/// Thread pool
 	class COREARRAY_DLL_DEFAULT CThreadPool
@@ -218,6 +219,7 @@ namespace CoreArray
 		void Wait();
 
 		void BatchWork(TProc proc, size_t n, void *ptr);
+		void BatchWork2(TProc2 proc, size_t n, void *ptr);
 
 		static void Split(size_t NumSplit, size_t TotalCount, size_t Start[],
 			size_t Length[]);
@@ -243,9 +245,12 @@ namespace CoreArray
 			TProc proc;
 			size_t i, n;
 			void *ptr;
-			TProcData() { }
+			int th_idx;
+			TProcData() { th_idx = -1; }
 			TProcData(TProc p, size_t _i, size_t _n, void *s)
-				{ proc=p; i=_i; n=_n; ptr=s; }
+				{ proc=p; i=_i; n=_n; ptr=s; th_idx = -1; }
+			TProcData(TProc2 p, size_t _i, size_t _n, void *s, int th)
+				{ proc=(TProc)p; i=_i; n=_n; ptr=s; th_idx = th; }
 		};
 
 		/// a collection of threads
@@ -286,6 +291,14 @@ namespace CoreArray
 			CThreadPool::BatchWork(ThreadProc, n, &s);
 		}
 
+		inline void BatchWork2(TCLASS *self, void (TCLASS::*proc)(int, size_t, size_t),
+			size_t n)
+		{
+			TStruct2 s;
+			s.obj = self; s.proc = proc;
+			CThreadPool::BatchWork2(ThreadProc2, n, &s);
+		}
+
 	protected:
 
 		struct TStruct
@@ -293,11 +306,21 @@ namespace CoreArray
 			TCLASS *obj;
 			void (TCLASS::*proc)(size_t i, size_t n);
 		};
+		struct TStruct2
+		{
+			TCLASS *obj;
+			void (TCLASS::*proc)(int thread_idx, size_t i, size_t n);
+		};
 
 		static void ThreadProc(size_t i, size_t n, void *ptr)
 		{
 			TStruct &p = *((TStruct *)ptr);
 			(p.obj->*p.proc)(i, n);
+		}
+		static void ThreadProc2(int th, size_t i, size_t n, void *ptr)
+		{
+			TStruct2 &p = *((TStruct2 *)ptr);
+			(p.obj->*p.proc)(th, i, n);
 		}
 	};
 

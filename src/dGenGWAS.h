@@ -376,6 +376,13 @@ namespace GWAS
 		size_t cnt, C_UInt8 *dest);
 
 
+
+	// ===================================================================== //
+
+	COREARRAY_DLL_LOCAL void PackGenoIndex(const C_UInt8 *geno, size_t n,
+		size_t n4[], size_t *i0, size_t *i1, size_t *i2, size_t *i3);
+
+
 	// ===================================================================== //
 
 	/// The basic class for progress object
@@ -500,8 +507,6 @@ namespace GWAS
 
 	// matrix class
 
-#ifndef NO_COREARRAY_VECTORIZATION
-
 	template<typename TYPE> class COREARRAY_DLL_LOCAL CdMatTri
 	{
 	public:
@@ -524,8 +529,7 @@ namespace GWAS
 		void Clear(const TYPE val)
 		{
         	TYPE IVAL = val, *p = ptr.Get();
-			for (size_t n = fN*(fN+1)/2; n > 0; n--)
-				*p++ = IVAL;
+			for (size_t n = fN*(fN+1)/2; n > 0; n--) *p++ = IVAL;
 		}
 		void GetRow(TYPE *outbuf, size_t i)
 		{
@@ -602,8 +606,7 @@ namespace GWAS
 		{
 			TYPE IVAL = val, *p = ptr.Get();
 			fDiag = IVAL;
-			for (size_t n = fN*(fN-1)/2; n > 0; n--)
-				*p++ = IVAL;
+			for (size_t n = fN*(fN-1)/2; n > 0; n--) *p++ = IVAL;
 		}
 		void GetRow(TYPE *outbuf, size_t i)
 		{
@@ -635,7 +638,42 @@ namespace GWAS
 			return i1 + i2*(2*n-i2-1)/2;
 		}
 	};
-#endif
+
+
+	template<typename TYPE> class COREARRAY_DLL_LOCAL CdMat
+	{
+	public:
+		CdMat()
+			{ fN = 0; }
+		CdMat(size_t n)
+			{ fN = 0; Reset(n); }
+		CdMat(size_t n, const TYPE InitVal)
+			{ fN = 0; Reset(n); Clear(InitVal); }
+
+		void Reset(size_t n)
+		{
+			if (n != fN)
+			{
+				ptr.Reset(0);
+				if (n != 0) ptr.Reset(n*n);
+				fN = n;
+			}
+		}
+		void Clear(const TYPE val)
+		{
+        	TYPE IVAL = val, *p = ptr.Get();
+			for (size_t n = fN*fN; n > 0; n--) *p++ = IVAL;
+		}
+
+		inline TYPE *Get() { return ptr.Get(); }
+		inline size_t N() const { return fN; }
+		inline size_t Size() const { return fN*fN; }
+
+	protected:
+		Vectorization::VEC_AUTO_PTR<TYPE> ptr;
+		size_t fN;
+	};
+
 
 
 

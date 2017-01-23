@@ -1499,6 +1499,22 @@ C_UInt8 *GWAS::PackGeno4b(const C_UInt8 *src, size_t cnt, C_UInt8 *dest)
 }
 
 
+void GWAS::PackGenoIndex(const C_UInt8 *geno, size_t n, size_t n4[],
+	size_t *i0, size_t *i1, size_t *i2, size_t *i3)
+{
+	n4[0] = n4[1] = n4[2] = n4[3] = 0;
+	for (size_t i=0; i < n; i++)
+	{
+		switch (*geno++)
+		{
+			case 0:   n4[0]++; *i0++ = i; break;
+			case 1:   n4[1]++; *i1++ = i; break;
+			case 2:   n4[2]++; *i2++ = i; break;
+			default:  n4[3]++; *i3++ = i;
+		}
+	}
+}
+
 
 
 // ===================================================================== //
