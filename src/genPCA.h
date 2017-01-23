@@ -44,15 +44,15 @@ namespace PCA
 	class COREARRAY_DLL_LOCAL CPCAMat_Base
 	{
 	public:
-		VEC_AUTO_PTR<C_Int32> PCA_GenoSum, PCA_GenoNum;
-		VEC_AUTO_PTR<double> tmp_var;  // avg geno: 2*\bar{p}, or ...
+		VEC_AUTO_PTR<C_Int32> GenoSum, GenoNum;
+		VEC_AUTO_PTR<double> avg_geno;  // avg geno: 2*\bar{p}, or ...
 
 		CPCAMat_Base() { }
-		/// initialize PCA_GenoSum, PCA_GenoNum
+		/// initialize GenoSum, GenoNum
 		void ZeroFill();
-		/// calculate average genotypes (save to PCA_GenoSum and PCA_GenoNum)
+		/// calculate average genotypes (save to GenoSum and GenoNum)
 		void SummarizeGeno_SampxSNP(C_UInt8 *pGeno, size_t nSNP);
-		/// divide PCA_GenoSum by PCA_GenoNum (PCA_GenoSum / PCA_GenoNum)
+		/// divide GenoSum by GenoNum (GenoSum / GenoNum)
 		void DivideGeno();
 		/// computing scalar vector
 		void rsqrt_prod();
@@ -68,11 +68,11 @@ namespace PCA
 
 
 	// Mean-adjusted genotype matrix (AVX, N: # of samples, M: # of SNPs)
-	class COREARRAY_DLL_LOCAL CPCAMat_Alg1: public CPCAMat_Base
+	class COREARRAY_DLL_LOCAL CPCAMat_AlgArith: public CPCAMat_Base
 	{
 	public:
-		CPCAMat_Alg1() { fN = fM = 0; }
-		CPCAMat_Alg1(size_t n, size_t m) { Reset(n, m); }
+		CPCAMat_AlgArith() { fN = fM = 0; }
+		CPCAMat_AlgArith(size_t n, size_t m) { Reset(n, m); }
 
 		void Reset(size_t n, size_t m);
 		void Clear();
@@ -83,9 +83,9 @@ namespace PCA
 		// time-consuming function
 		void COREARRAY_CALL_ALIGN MulAdd2(IdMatTri &Idx, size_t IdxCnt,
 			size_t Length, double *pOut);
-		/// mean-adjusted genotypes (fGenotype - tmp_var)
+		/// mean-adjusted genotypes (fGenotype - avg_geno)
 		void COREARRAY_CALL_ALIGN GenoSub();
-		/// variance-adjusted genotypes (fGenotype * tmp_var)
+		/// variance-adjusted genotypes (fGenotype * avg_geno)
 		void COREARRAY_CALL_ALIGN GenoMul();
 
 		inline double *base() { return fGenotype.Get(); }
@@ -95,6 +95,7 @@ namespace PCA
 	};
 
 }
+
 
 extern "C"
 {

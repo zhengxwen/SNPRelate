@@ -36,3 +36,4 @@ importFrom(utils, count.fields, read.table, write.table)
 
 # Registering S3 methods
 S3method(plot, snpgdsPCAClass)
+S3method(plot, snpgdsEigMixClass)

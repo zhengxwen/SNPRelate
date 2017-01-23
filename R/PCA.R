@@ -216,7 +216,7 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 
 snpgdsEIGMIX <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    num.thread=1L, eigen.cnt=32L, ibdmat=FALSE, verbose=TRUE)
+    num.thread=1L, eigen.cnt=32L, diagadj=TRUE, ibdmat=FALSE, verbose=TRUE)
 {
     # check and initialize ...
     ws <- .InitFile2(cmd="Eigen-analysis on genotypes:",
@@ -228,10 +228,12 @@ snpgdsEIGMIX <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.numeric(eigen.cnt), length(eigen.cnt)==1L)
     if (eigen.cnt < 0L)
         eigen.cnt <- ws$n.samp
+    stopifnot(is.logical(diagadj), length(diagadj)==1L)
     stopifnot(is.logical(ibdmat), length(ibdmat)==1L)
 
     # call eigen-analysis
-    rv <- .Call(gnrEIGMIX, eigen.cnt, ws$num.thread, ibdmat, verbose)
+    param <- list(diagadj=diagadj, ibdmat=ibdmat)
+    rv <- .Call(gnrEIGMIX, eigen.cnt, ws$num.thread, param, verbose)
 
     # return
     rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
@@ -444,7 +446,7 @@ snpgdsAdmixTable <- function(propmat, group, sort=FALSE)
 # plot PCA results
 #
 
-plot.snpgdsPCAClass <- function(x, eig=c(1L,2L), ...)
+plot.snpgdsPCAClass <- function(x, eig=c(1L, 2L), ...)
 {
     stopifnot(inherits(x, "snpgdsPCAClass"))
     stopifnot(is.numeric(eig), length(eig) >= 2L)
@@ -459,6 +461,26 @@ plot.snpgdsPCAClass <- function(x, eig=c(1L,2L), ...)
     } else {
         pairs(x$eigenvect[, eig],
             labels=sprintf("Eig %d\n(%.1f%%)", eig, x$varprop[eig]*100),
+            gap=0.2, ...)
+    }
+
+    invisible()
+}
+
+
+plot.snpgdsEigMixClass <- function(x, eig=c(1L, 2L), ...)
+{
+    stopifnot(inherits(x, "snpgdsEigMixClass"))
+    stopifnot(is.numeric(eig), length(eig) >= 2L)
+
+    if (length(eig) == 2L)
+    {
+        plot(x$eigenvect[,eig[1L]], x$eigenvect[,eig[2L]],
+            xlab=sprintf("Eigenvector %d", eig[1L]),
+            ylab=sprintf("Eigenvector %d", eig[2L]),
+            ...)
+    } else {
+        pairs(x$eigenvect[, eig], labels=sprintf("Eig %d", eig),
             gap=0.2, ...)
     }
 

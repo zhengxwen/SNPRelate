@@ -37,9 +37,140 @@ using namespace Vectorization;
 using namespace GWAS;
 
 
-// ==================  EIGMIX IBD Matrix  ==================
+// -----------------------------------------------------------
+// EIGMIX IBD Calculation with arithmetic algorithm
 
-class COREARRAY_DLL_LOCAL CEigMix
+class COREARRAY_DLL_LOCAL CEigMix_AlgArith: protected PCA::CPCAMat_AlgArith
+{
+private:
+	CdBaseWorkSpace &Space;
+	double *ptrIBD;
+
+	void thread_cov_outer(size_t i, size_t n)
+	{
+		IdMatTri I = Array_Thread_MatIdx[i];
+		MulAdd(I, Array_Thread_MatCnt[i], ptrIBD + I.Offset());
+	}
+
+public:
+	CEigMix_AlgArith(CdBaseWorkSpace &space): Space(space) { }
+
+	/// run the algorithm
+	void Run(CdMatTri<double> &IBD, int NumThread, bool DiagAdj, bool verbose)
+	{
+		if (NumThread < 1) NumThread = 1;
+		const size_t nSamp = Space.SampleNum();
+
+		// detect the appropriate block size
+		PCA_Detect_BlockNumSNP(nSamp);
+		if (verbose)
+		{
+			Rprintf("%s    (internal increment: %d)\n", TimeToStr(),
+				(int)BlockNumSNP);
+		}
+
+		// initialize
+		Reset(nSamp, BlockNumSNP);
+		ptrIBD = IBD.Get();
+		memset(ptrIBD, 0, sizeof(double)*IBD.Size());
+
+		// denominator 4*p*(1-p)
+		CdMatTri<double> Denom(nSamp);
+		memset(Denom.Get(), 0, sizeof(double)*Denom.Size());
+		double SumDenominator = 0;
+
+		// diagonal
+		vector<int> DiagAdjVal(nSamp, 0);
+
+		// thread pool
+		CThreadPoolEx<CEigMix_AlgArith> thpool(NumThread);
+		Array_SplitJobs(NumThread, nSamp, Array_Thread_MatIdx,
+			Array_Thread_MatCnt);
+
+		// genotypes (0, 1, 2 and NA)
+		VEC_AUTO_PTR<C_UInt8> Geno(nSamp * BlockNumSNP);
+		C_UInt8 *pGeno = Geno.Get();
+
+		// genotype buffer, false for no memory buffer
+		CGenoReadBySNP WS(NumThread, Space, BlockNumSNP, verbose ? -1 : 0, false);
+		WS.Init();
+
+		// for-loop
+		while (WS.Read(Geno.Get()))
+		{
+			// get the genotype sum and number
+			SummarizeGeno_SampxSNP(pGeno, WS.Count());
+			// get 2 * \bar{p}_l, saved in PCA_Mat.tmp_var
+			DivideGeno();
+
+			// transpose genotypes in PCA_Mat, set missing values to the average
+			double *p = base();
+			for (size_t i=0; i < nSamp; i++)
+			{
+				double *pp = p; p += M();
+				size_t m = WS.Count();
+				for (size_t j=0; j < m; j++)
+				{
+					C_UInt8 g = pGeno[nSamp*j + i];
+					*pp ++ = (g <= 2) ? g : avg_geno[j];
+				}
+				// zero fill the left part
+				for (; m < fM; m++) *pp ++ = 0;
+			}
+			// G@ij - 2\bar{p}_l
+			GenoSub();
+
+			// denominator
+			size_t nsnp = WS.Count();
+			C_UInt8 *pG = pGeno;
+			for (size_t i=0; i < nsnp; i++)
+			{
+				double denom = 2 * avg_geno[i] * (1 - 0.5*avg_geno[i]);
+				SumDenominator += denom;
+				if (GenoNum[i] < nSamp)
+				{
+					for (size_t j=0; j < nSamp; j++, pG++)
+					{
+						if (*pG == 1)
+						{
+							DiagAdjVal[j] ++;
+						} else if (*pG > 2)
+						{
+							for (size_t k=j; k < nSamp; k++)
+								Denom.Get()[k + j*(2*nSamp-j-1)/2] += denom;
+						}
+					}
+				} else {
+					for (size_t j=0; j < nSamp; j++)
+						if (*pG++ == 1)
+							DiagAdjVal[j] ++;
+				}
+			}
+
+			// outer product, using thread thpool
+			thpool.BatchWork(this, &CEigMix_AlgArith::thread_cov_outer, NumThread);
+			// update
+			WS.ProgressForward(WS.Count());
+		}
+
+		// finally
+		if (DiagAdj)
+		{
+			for (size_t i=0; i < nSamp; i++)
+				IBD.At(i, i) -= DiagAdjVal[i];
+		}
+		double *p = IBD.Get(), *s = Denom.Get();
+		for (size_t n=IBD.Size(); n > 0; n--)
+			*p++ /= (SumDenominator - *s++);
+	}
+};
+
+
+
+// -----------------------------------------------------------
+// EIGMIX IBD Calculation with genotype indexing
+
+class COREARRAY_DLL_LOCAL CEigMix_AlgIndexing
 {
 private:
 	CdBaseWorkSpace &Space;
@@ -252,7 +383,7 @@ private:
 	}
 
 public:
-	CEigMix(CdBaseWorkSpace &space): Space(space) { }
+	CEigMix_AlgIndexing(CdBaseWorkSpace &space): Space(space) { }
 
 	/// run the algorithm
 	void Run(CdMat<double> &IBD, int NumThread, bool verbose)
@@ -275,7 +406,7 @@ public:
 		for (int i=0; i < NumThread; i++) GenoIndex[i].resize(4*nSamp);
 
 		// thread thpool
-		CThreadPoolEx<CEigMix> thpool(NumThread);
+		CThreadPoolEx<CEigMix_AlgIndexing> thpool(NumThread);
 		// genotype buffer, false for no memory buffer
 		CGenoReadBySNP WS(NumThread, Space, BlockSNPNum, verbose ? -1 : 0, false);
 		// mutex list
@@ -288,7 +419,7 @@ public:
 			if (NumThread > 1)
 			{
 				// using thread thpool
-				thpool.BatchWork2(this, &CEigMix::thread_cov, WS.Count());
+				thpool.BatchWork2(this, &CEigMix_AlgIndexing::thread_cov, WS.Count());
 			} else {
 				thread_cov_nosync(WS.Count());
 			}
@@ -325,11 +456,13 @@ using namespace EIGMIX;
 
 /// to compute the eigenvalues and eigenvectors
 COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP EigenCnt, SEXP NumThread,
-	SEXP NeedIBDMat, SEXP Verbose)
+	SEXP ParamList, SEXP Verbose)
 {
 	const bool verbose = SEXP_Verbose(Verbose);
-	int nEig = Rf_asInteger(EigenCnt);
-	int need_ibd = Rf_asLogical(NeedIBDMat);
+	int diag_adj = Rf_asLogical(RGetListElement(ParamList, "diagadj"));
+	if (diag_adj == NA_LOGICAL)
+		error("'diagadj' must be TRUE or FALSE.");
+	int need_ibd = Rf_asLogical(RGetListElement(ParamList, "ibdmat"));
 	if (need_ibd == NA_LOGICAL)
 		error("'ibdmat' must be TRUE or FALSE.");
 
@@ -340,15 +473,31 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP EigenCnt, SEXP NumThread,
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
+		int nEig = Rf_asInteger(EigenCnt);
 		if (nEig < 0 || nEig > n) nEig = n;
 
 		int nProtected = 0;
 		SEXP ibd_mat = R_NilValue;
+		double *pIBD = NULL;
 
-		// the IBD matrix
-		CdMat<double> IBD(n);
+		if (1)
 		{
-			CEigMix eigmix(MCWorkingGeno.Space());
+			// the upper-triangle IBD matrix
+			CdMatTri<double> IBD(n);
+			pIBD = IBD.Get();
+			CEigMix_AlgArith eigmix(MCWorkingGeno.Space());
+			eigmix.Run(IBD, Rf_asInteger(NumThread), diag_adj, verbose);
+			if (need_ibd)
+			{
+				ibd_mat = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+				nProtected ++;
+				IBD.SaveTo(REAL(ibd_mat));
+			}
+		} else {
+			// the IBD matrix
+			CdMat<double> IBD(n);
+			pIBD = IBD.Get();
+			CEigMix_AlgIndexing eigmix(MCWorkingGeno.Space());
 			eigmix.Run(IBD, Rf_asInteger(NumThread), verbose);
 			if (need_ibd)
 			{
@@ -364,14 +513,13 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP EigenCnt, SEXP NumThread,
 				memmove(p, IBD.Get() + i*n + i, sizeof(double)*m);
 				p += m;
 			}
-			vec_f64_mul(IBD.Get(), n*(n+1)/2, -1);
 		}
 
 		// output
 		PROTECT(rv_ans = NEW_LIST(3)); nProtected++;
 		SEXP EigVal, EigVect;
-		nProtected += CalcEigen(IBD.Get(), n, nEig, "DSPEVX",
-			EigVal, EigVect);
+		vec_f64_mul(pIBD, n*(n+1)/2, -1);
+		nProtected += CalcEigen(pIBD, n, nEig, "DSPEVX", EigVal, EigVect);
 		SET_ELEMENT(rv_ans, 0, EigVal);
 		SET_ELEMENT(rv_ans, 1, EigVect);
 		SET_ELEMENT(rv_ans, 2, ibd_mat);

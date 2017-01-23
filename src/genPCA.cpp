@@ -39,7 +39,7 @@ using namespace GWAS;
 // ---------------------------------------------------------------------
 // PCA parameters
 
-class CPCAMat_Alg1;
+class CPCAMat_AlgArith;
 
 /// whether use Bayesian normalization
 bool BayesianNormal = false;
@@ -50,7 +50,7 @@ double *Out_Buffer = NULL;
 /// the pointer to eigenvectors, snp loadings
 double *In_EigenVect = NULL;
 /// the pointer to the object storing the eigenvectors, snp loadings
-CPCAMat_Alg1 *_EigenVectBuf = NULL;
+CPCAMat_AlgArith *_EigenVectBuf = NULL;
 /// the pointer to allele frequency
 double *In_AveFreq = NULL;
 
@@ -72,15 +72,15 @@ void DoneMutexObject()
 
 void CPCAMat_Base::ZeroFill()
 {
-	memset(PCA_GenoSum.Get(), 0, sizeof(C_Int32)*fM);
-	memset(PCA_GenoNum.Get(), 0, sizeof(C_Int32)*fM);
+	memset(GenoSum.Get(), 0, sizeof(C_Int32)*fM);
+	memset(GenoNum.Get(), 0, sizeof(C_Int32)*fM);
 }
 
-// calculate average genotypes (save to PCA_GenoSum and PCA_GenoNum)
+// calculate average genotypes (save to GenoSum and GenoNum)
 void CPCAMat_Base::SummarizeGeno_SampxSNP(C_UInt8 *pGeno, size_t nSNP)
 {
-	C_Int32 *pS = PCA_GenoSum.Get();
-	C_Int32 *pN = PCA_GenoNum.Get();
+	C_Int32 *pS = GenoSum.Get();
+	C_Int32 *pN = GenoNum.Get();
 	for (size_t i=0; i < nSNP; i++)
 	{
 		pGeno = vec_u8_geno_count(pGeno, fN, *pS, *pN);
@@ -90,12 +90,12 @@ void CPCAMat_Base::SummarizeGeno_SampxSNP(C_UInt8 *pGeno, size_t nSNP)
 		*pS++ = *pN++ = 0;
 }
 
-// divide PCA_GenoSum by PCA_GenoNum (PCA_GenoSum / PCA_GenoNum)
+// divide GenoSum by GenoNum (GenoSum / GenoNum)
 void CPCAMat_Base::DivideGeno()
 {
-	double *p = tmp_var.Get();
-	C_Int32 *pS = PCA_GenoSum.Get();
-	C_Int32 *pN = PCA_GenoNum.Get();
+	double *p = avg_geno.Get();
+	C_Int32 *pS = GenoSum.Get();
+	C_Int32 *pN = GenoNum.Get();
 	size_t n = fM;
 
 #if defined(COREARRAY_SIMD_AVX)
@@ -140,7 +140,7 @@ void CPCAMat_Base::DivideGeno()
 // computing scalar vector
 void CPCAMat_Base::rsqrt_prod()
 {
-	double *p = tmp_var.Get();
+	double *p = avg_geno.Get();
 	size_t n = fM;
 
 #if defined(COREARRAY_SIMD_AVX)
@@ -178,21 +178,21 @@ void CPCAMat_Base::rsqrt_prod()
 
 void CPCAMat_Base::_Reset()
 {
-	PCA_GenoSum.Reset(fM);
-	PCA_GenoNum.Reset(fM);
-	tmp_var.Reset(fM);
+	GenoSum.Reset(fM);
+	GenoNum.Reset(fM);
+	avg_geno.Reset(fM);
 }
 
 void CPCAMat_Base::_Clear()
 {
-	PCA_GenoSum.Clear();
-	PCA_GenoNum.Clear();
-	tmp_var.Clear();
+	GenoSum.Clear();
+	GenoNum.Clear();
+	avg_geno.Clear();
 }
 
 
 
-void CPCAMat_Alg1::Reset(size_t n, size_t m)
+void CPCAMat_AlgArith::Reset(size_t n, size_t m)
 {
 #if defined(COREARRAY_SIMD_AVX)
 	// 4-aligned array
@@ -206,14 +206,14 @@ void CPCAMat_Alg1::Reset(size_t n, size_t m)
 	_Reset();
 }
 
-void CPCAMat_Alg1::Clear()
+void CPCAMat_AlgArith::Clear()
 {
 	_Clear();
 	fGenotype.Clear();
 }
 
-/// detect the effective value for BlockNumSNP
-void CPCAMat_Alg1::PCA_Detect_BlockNumSNP(int nSamp)
+// detect the effective value for BlockNumSNP
+void CPCAMat_AlgArith::PCA_Detect_BlockNumSNP(int nSamp)
 {
 	size_t Cache = GetOptimzedCache();
 	BlockNumSNP = Cache / (sizeof(double)*nSamp);
@@ -222,7 +222,7 @@ void CPCAMat_Alg1::PCA_Detect_BlockNumSNP(int nSamp)
 }
 
 // time-consuming function
-void COREARRAY_CALL_ALIGN CPCAMat_Alg1::MulAdd(IdMatTri &Idx, size_t IdxCnt,
+void COREARRAY_CALL_ALIGN CPCAMat_AlgArith::MulAdd(IdMatTri &Idx, size_t IdxCnt,
 	double *pOut)
 {
 	for (; IdxCnt > 0; IdxCnt--, ++Idx)
@@ -308,7 +308,7 @@ void COREARRAY_CALL_ALIGN CPCAMat_Alg1::MulAdd(IdMatTri &Idx, size_t IdxCnt,
 }
 
 // time-consuming function
-void COREARRAY_CALL_ALIGN CPCAMat_Alg1::MulAdd2(IdMatTri &Idx, size_t IdxCnt,
+void COREARRAY_CALL_ALIGN CPCAMat_AlgArith::MulAdd2(IdMatTri &Idx, size_t IdxCnt,
 	size_t Length, double *pOut)
 {
 	for (; IdxCnt > 0; IdxCnt--, ++Idx)
@@ -399,14 +399,14 @@ void COREARRAY_CALL_ALIGN CPCAMat_Alg1::MulAdd2(IdMatTri &Idx, size_t IdxCnt,
 	}
 }
 
-// mean-adjusted genotypes (fGenotype - tmp_var)
-void COREARRAY_CALL_ALIGN CPCAMat_Alg1::GenoSub()
+// mean-adjusted genotypes (fGenotype - avg_geno)
+void COREARRAY_CALL_ALIGN CPCAMat_AlgArith::GenoSub()
 {
 	double *pGeno = fGenotype.Get();
 	for (size_t num=fN; num > 0; num--, pGeno+=fM)
 	{
 		size_t n = fM;
-		double *p = pGeno, *s = tmp_var.Get();
+		double *p = pGeno, *s = avg_geno.Get();
 	#if defined(COREARRAY_SIMD_AVX)
 		for (; n >= 4; n -= 4)
 		{
@@ -427,14 +427,14 @@ void COREARRAY_CALL_ALIGN CPCAMat_Alg1::GenoSub()
 	}
 }
 
-// variance-adjusted genotypes (fGenotype * tmp_var)
-void COREARRAY_CALL_ALIGN CPCAMat_Alg1::GenoMul()
+// variance-adjusted genotypes (fGenotype * avg_geno)
+void COREARRAY_CALL_ALIGN CPCAMat_AlgArith::GenoMul()
 {
 	double *pGeno = fGenotype.Get();
 	for (size_t num=fN; num > 0; num--, pGeno+=fM)
 	{
 		size_t n = fM;
-		double *p = pGeno, *s = tmp_var.Get();
+		double *p = pGeno, *s = avg_geno.Get();
 	#if defined(COREARRAY_SIMD_AVX)
 		for (; n >= 4; n -= 4)
 		{
@@ -458,7 +458,7 @@ void COREARRAY_CALL_ALIGN CPCAMat_Alg1::GenoMul()
 
 
 /// The mean-adjusted genotype buffers
-static CPCAMat_Alg1 PCA_Mat1;
+static CPCAMat_AlgArith PCA_Mat1;
 
 
 // ---------------------------------------------------------------------
@@ -548,7 +548,7 @@ static void _Fill_Lookup_16(double v[], double avg, double scale)
 	v[3] = v[7] = v[11] = v[12] = v[13] = v[14] = v[15] = 0;
 }
 
-/// Convert the raw genotypes to the mean-adjusted genotypes (GenoBuf: sample x SNP)
+// Convert the raw genotypes to the mean-adjusted genotypes (GenoBuf: sample x SNP)
 static void _Do_PCA_Read_SampxSNP_Alg2(C_UInt8 *pGeno, long Start,
 	long SNP_Cnt, void *Param)
 {
@@ -556,7 +556,7 @@ static void _Do_PCA_Read_SampxSNP_Alg2(C_UInt8 *pGeno, long Start,
 
 	// get the genotype sum and number
 	PCA_Mat2.SummarizeGeno_SampxSNP(pGeno, SNP_Cnt);
-	// get 2 * \bar{p}_l, saved in PCA_Mat2.tmp_var
+	// get 2 * \bar{p}_l, saved in PCA_Mat2.avg_geno
 	PCA_Mat2.DivideGeno();
 
 	// transpose genotypes in PCA_Mat2, pack genotypes 0x0F and 0xF0
@@ -581,19 +581,19 @@ static void _Do_PCA_Read_SampxSNP_Alg2(C_UInt8 *pGeno, long Start,
 
 	// set lookup table
 	double v1[16], v2[16];
-	double *p = PCA_Mat2.tmp_var.Get(); // 2\bar{p}_l
+	double *p = PCA_Mat2.avg_geno.Get(); // 2\bar{p}_l
 	size_t m = SNP_Cnt;
 	if (m & 0x01)
 	{
 		m ++;
-		PCA_Mat2.PCA_GenoSum[m] = PCA_Mat2.PCA_GenoNum[m] = 0;
-		PCA_Mat2.tmp_var[m] = 0;
+		PCA_Mat2.GenoSum[m] = PCA_Mat2.GenoNum[m] = 0;
+		PCA_Mat2.avg_geno[m] = 0;
 	}
 
 	if (BayesianNormal)
 	{
-		C_Int32 *pSum = PCA_Mat2.PCA_GenoSum.Get();
-		C_Int32 *pNum = PCA_Mat2.PCA_GenoNum.Get();
+		C_Int32 *pSum = PCA_Mat2.GenoSum.Get();
+		C_Int32 *pNum = PCA_Mat2.GenoNum.Get();
 		double *pp = PCA_Mat2.lookup(), s;
 		for (; m > 0; m-=2)
 		{
@@ -637,7 +637,7 @@ static void _Do_PCA_ComputeCov_Alg2(int IdxThread, long Start,
 // -----------------------------------------------------------
 // Exact PCA
 
-class COREARRAY_DLL_LOCAL CExactPCA: protected CPCAMat_Alg1
+class COREARRAY_DLL_LOCAL CExactPCA: protected CPCAMat_AlgArith
 {
 private:
 	CdBaseWorkSpace &Space;
@@ -690,7 +690,7 @@ public:
 		{
 			// get the genotype sum and number
 			SummarizeGeno_SampxSNP(pGeno, WS.Count());
-			// get 2 * \bar{p}_l, saved in PCA_Mat.tmp_var
+			// get 2 * \bar{p}_l, saved in PCA_Mat.avg_geno
 			DivideGeno();
 
 			// transpose genotypes in PCA_Mat, set missing values to the average
@@ -702,10 +702,10 @@ public:
 				for (size_t j=0; j < m; j++)
 				{
 					C_UInt8 g = pGeno[nSamp*j + i];
-					*pp ++ = (g <= 2) ? g : tmp_var[j];
+					*pp ++ = (g <= 2) ? g : avg_geno[j];
 				}
-				for (; m < M(); m++)
-					*pp ++ = 0;
+				// zero fill the left part
+				for (; m < fM; m++) *pp ++ = 0;
 			}
 
 			// G@ij - 2\bar{p}_l
@@ -716,9 +716,9 @@ public:
 			{
 				rsqrt_prod();
 			} else {
-				p = tmp_var.Get();
-				C_Int32 *pSum = PCA_GenoSum.Get();
-				C_Int32 *pNum = PCA_GenoNum.Get();
+				p = avg_geno.Get();
+				C_Int32 *pSum = GenoSum.Get();
+				C_Int32 *pNum = GenoNum.Get();
 				for (size_t m=WS.Count(); m > 0; m--)
 				{
 					double s = ((*pSum++) + 1.0) / (2 * (*pNum++) + 2);
@@ -1402,7 +1402,7 @@ public:
 		double *pAdjGeno = &Admix_Adj_Geno[0];
 
 		// calculate the averages of genotypes for each SelSNP
-		// store the values in PCA_GenoSum
+		// store the values in GenoSum
 		p = GenoBuf;
 		pMissing = &Admix_Missing_Flag[0];
 		pp = PCA_Mat1.base();
@@ -1413,8 +1413,8 @@ public:
 			{
 				if (*p < 3)
 				{
-					PCA_Mat1.PCA_GenoSum[iSNP] += *p;
-					PCA_Mat1.PCA_GenoNum[iSNP]++;
+					PCA_Mat1.GenoSum[iSNP] += *p;
+					PCA_Mat1.GenoNum[iSNP]++;
 					*pAdjGeno += (*p) * (2 - *p);
 					*pMissing++ = true;
 				} else {
@@ -1425,13 +1425,13 @@ public:
 			pAdjGeno ++;
 		}
 
-		// PCA_GenoSum = 2 * \bar{p}_l
+		// GenoSum = 2 * \bar{p}_l
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 		{
-			double &fv = PCA_Mat1.tmp_var.Get()[iSNP];
-			long gN = PCA_Mat1.PCA_GenoNum[iSNP];
+			double &fv = PCA_Mat1.avg_geno.Get()[iSNP];
+			long gN = PCA_Mat1.GenoNum[iSNP];
 			if (gN > 0)
-				fv = (double)PCA_Mat1.PCA_GenoSum[iSNP] / gN;
+				fv = (double)PCA_Mat1.GenoSum[iSNP] / gN;
 			else
 				fv = 0;
 		}
@@ -1440,7 +1440,7 @@ public:
 		pp = PCA_Mat1.base(); // G@ij - 2\bar{p}_l
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Sub(pp, pp, PCA_Mat1.tmp_var.Get(), SNP_Cnt);
+			vt<double, av16Align>::Sub(pp, pp, PCA_Mat1.avg_geno.Get(), SNP_Cnt);
 			pp += PCA_Mat1.M();
 		}
 
@@ -1456,10 +1456,10 @@ public:
 			}
 		}
 
-		// 4 * p_l * (1 - p_l) -> tmp_var
+		// 4 * p_l * (1 - p_l) -> avg_geno
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 		{
-			double &f = PCA_Mat1.tmp_var.Get()[iSNP];
+			double &f = PCA_Mat1.avg_geno.Get()[iSNP];
 			f *= 0.5;
 			f = 4 * f * (1 - f);
 		}
@@ -1486,7 +1486,7 @@ public:
 			for (long i=0; i< SNP_Cnt; i++)
 			{
 				if (p1[i] && p2[i])
-					*pAFreq += PCA_Mat1.tmp_var.Get()[i];
+					*pAFreq += PCA_Mat1.avg_geno.Get()[i];
 			}
 			pAFreq ++;
 			++ I;
@@ -1548,7 +1548,7 @@ public:
 		double *pf, *pp;
 
 		// calculate the averages of genotypes for each SelSNP
-		// store the values in PCA_GenoSum
+		// store the values in GenoSum
 		p = GenoBuf;
 		pMissing = &Admix_Missing_Flag[0];
 		pp = PCA_Mat1.base();
@@ -1559,8 +1559,8 @@ public:
 			{
 				if (*p < 3)
 				{
-					PCA_Mat1.PCA_GenoSum[iSNP] += *p;
-					PCA_Mat1.PCA_GenoNum[iSNP]++;
+					PCA_Mat1.GenoSum[iSNP] += *p;
+					PCA_Mat1.GenoNum[iSNP]++;
 					*pMissing++ = true;
 				} else {
 					*pMissing++ = false;
@@ -1569,13 +1569,13 @@ public:
 			}
 		}
 
-		// PCA_GenoSum = 2 * \bar{p}_l
+		// GenoSum = 2 * \bar{p}_l
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 		{
-			double &fv = PCA_Mat1.tmp_var.Get()[iSNP];
-			long gN = PCA_Mat1.PCA_GenoNum[iSNP];
+			double &fv = PCA_Mat1.avg_geno.Get()[iSNP];
+			long gN = PCA_Mat1.GenoNum[iSNP];
 			if (gN > 0)
-				fv = (double)PCA_Mat1.PCA_GenoSum[iSNP] / gN;
+				fv = (double)PCA_Mat1.GenoSum[iSNP] / gN;
 			else
 				fv = 0;
 		}
@@ -1584,12 +1584,12 @@ public:
 		pp = PCA_Mat1.base(); // G@ij - 2\bar{p}_l
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Sub(pp, pp, PCA_Mat1.tmp_var.Get(), SNP_Cnt);
+			vt<double, av16Align>::Sub(pp, pp, PCA_Mat1.avg_geno.Get(), SNP_Cnt);
 			pp += PCA_Mat1.M();
 		}
 
 		// 1 / (2*sqrt(p@j*(1-p@j)))
-		pf = PCA_Mat1.tmp_var.Get();
+		pf = PCA_Mat1.avg_geno.Get();
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++, pf++)
 		{
 			double scale = (*pf) * 0.5;
@@ -1604,7 +1604,7 @@ public:
 		p = GenoBuf;
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			pf = PCA_Mat1.tmp_var.Get();
+			pf = PCA_Mat1.avg_geno.Get();
 			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 			{
 				if (*p < 3)
@@ -1618,7 +1618,7 @@ public:
 		pp = PCA_Mat1.base();
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Mul(pp, pp, PCA_Mat1.tmp_var.Get(), SNP_Cnt);
+			vt<double, av16Align>::Mul(pp, pp, PCA_Mat1.avg_geno.Get(), SNP_Cnt);
 			pp += PCA_Mat1.M();
 		}
 
@@ -1722,7 +1722,7 @@ public:
 		double *pf, *pp;
 
 		// calculate the averages of genotypes for each SelSNP
-		// store the values in PCA_GenoSum
+		// store the values in GenoSum
 		p = GenoBuf;
 		pMissing = &Admix_Missing_Flag[0];
 		pp = PCA_Mat1.base();
@@ -1733,8 +1733,8 @@ public:
 			{
 				if (*p < 3)
 				{
-					PCA_Mat1.PCA_GenoSum[iSNP] += *p;
-					PCA_Mat1.PCA_GenoNum[iSNP]++;
+					PCA_Mat1.GenoSum[iSNP] += *p;
+					PCA_Mat1.GenoNum[iSNP]++;
 					*pMissing++ = true;
 				} else {
 					*pMissing++ = false;
@@ -1743,13 +1743,13 @@ public:
 			}
 		}
 
-		// PCA_GenoSum = 2 * \bar{p}_l
+		// GenoSum = 2 * \bar{p}_l
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 		{
-			double &fv = PCA_Mat1.tmp_var.Get()[iSNP];
-			long gN = PCA_Mat1.PCA_GenoNum[iSNP];
+			double &fv = PCA_Mat1.avg_geno.Get()[iSNP];
+			long gN = PCA_Mat1.GenoNum[iSNP];
 			if (gN > 0)
-				fv = (double)PCA_Mat1.PCA_GenoSum[iSNP] / gN;
+				fv = (double)PCA_Mat1.GenoSum[iSNP] / gN;
 			else
 				fv = 0;
 		}
@@ -1758,7 +1758,7 @@ public:
 		pp = PCA_Mat1.base(); // G@ij - 2\bar{p}_l
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Sub(pp, pp, PCA_Mat1.tmp_var.Get(), SNP_Cnt);
+			vt<double, av16Align>::Sub(pp, pp, PCA_Mat1.avg_geno.Get(), SNP_Cnt);
 			pp += PCA_Mat1.M();
 		}
 
@@ -1767,7 +1767,7 @@ public:
 		p = GenoBuf;
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			pf = PCA_Mat1.tmp_var.Get();
+			pf = PCA_Mat1.avg_geno.Get();
 			for (long iSNP=0; iSNP < SNP_Cnt; iSNP++)
 			{
 				double scale = (*pf) * 0.5;
@@ -1783,7 +1783,7 @@ public:
 		}
 
 		// 1 / (sqrt(2)*sqrt(p@j*(1-p@j)))
-		pf = PCA_Mat1.tmp_var.Get();
+		pf = PCA_Mat1.avg_geno.Get();
 		for (long iSNP=0; iSNP < SNP_Cnt; iSNP++, pf++)
 		{
 			double scale = (*pf) * 0.5;
@@ -1797,7 +1797,7 @@ public:
 		pp = PCA_Mat1.base();
 		for (long iSample=0; iSample < n; iSample++)
 		{
-			vt<double, av16Align>::Mul(pp, pp, PCA_Mat1.tmp_var.Get(), SNP_Cnt);
+			vt<double, av16Align>::Mul(pp, pp, PCA_Mat1.avg_geno.Get(), SNP_Cnt);
 			pp += PCA_Mat1.M();
 		}
 
@@ -2031,7 +2031,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm,
 				vt<double>::Sub(Cov.Get(), 0.0, Cov.Get(), Cov.Size());
 
 				int nEig = Rf_asInteger(EigenCnt);
-				if (nEig <= 0)
+				if (nEig < 0)
 					throw ErrCoreArray("Invalid 'eigen.cnt'.");
 				if (nEig > n) nEig = n;
 
@@ -2189,7 +2189,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 
 		// set internal parameters
-		PCA::CPCAMat_Alg1::PCA_Detect_BlockNumSNP(n);
+		PCA::CPCAMat_AlgArith::PCA_Detect_BlockNumSNP(n);
 
 		// the upper-triangle IBD matrix
 		CdMatTri<double> IBD(n);
@@ -2326,7 +2326,7 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX__(SEXP _EigenCnt, SEXP _NumThread,
 		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 
 		// set internal parameters
-		PCA::CPCAMat_Alg1::PCA_Detect_BlockNumSNP(n);
+		PCA::CPCAMat_AlgArith::PCA_Detect_BlockNumSNP(n);
 
 		// the upper-triangle IBD matrix
 		CdMatTri<double> IBD(n);

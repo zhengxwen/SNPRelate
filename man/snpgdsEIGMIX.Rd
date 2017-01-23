@@ -9,7 +9,7 @@
 \usage{
 snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1L,
-    eigen.cnt=32L, ibdmat=FALSE, verbose=TRUE)
+    eigen.cnt=32L, diagadj=TRUE, ibdmat=FALSE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -29,6 +29,7 @@ snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         the number of cores automatically}
     \item{eigen.cnt}{output the number of eigenvectors; if \code{eigen.cnt < 0},
         returns all eigenvectors; if \code{eigen.cnt==0}, no eigen calculation}
+    \item{diagadj}{\code{TRUE} for diagonal adjustment by default}
     \item{ibdmat}{if \code{TRUE}, returns the IBD matrix}
     \item{verbose}{if \code{TRUE}, show information}
 }

@@ -555,7 +555,7 @@ namespace GWAS
 		size_t Index(size_t row, size_t col)
 		{
 			if (row > col)
-			{ size_t t = row; row = col; col = t; }
+				{ size_t t = row; row = col; col = t; }
 			return col + row*(2*fN-row-1)/2;
 		}
 
@@ -573,6 +573,8 @@ namespace GWAS
 		inline TYPE *Get() { return ptr.Get(); }
 		inline size_t N() const { return fN; }
 		inline size_t Size() const { return fN*(fN+1)/2; }
+		inline double &At(size_t row, size_t col)
+			{ return ptr.Get()[Index(row, col)]; }
 
 	protected:
 		Vectorization::VEC_AUTO_PTR<TYPE> ptr;
