@@ -650,7 +650,8 @@ private:
 	}
 
 public:
-	CExactPCA(CdBaseWorkSpace &space): Space(space) { }
+	CExactPCA(CdBaseWorkSpace &space): CPCAMat_AlgArith(), Space(space)
+		{ }
 
 	/// run the algorithm
 	void Run(CdMatTri<double> &Cov, int NumThread, bool Bayesian,

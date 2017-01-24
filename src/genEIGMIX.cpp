@@ -53,7 +53,8 @@ private:
 	}
 
 public:
-	CEigMix_AlgArith(CdBaseWorkSpace &space): Space(space) { }
+	CEigMix_AlgArith(CdBaseWorkSpace &space): CPCAMat_AlgArith(), Space(space)
+		{ }
 
 	/// run the algorithm
 	void Run(CdMatTri<double> &IBD, int NumThread, bool DiagAdj, bool verbose)
@@ -100,7 +101,7 @@ public:
 		{
 			// get the genotype sum and number
 			SummarizeGeno_SampxSNP(pGeno, WS.Count());
-			// get 2 * \bar{p}_l, saved in PCA_Mat.tmp_var
+			// get 2 * \bar{p}_l, saved in PCA_Mat.avg_geno
 			DivideGeno();
 
 			// transpose genotypes in PCA_Mat, set missing values to the average
@@ -142,8 +143,7 @@ public:
 					}
 				} else {
 					for (size_t j=0; j < nSamp; j++)
-						if (*pG++ == 1)
-							DiagAdjVal[j] ++;
+						if (*pG++ == 1) DiagAdjVal[j] ++;
 				}
 			}
 
@@ -477,26 +477,26 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP EigenCnt, SEXP NumThread,
 		if (nEig < 0 || nEig > n) nEig = n;
 
 		int nProtected = 0;
-		SEXP ibd_mat = R_NilValue;
-		double *pIBD = NULL;
+		SEXP ibd_mat, EigVal, EigVect;
+		ibd_mat = EigVal = EigVect = R_NilValue;
 
 		if (1)
 		{
 			// the upper-triangle IBD matrix
 			CdMatTri<double> IBD(n);
-			pIBD = IBD.Get();
 			CEigMix_AlgArith eigmix(MCWorkingGeno.Space());
-			eigmix.Run(IBD, Rf_asInteger(NumThread), diag_adj, verbose);
+			eigmix.Run(IBD, Rf_asInteger(NumThread), diag_adj==TRUE, verbose);
 			if (need_ibd)
 			{
 				ibd_mat = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 				nProtected ++;
 				IBD.SaveTo(REAL(ibd_mat));
 			}
+			vec_f64_mul(IBD.Get(), IBD.Size(), -1);
+			nProtected += CalcEigen(IBD.Get(), n, nEig, "DSPEVX", EigVal, EigVect);
 		} else {
 			// the IBD matrix
 			CdMat<double> IBD(n);
-			pIBD = IBD.Get();
 			CEigMix_AlgIndexing eigmix(MCWorkingGeno.Space());
 			eigmix.Run(IBD, Rf_asInteger(NumThread), verbose);
 			if (need_ibd)
@@ -513,13 +513,12 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP EigenCnt, SEXP NumThread,
 				memmove(p, IBD.Get() + i*n + i, sizeof(double)*m);
 				p += m;
 			}
+			vec_f64_mul(IBD.Get(), n*(n+1)/2, -1);
+			nProtected += CalcEigen(IBD.Get(), n, nEig, "DSPEVX", EigVal, EigVect);
 		}
 
 		// output
 		PROTECT(rv_ans = NEW_LIST(3)); nProtected++;
-		SEXP EigVal, EigVect;
-		vec_f64_mul(pIBD, n*(n+1)/2, -1);
-		nProtected += CalcEigen(pIBD, n, nEig, "DSPEVX", EigVal, EigVect);
 		SET_ELEMENT(rv_ans, 0, EigVal);
 		SET_ELEMENT(rv_ans, 1, EigVect);
 		SET_ELEMENT(rv_ans, 2, ibd_mat);

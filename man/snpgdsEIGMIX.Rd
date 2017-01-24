@@ -1,5 +1,6 @@
 \name{snpgdsEIGMIX}
 \alias{snpgdsEIGMIX}
+\alias{plot.snpgdsEigMixClass}
 \title{
     Eigen-analysis on SNP genotype data
 }
@@ -10,6 +11,7 @@
 snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1L,
     eigen.cnt=32L, diagadj=TRUE, ibdmat=FALSE, verbose=TRUE)
+\method{plot}{snpgdsEigMixClass}(x, eig=c(1L,2L), ...)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -32,6 +34,10 @@ snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{diagadj}{\code{TRUE} for diagonal adjustment by default}
     \item{ibdmat}{if \code{TRUE}, returns the IBD matrix}
     \item{verbose}{if \code{TRUE}, show information}
+    \item{x}{a \code{snpgdsEigMixClass} object}
+    \item{eig}{indices of eigenvectors, like \code{1:2} or \code{1:4}}
+    \item{...}{the arguments passed to or from other methods, like
+        \code{pch}, \code{col}}
 }
 \value{
     Return a \code{snpgdsEigMixClass} object, and it is a list:
