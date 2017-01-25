@@ -128,22 +128,20 @@ public:
 			{
 				double denom = 2 * avg_geno[i] * (1 - 0.5*avg_geno[i]);
 				SumDenominator += denom;
-				if (GenoNum[i] < nSamp)
+				C_UInt8 *pGG = pG;
+				for (size_t j=0; j < nSamp; j++, pG++)
 				{
-					for (size_t j=0; j < nSamp; j++, pG++)
+					if (*pG == 1)
 					{
-						if (*pG == 1)
-						{
-							DiagAdjVal[j] ++;
-						} else if (*pG > 2)
-						{
-							for (size_t k=j; k < nSamp; k++)
-								Denom.Get()[k + j*(2*nSamp-j-1)/2] += denom;
-						}
+						DiagAdjVal[j] ++;
+					} else if (*pG > 2)
+					{
+						double *pp = Denom.Get();
+						vec_f64_add(pp + j*(2*nSamp-j+1)/2, nSamp-j, denom);
+						for (ssize_t k=(ssize_t)j - 1; k >= 0; k--)
+							if (pGG[k] <= 2)
+								pp[j + k*(2*nSamp-k-1)/2] += denom;
 					}
-				} else {
-					for (size_t j=0; j < nSamp; j++)
-						if (*pG++ == 1) DiagAdjVal[j] ++;
 				}
 			}
 
@@ -153,12 +151,13 @@ public:
 			WS.ProgressForward(WS.Count());
 		}
 
-		// finally
+		// diagonal adjustment 
 		if (DiagAdj)
 		{
 			for (size_t i=0; i < nSamp; i++)
 				IBD.At(i, i) -= DiagAdjVal[i];
 		}
+		// normalized by the denominator
 		double *p = IBD.Get(), *s = Denom.Get();
 		for (size_t n=IBD.Size(); n > 0; n--)
 			*p++ /= (SumDenominator - *s++);
@@ -275,7 +274,7 @@ private:
 				mutex_list[*p].Unlock();
 			}
 
-			// update denominator
+			// update denominator, a bug, need to be fixed later
 			double den = 2 * freq * (1 - 0.5*freq);
 			SumDenom += den;
 			for (size_t *p=i4[3]; p < i4_end[3]; p++)
@@ -371,7 +370,7 @@ private:
 				for (size_t *s=p; s < i4_end[0]; s++) v[*s] += v0;
 			}
 
-			// update denominator
+			// update denominator, a bug, need to be fixed later
 			double den = 2 * freq * (1 - 0.5*freq);
 			SumDenom += den;
 			for (size_t *p=i4[3]; p < i4_end[3]; p++)

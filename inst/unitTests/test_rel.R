@@ -73,6 +73,17 @@ CreateIndivBeta <- function()
 }
 
 
+CreateEIGMIX <- function()
+{
+	genofile <- snpgdsOpen(snpgdsExampleFileName())
+	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
+	.eigmix <- snpgdsEIGMIX(genofile, sample.id=samp.id[1:90], eigen.cnt=0,
+		ibdmat=TRUE)$ibd
+	save(.eigmix, file="Validate.EIGMIX.RData", compress="xz")
+	snpgdsClose(genofile)
+}
+
+
 
 
 ##############################################################################
@@ -93,7 +104,7 @@ test.IBS <- function()
 		num.thread=1, verbose=FALSE)
 	checkEquals(ibs.1, valid.dta, "IBS (one core)")
 
-	# run on one core
+	# run on two cores
 	ibs.2 <- snpgdsIBS(genofile, sample.id=samp.id[1:90],
 		num.thread=2, verbose=FALSE)
 	checkEquals(ibs.2, valid.dta, "IBS (two cores)")
@@ -133,7 +144,7 @@ test.PCA <- function()
 		"PCA sample loading (one core)")
 
 
-	# run on one core
+	# run on two cores
 	pca <- snpgdsPCA(genofile, sample.id=samp.id[1:90],
 		num.thread=2, need.genmat=TRUE, eigen.cnt=8L, verbose=FALSE)
 	checkEquals(pca$genmat, valid.dta$genmat, "PCA (two cores)")
@@ -167,7 +178,7 @@ test.PLINK.MoM <- function()
 		num.thread=1, verbose=FALSE)
 	checkEquals(ibd.1, valid.dta, "PLINK MoM (one core)")
 
-	# run on one core
+	# run on two cores
 	ibd.2 <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90],
 		num.thread=2, verbose=FALSE)
 	checkEquals(ibd.2, valid.dta, "PLINK MoM (two cores)")
@@ -225,10 +236,35 @@ test.IndivBeta <- function()
 		num.thread=1, verbose=FALSE)
 	checkEquals(beta.1, valid.dta, "Individual Beta (one core)")
 
-	# run on one core
+	# run on two cores
 	beta.2 <- snpgdsIndivBeta(genofile, sample.id=samp.id[1:90],
 		num.thread=2, verbose=FALSE)
 	checkEquals(beta.2, valid.dta, "Individual Beta (two cores)")
+
+	# close the file
+	snpgdsClose(genofile)
+}
+
+
+
+test.EIGMIX <- function()
+{
+	valid.dta <- get(load(system.file(
+		"unitTests", "valid", "Validate.EIGMIX.RData", package="SNPRelate")))
+
+	# open a GDS file
+	genofile <- snpgdsOpen(snpgdsExampleFileName(), allow.duplicate=TRUE)
+	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
+
+	# run on one core
+	eigmix.1 <- snpgdsEIGMIX(genofile, sample.id=samp.id[1:90], ibdmat=TRUE,
+		num.thread=1, verbose=FALSE)
+	checkEquals(eigmix.1$ibd, valid.dta, "EIGMIX (one core)")
+
+	# run on two cores
+	eigmix.2 <- snpgdsEIGMIX(genofile, sample.id=samp.id[1:90], ibdmat=TRUE,
+		num.thread=2, verbose=FALSE)
+	checkEquals(eigmix.2$ibd, valid.dta, "EIGMIX (two cores)")
 
 	# close the file
 	snpgdsClose(genofile)
