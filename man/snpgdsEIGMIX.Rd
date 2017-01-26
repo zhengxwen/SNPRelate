@@ -45,7 +45,9 @@ snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{snp.id}{the SNP ids used in the analysis}
     \item{eigenval}{eigenvalues}
     \item{eigenvect}{eigenvactors, "# of samples" x "eigen.cnt"}
+    \item{afreq}{allele frequencies}
     \item{ibd}{the IBD matrix when \code{ibdmat=TRUE}}
+    \item{diagadj}{the argument \code{diagadj}}
 }
 \references{
     Zheng X, Weir BS.

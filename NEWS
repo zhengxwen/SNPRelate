@@ -1,7 +1,11 @@
-CHANGES IN VERSION 1.9.1
+CHANGES IN VERSION 1.9.1-1.9.2
 -------------------------
 
     o new functions `snpgdsAdmixPlot()` and `snpgdsAdmixTable()`
+
+    o `snpgdsPCASNPLoading()` and `snpgdsPCASampLoading()` support the eigen
+      results of `snpgdsEIGMIX()` allowing projecting new samples to the
+      existing coordinate
 
 
 CHANGES IN VERSION 1.8.0

@@ -11,7 +11,8 @@ snpgdsPCASampLoading(loadobj, gdsobj, sample.id=NULL, num.thread=1L,
     verbose=TRUE)
 }
 \arguments{
-    \item{loadobj}{the \code{snpgdsPCASNPLoadingClass} object, returned from
+    \item{loadobj}{a \code{snpgdsPCASNPLoadingClass} or
+        \code{snpgdsEigMixSNPLoadingClass} object returned from
         \link{snpgdsPCASNPLoading}}
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
         a SNP GDS file}
@@ -25,13 +26,20 @@ snpgdsPCASampLoading(loadobj, gdsobj, sample.id=NULL, num.thread=1L,
 calculation of SNP loadings.
 }
 \value{
-    Return a \code{snpgdsPCAClass} object, and it is a list:
+    Returns a \code{snpgdsPCAClass} object, and it is a list:
     \item{sample.id}{the sample ids used in the analysis}
     \item{snp.id}{the SNP ids used in the analysis}
     \item{eigenval}{eigenvalues}
     \item{eigenvect}{eigenvactors, ``# of samples'' x ``eigen.cnt''}
     \item{TraceXTX}{the trace of the genetic covariance matrix}
     \item{Bayesian}{whether use bayerisan normalization}
+
+    Or returns a \code{snpgdsEigMixClass} object, and it is a list:
+    \item{sample.id}{the sample ids used in the analysis}
+    \item{snp.id}{the SNP ids used in the analysis}
+    \item{eigenval}{eigenvalues}
+    \item{eigenvect}{eigenvactors, ``# of samples'' x ``eigen.cnt''}
+    \item{afreq}{allele frequencies}
 }
 \references{
     Patterson N, Price AL, Reich D (2006)

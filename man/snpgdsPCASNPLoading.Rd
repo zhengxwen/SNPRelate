@@ -10,8 +10,9 @@
 snpgdsPCASNPLoading(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
 }
 \arguments{
-    \item{pcaobj}{the snpgdsPCAClass object returned from the function
-        \link{snpgdsPCA}}
+    \item{pcaobj}{a \code{snpgdsPCAClass} object returned from the function
+        \link{snpgdsPCA} or a \code{snpgdsEigMixClass} from
+        \link{snpgdsEIGMIX}}
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
         a SNP GDS file}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
@@ -23,15 +24,24 @@ snpgdsPCASNPLoading(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
 component analysis conducted in \code{snpgdsPCA}.
 }
 \value{
-    Return a \code{snpgdsPCASNPLoading} object, which is a list:
+    Returns a \code{snpgdsPCASNPLoading} object if \code{pcaobj} is
+\code{snpgdsPCAClass}, which is a list:
     \item{sample.id}{the sample ids used in the analysis}
     \item{snp.id}{the SNP ids used in the analysis}
     \item{eigenval}{eigenvalues}
-    \item{snploading}{the SNP loadings, or SNP eigenvectors}
+    \item{snploading}{SNP loadings, or SNP eigenvectors}
     \item{TraceXTX}{the trace of the genetic covariance matrix}
     \item{Bayesian}{whether use bayerisan normalization}
-    \item{avefreq}{the allele frequency used in \code{snpgdsPCA}}
+    \item{avgfreq}{two times allele frequency used in \code{snpgdsPCA}}
     \item{scale}{internal parameter}
+
+    Or returns a \code{snpgdsEigMixSNPLoadingClass} object if \code{pcaobj} is
+\code{snpgdsEigMixClass}, which is a list:
+    \item{sample.id}{the sample ids used in the analysis}
+    \item{snp.id}{the SNP ids used in the analysis}
+    \item{eigenval}{eigenvalues}
+    \item{snploading}{SNP loadings, or SNP eigenvectors}
+    \item{afreq}{allele frequency}
 }
 
 \references{
@@ -48,8 +58,8 @@ component analysis conducted in \code{snpgdsPCA}.
 }
 \author{Xiuwen Zheng}
 \seealso{
-    \code{\link{snpgdsPCA}}, \code{\link{snpgdsPCASampLoading}},
-    \code{\link{snpgdsPCACorr}}
+    \code{\link{snpgdsPCA}}, \code{\link{snpgdsEIGMIX}},
+    \code{\link{snpgdsPCASampLoading}}, \code{\link{snpgdsPCACorr}}
 }
 
 \examples{
@@ -61,7 +71,7 @@ SnpLoad <- snpgdsPCASNPLoading(PCARV, genofile)
 
 names(SnpLoad)
 # [1] "sample.id"  "snp.id"     "eigenval"   "snploading" "TraceXTX"
-# [6] "Bayesian"   "avefreq"    "scale"
+# [6] "Bayesian"   "avgfreq"    "scale"
 dim(SnpLoad$snploading)
 # [1]     8 8722
 

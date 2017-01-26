@@ -133,10 +133,12 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
 snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
 {
     # check
-    stopifnot(inherits(pcaobj, "snpgdsPCAClass"))
+    stopifnot(inherits(pcaobj, "snpgdsPCAClass") |
+        inherits(pcaobj, "snpgdsEigMixClass"))
     ws <- .InitFile(gdsobj, sample.id=pcaobj$sample.id, snp.id=pcaobj$snp.id)
     stopifnot(is.numeric(num.thread), num.thread > 0L)
-    stopifnot(is.logical(verbose))
+    stopifnot(is.logical(verbose), length(verbose)==1L)
+    stopifnot(!is.null(pcaobj$eigenval), !is.null(pcaobj$eigenvect))
 
     if (verbose)
     {
@@ -144,20 +146,36 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
         cat("    using ", num.thread, " (CPU) core", .plural(num.thread), "\n",
             sep="")
-        cat("    using the top", dim(pcaobj$eigenvect)[2], "eigenvectors\n")
+        cat("    using the top", dim(pcaobj$eigenvect)[2L], "eigenvectors\n")
     }
 
-    # call parallel PCA
-    rv <- .Call(gnrPCASNPLoading, pcaobj$eigenval, ncol(pcaobj$eigenvect),
-        pcaobj$eigenvect, pcaobj$TraceXTX, num.thread, pcaobj$Bayesian,
-        verbose)
+    # computing SNP loading
+    if (inherits(pcaobj, "snpgdsPCAClass"))
+    {
+        # call C function
+        rv <- .Call(gnrPCASNPLoading, pcaobj$eigenval, pcaobj$eigenvect,
+            pcaobj$TraceXTX, num.thread, pcaobj$Bayesian, verbose)
+        rv <- list(sample.id=pcaobj$sample.id, snp.id=pcaobj$snp.id,
+            eigenval=pcaobj$eigenval, snploading=rv[[1L]],
+            TraceXTX=pcaobj$TraceXTX, Bayesian=pcaobj$Bayesian,
+            avgfreq=rv[[2L]], scale=rv[[3L]])
+        class(rv) <- "snpgdsPCASNPLoadingClass"
 
-    # return
-    rv <- list(sample.id=pcaobj$sample.id, snp.id=pcaobj$snp.id,
-        eigenval=pcaobj$eigenval, snploading=rv[[1]],
-        TraceXTX=pcaobj$TraceXTX, Bayesian=pcaobj$Bayesian,
-        avefreq=rv[[2]], scale=rv[[3]])
-    class(rv) <- "snpgdsPCASNPLoadingClass"
+    } else {
+        if (isTRUE(pcaobj$diagadj))
+        {
+            warning("It is strongly suggested to rerun snpgdsEIGMIX() ",
+                "with `diagadj=FALSE` for projecting new samples.",
+                immediate.=TRUE)
+        }
+        # call C function
+        mat <- .Call(gnrEigMixSNPLoading, pcaobj$eigenval, pcaobj$eigenvect,
+            pcaobj$afreq, num.thread, verbose)
+        rv <- list(sample.id=pcaobj$sample.id, snp.id=pcaobj$snp.id,
+            eigenval=pcaobj$eigenval, snploading=mat,
+            afreq=pcaobj$afreq)
+        class(rv) <- "snpgdsEigMixSNPLoadingClass"
+    }
     return(rv)
 }
 
@@ -171,7 +189,8 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
     num.thread=1L, verbose=TRUE)
 {
     # check
-    stopifnot(inherits(loadobj, "snpgdsPCASNPLoadingClass"))
+    stopifnot(inherits(loadobj, "snpgdsPCASNPLoadingClass") |
+        inherits(loadobj, "snpgdsEigMixSNPLoadingClass"))
     ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=loadobj$snp.id)
 
     sample.id <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
@@ -190,21 +209,39 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
         cat("    using the top", eigcnt, "eigenvectors\n")
     }
 
-    # prepare post-eigenvectors
-    ss <- (length(loadobj$sample.id) - 1) / loadobj$TraceXTX
-    sqrt_eigval <- sqrt(ss / loadobj$eigenval[1:eigcnt])
-    sload <- loadobj$snploading * sqrt_eigval
+    if (inherits(loadobj, "snpgdsPCASNPLoadingClass"))
+    {
+        # prepare post-eigenvectors
+        ss <- (length(loadobj$sample.id) - 1) / loadobj$TraceXTX
+        sqrt_eigval <- sqrt(ss / loadobj$eigenval[1:eigcnt])
+        sload <- loadobj$snploading * sqrt_eigval
 
-    # call C function
-    rv <- .Call(gnrPCASampLoading, eigcnt, sload, loadobj$avefreq,
-        loadobj$scale, num.thread, verbose)
+        # call C function
+        mm <- .Call(gnrPCASampLoading, eigcnt, sload, loadobj$avgfreq,
+            loadobj$scale, num.thread, verbose)
 
-    # return
-    rv <- list(sample.id = sample.id, snp.id = loadobj$snp.id,
-        eigenval = loadobj$eigenval, eigenvect = rv,
-        TraceXTX = loadobj$TraceXTX,
-        Bayesian = loadobj$Bayesian, genmat = NULL)
-    class(rv) <- "snpgdsPCAClass"
+        # return
+        rv <- list(sample.id = sample.id, snp.id = loadobj$snp.id,
+            eigenval = loadobj$eigenval, eigenvect = mm,
+            TraceXTX = loadobj$TraceXTX,
+            Bayesian = loadobj$Bayesian, genmat = NULL)
+        class(rv) <- "snpgdsPCAClass"
+
+    } else {
+        # prepare post-eigenvectors
+        sqrt_eigval <- sqrt(1 / loadobj$eigenval[1:eigcnt])
+        sload <- loadobj$snploading * sqrt_eigval
+
+        # call C function
+        mm <- .Call(gnrEigMixSampLoading, sload, loadobj$afreq, num.thread,
+            verbose)
+
+        # return
+        rv <- list(sample.id = sample.id, snp.id = loadobj$snp.id,
+            eigenval = loadobj$eigenval, eigenvect = mm,
+            afreq = loadobj$afreq)
+        class(rv) <- "snpgdsEigMixClass"
+    }
     return(rv)
 }
 
@@ -233,12 +270,12 @@ snpgdsEIGMIX <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
     # call eigen-analysis
     param <- list(diagadj=diagadj, ibdmat=ibdmat)
-    rv <- .Call(gnrEIGMIX, eigen.cnt, ws$num.thread, param, verbose)
+    rv <- .Call(gnrEigMix, eigen.cnt, ws$num.thread, param, verbose)
 
     # return
     rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
-        eigenval = rv[[1L]], eigenvect = rv[[2L]],
-        ibd = rv[[3L]])
+        eigenval = rv[[1L]], eigenvect = rv[[2L]], afreq = rv[[3L]],
+        ibd = rv[[4L]], diagadj=diagadj)
     class(rv) <- "snpgdsEigMixClass"
     return(rv)
 }

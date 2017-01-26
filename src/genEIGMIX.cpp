@@ -57,7 +57,8 @@ public:
 		{ }
 
 	/// run the algorithm
-	void Run(CdMatTri<double> &IBD, int NumThread, bool DiagAdj, bool verbose)
+	void Run(CdMatTri<double> &IBD, int NumThread, double AFreq[], bool DiagAdj,
+		bool verbose)
 	{
 		if (NumThread < 1) NumThread = 1;
 		const size_t nSamp = Space.SampleNum();
@@ -126,7 +127,9 @@ public:
 			C_UInt8 *pG = pGeno;
 			for (size_t i=0; i < nsnp; i++)
 			{
-				double denom = 2 * avg_geno[i] * (1 - 0.5*avg_geno[i]);
+				const double af = 0.5 * avg_geno[i];
+				AFreq[WS.Index() + i] = af;
+				double denom = 4 * af * (1 - af);
 				SumDenominator += denom;
 				C_UInt8 *pGG = pG;
 				for (size_t j=0; j < nSamp; j++, pG++)
@@ -446,15 +449,198 @@ public:
 	}
 };
 
+
+
+// ================== SNP Loadings ==================
+
+class COREARRAY_DLL_LOCAL CEigMix_SNPLoad
+{
+private:
+	CdBaseWorkSpace &Space;  ///< working genotypes
+	VEC_AUTO_PTR<C_UInt8> Geno;  ///< genotypes (0, 1, 2 and NA)
+	size_t nSamp;       ///< the number of samples
+	size_t NumEigVal;   ///< the number of eigenvalues
+	double *pEigVect;   ///< the pointer to eigenvectors
+	double *pLoading;   ///< the pointer to correlation
+	double *pAFreq;     ///< the pointer to allele frequency
+	double AFreqScale;  ///< the scalar of allele frequency
+
+	void thread_loading(size_t i, size_t num)
+	{
+		C_UInt8 *pG = Geno.Get() + nSamp * i;
+		double *pOut = pLoading + NumEigVal * i;
+		for (; num > 0; num--, i++)
+		{
+			// zero filling
+			memset(pOut, 0, sizeof(double)*NumEigVal);
+			// dot product
+			for (size_t j=0; j < nSamp; j++)
+			{
+				double g = (*pG < 3) ? ((*pG - 2*pAFreq[i]) * AFreqScale) : 0.0;
+				pG ++;
+				double *pEig = pEigVect + j;
+				for (size_t k=0; k < NumEigVal; k++)
+				{
+					pOut[k] += g * (*pEig);
+					pEig += nSamp;
+				}
+			}
+			pOut += NumEigVal;
+		}
+	}
+
+public:
+	/// constructor
+	CEigMix_SNPLoad(CdBaseWorkSpace &space): Space(space) { }
+
+	/// run the algorithm
+	void Run(double OutSNPLoading[], double AFreq[], size_t NumEig,
+		double EigVect[], int NumThread, bool verbose)
+	{
+		if (NumThread < 1) NumThread = 1;
+		nSamp = Space.SampleNum();
+		NumEigVal = NumEig; pEigVect = EigVect;
+
+		// detect the appropriate block size
+		size_t Cache = GetOptimzedCache();
+		size_t nBlock = Cache / nSamp;
+		nBlock = (nBlock / 4) * 4;
+		if (nBlock < 128) nBlock = 128;
+		if (nBlock > 65536) nBlock = 65536;
+		if (verbose)
+			Rprintf("%s    (internal increment: %d)\n", TimeToStr(), (int)nBlock);
+
+		// normalize
+		size_t nsnp = Space.SNPNum();
+		double sum = 0;
+		for (size_t i=0; i < nsnp; i++)
+			sum += 4 * AFreq[i] * (1 - AFreq[i]);
+		AFreqScale = 1 / sqrt(sum);
+
+		// thread thpool
+		CThreadPoolEx<CEigMix_SNPLoad> thpool(NumThread);
+		// genotypes (0, 1, 2 and NA)
+		Geno.Reset(nSamp * nBlock);
+		// genotype buffer, false for no memory buffer
+		CGenoReadBySNP WS(NumThread, Space, nBlock, verbose ? -1 : 0, false);
+
+		// for-loop
+		WS.Init();
+		while (WS.Read(Geno.Get()))
+		{
+			pLoading = OutSNPLoading + WS.Index() * NumEig;
+			pAFreq = AFreq + WS.Index();
+			// using thread thpool
+			thpool.BatchWork(this, &CEigMix_SNPLoad::thread_loading, WS.Count());
+			// update
+			WS.ProgressForward(WS.Count());
+		}
+	}
+};
+
+
+
+// ================== Sample Loadings ==================
+
+class COREARRAY_DLL_LOCAL CEigMix_SampleLoad
+{
+private:
+	CdBaseWorkSpace &Space;  ///< working genotypes
+	VEC_AUTO_PTR<C_UInt8> Geno;  ///< genotypes (0, 1, 2 and NA)
+	size_t nSamp;    ///< the number of samples
+	size_t nEigVal;  ///< the number of eigenvalues
+	size_t nSubSNP;  ///< the number of genotypes in a block
+	double *pLoading;   ///< the pointer to SNP eigenvectors
+	double *pAFreq;     ///< the pointer to allele frequency
+	double AFreqScale;  ///< the scalar of allele frequency
+	double *pOutEig;    ///< the pointer to sample eigenvectors
+
+	void thread_loading(size_t i, size_t num)
+	{
+		// for-loop each individual i
+		for (; num > 0; num--, i++)
+		{
+			C_UInt8 *pGeno = Geno.Get() + i;
+			double *pLoad = pLoading;
+			for (size_t j=0; j < nSubSNP; j++)
+			{
+				double g = (*pGeno < 3) ? (*pGeno - 2*pAFreq[j]) * AFreqScale : 0.0;
+				pGeno += nSamp;
+
+				double *p = pOutEig + i;
+				for (size_t k=0; k < nEigVal; k++)
+				{
+					*p += g * (*pLoad++);
+					p += nSamp;
+				}
+			}
+		}
+	}
+
+public:
+	/// constructor
+	CEigMix_SampleLoad(CdBaseWorkSpace &space): Space(space) { }
+
+	/// run the algorithm
+	void Run(double OutSampLoad[], size_t NumEig, double SNPLoading[],
+		double AFreq[], int NumThread, bool verbose)
+	{
+		if (NumThread < 1) NumThread = 1;
+		nSamp = Space.SampleNum();
+		nEigVal = NumEig;
+		pOutEig = OutSampLoad;
+
+		// detect the appropriate block size
+		size_t Cache = GetOptimzedCache();
+		size_t nBlock = Cache / nSamp;
+		nBlock = (nBlock / 4) * 4;
+		if (nBlock < 128) nBlock = 128;
+		if (nBlock > 65536) nBlock = 65536;
+		if (verbose)
+			Rprintf("%s    (internal increment: %d)\n", TimeToStr(), (int)nBlock);
+
+		// thread thpool
+		CThreadPoolEx<CEigMix_SampleLoad> thpool(NumThread);
+		// genotypes (0, 1, 2 and NA)
+		Geno.Reset(nSamp * nBlock);
+		// genotype buffer, false for no memory buffer
+		CGenoReadBySNP WS(NumThread, Space, nBlock, verbose ? -1 : 0, false);
+
+		// zero filling
+		memset(OutSampLoad, 0, sizeof(double)*NumEig*nSamp);
+		// normalize
+		size_t nsnp = Space.SNPNum();
+		double sum = 0;
+		for (size_t i=0; i < nsnp; i++)
+			sum += 4 * AFreq[i] * (1 - AFreq[i]);
+		AFreqScale = 1 / sqrt(sum);
+
+		// for-loop
+		WS.Init();
+		while (WS.Read(Geno.Get()))
+		{
+			pLoading = SNPLoading + WS.Index() * NumEig;
+			pAFreq = AFreq + WS.Index();
+			nSubSNP = WS.Count();
+			// using thread thpool
+			thpool.BatchWork(this, &CEigMix_SampleLoad::thread_loading, nSamp);
+			// update
+			WS.ProgressForward(WS.Count());
+		}
+	}
+};
+
 }
 
 
 extern "C"
 {
+
 using namespace EIGMIX;
 
+
 /// to compute the eigenvalues and eigenvectors
-COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP EigenCnt, SEXP NumThread,
+COREARRAY_DLL_EXPORT SEXP gnrEigMix(SEXP EigenCnt, SEXP NumThread,
 	SEXP ParamList, SEXP Verbose)
 {
 	const bool verbose = SEXP_Verbose(Verbose);
@@ -475,16 +661,18 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP EigenCnt, SEXP NumThread,
 		int nEig = Rf_asInteger(EigenCnt);
 		if (nEig < 0 || nEig > n) nEig = n;
 
-		int nProtected = 0;
-		SEXP ibd_mat, EigVal, EigVect;
+		int nProtected = 1;
+		SEXP ibd_mat, EigVal, EigVect, AFreq;
 		ibd_mat = EigVal = EigVect = R_NilValue;
+		AFreq = PROTECT(NEW_NUMERIC(MCWorkingGeno.Space().SNPNum()));
 
 		if (1)
 		{
 			// the upper-triangle IBD matrix
 			CdMatTri<double> IBD(n);
 			CEigMix_AlgArith eigmix(MCWorkingGeno.Space());
-			eigmix.Run(IBD, Rf_asInteger(NumThread), diag_adj==TRUE, verbose);
+			eigmix.Run(IBD, Rf_asInteger(NumThread), REAL(AFreq),
+				diag_adj==TRUE, verbose);
 			if (need_ibd)
 			{
 				ibd_mat = PROTECT(Rf_allocMatrix(REALSXP, n, n));
@@ -517,11 +705,77 @@ COREARRAY_DLL_EXPORT SEXP gnrEIGMIX(SEXP EigenCnt, SEXP NumThread,
 		}
 
 		// output
-		PROTECT(rv_ans = NEW_LIST(3)); nProtected++;
+		PROTECT(rv_ans = NEW_LIST(4)); nProtected++;
 		SET_ELEMENT(rv_ans, 0, EigVal);
 		SET_ELEMENT(rv_ans, 1, EigVect);
-		SET_ELEMENT(rv_ans, 2, ibd_mat);
+		SET_ELEMENT(rv_ans, 2, AFreq);
+		SET_ELEMENT(rv_ans, 3, ibd_mat);
 		UNPROTECT(nProtected);
+
+	COREARRAY_CATCH
+}
+
+
+/// Calculate the SNP loadings
+COREARRAY_DLL_EXPORT SEXP gnrEigMixSNPLoading(SEXP EigenVal, SEXP EigenVect,
+	SEXP AFreq, SEXP NumThread, SEXP Verbose)
+{
+	const bool verbose = SEXP_Verbose(Verbose);
+	int LenEig = INTEGER(GET_DIM(EigenVect))[1];
+
+	COREARRAY_TRY
+
+		// cache the genotype data
+		CachingSNPData("SNP Loading", verbose);
+
+		// scale eigenvectors with eigenvalues
+		SEXP EigVect = PROTECT(duplicate(EigenVect));
+		{
+			const size_t n = MCWorkingGeno.Space().SampleNum();
+			for (int i=0; i < LenEig; i++)
+			{
+				vec_f64_mul(REAL(EigVect) + i*n, n,
+					sqrt(1 / REAL(EigenVal)[i]));
+			}
+		}
+
+		rv_ans = PROTECT(Rf_allocMatrix(REALSXP, LenEig,
+			MCWorkingGeno.Space().SNPNum()));
+		{
+			CEigMix_SNPLoad Work(MCWorkingGeno.Space());
+			Work.Run(REAL(rv_ans), REAL(AFreq), LenEig, REAL(EigVect),
+				Rf_asInteger(NumThread), verbose);
+		}
+		if (verbose)
+			Rprintf("%s    Done.\n", TimeToStr());
+		UNPROTECT(2);
+
+	COREARRAY_CATCH
+}
+
+
+/// Calculate the sample loadings from SNP loadings
+COREARRAY_DLL_EXPORT SEXP gnrEigMixSampLoading(SEXP SNPLoadings,
+	SEXP AFreq, SEXP NumThread, SEXP Verbose)
+{
+	const bool verbose = SEXP_Verbose(Verbose);
+	int EigenCnt = INTEGER(GET_DIM(SNPLoadings))[0];
+
+	COREARRAY_TRY
+
+		// cache the genotype data
+		CachingSNPData("Sample Loading", verbose);
+
+		rv_ans = PROTECT(Rf_allocMatrix(REALSXP,
+			MCWorkingGeno.Space().SampleNum(), EigenCnt));
+		{
+			CEigMix_SampleLoad Work(MCWorkingGeno.Space());
+			Work.Run(REAL(rv_ans), EigenCnt, REAL(SNPLoadings),
+				REAL(AFreq), Rf_asInteger(NumThread), verbose);
+		}
+		if (verbose)
+			Rprintf("%s    Done.\n", TimeToStr());
+		UNPROTECT(1);
 
 	COREARRAY_CATCH
 }
