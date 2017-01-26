@@ -68,11 +68,11 @@ namespace PCA
 
 
 	// Mean-adjusted genotype matrix (AVX, N: # of samples, M: # of SNPs)
-	class COREARRAY_DLL_LOCAL CPCAMat_AlgArith: public CPCAMat_Base
+	class COREARRAY_DLL_LOCAL CCovMat_AlgArith: public CPCAMat_Base
 	{
 	public:
-		CPCAMat_AlgArith() { fN = fM = 0; }
-		CPCAMat_AlgArith(size_t n, size_t m) { Reset(n, m); }
+		CCovMat_AlgArith() { fN = fM = 0; }
+		CCovMat_AlgArith(size_t n, size_t m) { Reset(n, m); }
 
 		void Reset(size_t n, size_t m);
 		void Clear();

@@ -40,7 +40,7 @@ using namespace GWAS;
 // -----------------------------------------------------------
 // EIGMIX IBD Calculation with arithmetic algorithm
 
-class COREARRAY_DLL_LOCAL CEigMix_AlgArith: protected PCA::CPCAMat_AlgArith
+class COREARRAY_DLL_LOCAL CEigMix_AlgArith: protected PCA::CCovMat_AlgArith
 {
 private:
 	CdBaseWorkSpace &Space;
@@ -53,7 +53,7 @@ private:
 	}
 
 public:
-	CEigMix_AlgArith(CdBaseWorkSpace &space): CPCAMat_AlgArith(), Space(space)
+	CEigMix_AlgArith(CdBaseWorkSpace &space): CCovMat_AlgArith(), Space(space)
 		{ }
 
 	/// run the algorithm

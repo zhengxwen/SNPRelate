@@ -81,8 +81,9 @@ doi: 10.1016/j.ajhg.2015.12.022. Epub 2016 Feb 25.
 }
 \author{Xiuwen Zheng}
 \seealso{
-    \code{\link{snpgdsPCACorr}}, \code{\link{snpgdsPCASampLoading}},
-    \code{\link{snpgdsPCASNPLoading}}
+    \code{\link{snpgdsPCACorr}}, \code{\link{snpgdsPCASNPLoading}},
+    \code{\link{snpgdsPCASampLoading}}, \code{\link{snpgdsAdmixProp}},
+    \code{\link{snpgdsEIGMIX}}
 }
 
 \examples{

@@ -41,16 +41,14 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.logical(need.genmat))
     stopifnot(is.logical(genmat.only))
     algorithm <- match.arg(algorithm)
+    eigen.method <- match.arg(eigen.method)
 
     if (genmat.only) need.genmat <- TRUE
     if (eigen.cnt <= 0L) eigen.cnt <- ws$n.samp
 
-    eigen.method <- match.arg(eigen.method)
-    covalg <- "arith"
-
     # call parallel PCA
     param <- list(bayesian=bayesian, need.genmat=need.genmat,
-        genmat.only=genmat.only, eigen.method=eigen.method, covalg=covalg,
+        genmat.only=genmat.only, eigen.method=eigen.method,
         aux.dim=aux.dim, iter.num=iter.num)
     if (algorithm == "randomized")
         param$aux.mat <- rnorm(aux.dim * ws$n.samp)
