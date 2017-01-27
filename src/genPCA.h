@@ -41,13 +41,13 @@ namespace PCA
 	// ---------------------------------------------------------------------
 	// Vectorization Computing, algorithm 1 (Arithmetic)
 
-	class COREARRAY_DLL_LOCAL CPCAMat_Base
+	class COREARRAY_DLL_LOCAL CProdMat_Base
 	{
 	public:
 		VEC_AUTO_PTR<C_Int32> GenoSum, GenoNum;
 		VEC_AUTO_PTR<double> avg_geno;  // avg geno: 2*\bar{p}, or ...
 
-		CPCAMat_Base() { }
+		CProdMat_Base() { }
 		/// initialize GenoSum, GenoNum
 		void ZeroFill();
 		/// calculate average genotypes (save to GenoSum and GenoNum)
@@ -68,11 +68,11 @@ namespace PCA
 
 
 	// Mean-adjusted genotype matrix (AVX, N: # of samples, M: # of SNPs)
-	class COREARRAY_DLL_LOCAL CCovMat_AlgArith: public CPCAMat_Base
+	class COREARRAY_DLL_LOCAL CProdMat_AlgArith: public CProdMat_Base
 	{
 	public:
-		CCovMat_AlgArith() { fN = fM = 0; }
-		CCovMat_AlgArith(size_t n, size_t m) { Reset(n, m); }
+		CProdMat_AlgArith() { fN = fM = 0; }
+		CProdMat_AlgArith(size_t n, size_t m) { Reset(n, m); }
 
 		void Reset(size_t n, size_t m);
 		void Clear();
@@ -92,6 +92,23 @@ namespace PCA
 
 	protected:
 		VEC_AUTO_PTR<double> fGenotype;
+
+		inline void TransposeGenotype(size_t nSamp, size_t nSNP, C_UInt8 *pGeno)
+		{
+			double *p = fGenotype.Get();
+			for (size_t i=0; i < nSamp; i++)
+			{
+				double *pp = p; p += fM;
+				size_t m = nSNP;
+				for (size_t j=0; j < m; j++)
+				{
+					C_UInt8 g = pGeno[nSamp*j + i];
+					*pp ++ = (g <= 2) ? g : avg_geno[j];
+				}
+				// zero fill the left part
+				for (; m < fM; m++) *pp ++ = 0;
+			}
+		}
 	};
 
 }

@@ -27,7 +27,7 @@
 #include <algorithm>
 
 
-namespace EIGMIX
+namespace PCA
 {
 
 // using namespace
@@ -40,7 +40,7 @@ using namespace GWAS;
 // -----------------------------------------------------------
 // EIGMIX IBD Calculation with arithmetic algorithm
 
-class COREARRAY_DLL_LOCAL CEigMix_AlgArith: protected PCA::CCovMat_AlgArith
+class COREARRAY_DLL_LOCAL CEigMix_AlgArith: protected PCA::CProdMat_AlgArith
 {
 private:
 	CdBaseWorkSpace &Space;
@@ -53,7 +53,7 @@ private:
 	}
 
 public:
-	CEigMix_AlgArith(CdBaseWorkSpace &space): CCovMat_AlgArith(), Space(space)
+	CEigMix_AlgArith(CdBaseWorkSpace &space): CProdMat_AlgArith(), Space(space)
 		{ }
 
 	/// run the algorithm
@@ -106,19 +106,7 @@ public:
 			DivideGeno();
 
 			// transpose genotypes in PCA_Mat, set missing values to the average
-			double *p = base();
-			for (size_t i=0; i < nSamp; i++)
-			{
-				double *pp = p; p += M();
-				size_t m = WS.Count();
-				for (size_t j=0; j < m; j++)
-				{
-					C_UInt8 g = pGeno[nSamp*j + i];
-					*pp ++ = (g <= 2) ? g : avg_geno[j];
-				}
-				// zero fill the left part
-				for (; m < fM; m++) *pp ++ = 0;
-			}
+			TransposeGenotype(nSamp, WS.Count(), pGeno);
 			// G@ij - 2\bar{p}_l
 			GenoSub();
 
@@ -128,7 +116,8 @@ public:
 			for (size_t i=0; i < nsnp; i++)
 			{
 				const double af = 0.5 * avg_geno[i];
-				AFreq[WS.Index() + i] = af;
+				if (AFreq)
+					AFreq[WS.Index() + i] = af;
 				double denom = 4 * af * (1 - af);
 				SumDenominator += denom;
 				C_UInt8 *pGG = pG;
@@ -630,13 +619,22 @@ public:
 	}
 };
 
+
+/// calculate EigMix GRM matrix
+COREARRAY_DLL_LOCAL void CalcEigMixGRM(CdMatTri<double> &grm, int NumThread,
+	bool Verbose)
+{
+	CEigMix_AlgArith eigmix(MCWorkingGeno.Space());
+	eigmix.Run(grm, NumThread, NULL, false, Verbose);
+}
+
 }
 
 
 extern "C"
 {
 
-using namespace EIGMIX;
+using namespace PCA;
 
 
 /// to compute the eigenvalues and eigenvectors
@@ -679,6 +677,8 @@ COREARRAY_DLL_EXPORT SEXP gnrEigMix(SEXP EigenCnt, SEXP NumThread,
 				nProtected ++;
 				IBD.SaveTo(REAL(ibd_mat));
 			}
+			if (verbose)
+				Rprintf("%s    Begin (eigenvalues and eigenvectors)\n", TimeToStr());
 			vec_f64_mul(IBD.Get(), IBD.Size(), -1);
 			nProtected += CalcEigen(IBD.Get(), n, nEig, "DSPEVX", EigVal, EigVect);
 		} else {
@@ -703,6 +703,9 @@ COREARRAY_DLL_EXPORT SEXP gnrEigMix(SEXP EigenCnt, SEXP NumThread,
 			vec_f64_mul(IBD.Get(), n*(n+1)/2, -1);
 			nProtected += CalcEigen(IBD.Get(), n, nEig, "DSPEVX", EigVal, EigVect);
 		}
+
+		if (verbose)
+			Rprintf("%s    Done.\n", TimeToStr());
 
 		// output
 		PROTECT(rv_ans = NEW_LIST(4)); nProtected++;
