@@ -80,9 +80,6 @@ namespace PCA
 		static void PCA_Detect_BlockNumSNP(int nSamp);
 		// time-consuming function
 		void COREARRAY_CALL_ALIGN MulAdd(IdMatTri &Idx, size_t IdxCnt, double *pOut);
-		// time-consuming function
-		void COREARRAY_CALL_ALIGN MulAdd2(IdMatTri &Idx, size_t IdxCnt,
-			size_t Length, double *pOut);
 		/// mean-adjusted genotypes (fGenotype - avg_geno)
 		void COREARRAY_CALL_ALIGN GenoSub();
 		/// variance-adjusted genotypes (fGenotype * avg_geno)

@@ -93,14 +93,14 @@ install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
 | Function             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
 |:---------------------|:-------:|:----:|:---:|:----:|:-------:|
 | snpgdsDiss           | X |
-| snpgdsEIGMIX         | X |
-| snpgdsGRM            | X | . |
+| snpgdsEIGMIX         | X | X | X |
+| snpgdsGRM            | X | X | X |
 | snpgdsIBDKING        | X | X |   | X |
 | snpgdsIBDMoM         | X |
 | snpgdsIBS            | X | X |
 | snpgdsIBSNum         | X | X |
 | snpgdsIndivBeta      | X | X |
-| snpgdsPCA            | X | X |
+| snpgdsPCA            | X | X | X |
 | snpgdsPCACorr        | X |
 | snpgdsPCASampLoading | X |
 | snpgdsPCASNPLoading  | X |

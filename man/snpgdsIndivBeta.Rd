@@ -59,9 +59,6 @@ library(SNPRelate)
 # open an example dataset (HapMap)
 genofile <- snpgdsOpen(snpgdsExampleFileName())
 
-
-rv <- snpgdsGRM(genofile, method="W&Z15")
-
 beta <- snpgdsIndivBeta(genofile, with.id=FALSE)
 beta[1:10, 1:10]
 

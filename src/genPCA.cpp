@@ -222,8 +222,8 @@ void CProdMat_AlgArith::PCA_Detect_BlockNumSNP(int nSamp)
 }
 
 // time-consuming function
-void COREARRAY_CALL_ALIGN CProdMat_AlgArith::MulAdd(IdMatTri &Idx, size_t IdxCnt,
-	double *pOut)
+void COREARRAY_CALL_ALIGN CProdMat_AlgArith::MulAdd(IdMatTri &Idx,
+	size_t IdxCnt, double *pOut)
 {
 	for (; IdxCnt > 0; IdxCnt--, ++Idx)
 	{
@@ -234,8 +234,8 @@ void COREARRAY_CALL_ALIGN CProdMat_AlgArith::MulAdd(IdMatTri &Idx, size_t IdxCnt
 	#if defined(COREARRAY_SIMD_AVX)
 
 		// fM can be divided by 4
-		__m256d rv4_1 = _mm256_setzero_pd();
-		__m256d rv4_2 = _mm256_setzero_pd();
+		__m256d rv4_1, rv4_2;
+		rv4_1 = rv4_2 = _mm256_setzero_pd();
 		for (; n >= 16; n -= 16)
 		{
 			rv4_1 = _mm256_add_pd(rv4_1, _mm256_mul_pd(
@@ -263,8 +263,8 @@ void COREARRAY_CALL_ALIGN CProdMat_AlgArith::MulAdd(IdMatTri &Idx, size_t IdxCnt
 	#elif defined(COREARRAY_SIMD_SSE2)
 
 		// unroll loop
-		__m128d rv2_1 = _mm_setzero_pd();
-		__m128d rv2_2 = _mm_setzero_pd();
+		__m128d rv2_1, rv2_2;
+		rv2_1 = rv_2 = _mm_setzero_pd();
 		for (; n >= 8; n -= 8)
 		{
 			rv2_1 = _mm_add_pd(rv2_1, _mm_mul_pd(_mm_load_pd(p1),
@@ -288,98 +288,6 @@ void COREARRAY_CALL_ALIGN CProdMat_AlgArith::MulAdd(IdMatTri &Idx, size_t IdxCnt
 		}
 
 		(*pOut++) += vec_sum_f64(rv2);
-
-	#else
-
-		double rv = 0;
-		// unroll loop
-		for (; n >= 4; n -= 4)
-		{
-			rv += p1[0] * p2[0]; rv += p1[1] * p2[1];
-			rv += p1[2] * p2[2]; rv += p1[3] * p2[3];
-			p1 += 4; p2 += 4;
-		}
-		for (; n > 0; n--)
-			rv += (*p1++) * (*p2++);
-		(*pOut++) += rv;
-
-	#endif
-	}
-}
-
-// time-consuming function
-void COREARRAY_CALL_ALIGN CProdMat_AlgArith::MulAdd2(IdMatTri &Idx, size_t IdxCnt,
-	size_t Length, double *pOut)
-{
-	for (; IdxCnt > 0; IdxCnt--, ++Idx)
-	{
-		double *p1 = base() + Idx.Row() * fM;
-		double *p2 = base() + Idx.Column() * fM;
-		size_t n = Length;
-
-	#if defined(COREARRAY_SIMD_AVX)
-
-		// unroll loop
-		__m256d rv4_1 = _mm256_setzero_pd();
-		__m256d rv4_2 = _mm256_setzero_pd();
-		for (; n >= 8; n -= 8)
-		{
-			rv4_1 = _mm256_add_pd(rv4_1, _mm256_mul_pd(
-				_mm256_load_pd(p1), _mm256_load_pd(p2)));
-			rv4_2 = _mm256_add_pd(rv4_2, _mm256_mul_pd(
-				_mm256_load_pd(p1 + 4), _mm256_load_pd(p2 + 4)));
-			p1 += 8; p2 += 8;
-		}
-		__m256d rv4 = _mm256_add_pd(rv4_1, rv4_2);
-		if (n >= 4)
-		{
-			rv4 = _mm256_add_pd(rv4, _mm256_mul_pd(
-				_mm256_load_pd(p1), _mm256_load_pd(p2)));
-			p1 += 4; p2 += 4; n -= 4;
-		}
-
-		double x[4] __attribute__((aligned(32)));
-		_mm256_store_pd(x, rv4);
-		double rv = x[0] + x[1] + x[2] + x[3];
-
-		switch (n)
-		{
-			case 3:
-				rv += p1[0]*p2[0] + p1[1]*p2[1] + p1[2]*p2[2]; break;
-			case 2:
-				rv += p1[0]*p2[0] + p1[1]*p2[1]; break;
-			case 1:
-				rv += p1[0]*p2[0]; break;
-		}
-
-		(*pOut++) += rv;
-
-	#elif defined(COREARRAY_SIMD_SSE2)
-
-		// unroll loop
-		__m128d rv2 = _mm_setzero_pd();
-		for (; n >= 8; n -= 8)
-		{
-			rv2 = _mm_add_pd(rv2, _mm_mul_pd(_mm_load_pd(&p1[0]),
-				_mm_load_pd(&p2[0])));
-			rv2 = _mm_add_pd(rv2, _mm_mul_pd(_mm_load_pd(&p1[2]),
-				_mm_load_pd(&p2[2])));
-			rv2 = _mm_add_pd(rv2, _mm_mul_pd(_mm_load_pd(&p1[4]),
-				_mm_load_pd(&p2[4])));
-			rv2 = _mm_add_pd(rv2, _mm_mul_pd(_mm_load_pd(&p1[6]),
-				_mm_load_pd(&p2[6])));
-			p1 += 8; p2 += 8;
-		}
-		for (; n >= 2; n -= 2)
-		{
-			rv2 = _mm_add_pd(rv2, _mm_mul_pd(_mm_load_pd(p1),
-				_mm_load_pd(p2)));
-			p1 += 2; p2 += 2;
-		}
-
-		double x[2] __attribute__((aligned(16)));
-		_mm_store_pd(x, rv2);
-		(*pOut++) += (n <= 0) ? (x[0] + x[1]) : (x[0] + x[1] + (*p1) * (*p2));
 
 	#else
 

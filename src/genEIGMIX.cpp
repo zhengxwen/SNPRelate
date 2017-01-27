@@ -628,7 +628,7 @@ extern "C"
 using namespace EIGMIX;
 
 
-/// calculate EigMix GRM matrix
+/// Calculate EigMix GRM matrix
 COREARRAY_DLL_LOCAL void CalcEigMixGRM(CdMatTri<double> &grm, int NumThread,
 	bool Verbose)
 {
@@ -638,7 +638,7 @@ COREARRAY_DLL_LOCAL void CalcEigMixGRM(CdMatTri<double> &grm, int NumThread,
 }
 
 
-/// to compute the eigenvalues and eigenvectors
+/// Calculate the eigenvalues and eigenvectors from EIGMIX matrix
 COREARRAY_DLL_EXPORT SEXP gnrEigMix(SEXP EigenCnt, SEXP NumThread,
 	SEXP ParamList, SEXP Verbose)
 {
