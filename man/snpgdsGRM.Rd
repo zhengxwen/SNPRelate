@@ -9,7 +9,7 @@
 \usage{
 snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("GCTA", "Eigenstrat", "EIGMIX", "W&Z15"), num.thread=1L,
+    method=c("GCTA", "Eigenstrat", "EIGMIX", "IndivBeta"), num.thread=1L,
     with.id=TRUE, verbose=TRUE)
 }
 \arguments{
@@ -26,15 +26,26 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{maf}{to use the SNPs with ">= maf" only; if NaN, no MAF threshold}
     \item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN,
         no missing threshold}
-    \item{method}{"Visscher" -- genetic relationship matrix defined in CGTA;
+    \item{method}{"GCTA" -- genetic relationship matrix defined in CGTA;
         "Eigenstrat" -- genetic covariance matrix in EIGENSTRAT;
-        "EIGMIX" -- coancestry matrix defined in Zheng & Weir (2015),
-        "W&Z15" -- individual beta estimator}
+        "EIGMIX" -- two times coancestry matrix defined in Zheng & Weir (2015),
+        "IndivBeta" -- two times individual beta estimate; see details}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
     \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id}
         and \code{sample.id}}
     \item{verbose}{if \code{TRUE}, show information}
+}
+\details{
+    "GCTA": The genetic relationship matrix in GCTA is defined as:
+G_{ij} = avg_l (g_{il} - 2*p_l)*(g_{jl} - 2*p_l) / 2*p_l*(1 - p_l);
+
+    "Eigenstrat": ;
+
+    "EIGMIX": it is the same as `2 * snpgdsEIGMIX(, ibdmat=TRUE,
+diagadj=FALSE)$ibd`;
+
+    "IndivBeta": it is the same as `2 * snpgdsIndivBeta(, with.id=FALSE)`.
 }
 \value{
     Return a list if \code{with.id = TRUE}:
@@ -65,6 +76,8 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 }
 \author{Xiuwen Zheng}
 \seealso{
+    \code{\link{snpgdsPCA}}, \code{\link{snpgdsEIGMIX}},
+    \code{\link{snpgdsIndivBeta}},
     \code{\link{snpgdsIndInb}}, \code{\link{snpgdsFst}}
 }
 

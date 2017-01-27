@@ -212,6 +212,44 @@ extern "C"
 
 using namespace IBD_BETA;
 
+
+/// Compute the IBD coefficients by individual relatedness beta
+COREARRAY_DLL_EXPORT void CalcIndivBetaGRM(CdMatTri<double> &grm,
+	int NumThread, bool Verbose)
+{
+	const size_t n = grm.N();
+	CdMatTri<TS_Beta> IBS(n);
+	CIndivBeta Work(MCWorkingGeno.Space());
+	Work.Run(IBS, NumThread, Verbose);
+
+	double *p = grm.Get();
+	TS_Beta *b = IBS.Get();
+	double avg = 0;
+	// for-loop, average
+	for (size_t i=0; i < n; i++)
+	{
+		*p++ = double(b->ibscnt) / b->num;
+		b++;
+		for (size_t j=i+1; j < n; j++, b++)
+		{
+			double s = (0.5 * b->ibscnt) / b->num;
+			*p++ = s;
+			avg += s;
+		}
+	}
+
+	avg /= C_Int64(n) * (n-1) / 2;
+	double bt = 2.0 / (1 - avg);
+	p = grm.Get();
+	// for-loop, final update
+	for (size_t i=0; i < n; i++)
+	{
+		for (size_t j=i; j < n; j++, p++)
+			*p = (*p - avg) * bt;
+	}
+}
+
+
 /// Compute the IBD coefficients by individual relatedness beta
 COREARRAY_DLL_EXPORT SEXP gnrIBD_Beta(SEXP NumThread, SEXP _Verbose)
 {

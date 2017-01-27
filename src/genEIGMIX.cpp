@@ -27,7 +27,7 @@
 #include <algorithm>
 
 
-namespace PCA
+namespace EIGMIX
 {
 
 // using namespace
@@ -619,6 +619,14 @@ public:
 	}
 };
 
+}
+
+
+extern "C"
+{
+
+using namespace EIGMIX;
+
 
 /// calculate EigMix GRM matrix
 COREARRAY_DLL_LOCAL void CalcEigMixGRM(CdMatTri<double> &grm, int NumThread,
@@ -626,15 +634,8 @@ COREARRAY_DLL_LOCAL void CalcEigMixGRM(CdMatTri<double> &grm, int NumThread,
 {
 	CEigMix_AlgArith eigmix(MCWorkingGeno.Space());
 	eigmix.Run(grm, NumThread, NULL, false, Verbose);
+	vec_f64_mul(grm.Get(), grm.Size(), 2);
 }
-
-}
-
-
-extern "C"
-{
-
-using namespace PCA;
 
 
 /// to compute the eigenvalues and eigenvectors

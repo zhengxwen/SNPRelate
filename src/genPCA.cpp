@@ -1279,11 +1279,6 @@ public:
 	}
 };
 
-
-
-/// EigMix GRM calculation
-extern COREARRAY_DLL_LOCAL void CalcEigMixGRM(CdMatTri<double> &grm,
-	int NumThread, bool Verbose);
 }
 
 
@@ -1633,10 +1628,18 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 			GCTA.Run(IBD, nThread, verbose);
 		} else if (strcmp(Method, "EIGMIX") == 0)
 		{
+			extern void CalcEigMixGRM(CdMatTri<double> &grm, int NumThread,
+				bool Verbose);
+			// cache the genotype data
 			CachingSNPData("EIGMIX", verbose);
 			CalcEigMixGRM(IBD, nThread, verbose);
-		} else if (strcmp(Method, "W&Z15") == 0)
+		} else if (strcmp(Method, "IndivBeta") == 0)
 		{
+			extern SEXP CalcIndivBetaGRM(CdMatTri<double> &grm, int NumThread,
+				bool Verbose);
+			// cache the genotype data
+			CachingSNPData("Individual Beta", verbose);
+			CalcIndivBetaGRM(IBD, nThread, verbose);
 		} else
 			throw ErrCoreArray("Invalid 'method'!");
 
