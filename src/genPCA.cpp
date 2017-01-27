@@ -264,7 +264,7 @@ void COREARRAY_CALL_ALIGN CProdMat_AlgArith::MulAdd(IdMatTri &Idx,
 
 		// unroll loop
 		__m128d rv2_1, rv2_2;
-		rv2_1 = rv_2 = _mm_setzero_pd();
+		rv2_1 = rv2_2 = _mm_setzero_pd();
 		for (; n >= 8; n -= 8)
 		{
 			rv2_1 = _mm_add_pd(rv2_1, _mm_mul_pd(_mm_load_pd(p1),
@@ -800,7 +800,7 @@ private:
 	double *pCorr;     ///< the pointer to correlation
 
 	// Correlation
-	static double SNP_PC_Corr(double *pX, C_UInt8 *pY, size_t n)
+	inline static double SNP_PC_Corr(double *pX, C_UInt8 *pY, size_t n)
 	{
 		size_t m=0;
 		double XY=0, X=0, XX=0, Y=0, YY=0, ans=R_NaN;
