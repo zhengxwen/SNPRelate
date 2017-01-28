@@ -8,7 +8,8 @@
     Plot the admixture proportions according to their ancestries.
 }
 \usage{
-snpgdsAdmixPlot(propmat, group=NULL, shownum=TRUE, ylim=TRUE, na.rm=TRUE)
+snpgdsAdmixPlot(propmat, group=NULL, col=NULL, multiplot=TRUE, showgrp=TRUE,
+    shownum=TRUE, ylim=TRUE, na.rm=TRUE)
 snpgdsAdmixTable(propmat, group, sort=FALSE)
 }
 \arguments{
@@ -16,6 +17,9 @@ snpgdsAdmixTable(propmat, group, sort=FALSE)
         returned from \code{\link{snpgdsAdmixProp}()}}
     \item{group}{a character vector of a factor according to the samples
         in \code{propmat}}
+    \item{col}{specify colors}
+    \item{multiplot}{single plot or multiple plots}
+    \item{showgrp}{show group names in the plot}
     \item{shownum}{\code{TRUE}: show the number of each group in the figure}
     \item{ylim}{\code{TRUE}: y-axis is limited to [0, 1];
         \code{FALSE}: \code{ylim <- range(propmat)};

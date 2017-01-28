@@ -88,7 +88,7 @@ install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
 
 
 
-## Acceleration with Intel Intrinsics
+## Implementation with Intel Intrinsics
 
 | Function             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
 |:---------------------|:-------:|:----:|:---:|:----:|:-------:|

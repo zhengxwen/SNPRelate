@@ -162,8 +162,8 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
     } else {
         if (isTRUE(pcaobj$diagadj))
         {
-            warning("It is strongly suggested to rerun snpgdsEIGMIX() ",
-                "with `diagadj=FALSE` for projecting new samples.",
+            warning(
+    "Please run `snpgdsEIGMIX(, diagadj=FALSE)` for projecting new samples.",
                 immediate.=TRUE)
         }
         # call C function
@@ -368,14 +368,17 @@ snpgdsAdmixProp <- function(eigobj, groups, bound=FALSE)
 
 
 
-snpgdsAdmixPlot <- function(propmat, group=NULL, shownum=TRUE, ylim=TRUE,
-    na.rm=TRUE)
+snpgdsAdmixPlot <- function(propmat, group=NULL, col=NULL, multiplot=TRUE,
+    showgrp=TRUE, shownum=TRUE, ylim=TRUE, na.rm=TRUE)
 {
     # check
     stopifnot(is.numeric(propmat), is.matrix(propmat))
     stopifnot(is.null(group) | is.vector(group) | is.factor(group))
     if (!is.null(group))
         stopifnot(nrow(propmat) == length(group))
+    stopifnot(is.null(col) | is.vector(col))
+    stopifnot(is.logical(multiplot), length(multiplot)==1L)
+    stopifnot(is.logical(showgrp), length(showgrp)==1L)
     stopifnot(is.logical(shownum), length(shownum)==1L)
     stopifnot(is.logical(ylim) | is.numeric(ylim))
     if (is.numeric(ylim))
@@ -411,32 +414,51 @@ snpgdsAdmixPlot <- function(propmat, group=NULL, shownum=TRUE, ylim=TRUE,
         x <- xl[-1L] - 0.5*grp_len
     }
 
-    opar <- par(mfrow=c(ncol(propmat), 1L), mar=c(1.25, 5, 1.75, 2),
-        oma=c(0, 0, 4, 0))
-    on.exit(par(opar))
-    grp <- colnames(propmat)
-    if (is.null(grp))
-        grp <- paste("group", seq_len(ncol(propmat)))
-    ylab <- paste("Prop. of", grp)
+    if (multiplot)
+    {
+        opar <- par(mfrow=c(ncol(propmat), 1L), mar=c(1.25, 5, 1.75, 2),
+            oma=c(0, 0, 4, 0))
+        on.exit(par(opar))
+        grp <- colnames(propmat)
+        if (is.null(grp))
+            grp <- paste("group", seq_len(ncol(propmat)))
+        ylab <- paste("Prop. of", grp)
 
-	for (i in seq_len(ncol(propmat)))
-	{
-        barplot(unname(propmat[, i]), space=0, border=NA, ylab=ylab[i],
-            ylim=ylim)
-        lines(c(1, nrow(propmat)), c(0, 0))
-        lines(c(1, nrow(propmat)), c(1, 1))
+        for (i in seq_len(ncol(propmat)))
+        {
+            barplot(unname(propmat[, i]), space=0, border=NA, ylab=ylab[i],
+                ylim=ylim, col=col)
+            lines(c(1, nrow(propmat)), c(0, 0))
+            lines(c(1, nrow(propmat)), c(1, 1))
+            if (!is.null(group))
+            {
+                abline(v=xl, col="blue")
+                if (showgrp)
+                    text(x, 0.5, labels=grp_name, srt=30)
+                if ((i == 1L) & shownum)
+                {
+                    axis(1, c(0, x, nrow(propmat)),
+                        c("", as.character(lengths(idx)), ""), cex.axis=0.75)
+                }
+            }
+        }
+    } else {
+        if (is.null(col)) col <- rainbow(ncol(propmat))
+        barplot(t(unname(propmat)), col=col,
+            xlab="Individual #", ylab="Ancestry", space=0, border=NA)
         if (!is.null(group))
         {
-            abline(v=xl, col="blue")
-            s <- grp_name
-            text(x, 0.5, labels=s, srt=30)
-            if ((i == 1L) & shownum)
+            abline(v=xl, col="black")
+            if (showgrp)
+                text(x, 0.5, labels=grp_name, srt=30)
+            if (shownum)
             {
                 axis(1, c(0, x, nrow(propmat)),
                     c("", as.character(lengths(idx)), ""), cex.axis=0.75)
             }
         }
     }
+
     invisible()
 }
 
