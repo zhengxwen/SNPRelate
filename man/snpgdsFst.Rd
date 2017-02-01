@@ -8,7 +8,7 @@
 indices) for given populations
 }
 \usage{
-snpgdsFst(gdsobj, population, method=c("W&H02", "W&C84"), sample.id=NULL,
+snpgdsFst(gdsobj, population, method=c("W&C84", "W&H02"), sample.id=NULL,
     snp.id=NULL, autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN,
     missing.rate=NaN, with.id=FALSE, verbose=TRUE)
 }
@@ -42,7 +42,9 @@ snpgdsFst(gdsobj, population, method=c("W&H02", "W&C84"), sample.id=NULL,
     Return a list:
     \item{sample.id}{the sample ids used in the analysis}
     \item{snp.id}{the SNP ids used in the analysis}
-    \item{Fst}{Fst estimator}
+    \item{Fst}{weighted Fst estimate}
+    \item{MeanFst}{the average of Fst estimates across SNPs}
+    \item{FstSNP}{a vector of Fst for each SNP}
     \item{Beta}{Beta matrix}
 }
 
@@ -66,8 +68,10 @@ group <- as.factor(read.gdsn(index.gdsn(
 snpgdsFst(genofile, population=group, method="W&H02")
 
 # or
-snpgdsFst(genofile, population=group, method="W&C84")
-
+v <- snpgdsFst(genofile, population=group, method="W&C84")
+v$Fst
+v$MeanFst
+summary(v$FstSNP)
 
 # close the genotype file
 snpgdsClose(genofile)

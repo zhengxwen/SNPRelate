@@ -7,6 +7,8 @@ CHANGES IN VERSION 1.9.1-1.9.2
       results of `snpgdsEIGMIX()` allowing projecting new samples to the
       existing coordinate
 
+    o `snpgdsFst()` provides W&C84 mean Fst together with weighted Fst
+
 
 CHANGES IN VERSION 1.8.0
 -------------------------

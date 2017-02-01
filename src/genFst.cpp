@@ -49,19 +49,68 @@ using namespace GWAS;
 
 extern "C"
 {
+
+// Fst method (Weir & Cockerham, 1984)
+static bool WC84(C_UInt8 *pGeno, size_t nSamp, size_t NumPop, int PopIdx[],
+	int ACnt[], int Cnt[], double P[], double &Numerator, double &Denominator)
+{
+	// initialize
+	int ACntTol=0, CntTol=0;
+	memset(ACnt, 0, sizeof(int)*NumPop);
+	memset(Cnt,  0, sizeof(int)*NumPop);
+
+	// calculate allele count for each population
+	for (size_t i=0; i < nSamp; i++)
+	{
+		int pop = PopIdx[i] - 1;
+		C_UInt8 g = *pGeno ++;
+		if (g <= 2)
+		{
+			ACnt[pop] += g; Cnt[pop] += 2;
+			ACntTol   += g; CntTol   += 2;
+		}
+	}
+
+	// check no missing allele frequency
+	for (size_t k=0; k < NumPop; k++)
+	{
+		if (Cnt[k] > 0)
+			P[k] = (double)ACnt[k] / Cnt[k];
+		else
+			return false;
+	}
+
+	double P_All = (double)ACntTol / CntTol;
+	double MSB=0, MSW=0, n_c=0;
+	for (size_t k=0; k < NumPop; k++)
+	{
+		MSB += Cnt[k] * (P[k] - P_All) * (P[k] - P_All);
+		MSW += Cnt[k] * P[k] * (1 - P[k]);
+		n_c += Cnt[k] * Cnt[k];
+	}
+	MSB /= (NumPop - 1);
+	MSW /= (CntTol - NumPop);
+	n_c = (CntTol - n_c/CntTol) / (NumPop - 1);
+	Numerator = (MSB - MSW);
+	Denominator = (MSB + (n_c-1)*MSW);
+	return true;
+}
+
+
 /// to compute Fst
 COREARRAY_DLL_EXPORT SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method)
 {
 	int *PopIdx = INTEGER(Pop);
-	int NumPop = asInteger(nPop);
-	const char *MetText = CHAR(STRING_ELT(Method, 0));
+	int NumPop = Rf_asInteger(nPop);
+	const char *MethodText = CHAR(STRING_ELT(Method, 0));
 
 	COREARRAY_TRY
 
 		const int nSamp = MCWorkingGeno.Space().SampleNum();
+		const int nSNP  = MCWorkingGeno.Space().SNPNum();
 		CdBufSpace BufSNP(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
 
-		if (strcmp(MetText, "W&H02") == 0)
+		if (strcmp(MethodText, "W&H02") == 0)
 		{
 			// Weir & Hill, 2002
 			vector<double> H(NumPop*NumPop, 0);
@@ -146,69 +195,39 @@ COREARRAY_DLL_EXPORT SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method)
 			}
 			UNPROTECT(2);
 
-		} else if (strcmp(MetText, "W&C84") == 0)
+		} else if (strcmp(MethodText, "W&C84") == 0)
 		{
 			// Weir & Cockerham, 1984
 			vector<int> ACnt(NumPop), Cnt(NumPop);
 			vector<double> P(NumPop);
-			double Numerator=0, Denominator=0;
+			double Numerator=0, Denominator=0, num, denom;
+			double SumRatio=0;
+			int NumRatio=0;
+			SEXP ratio = PROTECT(NEW_NUMERIC(nSNP));
 
 			// for-loop each SNP
-			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
+			for (int i=0; i < nSNP; i++)
 			{
-				// read genotypes
-				C_UInt8 *pg = BufSNP.ReadGeno(i);
-
-				// calculate allele count
-				int ACntTol=0, CntTol=0;
-				memset(&(ACnt[0]), 0, sizeof(int)*NumPop);
-				memset(&(Cnt[0]),  0, sizeof(int)*NumPop);
-				for (int j=0; j < nSamp; j++)
+				if (WC84(BufSNP.ReadGeno(i), nSamp, NumPop, PopIdx,
+					&ACnt[0], &Cnt[0], &P[0], num, denom))
 				{
-					int po = PopIdx[j] - 1;
-					C_UInt8 g = *pg ++;
-					if (g <= 2)
-					{
-						ACnt[po] += g; Cnt[po] += 2;
-						ACntTol += g; CntTol += 2;
-					}
-				}
-
-				// check no missing allele frequency
-				bool valid=true;
-				for (int k=0; k < NumPop; k++)
-				{
-					if (Cnt[k] > 0)
-					{
-						P[k] = (double)ACnt[k] / Cnt[k];
-					} else {
-						valid = false;
-						break;
-					}	
-				}
-				if (valid)
-				{
-					double P_All = (double)ACntTol / CntTol;
-					double MSB=0, MSW=0, n_c=0;
-					for (int k=0; k < NumPop; k++)
-					{
-						MSB += Cnt[k] * (P[k]-P_All) * (P[k]-P_All);
-						MSW += Cnt[k] * P[k] * (1-P[k]);
-						n_c += Cnt[k] * Cnt[k];
-					}
-					MSB /= (NumPop - 1);
-					MSW /= (CntTol - NumPop);
-					n_c = (CntTol - n_c/CntTol) / (NumPop - 1);
-
-					Numerator += (MSB - MSW);
-					Denominator += (MSB + (n_c-1)*MSW);
+					Numerator += num;
+					Denominator += denom;
+					double r = num / denom;
+					REAL(ratio)[i] = r;
+					SumRatio += r;
+					NumRatio ++;
+				} else {
+					REAL(ratio)[i] = R_NaN;
 				}
 			}
 
 			// output
-			PROTECT(rv_ans = NEW_LIST(1));
+			PROTECT(rv_ans = NEW_LIST(3));
 			SET_ELEMENT(rv_ans, 0, ScalarReal(Numerator/Denominator));
-			UNPROTECT(1);
+			SET_ELEMENT(rv_ans, 1, ScalarReal(SumRatio/NumRatio));
+			SET_ELEMENT(rv_ans, 2, ratio);
+			UNPROTECT(2);
 		}
 
 	COREARRAY_CATCH

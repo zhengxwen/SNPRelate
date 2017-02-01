@@ -433,8 +433,11 @@ pop_code <- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
 flag <- pop_code %in% c("HCB", "JPT")
 samp.sel <- sample.id[flag]
 pop.sel <- pop_code[flag]
-snpgdsFst(genofile, sample.id=samp.sel, population=as.factor(pop.sel),
+v <- snpgdsFst(genofile, sample.id=samp.sel, population=as.factor(pop.sel),
     method="W&C84")
+v$Fst        # Weir and Cockerham weighted Fst estimate
+v$MeanFst    # Weir and Cockerham mean Fst estimate
+summary(v$FstSNP)
 
 # Multiple populations: CEU HCB JPT YRI
 #   we should remove offsprings
@@ -443,8 +446,11 @@ mother <- read.gdsn(index.gdsn(genofile, "sample.annot/mother.id"))
 flag <- (father=="") & (mother=="")
 samp.sel <- sample.id[flag]
 pop.sel <- pop_code[flag]
-snpgdsFst(genofile, sample.id=samp.sel, population=as.factor(pop.sel),
+v <- snpgdsFst(genofile, sample.id=samp.sel, population=as.factor(pop.sel),
     method="W&C84")
+v$Fst        # Weir and Cockerham weighted Fst estimate
+v$MeanFst    # Weir and Cockerham mean Fst estimate
+summary(v$FstSNP)
 ```
 
 
