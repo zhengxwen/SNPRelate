@@ -1506,10 +1506,8 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 
 	COREARRAY_TRY
 
-		// ======== To cache the genotype data ========
+		// cache the genotype data
 		CachingSNPData("GRM Calculation", verbose);
-
-		// ======== The calculation of genetic covariance matrix ========
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
@@ -1517,43 +1515,42 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 		// set internal parameters
 		PCA::CProdMat_AlgArith::PCA_Detect_BlockNumSNP(n);
 
-		// the upper-triangle IBD matrix
-		CdMatTri<double> IBD(n);
-
 		if (strcmp(Method, "Eigenstrat") == 0)
 		{
+			CdMatTri<double> IBD(n);
 			CExactPCA pca(MCWorkingGeno.Space());
 			pca.Run(IBD, nThread, false, verbose);
 			// normalize
 			double TraceXTX = IBD.Trace();
 			double scale = double(n-1) / TraceXTX;
 			vt<double, av16Align>::Mul(IBD.Get(), IBD.Get(), scale, IBD.Size());
-
+			// output
+			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			IBD.SaveTo(REAL(rv_ans));
 		} else if (strcmp(Method, "GCTA") == 0)
 		{
-			CachingSNPData("GCTA GRM", verbose);
+			CdMatTri<double> IBD(n);
 			CGCTA_AlgArith GCTA(MCWorkingGeno.Space());
 			GCTA.Run(IBD, nThread, verbose);
+			// output
+			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			IBD.SaveTo(REAL(rv_ans));
 		} else if (strcmp(Method, "EIGMIX") == 0)
 		{
 			extern void CalcEigMixGRM(CdMatTri<double> &grm, int NumThread,
 				bool Verbose);
-			// cache the genotype data
-			CachingSNPData("EIGMIX", verbose);
+			CdMatTri<double> IBD(n);
 			CalcEigMixGRM(IBD, nThread, verbose);
+			// output
+			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			IBD.SaveTo(REAL(rv_ans));
 		} else if (strcmp(Method, "IndivBeta") == 0)
 		{
-			extern SEXP CalcIndivBetaGRM(CdMatTri<double> &grm, int NumThread,
-				bool Verbose);
-			// cache the genotype data
-			CachingSNPData("Individual Beta", verbose);
-			CalcIndivBetaGRM(IBD, nThread, verbose);
+			extern SEXP CalcIndivBetaGRM(int NumThread, bool Verbose);
+			rv_ans = PROTECT(CalcIndivBetaGRM(nThread, verbose));
 		} else
 			throw ErrCoreArray("Invalid 'method'!");
 
-		// Output
-		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, n, n));
-		IBD.SaveTo(REAL(rv_ans));
 		UNPROTECT(1);
 
 	COREARRAY_CATCH

@@ -632,7 +632,8 @@ snpgdsFst <- function(gdsobj, population, method=c("W&C84", "W&H02"),
 
 snpgdsIndivBeta <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("weighted"), num.thread=1L, with.id=TRUE, verbose=TRUE)
+    method=c("weighted"), inbreeding=TRUE, num.thread=1L, with.id=TRUE,
+    verbose=TRUE)
 {
     # check and initialize ...
     method <- match.arg(method)
@@ -644,7 +645,7 @@ snpgdsIndivBeta <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.logical(with.id))
 
     # call GRM C function
-    rv <- .Call(gnrIBD_Beta, ws$num.thread, verbose)
+    rv <- .Call(gnrIBD_Beta, inbreeding, ws$num.thread, verbose)
 
     # return
     if (with.id)

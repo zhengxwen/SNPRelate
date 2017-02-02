@@ -25,16 +25,20 @@
 #include <dType.h>
 
 #ifdef COREARRAY_SIMD_SSE
-#include <xmmintrin.h>
+#   include <xmmintrin.h>
 #endif
 #ifdef COREARRAY_SIMD_SSE2
-#include <emmintrin.h>
+#   include <emmintrin.h>
 #endif
 #ifdef COREARRAY_SIMD_SSE4_1
-#include <smmintrin.h>
+#   include <smmintrin.h>
+#endif
+#if defined(COREARRAY_SIMD_SSE4_2) || defined(__POPCNT__)
+#   define VECT_HARDWARE_POPCNT
+#   include <nmmintrin.h>  // SSE4_2, for POPCNT
 #endif
 #ifdef COREARRAY_SIMD_AVX
-#include <immintrin.h>
+#   include <immintrin.h>
 #endif
 
 
@@ -443,6 +447,23 @@ namespace Vectorization
 		x = (x + (x >> 4)) & 0x0F0F0F0F0F0F0F0FLLU;
 		return (x * 0x0101010101010101LLU) >> 56;
 	}
+
+#ifdef VECT_HARDWARE_POPCNT
+
+	inline static int POPCNT_M128(__m128i x)
+	{
+	#ifdef __LP64__
+		return _mm_popcnt_u64(_mm_cvtsi128_si64(x)) + 
+			_mm_popcnt_u64(_mm_cvtsi128_si64(_mm_bsrli_si128(x, 8)));
+	#else
+		return _mm_popcnt_u32(_mm_cvtsi128_si32(x)) + 
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_bsrli_si128(x, 4))) +
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_bsrli_si128(x, 8))) +
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_bsrli_si128(x, 12)));
+	#endif
+	}
+
+#endif
 
 
 #ifdef COREARRAY_SIMD_SSE2

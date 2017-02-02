@@ -9,8 +9,8 @@ using SNP genotype data.
 }
 \usage{
 snpgdsIndivBeta(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
-    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("weighted"), num.thread=1L, with.id=TRUE, verbose=TRUE)
+    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, method=c("weighted"),
+    inbreeding=TRUE, num.thread=1L, with.id=TRUE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -27,6 +27,8 @@ snpgdsIndivBeta(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN,
         no missing threshold}
     \item{method}{"weighted" estimator}
+    \item{inbreeding}{\code{TRUE}, the diagonal is a vector of inbreeding
+        coefficients; otherwise, individual variance estimates}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
     \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id}
