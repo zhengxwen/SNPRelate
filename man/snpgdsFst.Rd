@@ -17,8 +17,9 @@ snpgdsFst(gdsobj, population, method=c("W&C84", "W&H02"), sample.id=NULL,
         a SNP GDS file}
     \item{population}{a factor, indicating population information for each
         individual}
-    \item{method}{\code{"W&H02"} -- relative beta estimator in Weir&Hill 2002,
-        \code{"W&C84"} -- Fst estimator in Weir&Cockerham 1984}
+    \item{method}{\code{"W&C84"} -- Fst estimator in Weir & Cockerham 1984
+        (by default), \code{"W&H02"} -- relative beta estimator in
+        Weir & Hill 2002, see details}
     \item{sample.id}{a vector of sample id specifying selected samples;
         if NULL, all samples are used}
     \item{snp.id}{a vector of snp id specifying selected SNPs;
@@ -37,6 +38,9 @@ snpgdsFst(gdsobj, population, method=c("W&C84", "W&H02"), sample.id=NULL,
 \details{
     The minor allele frequency and missing rate for each SNP passed in
 \code{snp.id} are calculated over all the samples in \code{sample.id}.
+
+    The \code{"W&H02"} option implements the calculation in Buckleton et. al.
+2016.
 }
 \value{
     Return a list:
@@ -49,11 +53,16 @@ snpgdsFst(gdsobj, population, method=c("W&C84", "W&H02"), sample.id=NULL,
 }
 
 \references{
-    Weir, B. S. & Cockerham, C. C.
+    Weir, BS. & Cockerham, CC.
     Estimating F-statistics for the analysis of population structure. (1984).
 
-    Weir, B. S. & Hill, W. G. Estimating F-statistics.
+    Weir, BS. & Hill, WG. Estimating F-statistics.
     Annual review of genetics 36, 721-50 (2002).
+
+    Population-specific FST values for forensic STR markers: A worldwide survey.
+    Buckleton J, Curran J, Goudet J, Taylor D, Thiery A, Weir BS.
+    Forensic Sci Int Genet. 2016 Jul;23:91-100.
+    doi: 10.1016/j.fsigen.2016.03.004.
 }
 \author{Xiuwen Zheng}
 
@@ -65,12 +74,16 @@ group <- as.factor(read.gdsn(index.gdsn(
     genofile, "sample.annot/pop.group")))
 
 # Fst estimation
-snpgdsFst(genofile, population=group, method="W&H02")
-
-# or
 v <- snpgdsFst(genofile, population=group, method="W&C84")
 v$Fst
 v$MeanFst
+summary(v$FstSNP)
+
+# or
+v <- snpgdsFst(genofile, population=group, method="W&H02")
+v$Fst
+v$MeanFst
+v$Beta
 summary(v$FstSNP)
 
 # close the genotype file

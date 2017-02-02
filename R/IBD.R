@@ -567,11 +567,11 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         }
         population <- population[match(ws$sample.id, sample.id)]
     }
-    if (any(is.na(population)))
+    if (anyNA(population))
         stop("'population' should not have missing values!")
-    if (nlevels(population) <= 1)
+    if (nlevels(population) <= 1L)
         stop("There should be at least two populations!")
-    if (any(table(population) < 1))
+    if (any(table(population) < 1L))
         stop("Each population should have at least one individual.")
 
     if (ws$verbose)
@@ -613,12 +613,11 @@ snpgdsFst <- function(gdsobj, population, method=c("W&C84", "W&H02"),
     else
         rv <- list()
     rv$Fst <- d[[1L]]
-    if (method == "W&C84")
+    rv$MeanFst <- mean(d[[2L]], na.rm=TRUE)
+    rv$FstSNP <- d[[2L]]
+    if (method == "W&H02")
     {
-        rv$MeanFst <- d[[2L]]
-        rv$FstSNP <- d[[3L]]
-    } else {
-        rv$Beta <- d[[2L]]
+        rv$Beta <- d[[3L]]
         colnames(rv$Beta) <- rownames(rv$Beta) <- levels(population)
     }
 

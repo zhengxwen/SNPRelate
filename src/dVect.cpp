@@ -20,7 +20,7 @@
 // If not, see <http://www.gnu.org/licenses/>.
 
 
-#include <dVect.h>
+#include "dVect.h"
 
 #ifdef COREARRAY_PREDEFINED_SIMD
 #include <xmmintrin.h>
