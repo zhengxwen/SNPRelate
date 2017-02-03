@@ -637,7 +637,8 @@ snpgdsIndivBeta <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 {
     # check and initialize ...
     method <- match.arg(method)
-    ws <- .InitFile2(cmd="Individual Inbreeding and Relatedness:",
+    ws <- .InitFile2(
+        cmd="Individual Inbreeding and Relatedness (beta estimator):",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,

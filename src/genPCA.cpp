@@ -1531,6 +1531,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 
 		if (strcmp(Method, "Eigenstrat") == 0)
 		{
+			if (verbose) CPU_Flag();
 			CdMatTri<double> IBD(n);
 			CExactPCA pca(MCWorkingGeno.Space());
 			pca.Run(IBD, nThread, false, verbose);
@@ -1543,6 +1544,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 			IBD.SaveTo(REAL(rv_ans));
 		} else if (strcmp(Method, "GCTA") == 0)
 		{
+			if (verbose) CPU_Flag();
 			CdMatTri<double> IBD(n);
 			CGCTA_AlgArith GCTA(MCWorkingGeno.Space());
 			GCTA.Run(IBD, nThread, verbose);
