@@ -1283,6 +1283,19 @@ COREARRAY_DLL_LOCAL int CalcEigen(double *pMat, int n, int nEig,
 }
 
 
+static void CPU_Flag()
+{
+	Rprintf("Using CPU capabilities:");
+	#ifdef COREARRAY_SIMD_SSE2
+		Rprintf(" SSE SSE2");
+	#endif
+	#ifdef COREARRAY_SIMD_AVX
+		Rprintf(" AVX");
+	#endif
+	Rprintf("\n");
+}
+
+
 
 // ========================================================================
 // Principal Component Analysis (PCA)
@@ -1300,6 +1313,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm,
 
 		// cache the genotype data
 		CachingSNPData("PCA", verbose);
+		if (verbose) CPU_Flag();
 
 		// PCA algorithm: exact and fast randomized
 		if (strcmp(CHAR(STRING_ELT(Algorithm, 0)), "exact") == 0)

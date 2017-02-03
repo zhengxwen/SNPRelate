@@ -454,14 +454,39 @@ namespace Vectorization
 	{
 	#ifdef __LP64__
 		return _mm_popcnt_u64(_mm_cvtsi128_si64(x)) + 
-			_mm_popcnt_u64(_mm_cvtsi128_si64(_mm_bsrli_si128(x, 8)));
+			_mm_popcnt_u64(_mm_cvtsi128_si64(_mm_srli_si128(x, 8)));
 	#else
 		return _mm_popcnt_u32(_mm_cvtsi128_si32(x)) + 
-			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_bsrli_si128(x, 4))) +
-			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_bsrli_si128(x, 8))) +
-			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_bsrli_si128(x, 12)));
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_srli_si128(x, 4))) +
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_srli_si128(x, 8))) +
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_srli_si128(x, 12)));
 	#endif
 	}
+
+	#ifdef COREARRAY_SIMD_AVX2
+	inline static int POPCNT_M256(__m256i x)
+	{
+	#ifdef __LP64__
+		__m128i v1 = _mm256_extractf128_si256(x, 0);
+		__m128i v2 = _mm256_extractf128_si256(x, 1);
+		return _mm_popcnt_u64(_mm_cvtsi128_si64(v1)) + 
+			_mm_popcnt_u64(_mm_cvtsi128_si64(_mm_srli_si128(v1, 8))) +
+			_mm_popcnt_u64(_mm_cvtsi128_si64(v2)) + 
+			_mm_popcnt_u64(_mm_cvtsi128_si64(_mm_srli_si128(v2, 8)));
+	#else
+		__m128i v1 = _mm256_extractf128_si256(x, 0);
+		__m128i v2 = _mm256_extractf128_si256(x, 1);
+		return _mm_popcnt_u32(_mm_cvtsi128_si32(v1)) + 
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_srli_si128(v1, 4))) +
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_srli_si128(v1, 8))) +
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_srli_si128(v1, 12))) +
+			_mm_popcnt_u32(_mm_cvtsi128_si32(v2)) + 
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_srli_si128(v2, 4))) +
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_srli_si128(v2, 8))) +
+			_mm_popcnt_u32(_mm_cvtsi128_si32(_mm_srli_si128(v2, 12)));
+	#endif
+	}
+	#endif
 
 #endif
 

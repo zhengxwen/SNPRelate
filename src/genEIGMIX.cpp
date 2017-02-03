@@ -628,10 +628,24 @@ extern "C"
 using namespace EIGMIX;
 
 
+static void CPU_Flag()
+{
+	Rprintf("Using CPU capabilities:");
+	#ifdef COREARRAY_SIMD_SSE2
+		Rprintf(" SSE SSE2");
+	#endif
+	#ifdef COREARRAY_SIMD_AVX
+		Rprintf(" AVX");
+	#endif
+	Rprintf("\n");
+}
+
+
 /// Calculate EigMix GRM matrix
 COREARRAY_DLL_LOCAL void CalcEigMixGRM(CdMatTri<double> &grm, int NumThread,
 	bool Verbose)
 {
+	if (Verbose) CPU_Flag();
 	CEigMix_AlgArith eigmix(MCWorkingGeno.Space());
 	eigmix.Run(grm, NumThread, NULL, false, Verbose);
 	vec_f64_mul(grm.Get(), grm.Size(), 2);
@@ -654,6 +668,7 @@ COREARRAY_DLL_EXPORT SEXP gnrEigMix(SEXP EigenCnt, SEXP NumThread,
 
 		// cache the genotype data
 		CachingSNPData("Eigen-analysis", verbose);
+		if (verbose) CPU_Flag();
 
 		// the number of samples
 		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();

@@ -2252,7 +2252,7 @@ void GWAS::CachingSNPData(const char *Msg, bool Verbose)
 		if (Verbose)
 		{
 			Rprintf(
-				"%s:\tthe sum of all selected genotypes (0, 1 and 2) = %.0f\n",
+				"%s:    the sum of all selected genotypes (0,1,2) = %.0f\n",
 				Msg, SumOfGenotype);
 		}
 	}

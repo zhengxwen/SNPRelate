@@ -78,7 +78,28 @@ private:
 			C_UInt8 *p2 = Base + I.Column() * npack2;
 			ssize_t m = npack;
 
-			// off-diagonal
+			#if defined(COREARRAY_SIMD_AVX2)
+			{
+				for (; m >= 32; m-=32)
+				{
+					__m256i g1_1 = _mm256_loadu_si256((__m256i*)p1);
+					__m256i g1_2 = _mm256_loadu_si256((__m256i*)(p1 + npack));
+					__m256i g2_1 = _mm256_loadu_si256((__m256i*)p2);
+					__m256i g2_2 = _mm256_loadu_si256((__m256i*)(p2 + npack));
+					p1 += 32; p2 += 32;
+
+					__m256i mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
+					__m256i het  = (g1_1 ^ g1_2) | (g2_1 ^ g2_2);
+					__m256i ibs2 = ~(het | (g1_1 ^ g2_1));
+					het &= mask;
+					ibs2 &= mask;
+
+					p->ibscnt += POPCNT_M256(het) + (POPCNT_M256(ibs2) << 1);
+					p->num    += POPCNT_M256(mask);
+				}
+			}
+			#endif
+
 			#if defined(VECT_HARDWARE_POPCNT)
 			{
 				for (; m > 0; m-=16)
@@ -217,10 +238,27 @@ extern "C"
 
 using namespace IBD_BETA;
 
+static void CPU_Flag()
+{
+	Rprintf("Using CPU capabilities:");
+	#ifdef COREARRAY_SIMD_SSE2
+		Rprintf(" SSE2");
+	#endif
+	#ifdef VECT_HARDWARE_POPCNT
+		Rprintf(" POPCNT");
+	#endif
+	#ifdef COREARRAY_SIMD_AVX2
+		Rprintf(" AVX2");
+	#endif
+	Rprintf("\n");
+}
+
 
 /// Compute the IBD coefficients by individual relatedness beta
 COREARRAY_DLL_EXPORT SEXP CalcIndivBetaGRM(int NumThread, bool Verbose)
 {
+	if (Verbose) CPU_Flag();
+
 	const size_t n = MCWorkingGeno.Space().SampleNum();
 	CdMatTri<TS_Beta> IBS(n);
 	CIndivBeta Work(MCWorkingGeno.Space());
@@ -277,6 +315,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_Beta(SEXP Inbreeding, SEXP NumThread,
 
 		// cache the genotype data
 		CachingSNPData("Individual Beta", verbose);
+		if (verbose) CPU_Flag();
 
 		// the number of samples
 		const size_t n = MCWorkingGeno.Space().SampleNum();
