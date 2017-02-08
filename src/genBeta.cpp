@@ -242,7 +242,7 @@ static void CPU_Flag()
 {
 	Rprintf("Using CPU capabilities:");
 	#ifdef COREARRAY_SIMD_SSE2
-		Rprintf(" SSE2");
+		Rprintf(" Double-Precision SSE2");
 	#endif
 	#ifdef VECT_HARDWARE_POPCNT
 		Rprintf(" POPCNT");
