@@ -37,13 +37,19 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{verbose}{if \code{TRUE}, show information}
 }
 \details{
-    "GCTA": The genetic relationship matrix in GCTA is defined as:
-G_{ij} = avg_l (g_{il} - 2*p_l)*(g_{jl} - 2*p_l) / 2*p_l*(1 - p_l);
+    "GCTA": the genetic relationship matrix in GCTA is defined as
+G_{ij} = avg_l [(g_{il} - 2*p_l)*(g_{jl} - 2*p_l) / 2*p_l*(1 - p_l)] for
+individuals i,j and locus l;
 
-    "Eigenstrat": ;
+    "Eigenstrat": the genetic covariance matrix in EIGENSTRAT
+G_{ij} = avg_l [(g_{il} - 2*p_l)*(g_{jl} - 2*p_l) / 2*p_l*(1 - p_l)] for
+individuals i,j and locus l; it is identical as "GCTA" if there is no missing
+genotype.
 
     "EIGMIX": it is the same as `2 * snpgdsEIGMIX(, ibdmat=TRUE,
-diagadj=FALSE)$ibd`;
+diagadj=FALSE)$ibd`:
+G_{ij} = [sum_l (g_{il} - 2*p_l)*(g_{jl} - 2*p_l)] / [sum_l 2*p_l*(1 - p_l)]
+for individuals i,j and locus l;
 
     "IndivBeta": it is the same as `2 * snpgdsIndivBeta(, with.id=FALSE)`.
 }
@@ -53,6 +59,7 @@ diagadj=FALSE)$ibd`;
         \item{snp.id}{the SNP ids used in the analysis}
         \item{grm}{the genetic relationship matrix; different methods might
             have different meanings and interpretation for estimates}
+
     If \code{with.id = FALSE}, this function returns the genetic relationship
     matrix (GRM) without sample and SNP IDs.
 }

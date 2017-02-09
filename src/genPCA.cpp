@@ -1230,7 +1230,7 @@ COREARRAY_DLL_LOCAL int CalcEigen(double *pMat, int n, int nEig,
 		}
 
 		// output eigenvalues
-		vt<double>::Sub(REAL(EigVal), 0.0, REAL(EigVal), n);
+		vec_f64_sub2(REAL(EigVal), n, 0);
 
 		// output eigenvectors
 		EigVect = PROTECT(Rf_allocMatrix(REALSXP, n, nEig));
@@ -1367,7 +1367,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm,
 						TimeToStr());
 				}
 
-				vt<double>::Sub(Cov.Get(), 0.0, Cov.Get(), Cov.Size());
+				vec_f64_sub2(Cov.Get(), Cov.Size(), 0);
 
 				int nEig = Rf_asInteger(EigenCnt);
 				if (nEig < 0)
@@ -1538,7 +1538,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 			// normalize
 			double TraceXTX = IBD.Trace();
 			double scale = double(n-1) / TraceXTX;
-			vt<double, av16Align>::Mul(IBD.Get(), IBD.Get(), scale, IBD.Size());
+			vec_f64_mul(IBD.Get(), IBD.Size(), scale);
 			// output
 			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 			IBD.SaveTo(REAL(rv_ans));
