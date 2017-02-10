@@ -9,8 +9,8 @@
 \usage{
 snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("GCTA", "Eigenstrat", "EIGMIX", "IndivBeta"), num.thread=1L,
-    with.id=TRUE, verbose=TRUE)
+    method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "IndivBeta"),
+    num.thread=1L, with.id=TRUE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -29,6 +29,7 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{method}{"GCTA" -- genetic relationship matrix defined in CGTA;
         "Eigenstrat" -- genetic covariance matrix in EIGENSTRAT;
         "EIGMIX" -- two times coancestry matrix defined in Zheng & Weir (2015),
+        "Weighted" -- it is as the same as "EIGMIX",
         "IndivBeta" -- two times individual beta estimate; see details}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
@@ -46,7 +47,7 @@ G_{ij} = avg_l [(g_{il} - 2*p_l)*(g_{jl} - 2*p_l) / 2*p_l*(1 - p_l)] for
 individuals i,j and locus l; it is identical as "GCTA" if there is no missing
 genotype.
 
-    "EIGMIX": it is the same as `2 * snpgdsEIGMIX(, ibdmat=TRUE,
+    "EIGMIX" / "Weighted": it is the same as `2 * snpgdsEIGMIX(, ibdmat=TRUE,
 diagadj=FALSE)$ibd`:
 G_{ij} = [sum_l (g_{il} - 2*p_l)*(g_{jl} - 2*p_l)] / [sum_l 2*p_l*(1 - p_l)]
 for individuals i,j and locus l;

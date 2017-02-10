@@ -1567,6 +1567,8 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 		} else
 			throw ErrCoreArray("Invalid 'method'!");
 
+		if (verbose)
+			Rprintf("%s    Done.\n", TimeToStr());
 		UNPROTECT(1);
 
 	COREARRAY_CATCH

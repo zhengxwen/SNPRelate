@@ -518,13 +518,20 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 
 snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("GCTA", "Eigenstrat", "EIGMIX", "IndivBeta"), num.thread=1L,
-    with.id=TRUE, verbose=TRUE)
+    method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "IndivBeta"),
+    num.thread=1L, with.id=TRUE, verbose=TRUE)
 {
     # check and initialize ...
     method <- match.arg(method)
+    mtxt <- method
+    if (method == "Weighted")
+    {
+        method <- "EIGMIX"
+        mtxt <- "Weighted GCTA"
+    }
+
     ws <- .InitFile2(
-        cmd=paste("Genetic Relationship Matrix (GRM, ", method, "):", sep=""),
+        cmd=paste("Genetic Relationship Matrix (GRM, ", mtxt, "):", sep=""),
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
