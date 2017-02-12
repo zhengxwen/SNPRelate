@@ -240,7 +240,7 @@ using namespace IBD_BETA;
 
 static void CPU_Flag()
 {
-	Rprintf("Using CPU capabilities:");
+	Rprintf("CPU capabilities:");
 	#ifdef COREARRAY_SIMD_SSE2
 		Rprintf(" Double-Precision SSE2");
 	#endif

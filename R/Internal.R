@@ -124,6 +124,14 @@
 #######################################################################
 # Initialize the working space with more parameters
 
+.seldim <- function(gdsobj)
+{
+    eval(parse(text="
+        SeqArray::seqSummary(gdsobj, 'genotype', check='none',
+            verbose=FALSE)$seldim[-1L]
+    "))
+}
+
 .InitFile2 <- function(cmd=NULL, gdsobj, sample.id, snp.id,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
     allele.freq=NULL, num.thread=1L, verbose=TRUE, verbose.work=TRUE,
@@ -164,7 +172,90 @@
     }
 
     stopifnot(is.logical(verbose), length(verbose)==1L)
+    if (verbose & !is.null(cmd)) cat(cmd, "\n", sep="")
 
+
+    if (inherits(gdsobj, "SeqVarGDSClass"))
+    {
+        # whether the function 'SeqArray::seqSetFilterCond()' exists or not
+        fnok <- tryCatch({
+            eval(parse(text="SeqArray::seqSetFilterCond")); TRUE
+        }, error=function(e) FALSE)
+        if (fnok)
+        {
+            eval(parse(text="
+                SeqArray::seqResetFilter(gdsobj, verbose=FALSE)
+                SeqArray::seqSetFilter(gdsobj, sample.id=sample.id,
+                    variant.id=snp.id, verbose=FALSE)
+            "))
+            n <- .seldim(gdsobj)[2L]
+            if (isTRUE(autosome.only))
+            {
+                eval(parse(text="
+                    SeqArray::seqSetFilterChrom(gdsobj, is.num=TRUE,
+                        intersect=TRUE, verbose=FALSE)
+                "))
+                m <- .seldim(gdsobj)[2L]
+                if (verbose & m<n)
+                {
+                    cat("Excluding ", .pretty(n-m), " SNV", .plural(n-m),
+                        " on non-autosomes\n", sep="")
+                }
+                n <- m
+            }
+
+            # call allele freq. and missing rates
+            if (remove.monosnp | is.finite(maf) | is.finite(missing.rate))
+            {
+                mac <- if (remove.monosnp) 1L else NA_integer_
+                if (verbose)
+                    cat("Calculating allele counts/frequencies ...\n")
+                eval(parse(text="
+                    SeqArray::seqSetFilterCond(gdsobj, maf=maf, mac=mac,
+                        missing.rate=missing.rate, parallel=num.thread,
+                        .progress=verbose, verbose=FALSE)
+                "))
+                m <- .seldim(gdsobj)[2L]
+                if (verbose & m<n)
+                {
+                    cat("Excluding ", .pretty(n-m), " SNV", .plural(n-m),
+                        " (monomorphic: ", remove.monosnp, ", MAF: ", maf,
+                        ", missing rate: ", missing.rate, ")\n", sep="")
+                }
+                n <- m
+            }
+
+            # get the dimension of genotype
+            dm <- .seldim(gdsobj)
+            if (verbose & verbose.work)
+            {
+                cat("Working space: ",
+                    .pretty(dm[1L]), " sample", .plural(dm[1L]), ", ",
+                    .pretty(dm[2L]), " SNV", .plural(dm[2L]), "\n", sep="")
+                if (verbose.numthread)
+                {
+                    cat("    using ", num.thread, " (CPU) core",
+                        .plural(num.thread), "\n", sep="")
+                }
+            }
+
+			if (!is.null(allele.freq))
+			{
+				if (length(allele.freq) != dm[3L])
+				{
+					stop("the length of allele.freq doest not ",
+						"match with the selected variants.")
+				}
+			}
+
+            sel <- SeqArray::seqGetFilter(gdsobj)
+            .Call(gnrSetSeqSpace, gdsobj, sel$sample.sel, sel$variant.sel)
+
+            return(list(sample.id = sel$sample.sel, snp.id = sel$variant.sel,
+                n.snp = dm[3L], n.samp = dm[2L], allele.freq = allele.freq,
+                num.thread = num.thread, verbose = verbose))
+        }
+    }
 
     # samples
     sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
@@ -178,12 +269,6 @@
         if (n.samp <= 0L)
             stop("No sample in the working dataset.")
         sample.ids <- sample.ids[sample.id]
-    }
-
-    if (verbose & !is.null(cmd))
-    {
-        cat(cmd)
-        cat("\n")
     }
 
     # SNPs
@@ -315,7 +400,7 @@
     }
 
     # call allele freq. and missing rates
-    if (remove.monosnp || is.finite(maf) || is.finite(missing.rate))
+    if (remove.monosnp | is.finite(maf) | is.finite(missing.rate))
     {
         t.maf <- maf; t.miss <- missing.rate
 
@@ -350,7 +435,7 @@
     # dm[1] -- # of SNPs, dm[2] -- # of samples
     dm <- .Call(gnrGetGenoDim)
 
-    if (verbose && verbose.work)
+    if (verbose & verbose.work)
     {
         cat("Working space: ", .pretty(dm[2L]), " sample", .plural(dm[2L]),
             ", ", .pretty(dm[1L]), " ", SSS, .plural(dm[1L]), "\n", sep="")

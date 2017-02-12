@@ -1285,7 +1285,7 @@ COREARRAY_DLL_LOCAL int CalcEigen(double *pMat, int n, int nEig,
 
 static void CPU_Flag()
 {
-	Rprintf("Using CPU capabilities:");
+	Rprintf("CPU capabilities:");
 	#ifdef COREARRAY_SIMD_SSE2
 		Rprintf(" Double-Precision SSE2");
 	#endif
