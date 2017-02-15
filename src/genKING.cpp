@@ -266,6 +266,7 @@ public:
 };
 
 
+
 // ---------------------------------------------------------------------
 // Counting IBS variables for KING robust method
 
@@ -536,6 +537,8 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Homo(SEXP NumThread, SEXP _Verbose)
 }
 
 
+
+
 /// Compute the IBD coefficients by KING method of moment (KING-robust)
 COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
 	SEXP _Verbose)
@@ -546,6 +549,17 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
 
 		// cache the genotype data
 		CachingSNPData("KING IBD", verbose);
+		if (verbose)
+		{
+			Rprintf("CPU capabilities:");
+		#ifdef COREARRAY_SIMD_SSE2
+			Rprintf(" Double-Precision SSE2");
+		#endif
+		#ifdef COREARRAY_SIMD_AVX2
+			Rprintf(" AVX2");
+		#endif
+			Rprintf("\n");
+		}
 
 		// the number of samples
 		const size_t n = MCWorkingGeno.Space().SampleNum();

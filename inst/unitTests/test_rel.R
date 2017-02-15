@@ -131,9 +131,15 @@ test.PCA <- function()
 		num.thread=1, need.genmat=TRUE, eigen.cnt=8L, verbose=FALSE)
 	checkEquals(pca$genmat, valid.dta$genmat, "PCA (one core)")
 
-	corr <- round(snpgdsPCACorr(pca, genofile, eig.which=1:2,
-		num.thread=1)$snpcorr, 3)
+	corrX <- snpgdsPCACorr(pca, genofile, eig.which=1:2, num.thread=1)$snpcorr
+	corr <- round(corrX, 3)
 	checkEquals(corr, valid.dta$corr, "PCA correlation (one core)")
+
+	snpgdsPCACorr(pca, genofile, eig.which=1:2, num.thread=1, outgds="test.gds")
+	f <- openfn.gds("test.gds")
+	corr <- read.gdsn(index.gdsn(f, "correlation"))
+	closefn.gds(f)
+	checkEquals(corr, round(corrX, 4), "PCA correlation (one core)")
 
 	SnpLoad <- snpgdsPCASNPLoading(pca, genofile)
 	snploading <- round(SnpLoad$snploading, 3)
@@ -149,9 +155,15 @@ test.PCA <- function()
 		num.thread=2, need.genmat=TRUE, eigen.cnt=8L, verbose=FALSE)
 	checkEquals(pca$genmat, valid.dta$genmat, "PCA (two cores)")
 
-	corr <- round(snpgdsPCACorr(pca, genofile, eig.which=1:2,
-		num.thread=2)$snpcorr, 3)
+	corrX <- snpgdsPCACorr(pca, genofile, eig.which=1:2, num.thread=2)$snpcorr
+	corr <- round(corrX, 3)
 	checkEquals(corr, valid.dta$corr, "PCA correlation (two cores)")
+
+	snpgdsPCACorr(pca, genofile, eig.which=1:2, num.thread=2, outgds="test.gds")
+	f <- openfn.gds("test.gds")
+	corr <- read.gdsn(index.gdsn(f, "correlation"))
+	closefn.gds(f)
+	checkEquals(corr, round(corrX, 4), "PCA correlation (one core)")
 
 	SnpLoad <- snpgdsPCASNPLoading(pca, genofile)
 	snploading <- round(SnpLoad$snploading, 3)
@@ -160,6 +172,10 @@ test.PCA <- function()
 	SL <- snpgdsPCASampLoading(SnpLoad, genofile, sample.id=samp.id[1:100])
 	checkEquals(round(SL$eigenvect, 4), valid.dta$samploading,
 		"PCA sample loading (two cores)")
+
+
+	# delete the temporary file
+	unlink("test.gds", force=TRUE)
 }
 
 

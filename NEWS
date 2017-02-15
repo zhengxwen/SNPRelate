@@ -9,6 +9,9 @@ CHANGES IN VERSION 1.9.1-1.9.4
 
     o `snpgdsFst()` provides W&C84 mean Fst together with weighted Fst
 
+    o a new argument 'outgds' in `snpgdsPCACorr()` allowing exporting
+      correlations to a gds file
+
 
 CHANGES IN VERSION 1.8.0
 -------------------------

@@ -80,25 +80,42 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
-    num.thread=1L, verbose=TRUE)
+    num.thread=1L, with.id=TRUE, outgds=NULL, verbose=TRUE)
 {
     # check
-    stopifnot(inherits(pcaobj, "snpgdsPCAClass"))
-    ws <- .InitFile(gdsobj, sample.id=pcaobj$sample.id, snp.id=snp.id,
-        with.id=TRUE)
-
-    stopifnot(is.numeric(num.thread), num.thread>0L)
-    if (length(pcaobj$sample.id) != nrow(pcaobj$eigenvect))
+    stopifnot(inherits(pcaobj, "snpgdsPCAClass") |
+        inherits(pcaobj, "snpgdsEigMixClass") | is.matrix(pcaobj))
+    if (is.matrix(pcaobj))
     {
-        stop("Internal error: ",
-            "the number of samples should be ",
+        sampid <- rownames(pcaobj)
+        if (is.null(sampid))
+            stop("'rownames(pcaobj)' should be sample id.")
+        eigenvect <- pcaobj
+    } else {
+        sampid <- pcaobj$sample.id
+        eigenvect <- pcaobj$eigenvect
+    }
+
+    stopifnot(is.null(outgds) | is.character(outgds))
+    if (is.character(outgds))
+    {
+        stopifnot(length(outgds) == 1L)
+        with.id <- TRUE
+    }
+
+    ws <- .InitFile(gdsobj, sample.id=sampid, snp.id=snp.id, with.id=with.id)
+
+    stopifnot(is.numeric(num.thread), length(num.thread)==1L, num.thread>0L)
+    if (length(sampid) != nrow(eigenvect))
+    {
+        stop("Internal error: the number of samples should be ",
             "equal to the number of rows in 'eigenvect'.")
     }
-    stopifnot(is.logical(verbose))
+    stopifnot(is.logical(verbose), length(verbose)==1L)
 
     if (is.null(eig.which))
     {
-        eig.which <- 1:dim(pcaobj$eigenvect)[2]
+        eig.which <- seq_len(dim(eigenvect)[2L])
     } else {
         stopifnot(is.vector(eig.which))
         stopifnot(is.numeric(eig.which))
@@ -107,19 +124,39 @@ snpgdsPCACorr <- function(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL,
 
     if (verbose)
     {
-        cat("SNP correlation:\n")
+        cat("SNP Correlation:\n")
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
         cat("    using ", num.thread, " (CPU) core", .plural(num.thread), "\n",
             sep="")
-        cat("    using the top", dim(pcaobj$eigenvect)[2], "eigenvectors\n")
+        cat("    using the top", length(eig.which), "eigenvectors\n")
+    }
+
+    gds <- NULL
+    if (is.character(outgds))
+    {
+        f <- createfn.gds(outgds)
+        on.exit({ closefn.gds(f) })
+        add.gdsn(f, "sample.id", sampid, compress="LZMA_RA", closezip=TRUE)
+        add.gdsn(f, "snp.id", ws$snp.id, compress="LZMA_RA", closezip=TRUE)
+        sync.gds(f)
+        gds <- add.gdsn(f, "correlation", storage="packedreal16",
+            valdim=c(length(eig.which), 0L), compress="LZMA_RA")
+        if (verbose)
+            cat("Creating '", outgds, "' ...\n", sep="")
     }
 
     # call C function
-    rv <- .Call(gnrPCACorr, length(eig.which), pcaobj$eigenvect[,eig.which],
-        num.thread, verbose)
+    rv <- .Call(gnrPCACorr, length(eig.which), eigenvect[,eig.which],
+        num.thread, gds, verbose)
 
     # return
-    list(sample.id=pcaobj$sample.id, snp.id=ws$snp.id, snpcorr=rv)
+    if (is.null(outgds))
+    {
+        if (isTRUE(with.id))
+            rv <- list(sample.id=sampid, snp.id=ws$snp.id, snpcorr=rv)
+	    rv
+    } else
+        invisible()
 }
 
 

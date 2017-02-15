@@ -879,6 +879,39 @@ public:
 			WS.ProgressForward(WS.Count());
 		}
 	}
+
+	/// run the algorithm
+	void Run2(PdGDSObj OutGDS, size_t NumEig, double EigVect[],
+		int NumThread, bool verbose)
+	{
+		if (NumThread < 1) NumThread = 1;
+		nSamp = Space.SampleNum();
+		NumEigVal = NumEig; pEigVect = EigVect;
+
+		const size_t nBlock = 4096;
+		vector<double> CorrArray(nBlock*NumEig);
+		if (verbose) Rprintf("%s\n", TimeToStr());
+
+		// thread thpool
+		CThreadPoolEx<CPCA_SNPCorr> thpool(NumThread);
+		// genotypes (0, 1, 2 and NA)
+		Geno.Reset(nSamp * nBlock);
+		// genotype buffer, false for no memory buffer
+		CGenoReadBySNP WS(NumThread, Space, nBlock, verbose ? -1 : 0, false);
+
+		// for-loop
+		WS.Init();
+		while (WS.Read(Geno.Get()))
+		{
+			pCorr = &CorrArray[0];
+			// using thread thpool
+			thpool.BatchWork(this, &CPCA_SNPCorr::thread_corr, WS.Count());
+			// save to GDS node
+			GDS_Array_AppendData(OutGDS, WS.Count()*NumEig, &CorrArray[0], svFloat64);
+			// update
+			WS.ProgressForward(WS.Count());
+		}
+	}
 };
 
 
@@ -1195,6 +1228,19 @@ using namespace PCA;
 extern "C"
 {
 
+static void CPU_Flag()
+{
+	Rprintf("CPU capabilities:");
+	#ifdef COREARRAY_SIMD_SSE2
+		Rprintf(" Double-Precision SSE2");
+	#endif
+	#ifdef COREARRAY_SIMD_AVX
+		Rprintf(" AVX");
+	#endif
+	Rprintf("\n");
+}
+
+
 /// get the eigenvalues and eigenvectors, return 'nProtect'
 COREARRAY_DLL_LOCAL int CalcEigen(double *pMat, int n, int nEig,
 	const char *EigMethod, SEXP &EigVal, SEXP &EigVect)
@@ -1280,19 +1326,6 @@ COREARRAY_DLL_LOCAL int CalcEigen(double *pMat, int n, int nEig,
 		throw ErrCoreArray("Unknown 'eigen.method'.");
 
 	return nProtected;
-}
-
-
-static void CPU_Flag()
-{
-	Rprintf("CPU capabilities:");
-	#ifdef COREARRAY_SIMD_SSE2
-		Rprintf(" Double-Precision SSE2");
-	#endif
-	#ifdef COREARRAY_SIMD_AVX
-		Rprintf(" AVX");
-	#endif
-	Rprintf("\n");
 }
 
 
@@ -1404,25 +1437,32 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm,
 
 /// Calculate the SNP correlations
 COREARRAY_DLL_EXPORT SEXP gnrPCACorr(SEXP LenEig, SEXP EigenVect,
-	SEXP NumThread, SEXP _Verbose)
+	SEXP NumThread, SEXP GDSNode, SEXP Verbose)
 {
-	const bool verbose = SEXP_Verbose(_Verbose);
+	const bool verbose = SEXP_Verbose(Verbose);
+	const int nEig = Rf_asInteger(LenEig);
 	COREARRAY_TRY
 
 		// cache the genotype data
-		CachingSNPData("SNP Correlation", verbose);
+		CachingSNPData("Correlation", verbose);
 
-		// output variable
-		PROTECT(rv_ans = Rf_allocMatrix(REALSXP, Rf_asInteger(LenEig),
-			MCWorkingGeno.Space().SNPNum()));
+		// running
+		CPCA_SNPCorr Work(MCWorkingGeno.Space());
+
+		if (Rf_isNull(GDSNode))
 		{
-			CPCA_SNPCorr Work(MCWorkingGeno.Space());
-			Work.Run(REAL(rv_ans), Rf_asInteger(LenEig), REAL(EigenVect),
+			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, nEig,
+				MCWorkingGeno.Space().SNPNum()));
+			Work.Run(REAL(rv_ans), nEig, REAL(EigenVect),
+				Rf_asInteger(NumThread), verbose);
+			UNPROTECT(1);
+		} else {
+			Work.Run2(GDS_R_SEXP2Obj(GDSNode, FALSE), nEig, REAL(EigenVect),
 				Rf_asInteger(NumThread), verbose);
 		}
+
 		if (verbose)
 			Rprintf("%s    Done.\n", TimeToStr());
-		UNPROTECT(1);
 
 	COREARRAY_CATCH
 }
