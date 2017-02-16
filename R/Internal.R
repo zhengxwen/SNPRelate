@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2016        Xiuwen Zheng
+# Copyright (C) 2011 - 2017        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -160,7 +160,7 @@
             stop("The 'parallel' package fails to load.")
         num.thread <- parallel::detectCores()
         if (is.na(num.thread))
-            stop("parallel::detectCores fails to detect the number of cores.")
+            stop("parallel::detectCores() fails to detect the number of cores.")
     }
     if (num.thread < 1L)
         stop("`num.thread' should be a positive value or NA.")
@@ -251,8 +251,11 @@
             sel <- SeqArray::seqGetFilter(gdsobj)
             .Call(gnrSetSeqSpace, gdsobj, sel$sample.sel, sel$variant.sel)
 
-            return(list(sample.id = sel$sample.sel, snp.id = sel$variant.sel,
-                n.snp = dm[3L], n.samp = dm[2L], allele.freq = allele.freq,
+            sampid <- eval(parse(text="SeqArray::seqGetData(gdsobj, 'sample.id')"))
+            snpid <- eval(parse(text="SeqArray::seqGetData(gdsobj, 'variant.id')"))
+
+            return(list(sample.id = sampid, snp.id = snpid,
+                n.snp = dm[2L], n.samp = dm[1L], allele.freq = allele.freq,
                 num.thread = num.thread, verbose = verbose))
         }
     }

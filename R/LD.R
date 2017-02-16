@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2016        Xiuwen Zheng
+# Copyright (C) 2011 - 2017        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -106,9 +106,9 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     num.thread=1, verbose=TRUE)
 {
     # check
-    SSS <- if (inherits(gdsobj, "SeqVarGDSClass")) "SNV" else "SNP"
     ws <- .InitFile2(
-        cmd=paste0(SSS, " pruning based on LD:"),
+        cmd=paste(ifelse(inherits(gdsobj, "SeqVarGDSClass"), "SNV", "SNP"),
+            "pruning based on LD:"),
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,

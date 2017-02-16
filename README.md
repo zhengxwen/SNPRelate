@@ -99,10 +99,10 @@ install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
 | snpgdsIBDMoM         | X |
 | snpgdsIBS            | X | X |
 | snpgdsIBSNum         | X | X |
-| snpgdsIndivBeta      | X | X |   | X |
+| snpgdsIndivBeta      | X | X | P | X |
 | snpgdsPCA            | X | X | X |
 | snpgdsPCACorr        | X |
 | snpgdsPCASampLoading | X |
 | snpgdsPCASNPLoading  | X |
 
-`X`: fully supported;  `.`: partially supported.
+`X`: fully supported;  `.`: partially supported; `P`: POPCNT instruction.
