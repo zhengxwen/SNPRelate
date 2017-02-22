@@ -29,7 +29,7 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{method}{"GCTA" -- genetic relationship matrix defined in CGTA;
         "Eigenstrat" -- genetic covariance matrix in EIGENSTRAT;
         "EIGMIX" -- two times coancestry matrix defined in Zheng & Weir (2015),
-        "Weighted" -- it is as the same as "EIGMIX",
+        "Weighted" -- weighted GCTA, as the same as "EIGMIX",
         "IndivBeta" -- two times individual beta estimate; see details}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
