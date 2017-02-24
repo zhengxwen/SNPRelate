@@ -106,3 +106,15 @@ install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
 | snpgdsPCASNPLoading  | X |
 
 `X`: fully supported;  `.`: partially supported; `P`: POPCNT instruction.
+
+
+* Install the package from the source code with the support of Intel SIMD Intrinsics:
+You have to customize the package compilation, see: [CRAN: Customizing-package-compilation](http://cran.r-project.org/doc/manuals/r-release/R-admin.html#Customizing-package-compilation)
+
+Change `~/.R/Makevars` to, assuming GNU Compilers (gcc/g++) or Clang compiler (clang++) are installed:
+```sh
+## for C code
+CFLAGS=-g -O2 -march=native -mtune=native
+## for C++ code
+CXXFLAGS=-g -O2 -march=native -mtune=native
+```
