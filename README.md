@@ -45,6 +45,8 @@ Development Version: v1.9.5
 
 Zheng X, Levine D, Shen J, Gogarten SM, Laurie C, Weir BS (2012). A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. *Bioinformatics*. [DOI: 10.1093/bioinformatics/bts606](http://dx.doi.org/10.1093/bioinformatics/bts606).
 
+Zheng X, Gogarten S, Lawrence M, Stilp A, Conomos M, Weir BS, Laurie C, Levine D. SeqArray -- A storage-efficient high-performance data format for WGS variant calls. *Minor Revision*.
+
 
 ## Installation
 
@@ -90,6 +92,8 @@ install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
 
 ## Implementation with Intel Intrinsics
 
+* Implementation Table:
+
 | Function             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
 |:---------------------|:-------:|:----:|:---:|:----:|:-------:|
 | snpgdsDiss           | X |
@@ -109,6 +113,7 @@ install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
 
 
 * Install the package from the source code with the support of Intel SIMD Intrinsics:
+
 You have to customize the package compilation, see: [CRAN: Customizing-package-compilation](http://cran.r-project.org/doc/manuals/r-release/R-admin.html#Customizing-package-compilation)
 
 Change `~/.R/Makevars` to, assuming GNU Compilers (gcc/g++) or Clang compiler (clang++) are installed:
