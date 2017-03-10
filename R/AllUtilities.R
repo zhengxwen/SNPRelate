@@ -47,6 +47,12 @@ snpgdsOpen <- function(filename, readonly=TRUE, allow.duplicate=FALSE,
     {
         # it does not throw any warning or error if FileFormat does not exist,
         # but it is encouraged to add this attribute
+        if (identical(at$FileFormat, "SEQ_ARRAY"))
+        {
+            stop(err,
+            "please open the file using 'seqOpen()' in the SeqArray package, ",
+            "since 'FileFormat = SEQ_ARRAY'.")
+        }
         if (!identical(at$FileFormat, "SNP_ARRAY"))
             stop(err, "'FileFormat' should be 'SNP_ARRAY'.")
     }

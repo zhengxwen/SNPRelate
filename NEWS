@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.9.1-1.9.5
+CHANGES IN VERSION 1.9.1-1.9.6
 -------------------------
 
     o new functions `snpgdsAdmixPlot()` and `snpgdsAdmixTable()`
@@ -9,8 +9,11 @@ CHANGES IN VERSION 1.9.1-1.9.5
 
     o `snpgdsFst()` provides W&C84 mean Fst together with weighted Fst
 
-    o a new argument 'outgds' in `snpgdsPCACorr()` allowing exporting
+    o a new argument 'outgds' in `snpgdsPCACorr()` allows exporting
       correlations to a gds file
+
+    o a friendly warning is given when openning a SeqArray file with
+      `snpgdsOpen()`
 
 
 CHANGES IN VERSION 1.8.0

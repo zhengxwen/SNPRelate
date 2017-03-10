@@ -92,7 +92,7 @@ install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
 
 ## Implementation with Intel Intrinsics
 
-* Implementation Table:
+### Implementation Table:
 
 | Function             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
 |:---------------------|:-------:|:----:|:---:|:----:|:-------:|
@@ -109,10 +109,10 @@ install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
 | snpgdsPCASampLoading | X |
 | snpgdsPCASNPLoading  | X |
 
-`X`: fully supported;  `.`: partially supported; `P`: POPCNT instruction.
+`X: fully supported;  .: partially supported;  P: POPCNT instruction.`
 
 
-* Install the package from the source code with the support of Intel SIMD Intrinsics:
+### Install the package from the source code with the support of Intel SIMD Intrinsics:
 
 You have to customize the package compilation, see: [CRAN: Customizing-package-compilation](http://cran.r-project.org/doc/manuals/r-release/R-admin.html#Customizing-package-compilation)
 
