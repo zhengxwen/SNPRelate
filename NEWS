@@ -15,6 +15,8 @@ CHANGES IN VERSION 1.9.1-1.9.6
     o a friendly warning is given when openning a SeqArray file with
       `snpgdsOpen()`
 
+    o a new option "Corr" in `snpgdsGRM()` for scaled GRM
+
 
 CHANGES IN VERSION 1.8.0
 -------------------------

@@ -518,7 +518,8 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 
 snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "IndivBeta"),
+    method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "Corr",
+        "IndivBeta"),
     num.thread=1L, with.id=TRUE, verbose=TRUE)
 {
     # check and initialize ...
@@ -528,6 +529,9 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     {
         method <- "EIGMIX"
         mtxt <- "Weighted GCTA"
+    } else if (method == "Corr")
+    {
+        mtxt <- "Scaled GCTA (correlation)"
     }
 
     ws <- .InitFile2(

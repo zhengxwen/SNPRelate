@@ -1582,15 +1582,36 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 			// output
 			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 			IBD.SaveTo(REAL(rv_ans));
-		} else if (strcmp(Method, "GCTA") == 0)
+
+		} else if (strcmp(Method, "GCTA")==0 || strcmp(Method, "Corr")==0)
 		{
 			if (verbose) CPU_Flag();
-			CdMatTri<double> IBD(n);
-			CGCTA_AlgArith GCTA(MCWorkingGeno.Space());
-			GCTA.Run(IBD, nThread, verbose);
-			// output
-			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-			IBD.SaveTo(REAL(rv_ans));
+			{
+				CdMatTri<double> IBD(n);
+				CGCTA_AlgArith GCTA(MCWorkingGeno.Space());
+				GCTA.Run(IBD, nThread, verbose);
+				// output
+				rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+				IBD.SaveTo(REAL(rv_ans));
+			}
+			// scaled GRM
+			if (strcmp(Method, "Corr") == 0)
+			{
+				vector<double> diag(n);
+				double *p = REAL(rv_ans);
+				for (R_xlen_t i=0; i < n; i++)
+					diag[i] = sqrt(p[i + n*i]);
+				for (R_xlen_t i=0; i < n; i++)
+				{
+					p[i + n*i] = 1;
+					for (R_xlen_t j=i+1; j < n; j++)
+					{						
+						p[i + n*j] = p[j + n*i] =
+							p[j + n*i] / (diag[i] * diag[j]);
+					}
+				}
+			}
+
 		} else if (strcmp(Method, "EIGMIX") == 0)
 		{
 			extern void CalcEigMixGRM(CdMatTri<double> &grm, int NumThread,
@@ -1600,10 +1621,12 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 			// output
 			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 			IBD.SaveTo(REAL(rv_ans));
+
 		} else if (strcmp(Method, "IndivBeta") == 0)
 		{
 			extern SEXP CalcIndivBetaGRM(int NumThread, bool Verbose);
 			rv_ans = PROTECT(CalcIndivBetaGRM(nThread, verbose));
+
 		} else
 			throw ErrCoreArray("Invalid 'method'!");
 
