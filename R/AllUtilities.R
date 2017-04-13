@@ -1903,6 +1903,10 @@ snpgdsSlidingWindow <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     if (is.function(FUN))
     {
         FUN <- match.fun(FUN)
+        if (identical(FUN, snpgdsFst))
+            stop('Please use `FUN="snpgdsFst"` instead.')
+        if (identical(FUN, snpgdsSNPRateFreq))
+            stop('Please use `FUN="snpgdsSNPRateFreq"` instead.')
         FunIdx <- 0L
     } else if (is.character(FUN))
     {
