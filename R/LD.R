@@ -103,7 +103,7 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
     method=c("composite", "r", "dprime", "corr"),
     slide.max.bp=500000, slide.max.n=NA, ld.threshold=0.2,
-    num.thread=1, verbose=TRUE)
+    num.thread=1L, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -120,8 +120,8 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.numeric(num.thread) & (num.thread>0))
     if (num.thread > 1)
     {
-        warning("The current version of 'snpgdsLDpruning' ",
-            "does not support multi processes.")
+        warning("The current version of 'snpgdsLDpruning()' ",
+            "does not support multi-threading.")
     }
     stopifnot(is.logical(verbose))
 
@@ -162,12 +162,13 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     }
 
     # for-loop each chromosome
-    ntotal <- 0; res <- list()
+    ntotal <- 0L
+    res <- list()
     snp.flag <- total.snp.ids %in% ws$snp.id
     samp.flag <- total.samp.ids %in% ws$sample.id
 
     if (is.numeric(chr))
-        chrset <- setdiff(unique(chr), c(0, NA))
+        chrset <- setdiff(unique(chr), c(0L, NA))
     else if (is.character(chr))
         chrset <- setdiff(unique(chr), c("", NA))
     else
@@ -190,9 +191,9 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             }
 
             # call LD prune for this chromosome
-            startidx <- sample(1:n.tmp, 1)
+            startidx <- sample(1:n.tmp, 1L)
 
-            rv <- .Call(gnrLDpruning, as.integer(startidx-1), position[flag],
+            rv <- .Call(gnrLDpruning, as.integer(startidx-1L), position[flag],
                 as.integer(slide.max.bp), as.integer(slide.max.n),
                 as.double(ld.threshold), method)
 
@@ -206,14 +207,19 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             if (verbose)
             {
                 ntmp <- sum(rv); ntot <- sum(chr == ch)
-                cat(sprintf("Chromosome %s: %0.2f%%, %d/%d\n",
-                    as.character(ch), 100*ntmp/ntot, ntmp, ntot))
+                cat(sprintf("Chromosome %s: %0.2f%%, %s/%s\n",
+                    as.character(ch), 100*ntmp/ntot,
+                    prettyNum(ntmp, ",", scientific=FALSE),
+                    prettyNum(ntot, ",", scientific=FALSE)))
             }
         }
     }
 
     if (verbose)
-        cat(sprintf("%d SNPs are selected in total.\n", ntotal))
+    {
+        cat(prettyNum(ntotal, ",", scientific=FALSE),
+            "markers are selected in total.\n")
+    }
 
     # return
     return(res)
