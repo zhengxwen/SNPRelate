@@ -24,9 +24,9 @@ snpgdsLDpair <- function(snp1, snp2,
     method=c("composite", "r", "dprime", "corr"))
 {
     # check
-    stopifnot(is.numeric(snp1) & is.vector(snp1))
-    stopifnot(is.numeric(snp2) & is.vector(snp2))
-    stopifnot(length(snp1) == length(snp2))
+    stopifnot(is.numeric(snp1), is.vector(snp1))
+    stopifnot(is.numeric(snp2), is.vector(snp2))
+    stopifnot(length(snp1)==length(snp2))
 
     method <- match.arg(method)
     method <- match(method, c("composite", "r", "dprime", "corr"))
@@ -35,7 +35,7 @@ snpgdsLDpair <- function(snp1, snp2,
     rv <- .Call(gnrLDpair, as.integer(snp1), as.integer(snp2), method)
 
     # output
-    if (method %in% c(2, 3))
+    if (method %in% c(2L, 3L))
     {
         names(rv) <- c("ld", "pA_A", "pA_B", "pB_A", "pB_B")
     } else {
@@ -242,13 +242,13 @@ snpgdsApartSelection <- function(chromosome, position, min.dist=100000,
         stop("The lengths of 'chomosome' and 'position' do not match.")
 
     stopifnot(is.numeric(min.dist) & is.vector(min.dist))
-    stopifnot(length(min.dist) == 1)
+    stopifnot(length(min.dist)==1L)
 
     stopifnot(is.numeric(max.n.snp.perchr) & is.vector(max.n.snp.perchr))
-    stopifnot(length(max.n.snp.perchr) == 1)
+    stopifnot(length(max.n.snp.perchr)==1L)
 
     stopifnot(is.logical(verbose) & is.vector(verbose))
-    stopifnot(length(verbose) == 1)
+    stopifnot(length(verbose)==1L)
 
     # chromosome codes
     chrlist <- unique(chromosome)
