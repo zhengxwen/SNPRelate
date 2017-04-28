@@ -130,8 +130,9 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         bp <- slide.max.bp; mn <- slide.max.n
         if (!is.finite(bp)) bp <- Inf
         if (!is.finite(mn)) mn <- Inf
-        cat(sprintf("\tSliding window: %g basepairs, %g SNPs\n", bp, mn))
-        cat(sprintf("\t|LD| threshold: %g\n", ld.threshold))
+        cat("    sliding window:", prettyNum(bp, ",", scientific=FALSE),
+            "basepairs,", prettyNum(mn, ",", scientific=FALSE), "SNPs\n")
+        cat(sprintf("    |LD| threshold: %g\n", ld.threshold))
     }
 
     if (!is.finite(slide.max.bp))
