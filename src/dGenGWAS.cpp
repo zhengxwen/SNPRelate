@@ -1085,6 +1085,27 @@ static const double S_HOUR =  60 * S_MIN;
 static const double S_DAY  =  24 * S_HOUR;
 static const double S_YEAR = 365 * S_DAY;
 
+static const char *time_str(double s)
+{
+	if (R_FINITE(s))
+	{
+		static char buffer[64];
+		if (s < S_MIN)
+			sprintf(buffer, "%.0fs", s);
+		else if (s < S_HOUR)
+			sprintf(buffer, "%.1fm", s/S_MIN);
+		else if (s < S_DAY)
+			sprintf(buffer, "%.1fh", s/S_HOUR);
+		else if (s < S_YEAR)
+			sprintf(buffer, "%.1fd", s/S_DAY);
+		else
+			sprintf(buffer, "%.1f years", s/S_YEAR);
+		return buffer;
+	} else
+		return "---";
+}
+
+
 CProgress::CProgress()
 {
 	fTotalCount = 0;
@@ -1112,6 +1133,7 @@ void CProgress::Reset(C_Int64 count)
 		_hit = (C_Int64)(_start);
 		double percent = (double)fCounter / count;
 		time_t s; time(&s);
+		_start_time = s;
 		_timer.clear();
 		_timer.reserve(128);
 		_timer.push_back(pair<double, time_t>(percent, s));
@@ -1168,27 +1190,14 @@ void CProgress::ShowProgress()
 		p *= 100;
 
 		// show
+		_last_time = now;
 		if (fCounter >= fTotalCount)
 		{
-			Rprintf("\r[%s] 100%%, completed      \n", bar);
+			s = difftime(_last_time, _start_time);
+			Rprintf("\r[%s] 100%%, completed in %s\n", bar, time_str(s));
 		} else if ((interval >= 5) || (fCounter <= 0))
 		{
-			_last_time = now;
-			if (R_FINITE(s))
-			{
-				if (s < S_MIN)
-					Rprintf("\r[%s] %2.0f%%, ETC: %.0fs  ", bar, p, s);
-				else if (s < S_HOUR)
-					Rprintf("\r[%s] %2.0f%%, ETC: %.1fm  ", bar, p, s/S_MIN);
-				else if (s < S_DAY)
-					Rprintf("\r[%s] %2.0f%%, ETC: %.1fh  ", bar, p, s/S_HOUR);
-				else if (s < S_YEAR)
-					Rprintf("\r[%s] %2.0f%%, ETC: %.1fd  ", bar, p, s/S_DAY);
-				else
-					Rprintf("\r[%s] %2.0f%%, ETC: %.1f years  ", bar, p, s/S_YEAR);
-			} else {
-				Rprintf("\r[%s] %2.0f%%, ETC: ---    ", bar, p);
-			}
+			Rprintf("\r[%s] %2.0f%%, ETC: %s    ", bar, p, time_str(s));
 		}
 	}
 }

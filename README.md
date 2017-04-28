@@ -82,13 +82,6 @@ R CMD INSTALL SNPRelate_latest.tar.gz
 ```
 
 
-* Old version (<= v0.9.19) from [R-Forge](http://R-Forge.R-project.org) repository:
-```R
-install.packages("gdsfmt", repos="http://R-Forge.R-project.org")
-install.packages("SNPRelate", repos="http://R-Forge.R-project.org")
-```
-
-
 
 ## Implementation with Intel Intrinsics
 
