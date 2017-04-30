@@ -149,6 +149,11 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         stop("method should be one of ",
             "\"composite\", \"r\", \"dprime\" and \"corr\"")
     }
+    if (verbose)
+    {
+        cat("    method: ", c("composite", "R", "D'", "correlation")[method],
+            "\n", sep="")
+    }
 
     if (!inherits(gdsobj, "SeqVarGDSClass"))
     {
