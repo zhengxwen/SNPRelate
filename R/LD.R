@@ -73,14 +73,16 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
 
     if (verbose)
     {
-        cat("Linkage Disequilibrium (LD) analysis on genotypes:\n");
+        cat("Linkage Disequilibrium (LD) estimation on genotypes:\n");
         cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
         if (num.thread <= 1L)
-            cat("\tUsing", num.thread, "(CPU) core.\n")
+            cat("    using", num.thread, "(CPU) core.\n")
         else
-            cat("\tUsing", num.thread, "(CPU) cores.\n")
+            cat("    using", num.thread, "(CPU) cores.\n")
         if (slide > 0L)
-            cat("\tSliding window size:", slide, "\n")
+            cat("    sliding window size:", slide, "\n")
+        cat("    method: ", c("composite", "R", "D'", "correlation",
+            "covariance")[method], "\n", sep="")
     }
 
     # call C function
