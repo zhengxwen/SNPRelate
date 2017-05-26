@@ -1198,6 +1198,7 @@ void CProgress::ShowProgress()
 		} else if ((interval >= 5) || (fCounter <= 0))
 		{
 			Rprintf("\r[%s] %2.0f%%, ETC: %s    ", bar, p, time_str(s));
+			// fflush(stdout);
 		}
 	}
 }
@@ -1605,6 +1606,7 @@ void CdProgression::ShowProgress()
 				string s1(n, '>');
 				string s2(64-n, ' ');
 				Rprintf("\r%s%s", s1.c_str(), s2.c_str());
+				// fflush(stdout);
 				break;
 			}
 		}

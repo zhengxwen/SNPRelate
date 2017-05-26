@@ -321,12 +321,18 @@ int CThread::RunThreadSafe()
 	}
 	catch (exception &E) {
     	fErrorInfo = E.what(); fExitCode = -1;
+    	Rprintf("\n%s\n", E.what());
+    	throw;
 	}
 	catch (const char *E) {
 		fErrorInfo = E; fExitCode = -1;
+    	Rprintf("\n%s\n", E);
+    	throw;
 	}
 	catch (...) {
         fExitCode = -1;
+    	Rprintf("\nUnknown Error.\n");
+    	throw;
     }
 	return fExitCode;
 }
