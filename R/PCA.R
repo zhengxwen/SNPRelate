@@ -199,9 +199,8 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
     } else {
         if (isTRUE(pcaobj$diagadj))
         {
-            warning(
-    "Please run `snpgdsEIGMIX(, diagadj=FALSE)` for projecting new samples.",
-                immediate.=TRUE)
+            stop(
+    "Please run `snpgdsEIGMIX(, diagadj=FALSE)` for projecting new samples.")
         }
         # call C function
         mat <- .Call(gnrEigMixSNPLoading, pcaobj$eigenval, pcaobj$eigenvect,
