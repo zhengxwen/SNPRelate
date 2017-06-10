@@ -183,11 +183,9 @@
         }, error=function(e) FALSE)
         if (fnok)
         {
-            eval(parse(text="
-                SeqArray::seqResetFilter(gdsobj, verbose=FALSE)
-                SeqArray::seqSetFilter(gdsobj, sample.id=sample.id,
-                    variant.id=snp.id, verbose=FALSE)
-            "))
+            SeqArray::seqResetFilter(gdsobj, verbose=FALSE)
+            SeqArray::seqSetFilter(gdsobj, sample.id=sample.id,
+                variant.id=snp.id, verbose=FALSE)
             n <- .seldim(gdsobj)[2L]
             if (isTRUE(autosome.only))
             {
@@ -251,8 +249,8 @@
             sel <- SeqArray::seqGetFilter(gdsobj)
             .Call(gnrSetSeqSpace, gdsobj, sel$sample.sel, sel$variant.sel)
 
-            sampid <- eval(parse(text="SeqArray::seqGetData(gdsobj, 'sample.id')"))
-            snpid <- eval(parse(text="SeqArray::seqGetData(gdsobj, 'variant.id')"))
+            sampid <- SeqArray::seqGetData(gdsobj, "sample.id")
+            snpid <- SeqArray::seqGetData(gdsobj, "variant.id")
 
             return(list(sample.id = sampid, snp.id = snpid,
                 n.snp = dm[2L], n.samp = dm[1L], allele.freq = allele.freq,
