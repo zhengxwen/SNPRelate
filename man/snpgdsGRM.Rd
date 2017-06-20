@@ -54,7 +54,7 @@ diagadj=FALSE)$ibd`:
 G_{ij} = [sum_l (g_{il} - 2*p_l)*(g_{jl} - 2*p_l)] / [sum_l 2*p_l*(1 - p_l)]
 for individuals i,j and locus l;
 
-    "IndivBeta": it is the same as `2 * snpgdsIndivBeta(, with.id=FALSE)`.
+    "IndivBeta": it is the same as `2 * snpgdsIndivBeta(, inbreeding=FALSE)`.
 }
 \value{
     Return a list if \code{with.id = TRUE}:
