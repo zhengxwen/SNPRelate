@@ -89,18 +89,19 @@ R CMD INSTALL SNPRelate_latest.tar.gz
 
 | Function             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
 |:---------------------|:-------:|:----:|:---:|:----:|:-------:|
-| snpgdsDiss           | X |
-| snpgdsEIGMIX         | X | X | X |
-| snpgdsGRM            | X | X | X |
-| snpgdsIBDKING        | X | X |   | X |
-| snpgdsIBDMoM         | X |
-| snpgdsIBS            | X | X |
-| snpgdsIBSNum         | X | X |
-| snpgdsIndivBeta      | X | X | P | X |
-| snpgdsPCA            | X | X | X |
-| snpgdsPCACorr        | X |
-| snpgdsPCASampLoading | X |
-| snpgdsPCASNPLoading  | X |
+| snpgdsDiss [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsDiss.html)           | X |
+| snpgdsEIGMIX [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsEIGMIX.html)        | X | X | X |
+| snpgdsGRM [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsGRM.html)           | X | X | X |
+| snpgdsIBDKING [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBDKING.html)       | X | X |   | X |
+| snpgdsIBDMoM [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBDMoM.html)        | X |
+| snpgdsIBS [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBS.html)           | X | X |
+| snpgdsIBSNum [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBSNum.html)        | X | X |
+| snpgdsIndivBeta [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIndivBeta.html)     | X | X | P | X |
+| snpgdsPCA [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCA.html)           | X | X | X |
+| snpgdsPCACorr [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCACorr.html)       | X |
+| snpgdsPCASampLoading [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCASampLoading.html) | X |
+| snpgdsPCASNPLoading [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCASNPLoading.html) | X |
+| ... [»](http://zhengxwen.github.io/SNPRelate/release/help/00Index.html) |
 
 `X: fully supported;  .: partially supported;  P: POPCNT instruction.`
 
