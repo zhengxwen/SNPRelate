@@ -20,8 +20,9 @@ Eigen-analysis on SNP genotype data
 <pre>
 snpgdsEIGMIX(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1L,
-    eigen.cnt=32, need.ibdmat=FALSE, ibdmat.only=FALSE,
-    method=c("Coancestry", "GRM"), verbose=TRUE)
+    eigen.cnt=32L, diagadj=TRUE, ibdmat=FALSE, verbose=TRUE)
+## S3 method for class 'snpgdsEigMixClass'
+plot(x, eig=c(1L,2L), ...)
 </pre>
 
 
@@ -51,7 +52,7 @@ chromosome</p>
 </td></tr>
 <tr valign="top"><td><code>remove.monosnp</code></td>
 <td>
-<p>if TRUE, remove monomorphic SNPs</p>
+<p>if <code>TRUE</code>, remove monomorphic SNPs</p>
 </td></tr>
 <tr valign="top"><td><code>maf</code></td>
 <td>
@@ -69,26 +70,33 @@ the number of cores automatically</p>
 </td></tr>
 <tr valign="top"><td><code>eigen.cnt</code></td>
 <td>
-<p>output the number of eigenvectors; if eigen.cnt &lt;= 0, then
-return all eigenvectors</p>
+<p>output the number of eigenvectors; if <code>eigen.cnt &lt; 0</code>,
+returns all eigenvectors; if <code>eigen.cnt==0</code>, no eigen calculation</p>
 </td></tr>
-<tr valign="top"><td><code>need.ibdmat</code></td>
+<tr valign="top"><td><code>diagadj</code></td>
 <td>
-<p>if TRUE, return the IBD matrix</p>
+<p><code>TRUE</code> for diagonal adjustment by default</p>
 </td></tr>
-<tr valign="top"><td><code>ibdmat.only</code></td>
+<tr valign="top"><td><code>ibdmat</code></td>
 <td>
-<p>return the IBD matrix only, do not compute the
-eigenvalues and eigenvectors</p>
-</td></tr>
-<tr valign="top"><td><code>method</code></td>
-<td>
-<p>&quot;Coancestry&quot; &ndash; EIGMIX coancestry matrix (by default);
-&quot;GRM&quot; &ndash; genetic relationship matrix</p>
+<p>if <code>TRUE</code>, returns the IBD matrix</p>
 </td></tr>
 <tr valign="top"><td><code>verbose</code></td>
 <td>
-<p>if TRUE, show information</p>
+<p>if <code>TRUE</code>, show information</p>
+</td></tr>
+<tr valign="top"><td><code>x</code></td>
+<td>
+<p>a <code>snpgdsEigMixClass</code> object</p>
+</td></tr>
+<tr valign="top"><td><code>eig</code></td>
+<td>
+<p>indices of eigenvectors, like <code>1:2</code> or <code>1:4</code></p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>the arguments passed to or from other methods, like
+<code>pch</code>, <code>col</code></p>
 </td></tr>
 </table>
 
@@ -114,9 +122,17 @@ eigenvalues and eigenvectors</p>
 <td>
 <p>eigenvactors, &quot;# of samples&quot; x &quot;eigen.cnt&quot;</p>
 </td></tr>
-<tr valign="top"><td><code>ibdmat</code></td>
+<tr valign="top"><td><code>afreq</code></td>
 <td>
-<p>the IBD matrix</p>
+<p>allele frequencies</p>
+</td></tr>
+<tr valign="top"><td><code>ibd</code></td>
+<td>
+<p>the IBD matrix when <code>ibdmat=TRUE</code></p>
+</td></tr>
+<tr valign="top"><td><code>diagadj</code></td>
+<td>
+<p>the argument <code>diagadj</code></p>
 </td></tr>
 </table>
 
@@ -128,14 +144,18 @@ eigenvalues and eigenvectors</p>
 
 <h3>References</h3>
 
-<p>Zheng X, Weir BS. Eigenanalysis on SNP Data with an Interpretation of
-Identity by Descent. 2014. Submitted.
+<p>Zheng X, Weir BS.
+Eigenanalysis on SNP Data with an Interpretation of Identity by Descent.
+Theoretical Population Biology. 2016 Feb;107:65-76.
+doi: 10.1016/j.tpb.2015.09.004
 </p>
 
 
 <h3>See Also</h3>
 
-<p><code><a href="snpgdsEIGMIX.html">snpgdsEIGMIX</a></code>, <code><a href="snpgdsPCA.html">snpgdsPCA</a></code>
+<p><code><a href="snpgdsAdmixProp.html">snpgdsAdmixProp</a></code>, <code><a href="snpgdsAdmixPlot.html">snpgdsAdmixPlot</a></code>,
+<code><a href="snpgdsPCA.html">snpgdsPCA</a></code>, <code><a href="snpgdsPCASNPLoading.html">snpgdsPCASNPLoading</a></code>, 
+<code><a href="snpgdsPCASampLoading.html">snpgdsPCASampLoading</a></code> 
 </p>
 
 
@@ -189,18 +209,9 @@ abline(a=1, b=-1, col="gray25", lty=2)
 legend("topright", legend=levels(tab$pop), pch="o", col=1:4)
 
 
-
-# run eigen-analysis
-RV &lt;- snpgdsEIGMIX(genofile, sample.id=samp.id[pop_code=="JPT"])
-z &lt;- RV$ibdmat
-
-mean(c(z))
-mean(diag(z))
-
-
 # close the genotype file
 snpgdsClose(genofile)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.10.2 <a href="00Index.html">Index</a>]</div>
 </body></html>

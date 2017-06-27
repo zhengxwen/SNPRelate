@@ -1,27 +1,27 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Identity-By-State (IBS)</title>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Individual inbreeding and relatedness estimation (beta...</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" type="text/css" href="R.css" />
 </head><body>
 
-<table width="100%" summary="page for snpgdsIBSNum {SNPRelate}"><tr><td>snpgdsIBSNum {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+<table width="100%" summary="page for snpgdsIndivBeta {SNPRelate}"><tr><td>snpgdsIndivBeta {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
 
 <h2>
-Identity-By-State (IBS)
+Individual inbreeding and relatedness estimation (beta estimator)
 </h2>
 
 <h3>Description</h3>
 
-<p>Calculate the number of SNPs for identity by state for each pair of
-samples.
+<p>Calculate individual inbreeding and relatedness estimation (beta estimator)
+using SNP genotype data.
 </p>
 
 
 <h3>Usage</h3>
 
 <pre>
-snpgdsIBSNum(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
-    remove.monosnp = TRUE, maf = NaN, missing.rate = NaN, num.thread = 1L,
-    verbose = TRUE)
+snpgdsIndivBeta(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, method=c("weighted"),
+    inbreeding=TRUE, num.thread=1L, with.id=TRUE, verbose=TRUE)
 </pre>
 
 
@@ -62,28 +62,35 @@ chromosome</p>
 <p>to use the SNPs with &quot;&lt;= missing.rate&quot; only; if NaN,
 no missing threshold</p>
 </td></tr>
+<tr valign="top"><td><code>method</code></td>
+<td>
+<p>&quot;weighted&quot; estimator</p>
+</td></tr>
+<tr valign="top"><td><code>inbreeding</code></td>
+<td>
+<p><code>TRUE</code>, the diagonal is a vector of inbreeding
+coefficients; otherwise, individual variance estimates</p>
+</td></tr>
 <tr valign="top"><td><code>num.thread</code></td>
 <td>
 <p>the number of (CPU) cores used; if <code>NA</code>, detect
 the number of cores automatically</p>
 </td></tr>
+<tr valign="top"><td><code>with.id</code></td>
+<td>
+<p>if <code>TRUE</code>, the returned value with <code>sample.id</code>
+and <code>sample.id</code></p>
+</td></tr>
 <tr valign="top"><td><code>verbose</code></td>
 <td>
-<p>if TRUE, show information</p>
+<p>if <code>TRUE</code>, show information</p>
 </td></tr>
 </table>
 
 
-<h3>Details</h3>
-
-<p>The minor allele frequency and missing rate for each SNP passed in
-<code>snp.id</code> are calculated over all the samples in <code>sample.id</code>.
-</p>
-
-
 <h3>Value</h3>
 
-<p>Return a list (n is the number of samples):
+<p>Return a list if <code>with.id = TRUE</code>:
 </p>
 <table summary="R valueblock">
 <tr valign="top"><td><code>sample.id</code></td>
@@ -94,19 +101,15 @@ the number of cores automatically</p>
 <td>
 <p>the SNP ids used in the analysis</p>
 </td></tr>
-<tr valign="top"><td><code>ibs0</code></td>
+<tr valign="top"><td><code>beta</code></td>
 <td>
-<p>a n-by-n matrix, the number of SNPs sharing 0 IBS</p>
-</td></tr>
-<tr valign="top"><td><code>ibs1</code></td>
-<td>
-<p>a n-by-n matrix, the number of SNPs sharing 1 IBS</p>
-</td></tr>
-<tr valign="top"><td><code>ibs2</code></td>
-<td>
-<p>a n-by-n matrix, the number of SNPs sharing 2 IBS</p>
+<p>the genetic relationship matrix; different methods might
+have different meanings and interpretation for estimates</p>
 </td></tr>
 </table>
+<p>If <code>with.id = FALSE</code>, this function returns the genetic relationship
+matrix without sample and SNP IDs.
+</p>
 
 
 <h3>Author(s)</h3>
@@ -114,24 +117,34 @@ the number of cores automatically</p>
 <p>Xiuwen Zheng</p>
 
 
+<h3>References</h3>
+
+<p>Weir BS, Zheng X.
+SNPs and SNVs in Forensic Science.
+Forensic Science International: Genetics Supplement Series. 2015.
+doi:10.1016/j.fsigss.2015.09.106
+</p>
+
+
 <h3>See Also</h3>
 
-<p><code><a href="snpgdsIBS.html">snpgdsIBS</a></code>
+<p><code><a href="snpgdsGRM.html">snpgdsGRM</a></code>, <code><a href="snpgdsIndInb.html">snpgdsIndInb</a></code>,
+<code><a href="snpgdsFst.html">snpgdsFst</a></code>
 </p>
 
 
 <h3>Examples</h3>
 
 <pre>
+library(SNPRelate)
 # open an example dataset (HapMap)
 genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
 
-RV &lt;- snpgdsIBSNum(genofile)
-pop &lt;- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
-L &lt;- order(pop)
-image(RV$ibs0[L, L]/length(RV$snp.id))
+beta &lt;- snpgdsIndivBeta(genofile, with.id=FALSE)
+beta[1:10, 1:10]
 
-# close the genotype file
+
+# close the file
 snpgdsClose(genofile)
 </pre>
 

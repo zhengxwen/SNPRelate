@@ -19,10 +19,15 @@ analysis in GWAS.
 <h3>Usage</h3>
 
 <pre>
-snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
-    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, eigen.cnt=32,
-    num.thread=1L, bayesian=FALSE, need.genmat=FALSE, genmat.only=FALSE,
-    eigen.method=c("DSPEVX", "DSPEV"), verbose = TRUE)
+snpgdsPCA(gdsobj, sample.id=NULL, snp.id=NULL,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    algorithm=c("exact", "randomized"),
+    eigen.cnt=ifelse(identical(algorithm, "randomized"), 16L, 32L),
+    num.thread=1L, bayesian=FALSE, need.genmat=FALSE,
+    genmat.only=FALSE, eigen.method=c("DSPEVX", "DSPEV"),
+    aux.dim=eigen.cnt*2L, iter.num=10L, verbose=TRUE)
+## S3 method for class 'snpgdsPCAClass'
+plot(x, eig=c(1L,2L), ...)
 </pre>
 
 
@@ -68,6 +73,11 @@ no missing threshold</p>
 <p>output the number of eigenvectors; if eigen.cnt &lt;= 0, then
 return all eigenvectors</p>
 </td></tr>
+<tr valign="top"><td><code>algorithm</code></td>
+<td>
+<p>&quot;exact&quot;, traditional exact calculation; &quot;randomized&quot;,
+fast PCA with randomized algorithm introduced in Galinsky et al. 2016</p>
+</td></tr>
 <tr valign="top"><td><code>num.thread</code></td>
 <td>
 <p>the number of (CPU) cores used; if <code>NA</code>, detect
@@ -94,9 +104,30 @@ compatible with SNPRelate_1.1.6 or earlier, using LAPACK::DSPEV;
 &quot;DSPEVX&quot; is significantly faster than &quot;DSPEV&quot; if only top principal
 components are of interest</p>
 </td></tr>
+<tr valign="top"><td><code>aux.dim</code></td>
+<td>
+<p>auxiliary dimension used in fast randomized algorithm</p>
+</td></tr>
+<tr valign="top"><td><code>iter.num</code></td>
+<td>
+<p>iteration number used in fast randomized algorithm</p>
+</td></tr>
 <tr valign="top"><td><code>verbose</code></td>
 <td>
 <p>if TRUE, show information</p>
+</td></tr>
+<tr valign="top"><td><code>x</code></td>
+<td>
+<p>a <code>snpgdsPCAClass</code> object</p>
+</td></tr>
+<tr valign="top"><td><code>eig</code></td>
+<td>
+<p>indices of eigenvectors, like <code>1:2</code> or <code>1:4</code></p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>the arguments passed to or from other methods, like
+<code>pch</code>, <code>col</code></p>
 </td></tr>
 </table>
 
@@ -155,15 +186,21 @@ components are of interest</p>
 
 <h3>References</h3>
 
-<p>Patterson, N., Price, A. L. &amp; Reich, D.
-Population structure and eigenanalysis. PLoS Genet. 2, e190 (2006).
+<p>Patterson N, Price AL, Reich D. Population structure and eigenanalysis.
+PLoS Genet. 2006 Dec;2(12):e190.
+</p>
+<p>Galinsky KJ, Bhatia G, Loh PR, Georgiev S, Mukherjee S, Patterson NJ,
+Price AL. Fast Principal-Component Analysis Reveals Convergent Evolution of
+ADH1B in Europe and East Asia. Am J Hum Genet. 2016 Mar 3;98(3):456-72.
+doi: 10.1016/j.ajhg.2015.12.022. Epub 2016 Feb 25.
 </p>
 
 
 <h3>See Also</h3>
 
-<p><code><a href="snpgdsPCACorr.html">snpgdsPCACorr</a></code>, <code><a href="snpgdsPCASampLoading.html">snpgdsPCASampLoading</a></code>,
-<code><a href="snpgdsPCASNPLoading.html">snpgdsPCASNPLoading</a></code>
+<p><code><a href="snpgdsPCACorr.html">snpgdsPCACorr</a></code>, <code><a href="snpgdsPCASNPLoading.html">snpgdsPCASNPLoading</a></code>,
+<code><a href="snpgdsPCASampLoading.html">snpgdsPCASampLoading</a></code>, <code><a href="snpgdsAdmixProp.html">snpgdsAdmixProp</a></code>,
+<code><a href="snpgdsEIGMIX.html">snpgdsEIGMIX</a></code>
 </p>
 
 
@@ -182,6 +219,10 @@ head(RV$eigenval)
 # variance proportion (%)
 head(round(RV$varprop*100, 2))
 # [1] 12.23  5.84  1.01  0.95  0.84  0.74
+
+
+plot(RV)
+plot(RV, 1:4)
 
 
 ####  there is no population information  ####
@@ -250,5 +291,5 @@ legend("bottomright", legend=levels(tab$pop), pch="o", col=1:4)
 snpgdsClose(genofile)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.10.2 <a href="00Index.html">Index</a>]</div>
 </body></html>

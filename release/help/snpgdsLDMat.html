@@ -18,8 +18,9 @@ Linkage Disequilibrium (LD) analysis
 <h3>Usage</h3>
 
 <pre>
-snpgdsLDMat(gdsobj, sample.id=NULL, snp.id=NULL, slide=250,
-    method=c("composite", "r", "dprime", "corr"), num.thread=1, verbose=TRUE)
+snpgdsLDMat(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
+    method=c("composite", "r", "dprime", "corr", "cov"), mat.trim=FALSE,
+    num.thread=1L, with.id=TRUE, verbose=TRUE)
 </pre>
 
 
@@ -47,12 +48,22 @@ if NULL, all SNPs are used</p>
 </td></tr>
 <tr valign="top"><td><code>method</code></td>
 <td>
-<p>&quot;composite&quot;, &quot;r&quot;, &quot;dprime&quot;, &quot;corr&quot;, see details</p>
+<p>&quot;composite&quot;, &quot;r&quot;, &quot;dprime&quot;, &quot;corr&quot;, &quot;cov&quot;, see details</p>
+</td></tr>
+<tr valign="top"><td><code>mat.trim</code></td>
+<td>
+<p>if <code>TRUE</code>, trim the matrix when <code>slide &gt; 0</code>:
+the function returns a <code>"num_slide x (n_snp - slide)"</code> matrix</p>
 </td></tr>
 <tr valign="top"><td><code>num.thread</code></td>
 <td>
 <p>the number of (CPU) cores used; if <code>NA</code>, detect
 the number of cores automatically</p>
+</td></tr>
+<tr valign="top"><td><code>with.id</code></td>
+<td>
+<p>if <code>TRUE</code>, the returned value with <code>sample.id</code> and
+<code>sample.id</code></p>
 </td></tr>
 <tr valign="top"><td><code>verbose</code></td>
 <td>
@@ -69,11 +80,10 @@ assuming HWE, it could be negative), &quot;dprime&quot; for D', and &quot;corr&q
 correlation coefficient. The method &quot;corr&quot; is equivalent to &quot;composite&quot;,
 when SNP genotypes are coded as: 0 &ndash; BB, 1 &ndash; AB, 2 &ndash; AA.
 </p>
-<p>if <code>slide</code> &lt;= 0, output a n-by-n LD matrix; otherwise, output a
-m-by-n LD matrix, where n is the total number of SNPs, m is the size of
-sliding window.
-For n-by-n matrix, the value of i row and j column is LD of i and j SNPs.
-For m-by-n matrix, the value of i row and j column is LD of j and j+i SNPs.
+<p>If <code>slide &lt;= 0</code>, the function returns a n-by-n LD matrix where the
+value of i row and j column is LD of i and j SNPs. If <code>slide &gt; 0</code>, it
+returns a m-by-n LD matrix where n is the number of SNPs, m is the size of
+sliding window, and the value of i row and j column is LD of j and j+i SNPs.
 </p>
 
 
@@ -152,5 +162,5 @@ image(t(ld.slide$LD^2), col=terrain.colors(16))
 snpgdsClose(genofile)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.10.2 <a href="00Index.html">Index</a>]</div>
 </body></html>

@@ -18,8 +18,8 @@ To get a genotype matrix
 <h3>Usage</h3>
 
 <pre>
-snpgdsGetGeno(gdsobj, sample.id=NULL, snp.id=NULL, snpfirstdim=NULL,
-    verbose=TRUE)
+snpgdsGetGeno(gdsobj, sample.id=NULL, snp.id=NULL, snpfirstdim=NA,
+    .snpread=NA, with.id=FALSE, verbose=TRUE)
 </pre>
 
 
@@ -45,8 +45,16 @@ if NULL, all SNPs are used</p>
 <td>
 <p>if <code>TRUE</code>, genotypes are stored in the
 individual-major mode, (i.e, list all SNPs for the first individual,
-and then list all SNPs for the second individual, etc); if <code>NULL</code>,
-determine automatically</p>
+and then list all SNPs for the second individual, etc); <code>FALSE</code>
+for snp-major mode; if <code>NA</code>, determine automatically</p>
+</td></tr>
+<tr valign="top"><td><code>.snpread</code></td>
+<td>
+<p>internal use</p>
+</td></tr>
+<tr valign="top"><td><code>with.id</code></td>
+<td>
+<p>if <code>TRUE</code>, return <code>sample.id</code> and <code>snp.id</code></p>
 </td></tr>
 <tr valign="top"><td><code>verbose</code></td>
 <td>
@@ -57,8 +65,13 @@ determine automatically</p>
 
 <h3>Value</h3>
 
-<p>Return an integer matrix with values 0, 1, 2 or NA representing the
-number of reference allele.
+<p>The function returns an integer matrix with values 0, 1, 2 or NA
+representing the number of reference allele when <code>with.id=FALSE</code>;
+or <code>list(genotype, sample.id, snp.id)</code> when <code>with.id=TRUE</code>. The
+orders of sample and SNP IDs in the genotype matrix are actually consistent
+with <code>sample.id</code> and <code>snp.id</code> in the GDS file, which may not be
+as the same as the arguments <code>sampel.id</code> and <code>snp.id</code> specified
+by users.
 </p>
 
 
@@ -86,9 +99,12 @@ dim(mat2)
 # 279 1000
 table(c(mat2), exclude=NULL)
 
+identical(t(mat1), mat2)
+# TRUE
+
 # close the file
 snpgdsClose(genofile)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.10.2 <a href="00Index.html">Index</a>]</div>
 </body></html>

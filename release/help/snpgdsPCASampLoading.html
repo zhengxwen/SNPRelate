@@ -28,7 +28,8 @@ snpgdsPCASampLoading(loadobj, gdsobj, sample.id=NULL, num.thread=1L,
 <table summary="R argblock">
 <tr valign="top"><td><code>loadobj</code></td>
 <td>
-<p>the <code>snpgdsPCASNPLoadingClass</code> object, returned from
+<p>a <code>snpgdsPCASNPLoadingClass</code> or
+<code>snpgdsEigMixSNPLoadingClass</code> object returned from
 <a href="snpgdsPCASNPLoading.html">snpgdsPCASNPLoading</a></p>
 </td></tr>
 <tr valign="top"><td><code>gdsobj</code></td>
@@ -61,7 +62,7 @@ calculation of SNP loadings.
 
 <h3>Value</h3>
 
-<p>Return a <code>snpgdsPCAClass</code> object, and it is a list:
+<p>Returns a <code>snpgdsPCAClass</code> object, and it is a list:
 </p>
 <table summary="R valueblock">
 <tr valign="top"><td><code>sample.id</code></td>
@@ -87,6 +88,30 @@ calculation of SNP loadings.
 <tr valign="top"><td><code>Bayesian</code></td>
 <td>
 <p>whether use bayerisan normalization</p>
+</td></tr>
+</table>
+<p>Or returns a <code>snpgdsEigMixClass</code> object, and it is a list:
+</p>
+<table summary="R valueblock">
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>the sample ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>the SNP ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>eigenval</code></td>
+<td>
+<p>eigenvalues</p>
+</td></tr>
+<tr valign="top"><td><code>eigenvect</code></td>
+<td>
+<p>eigenvactors, &ldquo;# of samples&rdquo; x &ldquo;eigen.cnt&rdquo;</p>
+</td></tr>
+<tr valign="top"><td><code>afreq</code></td>
+<td>
+<p>allele frequencies</p>
 </td></tr>
 </table>
 
@@ -136,5 +161,5 @@ summary(c(diff))
 snpgdsClose(genofile)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.10.2 <a href="00Index.html">Index</a>]</div>
 </body></html>

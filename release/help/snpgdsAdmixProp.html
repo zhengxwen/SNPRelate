@@ -87,14 +87,17 @@ component &lt; 0 or &gt; 1, and the sum of proportions is one</p>
 
 <h3>References</h3>
 
-<p>Zheng X, Weir BS. Eigenanalysis on SNP Data with an Interpretation of
-Identity by Descent. 2014. Submitted.
+<p>Zheng X, Weir BS.
+Eigenanalysis on SNP Data with an Interpretation of Identity by Descent.
+Theoretical Population Biology. 2015 Oct 23. pii: S0040-5809(15)00089-1.
+doi: 10.1016/j.tpb.2015.09.004. [Epub ahead of print]
 </p>
 
 
 <h3>See Also</h3>
 
-<p><code><a href="snpgdsEIGMIX.html">snpgdsEIGMIX</a></code>, <code><a href="snpgdsPCA.html">snpgdsPCA</a></code>
+<p><code><a href="snpgdsEIGMIX.html">snpgdsEIGMIX</a></code>, <code><a href="snpgdsPCA.html">snpgdsPCA</a></code>,
+<code><a href="snpgdsAdmixPlot.html">snpgdsAdmixPlot</a></code>
 </p>
 
 
@@ -148,18 +151,13 @@ abline(a=1, b=-1, col="gray25", lty=2)
 legend("topright", legend=levels(tab$pop), pch="o", col=1:4)
 
 
-
-# run eigen-analysis
-RV &lt;- snpgdsEIGMIX(genofile, sample.id=samp.id[pop_code=="JPT"])
-z &lt;- RV$ibdmat
-
-mean(c(z))
-mean(diag(z))
+# draw
+snpgdsAdmixPlot(prop, group=pop_code)
 
 
 # close the genotype file
 snpgdsClose(genofile)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.10.2 <a href="00Index.html">Index</a>]</div>
 </body></html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Plot Ancestry Proportions</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for snpgdsAdmixPlot {SNPRelate}"><tr><td>snpgdsAdmixPlot {SNPRelate}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>
+Plot Ancestry Proportions
+</h2>
+
+<h3>Description</h3>
+
+<p>Plot the admixture proportions according to their ancestries.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+snpgdsAdmixPlot(propmat, group=NULL, col=NULL, multiplot=TRUE, showgrp=TRUE,
+    shownum=TRUE, ylim=TRUE, na.rm=TRUE)
+snpgdsAdmixTable(propmat, group, sort=FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>propmat</code></td>
+<td>
+<p>a sample-by-ancestry matrix of proportion estimates,
+returned from <code><a href="snpgdsAdmixProp.html">snpgdsAdmixProp</a>()</code></p>
+</td></tr>
+<tr valign="top"><td><code>group</code></td>
+<td>
+<p>a character vector of a factor according to the samples
+in <code>propmat</code></p>
+</td></tr>
+<tr valign="top"><td><code>col</code></td>
+<td>
+<p>specify colors</p>
+</td></tr>
+<tr valign="top"><td><code>multiplot</code></td>
+<td>
+<p>single plot or multiple plots</p>
+</td></tr>
+<tr valign="top"><td><code>showgrp</code></td>
+<td>
+<p>show group names in the plot</p>
+</td></tr>
+<tr valign="top"><td><code>shownum</code></td>
+<td>
+<p><code>TRUE</code>: show the number of each group in the figure</p>
+</td></tr>
+<tr valign="top"><td><code>ylim</code></td>
+<td>
+<p><code>TRUE</code>: y-axis is limited to [0, 1];
+<code>FALSE</code>: <code>ylim &lt;- range(propmat)</code>;
+a 2-length numeric vector: <code>ylim</code> used in <code>plot()</code></p>
+</td></tr>
+<tr valign="top"><td><code>na.rm</code></td>
+<td>
+<p><code>TRUE</code>: remove the sample(s) according to the
+missing value(s) in <code>group</code></p>
+</td></tr>
+<tr valign="top"><td><code>sort</code></td>
+<td>
+<p><code>TRUE</code>: rearranges the rows of proportion matrices
+into descending order</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>The minor allele frequency and missing rate for each SNP passed in
+<code>snp.id</code> are calculated over all the samples in <code>sample.id</code>.
+</p>
+
+
+<h3>Value</h3>
+
+<p><code>snpgdsAdmixPlot()</code>: none.
+</p>
+<p><code>snpgdsAdmixTable()</code>: a list of <code>data.frame</code> consisting of
+<code>group, num, mean, sd, min, max</code>
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Xiuwen Zheng</p>
+
+
+<h3>References</h3>
+
+<p>Zheng X, Weir BS.
+Eigenanalysis on SNP Data with an Interpretation of Identity by Descent.
+Theoretical Population Biology. 2015 Oct 23. pii: S0040-5809(15)00089-1.
+doi: 10.1016/j.tpb.2015.09.004.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="snpgdsEIGMIX.html">snpgdsEIGMIX</a></code>, <code><a href="snpgdsAdmixProp.html">snpgdsAdmixProp</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+# open an example dataset (HapMap)
+genofile &lt;- snpgdsOpen(snpgdsExampleFileName())
+
+# get population information
+#   or pop_code &lt;- scan("pop.txt", what=character())
+#   if it is stored in a text file "pop.txt"
+pop_code &lt;- read.gdsn(index.gdsn(genofile, "sample.annot/pop.group"))
+
+# get sample id
+samp.id &lt;- read.gdsn(index.gdsn(genofile, "sample.id"))
+
+# run eigen-analysis
+RV &lt;- snpgdsEIGMIX(genofile)
+
+# define groups
+groups &lt;- list(CEU = samp.id[pop_code == "CEU"],
+    YRI = samp.id[pop_code == "YRI"],
+    CHB = samp.id[is.element(pop_code, c("HCB", "JPT"))])
+
+prop &lt;- snpgdsAdmixProp(RV, groups=groups)
+
+# draw
+snpgdsAdmixPlot(prop, group=pop_code)
+
+# close the genotype file
+snpgdsClose(genofile)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.10.2 <a href="00Index.html">Index</a>]</div>
+</body></html>

@@ -27,8 +27,9 @@ snpgdsPCASNPLoading(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
 <table summary="R argblock">
 <tr valign="top"><td><code>pcaobj</code></td>
 <td>
-<p>the snpgdsPCAClass object returned from the function
-<a href="snpgdsPCA.html">snpgdsPCA</a></p>
+<p>a <code>snpgdsPCAClass</code> object returned from the function
+<a href="snpgdsPCA.html">snpgdsPCA</a> or a <code>snpgdsEigMixClass</code> from
+<a href="snpgdsEIGMIX.html">snpgdsEIGMIX</a></p>
 </td></tr>
 <tr valign="top"><td><code>gdsobj</code></td>
 <td>
@@ -56,7 +57,8 @@ component analysis conducted in <code>snpgdsPCA</code>.
 
 <h3>Value</h3>
 
-<p>Return a <code>snpgdsPCASNPLoading</code> object, which is a list:
+<p>Returns a <code>snpgdsPCASNPLoading</code> object if <code>pcaobj</code> is
+<code>snpgdsPCAClass</code>, which is a list:
 </p>
 <table summary="R valueblock">
 <tr valign="top"><td><code>sample.id</code></td>
@@ -73,7 +75,7 @@ component analysis conducted in <code>snpgdsPCA</code>.
 </td></tr>
 <tr valign="top"><td><code>snploading</code></td>
 <td>
-<p>the SNP loadings, or SNP eigenvectors</p>
+<p>SNP loadings, or SNP eigenvectors</p>
 </td></tr>
 <tr valign="top"><td><code>TraceXTX</code></td>
 <td>
@@ -83,13 +85,38 @@ component analysis conducted in <code>snpgdsPCA</code>.
 <td>
 <p>whether use bayerisan normalization</p>
 </td></tr>
-<tr valign="top"><td><code>avefreq</code></td>
+<tr valign="top"><td><code>avgfreq</code></td>
 <td>
-<p>the allele frequency used in <code>snpgdsPCA</code></p>
+<p>two times allele frequency used in <code>snpgdsPCA</code></p>
 </td></tr>
 <tr valign="top"><td><code>scale</code></td>
 <td>
 <p>internal parameter</p>
+</td></tr>
+</table>
+<p>Or returns a <code>snpgdsEigMixSNPLoadingClass</code> object if <code>pcaobj</code> is
+<code>snpgdsEigMixClass</code>, which is a list:
+</p>
+<table summary="R valueblock">
+<tr valign="top"><td><code>sample.id</code></td>
+<td>
+<p>the sample ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>snp.id</code></td>
+<td>
+<p>the SNP ids used in the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>eigenval</code></td>
+<td>
+<p>eigenvalues</p>
+</td></tr>
+<tr valign="top"><td><code>snploading</code></td>
+<td>
+<p>SNP loadings, or SNP eigenvectors</p>
+</td></tr>
+<tr valign="top"><td><code>afreq</code></td>
+<td>
+<p>allele frequency</p>
 </td></tr>
 </table>
 
@@ -116,8 +143,8 @@ correcting for stratification. Am J Hum Genet, 82(2), 352-365.
 
 <h3>See Also</h3>
 
-<p><code><a href="snpgdsPCA.html">snpgdsPCA</a></code>, <code><a href="snpgdsPCASampLoading.html">snpgdsPCASampLoading</a></code>,
-<code><a href="snpgdsPCACorr.html">snpgdsPCACorr</a></code>
+<p><code><a href="snpgdsPCA.html">snpgdsPCA</a></code>, <code><a href="snpgdsEIGMIX.html">snpgdsEIGMIX</a></code>,
+<code><a href="snpgdsPCASampLoading.html">snpgdsPCASampLoading</a></code>, <code><a href="snpgdsPCACorr.html">snpgdsPCACorr</a></code>
 </p>
 
 
@@ -132,7 +159,7 @@ SnpLoad &lt;- snpgdsPCASNPLoading(PCARV, genofile)
 
 names(SnpLoad)
 # [1] "sample.id"  "snp.id"     "eigenval"   "snploading" "TraceXTX"
-# [6] "Bayesian"   "avefreq"    "scale"
+# [6] "Bayesian"   "avgfreq"    "scale"
 dim(SnpLoad$snploading)
 # [1]     8 8722
 
@@ -142,5 +169,5 @@ plot(SnpLoad$snploading[1,], type="h", ylab="PC 1")
 snpgdsClose(genofile)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.10.2 <a href="00Index.html">Index</a>]</div>
 </body></html>

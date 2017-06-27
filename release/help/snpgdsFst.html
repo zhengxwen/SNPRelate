@@ -19,7 +19,7 @@ indices) for given populations
 <h3>Usage</h3>
 
 <pre>
-snpgdsFst(gdsobj, population, method=c("W&amp;H02", "W&amp;C84"), sample.id=NULL,
+snpgdsFst(gdsobj, population, method=c("W&amp;C84", "W&amp;H02"), sample.id=NULL,
     snp.id=NULL, autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN,
     missing.rate=NaN, with.id=FALSE, verbose=TRUE)
 </pre>
@@ -40,8 +40,9 @@ individual</p>
 </td></tr>
 <tr valign="top"><td><code>method</code></td>
 <td>
-<p><code>"W&amp;H02"</code> &ndash; relative beta estimator in Weir&amp;Hill 2002,
-<code>"W&amp;C84"</code> &ndash; Fst estimator in Weir&amp;Cockerham 1984</p>
+<p><code>"W&amp;C84"</code> &ndash; Fst estimator in Weir &amp; Cockerham 1984
+(by default), <code>"W&amp;H02"</code> &ndash; relative beta estimator in
+Weir &amp; Hill 2002, see details</p>
 </td></tr>
 <tr valign="top"><td><code>sample.id</code></td>
 <td>
@@ -89,6 +90,9 @@ if NaN, no missing threshold</p>
 <p>The minor allele frequency and missing rate for each SNP passed in
 <code>snp.id</code> are calculated over all the samples in <code>sample.id</code>.
 </p>
+<p>The <code>"W&amp;H02"</code> option implements the calculation in Buckleton et. al.
+2016.
+</p>
 
 
 <h3>Value</h3>
@@ -106,7 +110,15 @@ if NaN, no missing threshold</p>
 </td></tr>
 <tr valign="top"><td><code>Fst</code></td>
 <td>
-<p>Fst estimator</p>
+<p>weighted Fst estimate</p>
+</td></tr>
+<tr valign="top"><td><code>MeanFst</code></td>
+<td>
+<p>the average of Fst estimates across SNPs</p>
+</td></tr>
+<tr valign="top"><td><code>FstSNP</code></td>
+<td>
+<p>a vector of Fst for each SNP</p>
 </td></tr>
 <tr valign="top"><td><code>Beta</code></td>
 <td>
@@ -122,11 +134,16 @@ if NaN, no missing threshold</p>
 
 <h3>References</h3>
 
-<p>Weir, B. S. &amp; Cockerham, C. C.
+<p>Weir, BS. &amp; Cockerham, CC.
 Estimating F-statistics for the analysis of population structure. (1984).
 </p>
-<p>Weir, B. S. &amp; Hill, W. G. Estimating F-statistics.
+<p>Weir, BS. &amp; Hill, WG. Estimating F-statistics.
 Annual review of genetics 36, 721-50 (2002).
+</p>
+<p>Population-specific FST values for forensic STR markers: A worldwide survey.
+Buckleton J, Curran J, Goudet J, Taylor D, Thiery A, Weir BS.
+Forensic Sci Int Genet. 2016 Jul;23:91-100.
+doi: 10.1016/j.fsigen.2016.03.004.
 </p>
 
 
@@ -140,15 +157,21 @@ group &lt;- as.factor(read.gdsn(index.gdsn(
     genofile, "sample.annot/pop.group")))
 
 # Fst estimation
-snpgdsFst(genofile, population=group, method="W&amp;H02")
+v &lt;- snpgdsFst(genofile, population=group, method="W&amp;C84")
+v$Fst
+v$MeanFst
+summary(v$FstSNP)
 
 # or
-snpgdsFst(genofile, population=group, method="W&amp;C84")
-
+v &lt;- snpgdsFst(genofile, population=group, method="W&amp;H02")
+v$Fst
+v$MeanFst
+v$Beta
+summary(v$FstSNP)
 
 # close the genotype file
 snpgdsClose(genofile)
 </pre>
 
-<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.2.0 <a href="00Index.html">Index</a>]</div>
+<hr /><div style="text-align: center;">[Package <em>SNPRelate</em> version 1.10.2 <a href="00Index.html">Index</a>]</div>
 </body></html>
