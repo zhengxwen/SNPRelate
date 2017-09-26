@@ -8,7 +8,7 @@
 per SNP.
 }
 \usage{
-snpgdsSNPRateFreq(gdsobj, sample.id=NULL, snp.id=NULL, with.id=FALSE)
+snpgdsSNPRateFreq(gdsobj, sample.id=NULL, snp.id=NULL, with.id=FALSE, with.sample.id=FALSE, with.snp.id=FALSE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -18,14 +18,16 @@ snpgdsSNPRateFreq(gdsobj, sample.id=NULL, snp.id=NULL, with.id=FALSE)
     \item{snp.id}{a vector of snp id specifying selected SNPs;
         if \code{NULL}, all SNPs will be used}
     \item{with.id}{if \code{TRUE}, return sample and SNP IDs}
+    \item{with.snp.id}{if \code{TRUE}, return only SNP IDs}
+    \item{with.sample.id}{if \code{TRUE}, return only sample IDs}
 }
 \value{
     Return a list:
     \item{AlleleFreq}{allele frequencies}
     \item{MinorFreq}{minor allele frequencies}
     \item{MissingRate}{missing rates}
-    \item{sample.id}{sample id, if \code{with.id=TRUE}}
-    \item{snp.id}{SNP id, if \code{with.id=TRUE}}
+    \item{sample.id}{sample id, if \code{with.id=TRUE} or \code{with.sample.id=TRUE}}
+    \item{snp.id}{SNP id, if \code{with.id=TRUE} or \code{with.snp.id=TRUE}}
 }
 \author{Xiuwen Zheng}
 \seealso{
