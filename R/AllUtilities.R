@@ -177,35 +177,37 @@ snpgdsClose <- function(gdsobj)
 #
 
 snpgdsSNPRateFreq <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    with.id=FALSE, with.snp.id=FALSE, with.sample.id=FALSE)
+    with.id=FALSE, with.sample.id=FALSE, with.snp.id=FALSE)
 {
     # check
     ws <- .InitFile(gdsobj, sample.id=sample.id, snp.id=snp.id)
-    stopifnot(is.logical(with.id))
-    stopifnot(is.logical(with.snp.id))
-    stopifnot(is.logical(with.sample.id))
-
-    # call allele freq. and missing rates
-    rv <- .Call(gnrSNPRateFreq)
-    names(rv) <- c("AlleleFreq", "MinorFreq", "MissingRate")
-
-    if (with.id)
+    stopifnot(is.logical(with.id), length(with.id)==1L)
+    stopifnot(is.logical(with.sample.id), length(with.sample.id)==1L)
+    stopifnot(is.logical(with.snp.id), length(with.snp.id)==1L)
+    if (isTRUE(with.id))
     {
         with.snp.id <- TRUE
         with.sample.id <- TRUE
     }
-    if (with.sample.id)
+
+    rv <- list()
+    if (isTRUE(with.sample.id))
     {
         rv$sample.id <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
         if (!is.null(ws$samp.flag))
             rv$sample.id <- rv$sample.id[ws$samp.flag]
     }
-    if (with.snp.id)
+    if (isTRUE(with.snp.id))
     {
         rv$snp.id <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
         if (!is.null(ws$snp.flag))
             rv$snp.id <- rv$snp.id[ws$snp.flag]
     }
+
+    # call allele freq. and missing rates
+    v <- .Call(gnrSNPRateFreq)
+    names(v) <- c("AlleleFreq", "MinorFreq", "MissingRate")
+    rv <- c(rv, v)
 
     rv
 }

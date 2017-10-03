@@ -3,6 +3,8 @@ CHANGES IN VERSION 1.11.0-1.11.2
 
     o the version number was bumped for the Bioconductor release version 3.5
 
+    o new arguments 'with.sample.id' and 'with.snp.id' in `snpgdsSNPRateFreq()`
+
 
 CHANGES IN VERSION 1.10.2
 -------------------------

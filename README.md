@@ -101,7 +101,7 @@ R CMD INSTALL SNPRelate_latest.tar.gz
 | snpgdsPCACorr [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCACorr.html)       | X |
 | snpgdsPCASampLoading [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCASampLoading.html) | X |
 | snpgdsPCASNPLoading [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCASNPLoading.html) | X |
-| ... [»](http://zhengxwen.github.io/SNPRelate/release/help/00Index.html) |
+| [...](http://zhengxwen.github.io/SNPRelate/release/help/00Index.html) |
 
 `X: fully supported;  .: partially supported;  P: POPCNT instruction.`
 
@@ -117,3 +117,8 @@ CFLAGS=-g -O2 -march=native -mtune=native
 ## for C++ code
 CXXFLAGS=-g -O2 -march=native -mtune=native
 ```
+
+
+## Implementation with OpenCL
+
+In progress ...
