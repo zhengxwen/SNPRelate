@@ -1,7 +1,11 @@
-CHANGES IN VERSION 1.11.0-1.11.2
+CHANGES IN VERSION 1.12.1
 -------------------------
 
-    o the version number was bumped for the Bioconductor release version 3.5
+    o fix an issue in C codes 'LENGTH or similar applied to NULL object'
+
+
+CHANGES IN VERSION 1.12.0
+-------------------------
 
     o new arguments 'with.sample.id' and 'with.snp.id' in `snpgdsSNPRateFreq()`
 

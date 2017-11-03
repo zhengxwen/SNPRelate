@@ -723,7 +723,8 @@ COREARRAY_DLL_EXPORT SEXP gnrParseVCF4(SEXP vcf_fn, SEXP gds_root,
 
 		// chr prefix
 		vector<string> ChrPref;
-		for (int i=0; i < XLENGTH(ChrPrefix); i++)
+		const int n_chr_prefix = !Rf_isNull(ChrPrefix) ? XLENGTH(ChrPrefix) : 0;
+		for (int i=0; i < n_chr_prefix; i++)
 			ChrPref.push_back(CHAR(STRING_ELT(ChrPrefix, i)));
 
 
@@ -752,7 +753,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParseVCF4(SEXP vcf_fn, SEXP gds_root,
 
 		string sCHROM, sPOS, sID, sREF, sALT;
 		vector<string> AlleleList;
-		R_xlen_t AlleleCount = XLENGTH(RefAllele);
+		R_xlen_t AlleleCount = !Rf_isNull(RefAllele) ? XLENGTH(RefAllele) : 0;
 
 		while (!RL.IfEnd())
 		{
