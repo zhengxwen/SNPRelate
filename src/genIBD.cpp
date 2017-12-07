@@ -961,42 +961,15 @@ namespace IBD
 	}
 
 	/// return log likelihood value for the specified pair
-	static double EM_Jacq_LogLik(const double *PrIBD,
-		const TIBD_Jacq &par)
+	static double EM_Jacq_LogLik(const double *PrIBD, const TIBD_Jacq &par)
 	{
 		double D9 = 1 - par.D1 - par.D2 - par.D3 - par.D4 - par.D5 -
 				par.D6 - par.D7 - par.D8;
 		const double *p = PrIBD;
 		double sum, LogLik=0;
 
-		// unroll loop by 4
-		for (long nPackSNP=nPackedSNP; nPackSNP > 0; nPackSNP--)
+		for (int iSNP = nTotalSNP; iSNP > 0; iSNP--)
 		{
-			// first genotype
-			sum = p[0]*par.D1 + p[1]*par.D2 + p[2]*par.D3 + p[3]*par.D4 +
-				p[4]*par.D5 + p[5]*par.D6 + p[6]*par.D7 + p[7]*par.D8 + p[8]*D9;
-			if (sum > 0)
-				LogLik += log(sum);
-			else if (p[8] > 0)
-				return R_NegInf;
-			p += 9;
-			// second genotype
-			sum = p[0]*par.D1 + p[1]*par.D2 + p[2]*par.D3 + p[3]*par.D4 +
-				p[4]*par.D5 + p[5]*par.D6 + p[6]*par.D7 + p[7]*par.D8 + p[8]*D9;
-			if (sum > 0)
-				LogLik += log(sum);
-			else if (p[8] > 0)
-				return R_NegInf;
-			p += 9;
-			// third genotype
-			sum = p[0]*par.D1 + p[1]*par.D2 + p[2]*par.D3 + p[3]*par.D4 +
-				p[4]*par.D5 + p[5]*par.D6 + p[6]*par.D7 + p[7]*par.D8 + p[8]*D9;
-			if (sum > 0)
-				LogLik += log(sum);
-			else if (p[8] > 0)
-				return R_NegInf;
-			p += 9;
-			// fourth genotype
 			sum = p[0]*par.D1 + p[1]*par.D2 + p[2]*par.D3 + p[3]*par.D4 +
 				p[4]*par.D5 + p[5]*par.D6 + p[6]*par.D7 + p[7]*par.D8 + p[8]*D9;
 			if (sum > 0)
@@ -1009,8 +982,7 @@ namespace IBD
 	}
 
 	/// MLE -- EM algorithm for Jacquard's IBD
-	/**   the initial parameter values, and they should be within
-	 *  the region.
+	/**   the initial parameter values, and they should be within the region.
 	**/
 	static void EM_Jacq_Alg(double *PrIBD, TIBD_Jacq &par,
 		double &out_loglik, int *out_niter)
@@ -1042,7 +1014,7 @@ namespace IBD
 		if (out_niter) *out_niter = nIterMax;
 
 		// EM iteration
-		for (long iIter=0; iIter <= nIterMax; iIter++)
+		for (int iIter=0; iIter <= nIterMax; iIter++)
 		{
 			double OldD[9], sum[9];
 			memcpy(OldD, D, sizeof(D));
@@ -1052,7 +1024,7 @@ namespace IBD
 			long nSNP = 0;
 
 			LogLik = 0;
-			for (long iSNP = nTotalSNP; iSNP > 0; iSNP--)
+			for (int iSNP = nTotalSNP; iSNP > 0; iSNP--)
 			{
 				double m[9] = { p[0]*D[0], p[1]*D[1], p[2]*D[2],
 					p[3]*D[3], p[4]*D[4], p[5]*D[5],
@@ -1523,7 +1495,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE(SEXP AlleleFreq, SEXP KinshipConstraint,
 		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 		CdMatTriDiag<IBD::TIBD> IBD(IBD::TIBD(), n);
 		CdMatTriDiag<int> niter;
-		if (LOGICAL(IfOutNum)[0] == TRUE)
+		if (Rf_asLogical(IfOutNum) == TRUE)
 			niter.Reset(n);
 
 		// R SEXP objects
@@ -1534,8 +1506,8 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE(SEXP AlleleFreq, SEXP KinshipConstraint,
 		// Calculate the IBD matrix
 		IBD::Do_MLE_IBD_Calc(
 			isNull(AlleleFreq) ? NULL : REAL(AlleleFreq), IBD,
-			(LOGICAL(IfOutNum)[0] == TRUE) ? &niter : NULL,
-			REAL(afreq), INTEGER(NumThread)[0], "MLE IBD:",
+			(Rf_asLogical(IfOutNum) == TRUE) ? &niter : NULL,
+			REAL(afreq), Rf_asInteger(NumThread), "MLE IBD:",
 			&(tmp_AF[0]), verbose);
 
 		// output
@@ -1544,7 +1516,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE(SEXP AlleleFreq, SEXP KinshipConstraint,
 		SET_ELEMENT(rv_ans, 0, k0);
 		PROTECT(k1 = Rf_allocMatrix(REALSXP, n, n));
 		SET_ELEMENT(rv_ans, 1, k1);
-		if (LOGICAL(IfOutNum)[0] == TRUE)
+		if (Rf_asLogical(IfOutNum) == TRUE)
 		{
 			PROTECT(IterNum = Rf_allocMatrix(INTSXP, n, n));
 			SET_ELEMENT(rv_ans, 3, IterNum);
@@ -1606,7 +1578,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE_Jacquard(SEXP AlleleFreq, SEXP MaxIterCnt,
 		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
 		CdMatTriDiag<IBD::TIBD_Jacq> IBD(IBD::TIBD_Jacq(), n);
 		CdMatTriDiag<int> niter;
-		if (LOGICAL(IfOutNum)[0] == TRUE)
+		if (Rf_asLogical(IfOutNum) == TRUE)
 			niter.Reset(n);
 
 		// R SEXP objects
@@ -1616,9 +1588,9 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE_Jacquard(SEXP AlleleFreq, SEXP MaxIterCnt,
 
 		// Calculate the IBD matrix
 		IBD::Do_MLE_IBD_Jacq(
-			isNull(AlleleFreq) ? NULL : REAL(AlleleFreq), IBD,
-			(LOGICAL(IfOutNum)[0] == TRUE) ? &niter : NULL,
-			REAL(afreq), INTEGER(NumThread)[0], "MLE IBD:",
+			Rf_isNull(AlleleFreq) ? NULL : REAL(AlleleFreq), IBD,
+			(Rf_asLogical(IfOutNum) == TRUE) ? &niter : NULL,
+			REAL(afreq), Rf_asInteger(NumThread), "MLE IBD:",
 			&(tmp_AF[0]), verbose);
 
 		// output
@@ -1628,7 +1600,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE_Jacquard(SEXP AlleleFreq, SEXP MaxIterCnt,
 			PROTECT(D[i] = Rf_allocMatrix(REALSXP, n, n));
 			SET_ELEMENT(rv_ans, i, D[i]);
 		}
-		if (LOGICAL(IfOutNum)[0] == TRUE)
+		if (Rf_asLogical(IfOutNum) == TRUE)
 		{
 			PROTECT(IterNum = Rf_allocMatrix(INTSXP, n, n));
 			SET_ELEMENT(rv_ans, 9, IterNum);
@@ -1679,47 +1651,69 @@ COREARRAY_DLL_EXPORT SEXP gnrPairIBD(SEXP geno1, SEXP geno2, SEXP AlleleFreq,
 
 		// initialize
 		const int n = XLENGTH(geno1);
-		IBD::nIterMax = INTEGER(MaxIterCnt)[0];
-		IBD::FuncRelTol = REAL(RelTol)[0];
-		IBD::MethodMLE = INTEGER(method)[0];
+		IBD::nIterMax = Rf_asInteger(MaxIterCnt);
+		IBD::FuncRelTol = Rf_asReal(RelTol);
+		IBD::MethodMLE = Rf_asInteger(method) - 1;
 		IBD::Loglik_Adjust = (LOGICAL(CoeffCorrect)[0] == TRUE);
 		IBD::KinshipConstraint = (LOGICAL(KinshipConstraint)[0] == TRUE);
 		IBD::Init_EPrIBD_IBS(REAL(AlleleFreq), NULL, false, n);
 
-		// get the initial values
-		int IBS[3] = { 0, 0, 0 };
-		int *g1 = INTEGER(geno1), *g2 = INTEGER(geno2);
-		for (int i=0; i < n; i++, g1++, g2++)
-		{
-			if ((0 <= *g1) && (*g1 <= 2) && (0 <= *g2) && (*g2 <= 2))
-			{
-				IBS[2 - abs(*g1 - *g2)] ++;
-			}
-		}
-
 		double out_k0, out_k1, out_loglik;
 		int out_niter;
-		IBD::Est_PLINK_Kinship(IBS[0], IBS[1], IBS[2], out_k0, out_k1,
-			IBD::KinshipConstraint);
+		int *g1 = INTEGER(geno1), *g2 = INTEGER(geno2);
 
 		// compute
-		if (INTEGER(method)[0] >= 0)
+		if (IBD::MethodMLE != 3)
 		{
-			vector<double> tmp_buffer(3*n + 3*4);
-			IBD::Do_MLE_IBD_Pair(n, INTEGER(geno1), INTEGER(geno2),
-				REAL(AlleleFreq), out_k0, out_k1, out_loglik, out_niter,
-				&tmp_buffer[0]);
-		} else {
-			out_loglik = R_NaN;
-			out_niter = 0;
-		}
+			// get initial values
+			int IBS[3] = { 0, 0, 0 };
+			for (int i=0; i < n; i++, g1++, g2++)
+			{
+				if ((0 <= *g1) && (*g1 <= 2) && (0 <= *g2) && (*g2 <= 2))
+				{
+					IBS[2 - abs(*g1 - *g2)] ++;
+				}
+			}
+			IBD::Est_PLINK_Kinship(IBS[0], IBS[1], IBS[2], out_k0, out_k1,
+				IBD::KinshipConstraint);
 
-		PROTECT(rv_ans = NEW_LIST(4));
-		SET_ELEMENT(rv_ans, 0, ScalarReal(out_k0));
-		SET_ELEMENT(rv_ans, 1, ScalarReal(out_k1));
-		SET_ELEMENT(rv_ans, 2, ScalarReal(out_loglik));
-		SET_ELEMENT(rv_ans, 3, ScalarInteger(out_niter));
-		UNPROTECT(1);
+			if (IBD::MethodMLE==0 || IBD::MethodMLE==1)
+			{
+				// EM, downhill.simplex
+				vector<double> tmp_buffer(3*n + 3*4);
+				IBD::Do_MLE_IBD_Pair(n, INTEGER(geno1), INTEGER(geno2),
+					REAL(AlleleFreq), out_k0, out_k1, out_loglik, out_niter,
+					&tmp_buffer[0]);
+			} else {
+				// PLINK MoM
+				out_loglik = R_NaN;
+				out_niter = 0;
+			}
+			// output
+			rv_ans = NEW_NUMERIC(4);
+			double *p = REAL(rv_ans);
+			p[0] = out_k0;     p[1] = out_k1;
+			p[2] = out_loglik; p[3] = out_niter;
+
+		} else {
+			// Jacquard
+			// initialize buffer
+			vector<double> PrIBD(9*n);
+			double *Freq = REAL(AlleleFreq);
+			for (int i=0; i < n; i++)
+				PrIBDTabJacq(g1[i], g2[i], &PrIBD[i*9], Freq[i]);
+
+			// run
+			nTotalSNP = n;
+			TIBD_Jacq par = IBD_Jacq_InitVal;
+			EM_Jacq_Alg(&PrIBD[0], par, out_loglik, &out_niter);
+			// output
+			rv_ans = NEW_NUMERIC(10);
+			double *p = REAL(rv_ans);
+			p[0] = par.D1; p[1] = par.D2; p[2] = par.D3; p[3] = par.D4;
+			p[4] = par.D5; p[5] = par.D6; p[6] = par.D7; p[7] = par.D8;
+			p[8] = out_loglik; p[9] = out_niter;
+		}
 
 	COREARRAY_CATCH
 }

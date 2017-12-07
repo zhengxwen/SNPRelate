@@ -10,9 +10,9 @@ Method of Moment (MoM).
 }
 \usage{
 snpgdsPairIBD(geno1, geno2, allele.freq,
-    method=c("EM", "downhill.simplex", "MoM"), kinship.constraint=FALSE,
-    max.niter=1000, reltol=sqrt(.Machine$double.eps), coeff.correct=TRUE,
-    out.num.iter=TRUE, verbose=TRUE)
+    method=c("EM", "downhill.simplex", "MoM", "Jacquard"),
+    kinship.constraint=FALSE, max.niter=1000L, reltol=sqrt(.Machine$double.eps),
+    coeff.correct=TRUE, out.num.iter=TRUE, verbose=TRUE)
 }
 \arguments{
     \item{geno1}{the SNP genotypes for the first individual,
@@ -20,7 +20,7 @@ snpgdsPairIBD(geno1, geno2, allele.freq,
     \item{geno2}{the SNP genotypes for the second individual,
         0 -- BB, 1 -- AB, 2 -- AA, other values -- missing}
     \item{allele.freq}{the allele frequencies}
-    \item{method}{"EM", "downhill.simplex", or "MoM", see details}
+    \item{method}{"EM", "downhill.simplex", "MoM" or "Jacquard", see details}
     \item{kinship.constraint}{if TRUE, constrict IBD coefficients
         ($k_0,k_1,k_2$) in the genealogical region ($2 k_0 k_1 >= k_2^2$)}
     \item{max.niter}{the maximum number of iterations}
@@ -38,7 +38,8 @@ allele-count-based correction factor is conducted. Otherwise, two numeric
 approaches for maximum likelihood estimation can be used: one is
 Expectation-Maximization (EM) algorithm, and the other is Nelder-Mead method
 or downhill simplex method. Generally, EM algorithm is more robust than
-downhill simplex method.
+downhill simplex method. \code{"Jacquard"} refers to the estimation of nine
+Jacquard's coefficients.
 
     If \code{coeff.correct} is \code{TRUE}, the final point that is found by
 searching algorithm (EM or downhill simplex) is used to compare the six points
@@ -102,14 +103,16 @@ subMLE <- snpgdsIBDMLE(genofile, sample.id=YRI.id[1:n], snp.id=RF$snp.id,
     allele.freq=RF$AlleleFreq)
 subMoM <- snpgdsIBDMoM(genofile, sample.id=YRI.id[1:n], snp.id=RF$snp.id,
     allele.freq=RF$AlleleFreq)
+subJac <- snpgdsIBDMLE(genofile, sample.id=YRI.id[1:n], snp.id=RF$snp.id,
+    allele.freq=RF$AlleleFreq, method="Jacquard")
 
+
+
+########################
 
 # genotype matrix
 mat <- snpgdsGetGeno(genofile, sample.id=YRI.id[1:n], snp.id=snpset,
     snpfirstdim=TRUE)
-
-
-########################
 
 rv <- NULL
 for (i in 2:n)
@@ -128,6 +131,14 @@ for (i in 2:n)
     rv <- rbind(rv, snpgdsPairIBD(mat[,1], mat[,i], RF$AlleleFreq, "MoM"))
 rv
 summary(rv$k0 - subMoM$k0[1, 2:n])
+summary(rv$k1 - subMoM$k1[1, 2:n])
+# ZERO
+
+rv <- NULL
+for (i in 2:n)
+    rv <- rbind(rv, snpgdsPairIBD(mat[,1], mat[,i], RF$AlleleFreq, "Jacquard"))
+rv
+summary(rv$D1 - subJac$D1[1, 2:n])
 summary(rv$k1 - subMoM$k1[1, 2:n])
 # ZERO
 

@@ -20,11 +20,11 @@ The GDS format offers the efficient operations specifically designed for integer
 
 ## Bioconductor:
 
-Release Version: v1.12.0
+Release Version: v1.12.1
 
 [http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 
-Development Version: v1.13.0
+Development Version: v1.13.2
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
@@ -113,9 +113,9 @@ You have to customize the package compilation, see: [CRAN: Customizing-package-c
 Change `~/.R/Makevars` to, assuming GNU Compilers (gcc/g++) or Clang compiler (clang++) are installed:
 ```sh
 ## for C code
-CFLAGS=-g -O2 -march=native -mtune=native
+CFLAGS=-g -O3 -march=native -mtune=native
 ## for C++ code
-CXXFLAGS=-g -O2 -march=native -mtune=native
+CXXFLAGS=-g -O3 -march=native -mtune=native
 ```
 
 

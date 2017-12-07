@@ -118,8 +118,8 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             out.num.iter, ws$num.thread, verbose)
 
         # return
-        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=rv[[3]],
-            k0=rv[[1]], k1=rv[[2]], niter=rv[[4]])
+        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=rv[[3L]],
+            k0=rv[[1L]], k1=rv[[2L]], niter=rv[[4L]])
         if (kinship)
             rv$kinship <- 0.5*(1 - rv$k0 - rv$k1) + 0.25*rv$k1
         rv$afreq[rv$afreq < 0] <- NaN
@@ -133,10 +133,10 @@ snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             verbose)
 
         # return
-        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=rv[[9]],
-            D1=rv[[1]], D2=rv[[2]], D3=rv[[3]], D4=rv[[4]],
-            D5=rv[[5]], D6=rv[[6]], D7=rv[[7]], D8=rv[[8]],
-            niter=rv[[10]])
+        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=rv[[9L]],
+            D1=rv[[1L]], D2=rv[[2L]], D3=rv[[3L]], D4=rv[[4L]],
+            D5=rv[[5L]], D6=rv[[6L]], D7=rv[[7L]], D8=rv[[8L]],
+            niter=rv[[10L]])
         if (kinship)
             rv$kinship <- rv$D1 + 0.5*(rv$D3 + rv$D5 + rv$D7) + 0.25*rv$D8
         rv$afreq[rv$afreq < 0] <- NaN
@@ -203,9 +203,9 @@ snpgdsIBDMLELogLik <- function(gdsobj, ibdobj, k0=NaN, k1=NaN,
 #
 
 snpgdsPairIBD <- function(geno1, geno2, allele.freq,
-    method=c("EM", "downhill.simplex", "MoM"), kinship.constraint=FALSE,
-    max.niter=1000, reltol=sqrt(.Machine$double.eps), coeff.correct=TRUE,
-    out.num.iter=TRUE, verbose=TRUE)
+    method=c("EM", "downhill.simplex", "MoM", "Jacquard"),
+    kinship.constraint=FALSE, max.niter=1000L, reltol=sqrt(.Machine$double.eps),
+    coeff.correct=TRUE, out.num.iter=TRUE, verbose=TRUE)
 {
     # check
     stopifnot(is.vector(geno1) & is.numeric(geno1))
@@ -215,17 +215,10 @@ snpgdsPairIBD <- function(geno1, geno2, allele.freq,
     stopifnot(length(geno1) == length(allele.freq))
     stopifnot(is.logical(kinship.constraint))
     stopifnot(is.logical(coeff.correct))
-    method <- match.arg(method)
 
     # method
-    if (method == "EM")
-        method <- 0
-    else if (method == "downhill.simplex")
-        method <- 1
-    else if (method == "MoM")
-        method <- -1
-    else
-        stop("Invalid MLE method!")
+    method <- match.arg(method)
+    method <- match(method, c("EM", "downhill.simplex", "MoM", "Jacquard"))
 
     allele.freq[!is.finite(allele.freq)] <- -1
     flag <- (0 <= allele.freq) & (allele.freq <= 1)
@@ -244,12 +237,19 @@ snpgdsPairIBD <- function(geno1, geno2, allele.freq,
 
     # call C code
     rv <- .Call(gnrPairIBD, as.integer(geno1), as.integer(geno2),
-        as.double(allele.freq), kinship.constraint, as.integer(max.niter),
-        as.double(reltol), coeff.correct, as.integer(method))
+        as.double(allele.freq), kinship.constraint, max.niter, reltol,
+        coeff.correct, method)
 
     # return
-    ans <- data.frame(k0=rv[[1]], k1=rv[[2]], loglik=rv[[3]])
-    if (out.num.iter) ans$niter <- rv[[4]]
+    if (method != 4L)
+    {
+        ans <- data.frame(k0=rv[1L], k1=rv[2L], loglik=rv[3L])
+        if (out.num.iter) ans$niter <- as.integer(rv[4L])
+    } else {
+        ans <- data.frame(D1=rv[1L], D2=rv[2L], D3=rv[3L], D4=rv[4L],
+            D5=rv[5L], D6=rv[6L], D7=rv[7L], D8=rv[8L], loglik=rv[9L])
+        if (out.num.iter) ans$niter <- as.integer(rv[10L])
+    }
     ans
 }
 

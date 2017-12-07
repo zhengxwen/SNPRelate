@@ -1,7 +1,13 @@
+CHANGES IN VERSION 1.13.2
+-------------------------
+
+    o a new option 'method="Jacquard"' in `snpgdsPairIBD()`
+
+
 CHANGES IN VERSION 1.12.1
 -------------------------
 
-    o fix an issue in C codes 'LENGTH or similar applied to NULL object'
+    o fix an issue in the C code 'LENGTH or similar applied to NULL object'
 
 
 CHANGES IN VERSION 1.12.0

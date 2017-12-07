@@ -80,7 +80,8 @@ pairwise relatedness for a large dataset.
         \code{method="EM"} or \code{"downhill.simplex"}}
     \item{k1}{IBD coefficient, the probability of sharing ONE IBD, if
         \code{method="EM"} or \code{"downhill.simplex"}}
-    \item{D1, ..., D8}{Jacquard's coefficients, if \code{method="Jacquard"}}
+    \item{D1, ..., D8}{Jacquard's coefficients, if \code{method="Jacquard"},
+        D9 = 1 - D1 - ... - D8}
     \item{kinship}{the estimated kinship coefficients, if the parameter
         \code{kinship=TRUE}}
 }
