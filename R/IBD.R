@@ -518,9 +518,9 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 
 snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "Corr",
-        "IndivBeta"),
-    num.thread=1L, with.id=TRUE, verbose=TRUE)
+    method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "Corr", "IndivBeta"),
+    num.thread=1L, out.fn=NULL, out.prec=c("double", "single"),
+    out.compress="LZMA_RA", with.id=TRUE, verbose=TRUE)
 {
     # check and initialize ...
     method <- match.arg(method)
@@ -534,22 +534,47 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         mtxt <- "Scaled GCTA (correlation)"
     }
 
+    stopifnot(is.logical(with.id), length(with.id)==1L)
     ws <- .InitFile2(
         cmd=paste("Genetic Relationship Matrix (GRM, ", mtxt, "):", sep=""),
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
         verbose=verbose)
-    stopifnot(is.logical(with.id))
+
+    if (!is.null(out.fn))
+    {
+        # gds output
+        stopifnot(is.character(out.fn), length(out.fn)==1L)
+        out.prec <- match.arg(out.prec)
+        # create a gds file
+        out.gds <- createfn.gds(out.fn)
+        on.exit(closefn.gds(out.gds))
+        put.attr.gdsn(out.gds$root, "FileFormat", "SNPRELATE_OUTPUT")
+        put.attr.gdsn(out.gds$root, "version",
+            paste0("SNPRelate_", packageVersion("SNPRelate")))
+        add.gdsn(out.gds, "command", c("snpgdsGRM", paste(":method =", method)),
+            compress=out.compress, closezip=TRUE)
+        add.gdsn(out.gds, "sample.id", ws$sample.id, compress=out.compress,
+            closezip=TRUE)
+        add.gdsn(out.gds, "snp.id", ws$snp.id, compress=out.compress,
+            closezip=TRUE)
+        add.gdsn(out.gds, "grm", storage=out.prec, valdim=c(ws$n.samp, 0L),
+            compress=out.compress)
+    } else
+        out.gds <- NULL
 
     # call GRM C function
-    rv <- .Call(gnrGRM, ws$num.thread, method, verbose)
+    rv <- .Call(gnrGRM, ws$num.thread, method, out.gds, verbose)
 
     # return
-    if (with.id)
-        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, grm=rv)
-
-    return(rv)
+    if (is.null(out.gds))
+    {
+        if (with.id)
+            rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, grm=rv)
+        rv
+    } else
+        invisible()
 }
 
 

@@ -1157,7 +1157,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrEigMix(SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrFst(SEXP, SEXP, SEXP);
 	extern SEXP gnrHWE();
-	extern SEXP gnrGRM(SEXP, SEXP, SEXP);
+	extern SEXP gnrGRM(SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrIBD_Beta(SEXP, SEXP, SEXP);
 	extern SEXP gnrIBD_KING_Homo(SEXP, SEXP);
 	extern SEXP gnrIBD_KING_Robust(SEXP, SEXP, SEXP);
@@ -1211,7 +1211,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrErrMsg, 0),
 		CALL(gnrFst, 3),                 CALL(gnrHWE, 0),
 
-		CALL(gnrGRM, 3),
+		CALL(gnrGRM, 4),
 		CALL(gnrIBD_Beta, 3),
 		CALL(gnrIBD_KING_Homo, 2),       CALL(gnrIBD_KING_Robust, 3),
 		CALL(gnrIBD_LogLik, 3),          CALL(gnrIBD_LogLik_k01, 3),

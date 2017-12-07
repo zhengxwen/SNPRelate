@@ -1485,11 +1485,11 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE(SEXP AlleleFreq, SEXP KinshipConstraint,
 		IBD::Init_EPrIBD_IBS(isNull(AlleleFreq) ? NULL : REAL(AlleleFreq),
 			NULL, false);
 
-		IBD::nIterMax = INTEGER(MaxIterCnt)[0];
-		IBD::FuncRelTol = REAL(RelTol)[0];
-		IBD::MethodMLE = INTEGER(method)[0];
-		IBD::Loglik_Adjust = (LOGICAL(CoeffCorrect)[0] == TRUE);
-		IBD::KinshipConstraint = (LOGICAL(KinshipConstraint)[0] == TRUE);
+		IBD::nIterMax = Rf_asInteger(MaxIterCnt);
+		IBD::FuncRelTol = Rf_asReal(RelTol);
+		IBD::MethodMLE = Rf_asInteger(method);
+		IBD::Loglik_Adjust = (Rf_asLogical(CoeffCorrect) == TRUE);
+		IBD::KinshipConstraint = (Rf_asLogical(KinshipConstraint) == TRUE);
 
 		// the upper-triangle genetic covariance matrix
 		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
@@ -1569,10 +1569,10 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE_Jacquard(SEXP AlleleFreq, SEXP MaxIterCnt,
 		// initialize the packed genotypes
 		IBD::InitPackedGeno(&(tmp_buffer[0]));
 
-		IBD::nIterMax = INTEGER(MaxIterCnt)[0];
-		IBD::FuncRelTol = REAL(RelTol)[0];
-		IBD::MethodMLE = INTEGER(method)[0];
-		IBD::Loglik_Adjust = (LOGICAL(CoeffCorrect)[0] == TRUE);
+		IBD::nIterMax = Rf_asInteger(MaxIterCnt);
+		IBD::FuncRelTol = Rf_asReal(RelTol);
+		IBD::MethodMLE = Rf_asInteger(method);
+		IBD::Loglik_Adjust = (Rf_asLogical(CoeffCorrect) == TRUE);
 
 		// the upper-triangle genetic covariance matrix
 		const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
@@ -1654,8 +1654,8 @@ COREARRAY_DLL_EXPORT SEXP gnrPairIBD(SEXP geno1, SEXP geno2, SEXP AlleleFreq,
 		IBD::nIterMax = Rf_asInteger(MaxIterCnt);
 		IBD::FuncRelTol = Rf_asReal(RelTol);
 		IBD::MethodMLE = Rf_asInteger(method) - 1;
-		IBD::Loglik_Adjust = (LOGICAL(CoeffCorrect)[0] == TRUE);
-		IBD::KinshipConstraint = (LOGICAL(KinshipConstraint)[0] == TRUE);
+		IBD::Loglik_Adjust = (Rf_asLogical(CoeffCorrect) == TRUE);
+		IBD::KinshipConstraint = (Rf_asLogical(KinshipConstraint) == TRUE);
 		IBD::Init_EPrIBD_IBS(REAL(AlleleFreq), NULL, false, n);
 
 		double out_k0, out_k1, out_loglik;

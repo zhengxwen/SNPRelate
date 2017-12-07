@@ -7,10 +7,11 @@
     Calculate Genetic Relationship Matrix (GRM) using SNP genotype data.
 }
 \usage{
-snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
-    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
     method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "Corr", "IndivBeta"),
-    num.thread=1L, with.id=TRUE, verbose=TRUE)
+    num.thread=1L, out.fn=NULL, out.prec=c("double", "single"),
+    out.compress="LZMA_RA", with.id=TRUE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -35,6 +36,9 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         "IndivBeta" -- two times individual beta estimate; see details}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
+    \item{out.fn}{NULL for no GDS output, or a file name}
+    \item{out.prec}{double or single precision for storage}
+    \item{out.compress}{the compression method used in the GDS file}
     \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id}
         and \code{sample.id}}
     \item{verbose}{if \code{TRUE}, show information}
@@ -99,6 +103,10 @@ genofile <- snpgdsOpen(snpgdsExampleFileName())
 rv <- snpgdsGRM(genofile, method="GCTA")
 eig <- eigen(rv$grm)  # Eigen-decomposition
 
+# output to a GDS file
+snpgdsGRM(genofile, method="GCTA", out.fn="test.gds")
+
+
 pop <- factor(read.gdsn(index.gdsn(genofile, "sample.annot/pop.group")))
 plot(eig$vectors[,1], eig$vectors[,2], col=pop)
 legend("topleft", legend=levels(pop), pch=19, col=1:4)
@@ -106,6 +114,9 @@ legend("topleft", legend=levels(pop), pch=19, col=1:4)
 
 # close the file
 snpgdsClose(genofile)
+
+# delete the temporary file
+unlink("test.gds", force=TRUE)
 }
 
 \keyword{GDS}

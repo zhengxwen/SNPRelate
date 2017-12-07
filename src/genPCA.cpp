@@ -1551,8 +1551,24 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASampLoading(SEXP EigenCnt, SEXP SNPLoadings,
 // Genetic relationship matrix
 // =======================================================================
 
+static void grm_save_to_gds(CdMatTri<double> &mat, PdGDSObj gdsn, bool verbose)
+{
+	if (verbose)
+		Rprintf("Saving to the GDS file:\n");
+	const size_t n = mat.N();
+	vector<double> buf(n);
+	CProgress prog(verbose ? n : -1);
+	for (size_t i=0; i < n; i++)
+	{
+		mat.GetRow(&buf[0], i);
+		GDS_Array_AppendData(gdsn, n, &buf[0], svFloat64);
+		prog.Forward(1);
+	}
+}
+
 /// Compute the eigenvalues and eigenvectors
-COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
+COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
+	SEXP _Verbose)
 {
 	const int nThread  = Rf_asInteger(_NumThread);
 	const char *Method = CHAR(STRING_ELT(_Method, 0));
@@ -1579,11 +1595,35 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 			double TraceXTX = IBD.Trace();
 			double scale = double(n-1) / TraceXTX;
 			vec_f64_mul(IBD.Get(), IBD.Size(), scale);
-			// output
-			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-			IBD.SaveTo(REAL(rv_ans));
 
-		} else if (strcmp(Method, "GCTA")==0 || strcmp(Method, "Corr")==0)
+			// output
+			if (Rf_isNull(_GDS))
+			{
+				rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+				IBD.SaveTo(REAL(rv_ans));
+			} else {
+				PdGDSFolder gds = GDS_R_SEXP2FileRoot(_GDS);
+				grm_save_to_gds(IBD, GDS_Node_Path(gds, "grm", TRUE), verbose);
+			}
+
+		} else if (strcmp(Method, "GCTA") == 0)
+		{
+			if (verbose) CPU_Flag();
+			CdMatTri<double> IBD(n);
+			CGCTA_AlgArith GCTA(MCWorkingGeno.Space());
+			GCTA.Run(IBD, nThread, verbose);
+
+			// output
+			if (Rf_isNull(_GDS))
+			{
+				rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+				IBD.SaveTo(REAL(rv_ans));
+			} else {
+				PdGDSFolder gds = GDS_R_SEXP2FileRoot(_GDS);
+				grm_save_to_gds(IBD, GDS_Node_Path(gds, "grm", TRUE), verbose);
+			}
+
+		} else if (strcmp(Method, "Corr") == 0)
 		{
 			if (verbose) CPU_Flag();
 			{
@@ -1618,9 +1658,16 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _Verbose)
 				bool Verbose);
 			CdMatTri<double> IBD(n);
 			CalcEigMixGRM(IBD, nThread, verbose);
+
 			// output
-			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-			IBD.SaveTo(REAL(rv_ans));
+			if (Rf_isNull(_GDS))
+			{
+				rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+				IBD.SaveTo(REAL(rv_ans));
+			} else {
+				PdGDSFolder gds = GDS_R_SEXP2FileRoot(_GDS);
+				grm_save_to_gds(IBD, GDS_Node_Path(gds, "grm", TRUE), verbose);
+			}
 
 		} else if (strcmp(Method, "IndivBeta") == 0)
 		{

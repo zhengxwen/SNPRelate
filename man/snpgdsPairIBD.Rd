@@ -139,7 +139,7 @@ for (i in 2:n)
     rv <- rbind(rv, snpgdsPairIBD(mat[,1], mat[,i], RF$AlleleFreq, "Jacquard"))
 rv
 summary(rv$D1 - subJac$D1[1, 2:n])
-summary(rv$k1 - subMoM$k1[1, 2:n])
+summary(rv$D2 - subJac$D2[1, 2:n])
 # ZERO
 
 # close the genotype file

@@ -3,6 +3,8 @@ CHANGES IN VERSION 1.13.2
 
     o a new option 'method="Jacquard"' in `snpgdsPairIBD()`
 
+    o `snpgdsGRM()` can output to a GDS file
+
 
 CHANGES IN VERSION 1.12.1
 -------------------------
