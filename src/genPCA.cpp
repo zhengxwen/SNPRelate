@@ -1576,6 +1576,10 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 
 	COREARRAY_TRY
 
+		PdGDSObj gdsn = NULL;
+		if (!Rf_isNull(_GDS))
+			gdsn = GDS_Node_Path(GDS_R_SEXP2FileRoot(_GDS), "grm", TRUE);
+
 		// cache the genotype data
 		CachingSNPData("GRM Calculation", verbose);
 
@@ -1595,16 +1599,13 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 			double TraceXTX = IBD.Trace();
 			double scale = double(n-1) / TraceXTX;
 			vec_f64_mul(IBD.Get(), IBD.Size(), scale);
-
 			// output
-			if (Rf_isNull(_GDS))
+			if (!gdsn)
 			{
 				rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 				IBD.SaveTo(REAL(rv_ans));
-			} else {
-				PdGDSFolder gds = GDS_R_SEXP2FileRoot(_GDS);
-				grm_save_to_gds(IBD, GDS_Node_Path(gds, "grm", TRUE), verbose);
-			}
+			} else
+				grm_save_to_gds(IBD, gdsn, verbose);
 
 		} else if (strcmp(Method, "GCTA") == 0)
 		{
@@ -1612,16 +1613,13 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 			CdMatTri<double> IBD(n);
 			CGCTA_AlgArith GCTA(MCWorkingGeno.Space());
 			GCTA.Run(IBD, nThread, verbose);
-
 			// output
-			if (Rf_isNull(_GDS))
+			if (!gdsn)
 			{
 				rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 				IBD.SaveTo(REAL(rv_ans));
-			} else {
-				PdGDSFolder gds = GDS_R_SEXP2FileRoot(_GDS);
-				grm_save_to_gds(IBD, GDS_Node_Path(gds, "grm", TRUE), verbose);
-			}
+			} else
+				grm_save_to_gds(IBD, gdsn, verbose);
 
 		} else if (strcmp(Method, "Corr") == 0)
 		{
@@ -1660,14 +1658,12 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 			CalcEigMixGRM(IBD, nThread, verbose);
 
 			// output
-			if (Rf_isNull(_GDS))
+			if (!gdsn)
 			{
 				rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 				IBD.SaveTo(REAL(rv_ans));
-			} else {
-				PdGDSFolder gds = GDS_R_SEXP2FileRoot(_GDS);
-				grm_save_to_gds(IBD, GDS_Node_Path(gds, "grm", TRUE), verbose);
-			}
+			} else
+				grm_save_to_gds(IBD, gdsn, verbose);
 
 		} else if (strcmp(Method, "IndivBeta") == 0)
 		{
@@ -1681,6 +1677,48 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 			Rprintf("%s    Done.\n", TimeToStr());
 		UNPROTECT(1);
 
+	COREARRAY_CATCH
+}
+
+
+/// Combine GRM matrices
+COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Weight,
+	SEXP Verbose)
+{
+	const double *weight = REAL(Weight);
+	const bool verbose = SEXP_Verbose(Verbose);
+	const int n = LENGTH(Weight);
+
+	COREARRAY_TRY
+		// input gds files
+		vector<PdGDSObj> list_gdsn(n);
+		for (int i=0; i < n; i++)
+		{
+			list_gdsn[i] = GDS_Node_Path(
+				GDS_R_SEXP2FileRoot(VECTOR_ELT(GDSList, i)), "grm", TRUE);
+		}
+		// output gds file
+		PdGDSObj out_gdsn = GDS_Node_Path(GDS_R_SEXP2FileRoot(OutGDS), "grm", TRUE);
+		C_Int32 sz[2];
+		GDS_Array_GetDim(out_gdsn, sz, 2);
+		// initialize
+		const int N = sz[1];
+		vector<double> sum(N), buf(N);
+		CProgress prog(verbose ? N : -1);
+		C_Int32 cnt[2] = { 1, N };
+		// for-loop
+		for (int i=0; i < N; i++)
+		{
+			memset(&sum[0], 0, sizeof(double)*N);
+			C_Int32 st[2] = { i, 0 };
+			for (int k=0; k < n; k++)
+			{
+				GDS_Array_ReadData(list_gdsn[k], st, cnt, &buf[0], svFloat64);
+				vec_f64_addmul(&sum[0], &buf[0], N, weight[k]);
+			}
+			GDS_Array_AppendData(out_gdsn, N, &sum[0], svFloat64);
+			prog.Forward(1);
+		}
 	COREARRAY_CATCH
 }
 

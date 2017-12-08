@@ -64,6 +64,7 @@ for individuals i,j and locus l;
     Return a list if \code{with.id = TRUE}:
         \item{sample.id}{the sample ids used in the analysis}
         \item{snp.id}{the SNP ids used in the analysis}
+        \item{method}{characters, the method used}
         \item{grm}{the genetic relationship matrix; different methods might
             have different meanings and interpretation for estimates}
 

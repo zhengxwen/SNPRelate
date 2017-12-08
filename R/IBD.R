@@ -571,10 +571,117 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     if (is.null(out.gds))
     {
         if (with.id)
-            rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, grm=rv)
+            rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, method=method, grm=rv)
         rv
     } else
         invisible()
+}
+
+
+
+#######################################################################
+# Merge GRMs in the GDS files
+#
+
+snpgdsMergeGRM <- function(filelist, out.fn, out.prec=c("double", "single"),
+    out.compress="LZMA_RA", weight=NULL, verbose=TRUE)
+{
+    # check
+    stopifnot(is.character(filelist), length(filelist)>1L)
+    stopifnot(is.logical(verbose), length(verbose)==1L)
+    if (!is.null(weight))
+        stopifnot(is.numeric(weight), length(weight)==length(filelist))
+    stopifnot(is.character(out.fn), length(out.fn)==1L)
+    stopifnot(is.character(out.compress), length(out.compress)==1L)
+    out.prec <- match.arg(out.prec)
+    if (!is.null(weight))
+    {
+        stopifnot(is.numeric(weight) || is.logical(weight),
+            length(weight)==length(filelist))
+    }
+
+    # open the existing GDS files
+    gdslist <- vector("list", length(filelist))
+    on.exit({
+        for (i in seq_along(filelist))
+        {
+            if (!is.null(gdslist[[i]]))
+                closefn.gds(gdslist[[i]])
+        }
+    })
+    if (verbose)
+        cat("GRM merging:\n")
+
+    for (i in seq_along(filelist))
+    {
+        gdslist[[i]] <- f <- openfn.gds(filelist[i])
+        if (!identical(get.attr.gdsn(f$root)$FileFormat, "SNPRELATE_OUTPUT"))
+            stop("'", filelist[i], "' is not valid.")
+        if (verbose)
+        {
+            n <- prod(objdesp.gdsn(index.gdsn(f, "snp.id"))$dim)
+            cat("    open '", filelist[i], "' (", prettyNum(n, ","),
+                " variants)\n", sep="")
+        }
+    }
+
+    # check the existing GDS files
+    sampid <- read.gdsn(index.gdsn(gdslist[[1L]], "sample.id"))
+    dm <- objdesp.gdsn(index.gdsn(gdslist[[1L]], "grm"))$dim
+    if (length(dm)!=2L || dm[1L]!=dm[2L])
+        stop("'", filelist[i], "' has an invalid GRM matrix.")
+    cmd <- read.gdsn(index.gdsn(gdslist[[1L]], "command"))
+    for (i in seq_along(filelist))
+    {
+        f <- gdslist[[i]]
+        if (!identical(read.gdsn(index.gdsn(f, "command")), cmd))
+            stop("'", filelist[i], "' has a different command.")
+        if (!identical(objdesp.gdsn(index.gdsn(f, "grm"))$dim, dm))
+            stop("'", filelist[i], "' has a different GRM matrix.")
+    }
+
+    # weights
+    if (is.null(weight) | is.logical(weight))
+    {
+        num <- sapply(gdslist, function(f)
+            prod(objdesp.gdsn(index.gdsn(f, "snp.id"))$dim))
+        if (is.logical(weight))
+            num[weight] <- -num[weight]
+        weight <- num / sum(num)
+    }
+    if (verbose) cat("Weight: ", paste(weight, collapse=", "), "\n", sep="")
+
+    # create an output GDS file
+    out.gds <- createfn.gds(out.fn)
+    on.exit(closefn.gds(out.gds), add=TRUE)
+    if (verbose) cat("Output: ", out.fn, "\n", sep="")
+    put.attr.gdsn(out.gds$root, "FileFormat", "SNPRELATE_OUTPUT")
+    put.attr.gdsn(out.gds$root, "version",
+        paste0("SNPRelate_", packageVersion("SNPRelate")))
+    add.gdsn(out.gds, "command", cmd, compress=out.compress, closezip=TRUE)
+    add.gdsn(out.gds, "sample.id", sampid, compress=out.compress, closezip=TRUE)
+
+    # snp.id
+    sid <- NULL
+    for (i in seq_along(filelist))
+    {
+        s <- read.gdsn(index.gdsn(gdslist[[i]], "snp.id"))
+        if (weight[i] >= 0)
+            sid <- c(sid, s)
+        else
+            sid <- setdiff(sid, s)
+    }
+    add.gdsn(out.gds, "snp.id", sid, compress=out.compress, closezip=TRUE)
+    rm(sid, s)
+    sync.gds(out.gds)
+
+    # GRM matrix
+    add.gdsn(out.gds, "grm", storage=out.prec, valdim=c(length(sampid), 0L),
+        compress=out.compress)
+    # call C
+    .Call(gnrGRMMerge, out.gds, gdslist, weight, verbose)
+
+    invisible()
 }
 
 
