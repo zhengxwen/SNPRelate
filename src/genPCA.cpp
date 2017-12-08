@@ -1697,26 +1697,35 @@ COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Weight,
 			list_gdsn[i] = GDS_Node_Path(
 				GDS_R_SEXP2FileRoot(VECTOR_ELT(GDSList, i)), "grm", TRUE);
 		}
-		// output gds file
-		PdGDSObj out_gdsn = GDS_Node_Path(GDS_R_SEXP2FileRoot(OutGDS), "grm", TRUE);
 		C_Int32 sz[2];
-		GDS_Array_GetDim(out_gdsn, sz, 2);
+		GDS_Array_GetDim(list_gdsn[0], sz, 2);
+		const int N = sz[0];
+		// output gds file
+		PdGDSObj out_gdsn;
+		if (Rf_isNull(OutGDS))
+		{
+			out_gdsn = NULL;
+			rv_ans = Rf_allocMatrix(REALSXP, N, N);
+		} else {
+			out_gdsn = GDS_Node_Path(GDS_R_SEXP2FileRoot(OutGDS), "grm", TRUE);
+		}
 		// initialize
-		const int N = sz[1];
 		vector<double> sum(N), buf(N);
 		CProgress prog(verbose ? N : -1);
 		C_Int32 cnt[2] = { 1, N };
 		// for-loop
 		for (int i=0; i < N; i++)
 		{
-			memset(&sum[0], 0, sizeof(double)*N);
-			C_Int32 st[2] = { i, 0 };
+			double *p = out_gdsn ? &sum[0] : (REAL(rv_ans) + i*N);
+			memset(p, 0, sizeof(double)*N);
+			const C_Int32 st[2] = { i, 0 };
 			for (int k=0; k < n; k++)
 			{
 				GDS_Array_ReadData(list_gdsn[k], st, cnt, &buf[0], svFloat64);
-				vec_f64_addmul(&sum[0], &buf[0], N, weight[k]);
+				vec_f64_addmul(p, &buf[0], N, weight[k]);
 			}
-			GDS_Array_AppendData(out_gdsn, N, &sum[0], svFloat64);
+			if (out_gdsn)
+				GDS_Array_AppendData(out_gdsn, N, &sum[0], svFloat64);
 			prog.Forward(1);
 		}
 	COREARRAY_CATCH

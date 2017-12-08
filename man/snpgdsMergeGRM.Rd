@@ -7,12 +7,13 @@
     Combine multiple genetic relationship matrices with weighted averaging.
 }
 \usage{
-snpgdsMergeGRM(filelist, out.fn, out.prec=c("double", "single"),
+snpgdsMergeGRM(filelist, out.fn=NULL, out.prec=c("double", "single"),
     out.compress="LZMA_RA", weight=NULL, verbose=TRUE)
 }
 \arguments{
     \item{filelist}{a character vector, list of GDS file names}
-    \item{out.fn}{the output GDS file name}
+    \item{out.fn}{NULL, return a GRM object; or characters, the output GDS
+        file name}
     \item{out.prec}{double or single precision for storage}
     \item{out.compress}{the compression method used in the GDS file}
     \item{weight}{NULL, weights proportional to the numbers of SNPs;
@@ -27,7 +28,7 @@ to missing genotypes or the internal weighting strategy of the specified GRM
 calculation.
 }
 \value{
-    None.
+    None or a GRM object if \code{out.fn=NULL}.
 }
 \author{Xiuwen Zheng}
 \seealso{
@@ -50,15 +51,20 @@ set2 <- setdiff(grm$snp.id, set1)
 snpgdsGRM(genofile, method="GCTA", snp.id=set1, out.fn="tmp1.gds")
 snpgdsGRM(genofile, method="GCTA", snp.id=set2, out.fn="tmp2.gds")
 
-# merge GRMs
+# merge GRMs and export to a new GDS file
 snpgdsMergeGRM(c("tmp1.gds", "tmp2.gds"), "tmp.gds")
 
+# return the GRM
+grm2 <- snpgdsMergeGRM(c("tmp1.gds", "tmp2.gds"))
 
+
+# check
 f <- openfn.gds("tmp.gds")
 m <- read.gdsn(index.gdsn(f, "grm"))
 closefn.gds(f)
 
 summary(c(m - grm$grm))  # ~zero
+summary(c(m - grm2$grm))  # zero
 
 
 # close the file
