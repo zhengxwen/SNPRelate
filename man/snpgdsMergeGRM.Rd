@@ -8,7 +8,7 @@
 }
 \usage{
 snpgdsMergeGRM(filelist, out.fn=NULL, out.prec=c("double", "single"),
-    out.compress="", weight=NULL, verbose=TRUE)
+    out.compress="LZMA_RA", weight=NULL, verbose=TRUE)
 }
 \arguments{
     \item{filelist}{a character vector, list of GDS file names}
@@ -16,8 +16,7 @@ snpgdsMergeGRM(filelist, out.fn=NULL, out.prec=c("double", "single"),
         file name}
     \item{out.prec}{double or single precision for storage}
     \item{out.compress}{the compression method for storing the GRM matrix in
-        the GDS file, "" for no compression (it is difficult to compress
-        floating-point numbers)}
+        the GDS file}
     \item{weight}{NULL, weights proportional to the numbers of SNPs;
         a numeric vector, or a logical vector (FALSE for excluding some GRMs
         with a negative weight, weights proportional to the numbers of SNPs)}

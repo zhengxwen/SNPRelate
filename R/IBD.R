@@ -520,7 +520,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
     method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "Corr", "IndivBeta"),
     num.thread=1L, out.fn=NULL, out.prec=c("double", "single"),
-    out.compress="", with.id=TRUE, verbose=TRUE)
+    out.compress="LZMA_RA", with.id=TRUE, verbose=TRUE)
 {
     # check and initialize ...
     method <- match.arg(method)
@@ -554,8 +554,10 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         put.attr.gdsn(out.gds$root, "version",
             paste0("SNPRelate_", packageVersion("SNPRelate")))
         add.gdsn(out.gds, "command", c("snpgdsGRM", paste(":method =", method)))
-        add.gdsn(out.gds, "sample.id", ws$sample.id, compress="LZMA_RA", closezip=TRUE)
-        add.gdsn(out.gds, "snp.id", ws$snp.id, compress="LZMA_RA", closezip=TRUE)
+        add.gdsn(out.gds, "sample.id", ws$sample.id, compress=out.compress,
+            closezip=TRUE)
+        add.gdsn(out.gds, "snp.id", ws$snp.id, compress=out.compress,
+            closezip=TRUE)
         add.gdsn(out.gds, "grm", storage=out.prec, valdim=c(ws$n.samp, 0L),
             compress=out.compress)
     } else
@@ -568,7 +570,10 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     if (is.null(out.gds))
     {
         if (with.id)
-            rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, method=method, grm=rv)
+        {
+            rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, method=method,
+                grm=rv)
+        }
         rv
     } else
         invisible()
@@ -581,7 +586,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single"),
-    out.compress="", weight=NULL, verbose=TRUE)
+    out.compress="LZMA_RA", weight=NULL, verbose=TRUE)
 {
     # check
     stopifnot(is.character(filelist), length(filelist)>0L)
@@ -659,7 +664,8 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
         put.attr.gdsn(out.gds$root, "version",
             paste0("SNPRelate_", packageVersion("SNPRelate")))
         add.gdsn(out.gds, "command", cmd)
-        add.gdsn(out.gds, "sample.id", sampid, compress="LZMA_RA", closezip=TRUE)
+        add.gdsn(out.gds, "sample.id", sampid, compress=out.compress,
+            closezip=TRUE)
     } else {
         out.gds <- NULL
     }
@@ -676,7 +682,7 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
     }
     if (!is.null(out.gds))
     {
-        add.gdsn(out.gds, "snp.id", sid, compress="LZMA_RA", closezip=TRUE)
+        add.gdsn(out.gds, "snp.id", sid, compress=out.compress, closezip=TRUE)
         sync.gds(out.gds)
         rm(sid, s)
     }

@@ -1675,7 +1675,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 
 		if (verbose)
 			Rprintf("%s    Done.\n", TimeToStr());
-		UNPROTECT(1);
+		if (!gdsn) UNPROTECT(1);
 
 	COREARRAY_CATCH
 }
