@@ -1,9 +1,9 @@
-CHANGES IN VERSION 1.13.2
+CHANGES IN VERSION 1.13.2-1.13.3
 -------------------------
 
     o a new option 'method="Jacquard"' in `snpgdsPairIBD()`
 
-    o `snpgdsGRM()` can output to a GDS file
+    o `snpgdsGRM()` can output the GRM matrix to a GDS file
 
     o a new function `snpgdsMergeGRM()` to merge multiple GRMs
 

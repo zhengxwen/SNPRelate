@@ -11,7 +11,7 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
     method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "Corr", "IndivBeta"),
     num.thread=1L, out.fn=NULL, out.prec=c("double", "single"),
-    out.compress="LZMA_RA", with.id=TRUE, verbose=TRUE)
+    out.compress="", with.id=TRUE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -38,7 +38,9 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
         the number of cores automatically}
     \item{out.fn}{NULL for no GDS output, or a file name}
     \item{out.prec}{double or single precision for storage}
-    \item{out.compress}{the compression method used in the GDS file}
+    \item{out.compress}{the compression method for storing the GRM matrix in
+        the GDS file, "" for no compression (it is difficult to compress
+        floating-point numbers)}
     \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id}
         and \code{sample.id}}
     \item{verbose}{if \code{TRUE}, show information}
