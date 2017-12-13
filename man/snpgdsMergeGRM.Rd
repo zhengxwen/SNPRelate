@@ -43,6 +43,7 @@ genofile <- snpgdsOpen(snpgdsExampleFileName())
 snpid <- read.gdsn(index.gdsn(genofile, "snp.id"))
 snpid <- snpid[snpgdsSNPRateFreq(genofile)$MissingRate == 0]
 
+# there is no missing genotype
 grm <- snpgdsGRM(genofile, snp.id=snpid, method="GCTA")
 
 

@@ -33,6 +33,11 @@
 
 .CheckFile <- function(gdsobj)
 {
+    if (is.character(gdsobj))
+    {
+        stop(paste0("`gdsobj' is a character variable. ",
+            "Please use snpgdsOpen() to open the file '", gdsobj, "'."))
+    }
     if (!inherits(gdsobj, "gds.class"))
         stop("`gdsobj' should be a GDS file.")
 

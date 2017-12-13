@@ -18,13 +18,14 @@ Genome-wide association studies are widely used to investigate the genetic basis
 
 The GDS format offers the efficient operations specifically designed for integers with two bits, since a SNP could occupy only two bits. The SNP GDS format in this package is also used by the [GWASTools](http://bioconductor.org/packages/GWASTools) package with the support of S4 classes and generic functions. The extended GDS format is implemented in the [SeqArray](https://github.com/zhengxwen/SeqArray) package to support the storage of single nucleotide variation (SNV), insertion/deletion polymorphism (indel) and structural variation calls.
 
-## Bioconductor:
+
+## Bioconductor
 
 Release Version: v1.12.1
 
 [http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 
-Development Version: v1.13.2
+Development Version: v1.13.3
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 

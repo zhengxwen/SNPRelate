@@ -94,7 +94,8 @@ for individuals i,j and locus l;
 \seealso{
     \code{\link{snpgdsPCA}}, \code{\link{snpgdsEIGMIX}},
     \code{\link{snpgdsIndivBeta}},
-    \code{\link{snpgdsIndInb}}, \code{\link{snpgdsFst}}
+    \code{\link{snpgdsIndInb}}, \code{\link{snpgdsFst}},
+    \code{\link{snpgdsMergeGRM}}
 }
 
 \examples{
