@@ -547,6 +547,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         # gds output
         stopifnot(is.character(out.fn), length(out.fn)==1L)
         out.prec <- match.arg(out.prec)
+        if (out.prec=="single") out.prec <- "float32"
         # create a gds file
         out.gds <- createfn.gds(out.fn)
         on.exit(closefn.gds(out.gds))
@@ -596,6 +597,7 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
     stopifnot(is.null(out.fn) || is.character(out.fn))
     stopifnot(is.character(out.compress), length(out.compress)==1L)
     out.prec <- match.arg(out.prec)
+    if (out.prec=="single") out.prec <- "float32"
     if (!is.null(weight))
     {
         stopifnot(is.numeric(weight) || is.logical(weight),

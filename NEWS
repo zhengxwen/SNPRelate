@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.13.2-1.13.3
+CHANGES IN VERSION 1.13.2-1.13.4
 -------------------------
 
     o a new option 'method="Jacquard"' in `snpgdsPairIBD()`
