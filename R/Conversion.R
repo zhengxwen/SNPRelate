@@ -432,7 +432,7 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
-    snpfirstdim=NA, compress.annotation="ZIP_RA.max", compress.geno="",
+    snpfirstdim=NA, compress.annotation="LZMA_RA", compress.geno="",
     option=NULL, cvt.chr=c("int", "char"), cvt.snpid=c("auto", "int"),
     verbose=TRUE)
 {
@@ -957,7 +957,7 @@ snpgdsGEN2GDS <- function(gen.fn, sample.fn, out.fn, chr.code=NULL,
 
 snpgdsVCF2GDS <- function(vcf.fn, out.fn,
     method = c("biallelic.only", "copy.num.of.ref"), snpfirstdim=FALSE,
-    compress.annotation="ZIP_RA.max", compress.geno="",
+    compress.annotation="LZMA_RA", compress.geno="",
     ref.allele=NULL, ignore.chr.prefix="chr", verbose=TRUE)
 {
     # check
@@ -1156,7 +1156,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
 
 snpgdsVCF2GDS_R <- function(vcf.fn, out.fn, nblock=1024,
     method = c("biallelic.only", "copy.num.of.ref"),
-    compress.annotation="ZIP_RA.max", snpfirstdim=FALSE, option=NULL,
+    compress.annotation="LZMA_RA", snpfirstdim=FALSE, option=NULL,
     verbose=TRUE)
 {
     # check

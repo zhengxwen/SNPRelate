@@ -6,7 +6,7 @@
 }
 \usage{
 snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
-    snpfirstdim=NA, compress.annotation="ZIP_RA.max", compress.geno="",
+    snpfirstdim=NA, compress.annotation="LZMA_RA", compress.geno="",
     option=NULL, cvt.chr=c("int", "char"), cvt.snpid=c("auto", "int"),
     verbose=TRUE)
 }

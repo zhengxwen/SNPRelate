@@ -7,7 +7,7 @@
 \usage{
 snpgdsVCF2GDS_R(vcf.fn, out.fn, nblock=1024,
     method = c("biallelic.only", "copy.num.of.ref"),
-    compress.annotation="ZIP_RA.max", snpfirstdim=FALSE, option = NULL,
+    compress.annotation="LZMA_RA", snpfirstdim=FALSE, option = NULL,
     verbose=TRUE)
 }
 \arguments{
