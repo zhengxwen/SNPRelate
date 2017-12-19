@@ -123,6 +123,7 @@ private:
 			#elif defined(COREARRAY_SIMD_SSE2)
 			{
 				POPCNT_SSE2_HEAD
+				SIMD128_NOT_HEAD
 				__m128i ibscnt4i, num4i;
 				ibscnt4i = num4i = _mm_setzero_si128();
 
@@ -134,9 +135,9 @@ private:
 					__m128i g2_2 = _mm_load_si128((__m128i*)(p2 + npack));
 					p1 += 16; p2 += 16;
 
-					__m128i mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
+					__m128i mask = (g1_1 | SIMD128_NOT(g1_2)) & (g2_1 | SIMD128_NOT(g2_2));
 					__m128i het  = (g1_1 ^ g1_2) | (g2_1 ^ g2_2);
-					__m128i ibs2 = ~(het | (g1_1 ^ g2_1));
+					__m128i ibs2 = SIMD128_NOT(het | (g1_1 ^ g2_1));
 					het &= mask;
 					ibs2 &= mask;
 

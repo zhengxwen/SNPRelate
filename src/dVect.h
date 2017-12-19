@@ -220,7 +220,6 @@ namespace Vectorization
 #endif
 
 
-
 	// ===========================================================
 	// Sum all elements in a SIMD register
 
@@ -255,6 +254,24 @@ namespace Vectorization
 		a = _mm_add_epi32(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(0,0,0,1)));
 		return _mm_cvtsi128_si32(a);
 	}
+#endif
+
+
+	// ===========================================================
+	// NOT bitwise operator for compiler compatibility
+
+#ifdef COREARRAY_SIMD_SSE2
+	#define SIMD128_NOT_HEAD  \
+		const __m128i ONE128 = \
+			_mm_cmpeq_epi32(_mm_setzero_si128(), _mm_setzero_si128());
+	#define SIMD128_NOT(x)    _mm_andnot_si128(x, ONE128)
+#endif
+
+#ifdef COREARRAY_SIMD_AVX2
+	#define SIMD256_NOT_HEAD  \
+		const __m256i ONE256 = \
+			_mm256_cmpeq_epi32(_mm256_setzero_si256(), _mm256_setzero_si256());
+	#define SIMD256_NOT(x)    _mm256_andnot_si256(x, ONE256)
 #endif
 
 

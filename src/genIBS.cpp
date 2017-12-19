@@ -216,6 +216,7 @@ private:
 		#if defined(COREARRAY_SIMD_SSE2)
 		{
 			POPCNT_SSE2_HEAD
+			SIMD128_NOT_HEAD
 			__m128i ibs0_sum, ibs1_sum, ibs2_sum;
 			ibs0_sum = ibs1_sum = ibs2_sum = _mm_setzero_si128();
 
@@ -227,9 +228,9 @@ private:
 				__m128i g2_2 = _mm_load_si128((__m128i*)(p2 + npack));
 				p1 += 16; p2 += 16;
 
-				__m128i mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
-				__m128i ibs0 = (~((g1_1 ^ ~g2_1) | (g1_2 ^ ~g2_2))) & mask;
-				__m128i ibs2 = (~((g1_1 ^ g2_1) | (g1_2 ^ g2_2))) & mask;
+				__m128i mask = (g1_1 | SIMD128_NOT(g1_2)) & (g2_1 | SIMD128_NOT(g2_2));
+				__m128i ibs0 = SIMD128_NOT((g1_1 ^ SIMD128_NOT(g2_1)) | (g1_2 ^ SIMD128_NOT(g2_2))) & mask;
+				__m128i ibs2 = SIMD128_NOT((g1_1 ^ g2_1) | (g1_2 ^ g2_2)) & mask;
 
 				POPCNT_SSE2_RUN(ibs0)
 				ibs0_sum = _mm_add_epi32(ibs0_sum, ibs0);
