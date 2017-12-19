@@ -308,6 +308,7 @@ private:
 
 		#if defined(COREARRAY_SIMD_AVX2)
 			POPCNT_AVX2_HEAD
+			SIMD256_NOT_HEAD
 			__m256i ibs0_sum, nloci_sum, sumsq_sum, n1_Aa, n2_Aa;
 			ibs0_sum = nloci_sum = sumsq_sum = n1_Aa = n2_Aa = _mm256_setzero_si256();
 
@@ -318,12 +319,15 @@ private:
 				__m256i g2_1 = _mm256_load_si256((__m256i*)p2);
 				__m256i g2_2 = _mm256_load_si256((__m256i*)(p2 + npack));
 				p1 += 32; p2 += 32;
+				__m256i r_g1_2 = SIMD256_NOT(g1_2);
+				__m256i r_g2_1 = SIMD256_NOT(g2_1);
+				__m256i r_g2_2 = SIMD256_NOT(g2_2);
 
-				__m256i mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
-				__m256i ibs0 = (~((g1_1 ^ ~g2_1) | (g1_2 ^ ~g2_2))) & mask;
+				__m256i mask = (g1_1 | r_g1_2) & (g2_1 | r_g2_2);
+				__m256i ibs0 = SIMD256_NOT((g1_1 ^ r_g2_1) | (g1_2 ^ r_g2_2)) & mask;
 				__m256i het  = ((g1_1 ^ g1_2) ^ (g2_1 ^ g2_2)) & mask;
-				__m256i Aa1  = g1_1 & ~g1_2 & mask;
-				__m256i Aa2  = g2_1 & ~g2_2 & mask;
+				__m256i Aa1  = g1_1 & r_g1_2 & mask;
+				__m256i Aa2  = g2_1 & r_g2_2 & mask;
 
 				POPCNT_AVX2_RUN(ibs0)
 				ibs0_sum = _mm256_add_epi32(ibs0_sum, ibs0);

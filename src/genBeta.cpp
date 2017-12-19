@@ -80,6 +80,7 @@ private:
 
 			#if defined(COREARRAY_SIMD_AVX2)
 			{
+				SIMD256_NOT_HEAD
 				for (; m >= 32; m-=32)
 				{
 					__m256i g1_1 = _mm256_loadu_si256((__m256i*)p1);
@@ -88,9 +89,9 @@ private:
 					__m256i g2_2 = _mm256_loadu_si256((__m256i*)(p2 + npack));
 					p1 += 32; p2 += 32;
 
-					__m256i mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
+					__m256i mask = (g1_1 | SIMD256_NOT(g1_2)) & (g2_1 | SIMD256_NOT(g2_2));
 					__m256i het  = (g1_1 ^ g1_2) | (g2_1 ^ g2_2);
-					__m256i ibs2 = ~(het | (g1_1 ^ g2_1));
+					__m256i ibs2 = SIMD256_NOT(het | (g1_1 ^ g2_1));
 					het &= mask;
 					ibs2 &= mask;
 
@@ -102,6 +103,7 @@ private:
 
 			#if defined(VECT_HARDWARE_POPCNT)
 			{
+				SIMD128_NOT_HEAD
 				for (; m > 0; m-=16)
 				{
 					__m128i g1_1 = _mm_load_si128((__m128i*)p1);
@@ -110,9 +112,9 @@ private:
 					__m128i g2_2 = _mm_load_si128((__m128i*)(p2 + npack));
 					p1 += 16; p2 += 16;
 
-					__m128i mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
+					__m128i mask = (g1_1 | SIMD128_NOT(g1_2)) & (g2_1 | SIMD128_NOT(g2_2));
 					__m128i het  = (g1_1 ^ g1_2) | (g2_1 ^ g2_2);
-					__m128i ibs2 = ~(het | (g1_1 ^ g2_1));
+					__m128i ibs2 = SIMD128_NOT(het | (g1_1 ^ g2_1));
 					het &= mask;
 					ibs2 &= mask;
 

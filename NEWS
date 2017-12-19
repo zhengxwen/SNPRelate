@@ -10,6 +10,8 @@ CHANGES IN VERSION 1.13.2-1.13.4
     o the default compression is "LZMA_RA" in `snpgdsBED2GDS()`,
       `snpgdsVCF2GDS()` and `snpgdsVCF2GDS_R()` for annotations
 
+    o support Intel C++ compiler with SSE2/AVX2
+
 
 CHANGES IN VERSION 1.12.1
 -------------------------
