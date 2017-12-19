@@ -1133,11 +1133,10 @@ void CProgress::Reset(C_Int64 count)
 		_hit = (C_Int64)(_start);
 		double percent = (double)fCounter / count;
 		time_t s; time(&s);
-		_start_time = s;
+		_start_time = _last_time = _last_check_time = s;
 		_timer.clear();
 		_timer.reserve(128);
 		_timer.push_back(pair<double, time_t>(percent, s));
-		_last_time = s;
 		if (flag) ShowProgress();
 	}
 }
@@ -1155,6 +1154,14 @@ void CProgress::Forward(C_Int64 val)
 			} while (fCounter >= _hit);
 			if (_hit > fTotalCount) _hit = fTotalCount;
 			ShowProgress();
+		}
+		// check whether user interrupts
+		time_t now; time(&now);
+		if (difftime(now, _last_check_time) > 0.25)
+		{
+			_last_check_time = now;
+			if (CheckInterrupt())
+				throw ErrCoreArray("User interrupts!");
 		}
 	}
 }
@@ -1197,7 +1204,7 @@ void CProgress::ShowProgress()
 			Rprintf("\r[%s] 100%%, completed in %s\n", bar, time_str(s));
 		} else if ((interval >= 5) || (fCounter <= 0))
 		{
-			Rprintf("\r[%s] %2.0f%%, ETC: %s    ", bar, p, time_str(s));
+			Rprintf("\r[%s] %2.0f%%, ETC: %s        ", bar, p, time_str(s));
 			// fflush(stdout);
 		}
 	}
@@ -2294,6 +2301,18 @@ size_t GWAS::GetOptimzedCache()
 		Cache = 1024*1024; // 1M
 	Cache -= (Cache == L3Cache) ? (L2Cache+L1Cache) : 4*L1Cache;
 	return Cache;
+}
+
+
+extern "C"
+{
+	static void chkIntFn(void *dummy) { R_CheckUserInterrupt(); }
+}
+
+bool GWAS::CheckInterrupt()
+{
+	// this will call the above in a top-level context so it won't longjmp-out of your context
+	return (R_ToplevelExec(chkIntFn, NULL) == FALSE);
 }
 
 

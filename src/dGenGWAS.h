@@ -285,7 +285,7 @@ namespace GWAS
 		double _start, _step;
 		C_Int64 _hit;
 		vector< pair<double, time_t> > _timer;
-		time_t _start_time, _last_time;
+		time_t _start_time, _last_time, _last_check_time;
 	};
 
 
@@ -306,10 +306,9 @@ namespace GWAS
 		bool Read(C_UInt8 *OutGeno);
 		/// sequential read
 		bool Read(C_UInt8 *OutGeno, size_t &OutIdxSNP);
-
 		/// read with start and count
 		void PRead(C_Int32 SnpStart, C_Int32 SnpCount, C_UInt8 *OutGeno);
-
+		/// 
 		inline void ProgressForward(C_Int64 val) { fProgress.Forward(val); }
 
 		inline size_t Index() const { return fIndex; }
@@ -854,6 +853,7 @@ namespace GWAS
 
 	size_t GetOptimzedCache();
 
+	bool CheckInterrupt();
 
 
 	/// The packed genotype buffer
