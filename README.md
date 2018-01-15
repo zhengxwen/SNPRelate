@@ -21,11 +21,11 @@ The GDS format offers the efficient operations specifically designed for integer
 
 ## Bioconductor
 
-Release Version: v1.12.1
+Release Version: v1.12.2
 
 [http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 
-Development Version: v1.13.3
+Development Version: v1.13.5
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 

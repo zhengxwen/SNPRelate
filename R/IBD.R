@@ -559,6 +559,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             closezip=TRUE)
         add.gdsn(out.gds, "snp.id", ws$snp.id, compress=out.compress,
             closezip=TRUE)
+        sync.gds(out.gds)
         add.gdsn(out.gds, "grm", storage=out.prec, valdim=c(ws$n.samp, 0L),
             compress=out.compress)
     } else
