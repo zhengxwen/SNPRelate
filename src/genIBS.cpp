@@ -647,6 +647,26 @@ COREARRAY_DLL_EXPORT SEXP gnrDiss(SEXP NumThread, SEXP _Verbose)
 // =========================================================================
 // the functions for genotype score
 
+static void flap_allele(C_UInt8 *pGeno, const int *c_1, const int *c_2,
+	int nSamp, int nPair)
+{
+	int n=0, gsum=0;
+	for (int j=0; j < nPair; j++)
+	{
+		C_UInt8 g1 = pGeno[c_1[j]], g2 = pGeno[c_2[j]];
+		if (g1 < 3) { n++; gsum+=g1; }
+		if (g2 < 3) { n++; gsum+=g2; }
+	}
+	if (gsum < n)
+	{
+		for (int j=0; j < nSamp; j++)
+		{
+			C_UInt8 &g = pGeno[j];
+			if (g < 3) g = 2 - g;
+		}
+	}
+}
+
 /// Compute the individual dissimilarity
 COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 	SEXP Method, SEXP Type, SEXP Dosage, SEXP GDSNode, SEXP _Verbose)
@@ -666,6 +686,14 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 		{ { 0, 1, 2, M }, { 0, 0, 0, M }, { 2, 1, 0, M }, { M, M, M, M } };
 	static const TMat HVG_1 =
 		{ { 0, 1, 1, M }, { 0, 0, 0, M }, { 1, 1, 0, M }, { M, M, M, M } };
+	static const TMat GVH_major =
+		{ { 0, 0, 0, M }, { 1, 0, 0, M }, { 1, 0, 0, M }, { M, M, M, M } };
+	static const TMat GVH_minor =
+		{ { 0, 0, 1, M }, { 0, 0, 1, M }, { 0, 0, 0, M }, { M, M, M, M } };
+	static const TMat GVH_major_only =
+		{ { 0, 0, M, M }, { 1, 0, M, M }, { 1, 0, 0, M }, { M, M, M, M } };
+	static const TMat GVH_minor_only =
+		{ { 0, 0, 1, M }, { M, 0, 1, M }, { M, 0, 0, M }, { M, M, M, M } };
 
 	const int *c_1 = INTEGER(SampIdx1);
 	const int *c_2 = INTEGER(SampIdx2);
@@ -681,13 +709,29 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 	COREARRAY_TRY
 
 		const TMat *m;
+		bool need_major = false;
 		if (strcmp(c_Method, "IBS") == 0)
+		{
 			m = dosage ? &IBS : &IBS_1;
-		else if (strcmp(c_Method, "GVH") == 0)
+		} else if (strcmp(c_Method, "GVH") == 0)
+		{
 			m = dosage ? &GVH : &GVH_1;
-		else if (strcmp(c_Method, "HVG") == 0)
+		} else if (strcmp(c_Method, "HVG") == 0)
+		{
 			m = dosage ? &HVG : &HVG_1;
-		else
+		} else if (strcmp(c_Method, "GVH.major") == 0)
+		{
+			m = &GVH_major; need_major = true;
+		} else if (strcmp(c_Method, "GVH.minor") == 0)
+		{
+			m = &GVH_minor; need_major = true;
+		} else if (strcmp(c_Method, "GVH.major.only") == 0)
+		{
+			m = &GVH_major_only; need_major = true;
+		} else if (strcmp(c_Method, "GVH.minor.only") == 0)
+		{
+			m = &GVH_minor_only; need_major = true;
+		} else
 			throw ErrCoreArray("Invalid 'method'.");
 		const TMat &map = *m;
 
@@ -696,15 +740,18 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 
 		// ======== Genotype score for individual pairs ========
 		const int nSNP = MCWorkingGeno.Space().SNPNum();
+		const int nSamp = MCWorkingGeno.Space().SampleNum();
 		CdBufSpace BufSNP(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
 
 		if (strcmp(c_Type, "per.pair") == 0)
 		{
 			vector<CSummary_AvgSD> Sums(nPair);
 			// for-loop
-			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
+			for (int i=0; i < nSNP; i++)
 			{
 				C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+				if (need_major)
+					flap_allele(pGeno, c_1, c_2, nSamp, nPair);
 				for (int j=0; j < nPair; j++)
 				{
 					C_UInt8 g1 = pGeno[c_1[j]];
@@ -731,9 +778,11 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 			double *Out = REAL(rv_ans);
 
 			// for-loop
-			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
+			for (int i=0; i < nSNP; i++)
 			{
 				C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+				if (need_major)
+					flap_allele(pGeno, c_1, c_2, nSamp, nPair);
 				for (int j=0; j < nPair; j++)
 				{
 					C_UInt8 g1 = pGeno[c_1[j]];
@@ -756,9 +805,11 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 			int *Out = INTEGER(rv_ans);
 
 			// for-loop
-			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
+			for (int i=0; i < nSNP; i++)
 			{
 				C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+				if (need_major)
+					flap_allele(pGeno, c_1, c_2, nSamp, nPair);
 				for (int j=0; j < nPair; j++, Out++)
 				{
 					C_UInt8 g1 = pGeno[c_1[j]];
@@ -775,9 +826,11 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 			vector<C_UInt8> Buffer(nPair);
 
 			// for-loop
-			for (int i=0; i < MCWorkingGeno.Space().SNPNum(); i++)
+			for (int i=0; i < nSNP; i++)
 			{
 				C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+				if (need_major)
+					flap_allele(pGeno, c_1, c_2, nSamp, nPair);
 				C_UInt8 *Out = &Buffer[0];
 				for (int j=0; j < nPair; j++, Out++)
 				{

@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.13.3-1.13.5
+CHANGES IN VERSION 1.13.3-1.13.6
 -------------------------
 
     o the default compression is "LZMA_RA" in `snpgdsBED2GDS()`,
@@ -7,6 +7,9 @@ CHANGES IN VERSION 1.13.3-1.13.5
     o support Intel C++ compiler with SSE2/AVX2
     
     o allow interrupt requests in the calculation
+
+    o new method options in `snpgdsPairScore()`: GVH.major, GVH.minor,
+      GVH.major.only, GVH.minor.only
 
 
 CHANGES IN VERSION 1.12.2

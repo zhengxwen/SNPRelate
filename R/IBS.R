@@ -73,14 +73,14 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
-    method=c("IBS", "GVH", "HVG"),
+    method=c("IBS", "GVH", "HVG", "GVH.major", "GVH.minor", "GVH.major.only", "GVH.minor.only"),
     type=c("per.pair", "per.snp", "matrix", "gds.file"),
     dosage=TRUE, with.id=TRUE, output=NULL, verbose=TRUE)
 {
     # check
-    if (anyDuplicated(sample1.id) != 0)
+    if (anyDuplicated(sample1.id) != 0L)
         stop("'sample1.id' has duplicated element(s).")
-    if (anyDuplicated(sample2.id) != 0)
+    if (anyDuplicated(sample2.id) != 0L)
         stop("'sample2.id' has duplicated element(s).")
     stopifnot(length(sample1.id) == length(sample2.id))
 
@@ -111,7 +111,7 @@ snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
 
     if (type == "gds.file")
     {
-        ZIP <- "ZIP_RA.max"
+        ZIP <- "LZMA_RA.max"
 
         # create GDS file
         output <- createfn.gds(output)

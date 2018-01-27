@@ -9,7 +9,7 @@ identity-by-state (IBS) measure
 }
 \usage{
 snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
-    method=c("IBS", "GVH", "HVG"),
+    method=c("IBS", "GVH", "HVG", "GVH.major", "GVH.minor", "GVH.major.only", "GVH.minor.only"),
     type=c("per.pair", "per.snp", "matrix", "gds.file"),
     dosage=TRUE, with.id=TRUE, output=NULL, verbose=TRUE)
 }
@@ -33,20 +33,19 @@ snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
     \item{verbose}{if TRUE, show information}
 }
 \details{
-    \tabular{ccccccc}{
-        Patient (sample1.id) \tab Coded Genotype \tab
-        Donor (sample2.id)   \tab Coded Genotype \tab
-        IBS \tab GVH \tab HVG \cr
-
-        AA \tab 0 \tab AA \tab 0 \tab 2 \tab 0 \tab 0 \cr
-        AA \tab 0 \tab AB \tab 1 \tab 1 \tab 0 \tab 1 \cr
-        AA \tab 0 \tab BB \tab 2 \tab 0 \tab 2 \tab 2 \cr
-        AB \tab 1 \tab AA \tab 0 \tab 1 \tab 1 \tab 0 \cr
-        AB \tab 1 \tab AB \tab 1 \tab 2 \tab 0 \tab 0 \cr
-        AB \tab 1 \tab BB \tab 2 \tab 1 \tab 1 \tab 0 \cr
-        BB \tab 2 \tab AA \tab 0 \tab 0 \tab 2 \tab 2 \cr
-        BB \tab 2 \tab AB \tab 1 \tab 1 \tab 0 \tab 1 \cr
-        BB \tab 2 \tab BB \tab 2 \tab 2 \tab 0 \tab 0 \cr
+    \tabular{ccccccccc}{
+        sample1.id \tab sample2.id \cr
+        Patient \tab Donor \tab IBS \tab GVH \tab HVG \tab GVH.major \tab
+            GVH.minor \tab GVH.major.only \tab GVH.minor.only \cr
+        AA / 2 \tab AA / 2 \tab 2 \tab 0 \tab 0 \tab 0 \tab 0 \tab 0  \tab 0  \cr
+        AA / 2 \tab AB / 1 \tab 1 \tab 0 \tab 1 \tab 0 \tab 0 \tab 0  \tab 0  \cr
+        AA / 2 \tab BB / 0 \tab 0 \tab 2 \tab 2 \tab 1 \tab 0 \tab 1  \tab NA \cr
+        AB / 1 \tab AA / 2 \tab 1 \tab 1 \tab 0 \tab 0 \tab 1 \tab NA \tab 1  \cr
+        AB / 1 \tab AB / 1 \tab 2 \tab 0 \tab 0 \tab 0 \tab 0 \tab 0  \tab 0  \cr
+        AB / 1 \tab BB / 0 \tab 1 \tab 1 \tab 0 \tab 1 \tab 0 \tab 1  \tab NA \cr
+        BB / 0 \tab AA / 2 \tab 0 \tab 2 \tab 2 \tab 0 \tab 1 \tab NA \tab 1  \cr
+        BB / 0 \tab AB / 1 \tab 1 \tab 0 \tab 1 \tab 0 \tab 0 \tab 0  \tab 0  \cr
+        BB / 0 \tab BB / 0 \tab 2 \tab 0 \tab 0 \tab 0 \tab 0 \tab 0  \tab 0  \cr
     }
 }
 \value{
