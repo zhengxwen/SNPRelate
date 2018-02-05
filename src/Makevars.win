@@ -6,7 +6,7 @@
 PKG_CPPFLAGS = -DUSING_R -I.
 
 # to set flags for the linker
-PKG_LIBS = $(FLIBS) $(BLAS_LIBS) $(LAPACK_LIBS)
+PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
 all: $(SHLIB)
 
