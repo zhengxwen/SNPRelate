@@ -593,8 +593,6 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
     # check
     stopifnot(is.character(filelist), length(filelist)>0L)
     stopifnot(is.logical(verbose), length(verbose)==1L)
-    if (!is.null(weight))
-        stopifnot(is.numeric(weight), length(weight)==length(filelist))
     stopifnot(is.null(out.fn) || is.character(out.fn))
     stopifnot(is.character(out.compress), length(out.compress)==1L)
     out.prec <- match.arg(out.prec)
@@ -651,7 +649,7 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
         num <- sapply(gdslist, function(f)
             prod(objdesp.gdsn(index.gdsn(f, "snp.id"))$dim))
         if (is.logical(weight))
-            num[weight] <- -num[weight]
+            num[!weight] <- -num[!weight]
         weight <- num / sum(num)
     }
     if (verbose) cat("Weight: ", paste(weight, collapse=", "), "\n", sep="")
