@@ -41,6 +41,9 @@ snpgdsIndivBeta(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         \item{snp.id}{the SNP ids used in the analysis}
         \item{beta}{the genetic relationship matrix; different methods might
             have different meanings and interpretation for estimates}
+        \item{inbreeding}{a logical value; \code{TRUE}, the diagonal is a
+            vector of inbreeding coefficients; otherwise, individual variance
+            estimates}
     If \code{with.id = FALSE}, this function returns the genetic relationship
     matrix without sample and SNP IDs.
 }

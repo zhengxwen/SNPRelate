@@ -34,6 +34,7 @@ R is the most popular statistical programming environment, but one not typically
 This vignette takes the user through the relatedness and principal component analysis used for genome wide association data. The methods in these vignettes have been introduced in the paper of Zheng *et al.* (2012)^1^. For replication purposes the data used here are taken from the HapMap Phase II project. These data were kindly provided by the Center for Inherited Disease Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard University (Broad). The data supplied here should not be used for any purpose other than this tutorial.
 
 
+$~$
 
 # Installation of the package SNPRelate
 
@@ -55,6 +56,7 @@ install_github("zhengxwen/SNPRelate")
 The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the [R FAQ](http://cran.r-project.org/faqs.html) for your operating system; you may also need to install dependencies manually.
 
 
+$~$
 
 # Preparing Data
 
@@ -134,6 +136,8 @@ table(pop)
 snpgdsClose(genofile)
 ```
 
+
+$~$
 
 ## Create a SNP GDS File
 
@@ -288,6 +292,7 @@ snpgdsSummary("test.gds")
 ```
 
 
+$~$
 
 # Data Analysis
 
@@ -309,6 +314,7 @@ table(pop_code)
 head(pop_code)
 ```
 
+$~$
 
 ## LD-based SNP pruning
 
@@ -326,6 +332,7 @@ head(snpset$chr1)  # snp.id
 snpset.id <- unlist(snpset)
 ```
 
+$~$
 
 ## Principal Component Analysis (PCA)
 
@@ -415,6 +422,7 @@ par(savepar)
 ```
 
 
+$~$
 
 ## $F_{st}$ Estimation
 
@@ -453,6 +461,7 @@ v$MeanFst    # Weir and Cockerham mean Fst estimate
 summary(v$FstSNP)
 ```
 
+$~$
 
 ## Relatedness Analysis
 
@@ -519,6 +528,7 @@ plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
 ```
 
 
+$~$
 
 ## Identity-By-State Analysis
 
@@ -571,12 +581,14 @@ snpgdsClose(genofile)
 ```
 
 
+$~$
 
 # Integration with SeqArray
 
-See: [R Integration](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html).
+The extended GDS format is implemented in the SeqArray package to support the storage of single nucleotide variation (SNV), insertion/deletion polymorphism (indel) and structural variation calls. See: [SeqArray R Integration](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html) $^4$.
 
 
+$~$
 
 # Function List
 
@@ -617,6 +629,7 @@ See: [R Integration](http://www.bioconductor.org/packages/release/bioc/vignettes
 | ... | [![](link.png)](http://zhengxwen.github.io/SNPRelate/release/help/00Index.html) |
 
 
+$~$
 
 # Resources
 
@@ -627,6 +640,7 @@ See: [R Integration](http://www.bioconductor.org/packages/release/bioc/vignettes
 5. [GWASTools](http://www.bioconductor.org/packages/release/bioc/html/GWASTools.html): an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies
 
 
+$~$
 
 # Session Information
 
@@ -638,14 +652,17 @@ unlink("test.gds", force=TRUE)
 ```
 
 
+$~$
 
 # References
 
 1. A High-performance Computing Toolset for Relatedness and Principal Component Analysis of SNP Data. Xiuwen Zheng; David Levine; Jess Shen; Stephanie M. Gogarten; Cathy Laurie; Bruce S. Weir. Bioinformatics 2012; doi: 10.1093/bioinformatics/bts606.
 2. GWASTools: an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies. Stephanie M. Gogarten, Tushar Bhangale, Matthew P. Conomos, Cecelia A. Laurie, Caitlin P. McHugh, Ian Painter, Xiuwen Zheng, David R. Crosslin, David Levine, Thomas Lumley, Sarah C. Nelson, Kenneth Rice, Jess Shen, Rohit Swarnkar, Bruce S. Weir, and Cathy C. Laurie. Bioinformatics 2012.
 3. Quality control and quality assurance in genotypic data for genome-wide association studies. Laurie CC, Doheny KF, Mirel DB, Pugh EW, Bierut LJ, Bhangale T, Boehm F, Caporaso NE, Cornelis MC, Edenberg HJ, Gabriel SB, Harris EL, Hu FB, Jacobs KB, Kraft P, Landi MT, Lumley T, Manolio TA, McHugh C, Painter I, Paschall J, Rice JP, Rice KM, Zheng X, Weir BS; GENEVA Investigators. Genet Epidemiol. 2010 Sep; 34(6): 591-602.
+4. SeqArray -- A storage-efficient high-performance data format for WGS variant calls. Zheng X, Gogarten S, Lawrence M, Stilp A, Conomos M, Weir BS, Laurie C, Levine D. Bioinformatics 2017. DOI: 10.1093/bioinformatics/btx145.
 
 
+$~$
 
 # Acknowledgements
 

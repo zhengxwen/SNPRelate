@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2017        Xiuwen Zheng
+# Copyright (C) 2011 - 2018        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -813,6 +813,9 @@ snpgdsIndivBeta <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
     # return
     if (with.id)
-        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, beta=rv)
+    {
+        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, beta=rv,
+            inbreeding=inbreeding)
+    }
     return(rv)
 }
