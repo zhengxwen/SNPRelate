@@ -11,6 +11,8 @@ CHANGES IN VERSION 1.13.3-1.13.9
     o new method options in `snpgdsPairScore()`: GVH.major, GVH.minor,
       GVH.major.only, GVH.minor.only
 
+    o force to use integers for 'snp.position' in `snpgdsCreateGeno()`
+
 
 CHANGES IN VERSION 1.12.2
 -------------------------

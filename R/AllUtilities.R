@@ -1082,8 +1082,8 @@ snpgdsCreateGeno <- function(gds.fn, genmat, sample.id=NULL, snp.id=NULL,
 
     if (is.null(snp.position))
         snp.position <- as.integer(1:n.snp)
-    add.gdsn(gfile, "snp.position", snp.position, compress=compress.annotation,
-        closezip=TRUE)
+    add.gdsn(gfile, "snp.position", as.integer(snp.position),
+        compress=compress.annotation, closezip=TRUE)
 
     if (is.null(snp.chromosome))
         snp.chromosome <- as.integer(rep(1, n.snp))
