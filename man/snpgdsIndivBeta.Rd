@@ -1,5 +1,6 @@
 \name{snpgdsIndivBeta}
 \alias{snpgdsIndivBeta}
+\alias{snpgdsIndivBetaRel}
 \title{
     Individual inbreeding and relatedness estimation (beta estimator)
 }
@@ -11,6 +12,7 @@ using SNP genotype data.
 snpgdsIndivBeta(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, method=c("weighted"),
     inbreeding=TRUE, num.thread=1L, with.id=TRUE, verbose=TRUE)
+snpgdsIndivBetaRel(beta, beta_rel, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -33,6 +35,9 @@ snpgdsIndivBeta(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         the number of cores automatically}
     \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id}
         and \code{sample.id}}
+    \item{beta}{the object returned from \code{snpgdsIndivBeta()}}
+    \item{beta_rel}{the beta-based matrix is generated relative to
+        \code{beta_rel}}
     \item{verbose}{if \code{TRUE}, show information}
 }
 \value{
@@ -61,11 +66,25 @@ snpgdsIndivBeta(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
 
 \examples{
 library(SNPRelate)
+
 # open an example dataset (HapMap)
 genofile <- snpgdsOpen(snpgdsExampleFileName())
 
-beta <- snpgdsIndivBeta(genofile, with.id=FALSE)
-beta[1:10, 1:10]
+b <- snpgdsIndivBeta(genofile, inbreeding=FALSE)
+b$beta[1:10, 1:10]
+
+min(eigen(b$beta, symmetric=TRUE)$values)
+
+min(b$beta)
+min(diag(b$beta))
+
+mm <- 0
+for (i in 1:1000)
+{
+z <- snpgdsIndivBetaRel(b, mm)
+cat(mm, ", ", min(eigen(z$beta, symmetric=TRUE)$values), "\n")
+mm <- mm - 10
+}
 
 
 # close the file

@@ -250,12 +250,12 @@ test.IndivBeta <- function()
 	# run on one core
 	beta.1 <- snpgdsIndivBeta(genofile, sample.id=samp.id[1:90],
 		num.thread=1, verbose=FALSE)
-	checkEquals(beta.1, valid.dta, "Individual Beta (one core)")
+	checkEquals(beta.1$beta, valid.dta$beta, "Individual Beta (one core)")
 
 	# run on two cores
 	beta.2 <- snpgdsIndivBeta(genofile, sample.id=samp.id[1:90],
 		num.thread=2, verbose=FALSE)
-	checkEquals(beta.2, valid.dta, "Individual Beta (two cores)")
+	checkEquals(beta.2$beta, valid.dta$beta, "Individual Beta (two cores)")
 
 	# close the file
 	snpgdsClose(genofile)

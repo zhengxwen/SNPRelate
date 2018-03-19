@@ -814,8 +814,32 @@ snpgdsIndivBeta <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     # return
     if (with.id)
     {
-        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, beta=rv,
-            inbreeding=inbreeding)
+        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id,
+            inbreeding=inbreeding, beta=rv)
     }
+    return(rv)
+}
+
+
+snpgdsIndivBetaRel <- function(beta, beta_rel, verbose=TRUE)
+{
+    # check
+    stopifnot(is.numeric(beta_rel), length(beta_rel)==1L)
+    stopifnot(is.logical(verbose), length(verbose)==1L)
+    if (class(beta) == "list")
+    {
+        if (!all(c("sample.id", "snp.id", "beta", "inbreeding") %in% names(beta)))
+            stop("'beta' should be the object returned from snpgdsIndivBeta() or snpgdsGRM()")
+        mat <- beta$beta
+        if (!beta$inbreeding)
+            diag(mat) <- (diag(mat) - 0.5) * 2
+    }
+
+    mat <- (mat - beta_rel) / (1 - beta_rel)
+    diag(mat) <- 0.5*diag(mat) + 0.5
+
+    # return
+    rv <- list(sample.id=beta$sample.id, snp.id=beta$snp.id, inbreeding=FALSE)
+    rv$beta <- mat
     return(rv)
 }
