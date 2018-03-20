@@ -1698,8 +1698,8 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 
 
 /// Combine GRM matrices
-COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Weight,
-	SEXP Verbose)
+COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Cmd,
+	SEXP Weight, SEXP Verbose)
 {
 	const double *weight = REAL(Weight);
 	const bool verbose = SEXP_Verbose(Verbose);
@@ -1716,33 +1716,122 @@ COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Weight,
 		C_Int32 sz[2];
 		GDS_Array_GetDim(list_gdsn[0], sz, 2);
 		const int N = sz[0];
-		// output gds file
-		PdGDSObj out_gdsn;
-		if (Rf_isNull(OutGDS))
-		{
-			out_gdsn = NULL;
-			rv_ans = Rf_allocMatrix(REALSXP, N, N);
-		} else {
+		PdGDSObj out_gdsn = NULL;
+		if (!Rf_isNull(OutGDS))
 			out_gdsn = GDS_Node_Path(GDS_R_SEXP2FileRoot(OutGDS), "grm", TRUE);
-		}
-		// initialize
-		vector<double> sum(N), buf(N);
-		CProgress prog(verbose ? N : -1);
-		C_Int32 cnt[2] = { 1, N };
-		// for-loop
-		for (int i=0; i < N; i++)
+
+		// output gds file
+		if (strcmp(CHAR(STRING_ELT(Cmd, 0)), ":method = IndivBeta")==0)
 		{
-			double *p = out_gdsn ? &sum[0] : (REAL(rv_ans) + i*N);
-			memset(p, 0, sizeof(double)*N);
-			const C_Int32 st[2] = { i, 0 };
+			// merge beta-based GRM
+			// get avg_val from all GDS files
+			vector<double> avg_val(n), M_b(n), M_b_inv(n);
 			for (int k=0; k < n; k++)
 			{
-				GDS_Array_ReadData(list_gdsn[k], st, cnt, &buf[0], svFloat64);
-				vec_f64_addmul(p, &buf[0], N, weight[k]);
+				PdGDSObj node = GDS_Node_Path(GDS_R_SEXP2FileRoot(
+					VECTOR_ELT(GDSList, k)), "avg_val", TRUE);
+				CdIterator it;
+				GDS_Iter_GetStart(node, &it);
+				avg_val[k] = GDS_Iter_GetFloat(&it);
 			}
+			// get the baseline for each GDS file
+			vector<double> buf(N);
+			{
+				CProgress prog(verbose ? N*n*2 : -1);
+				C_Int32 st[2]={0, 0}, cnt[2]={1, N};
+				for (int k=0; k < n; k++)
+				{
+					double sum = 0;
+					for (int i=0; i < N; i++)
+					{
+						st[0] = i;
+						GDS_Array_ReadData(list_gdsn[k], st, cnt, &buf[0], svFloat64);
+						for (int j=0; j < N; j++)
+							sum += (j != i) ? buf[j] : 0;
+						prog.Forward(1);
+					}
+					M_b[k] = sum / (C_Int64(N)*(N-1)) * 0.5;
+					M_b_inv[k] = 1 / (1 - M_b[k]);
+				}
+				// get M_ij
+				rv_ans = Rf_allocMatrix(REALSXP, N, N);
+				for (int i=0; i < N; i++)
+				{
+					st[0] = i;
+					double *p = REAL(rv_ans) + i*N;
+					memset(p, 0, sizeof(double)*N);
+					for (int k=0; k < n; k++)
+					{
+						GDS_Array_ReadData(list_gdsn[k], st, cnt, &buf[0], svFloat64);
+						for (int j=0; j < N; j++)
+						{
+							double M_ij = (j != i) ?
+								(buf[j] * 0.5 - M_b[k]) * M_b_inv[k] * (1 - avg_val[k]) + avg_val[k] :
+								(buf[j] - 1 - M_b[k]) * M_b_inv[k] * (1 - avg_val[k]) + avg_val[k];
+							p[j] += M_ij * weight[k];
+						}
+						prog.Forward(1);
+					}
+				}
+			}
+			// find minimum
+			double *p=REAL(rv_ans), sum=0, min=p[0];
+			for (int i=0; i < N; i++)
+			{
+				for (int j=0; j < N; j++)
+				{
+					if (j != i) sum += p[j];
+					if (min > p[j]) min = p[j];
+				}
+				p += N;
+			}
+			grm_avg_value = sum / (C_Int64(N)*(N-1));
+			// transform
+			double scale = 2 / (1 - min);
+			p = REAL(rv_ans);
+			for (int i=0; i < N; i++)
+			{
+				for (int j=0; j < N; j++)
+					p[j] = (p[j] - min) * scale;
+				p[i] = p[i] * 0.5 + 1;
+				p += N;
+			}
+			// output
 			if (out_gdsn)
-				GDS_Array_AppendData(out_gdsn, N, &sum[0], svFloat64);
-			prog.Forward(1);
+			{
+				if (verbose) Rprintf("Writing ...\n");
+				CProgress prog(verbose ? N : -1);
+				p = REAL(rv_ans);
+				for (int i=0; i < N; i++)
+				{
+					GDS_Array_AppendData(out_gdsn, N, p, svFloat64);
+					p += N;
+					prog.Forward(1);
+				}
+				rv_ans = R_NilValue;
+			}
+
+		} else {
+			if (!out_gdsn)
+				rv_ans = Rf_allocMatrix(REALSXP, N, N);
+			vector<double> sum(N), buf(N);
+			CProgress prog(verbose ? N : -1);
+			C_Int32 cnt[2] = { 1, N };
+			// for-loop
+			for (int i=0; i < N; i++)
+			{
+				double *p = out_gdsn ? &sum[0] : (REAL(rv_ans) + i*N);
+				memset(p, 0, sizeof(double)*N);
+				const C_Int32 st[2] = { i, 0 };
+				for (int k=0; k < n; k++)
+				{
+					GDS_Array_ReadData(list_gdsn[k], st, cnt, &buf[0], svFloat64);
+					vec_f64_addmul(p, &buf[0], N, weight[k]);
+				}
+				if (out_gdsn)
+					GDS_Array_AppendData(out_gdsn, N, &sum[0], svFloat64);
+				prog.Forward(1);
+			}
 		}
 	COREARRAY_CATCH
 }

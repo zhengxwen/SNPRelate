@@ -639,6 +639,8 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
     if (length(dm)!=2L || dm[1L]!=dm[2L])
         stop("'", filelist[i], "' has an invalid GRM matrix.")
     cmd <- read.gdsn(index.gdsn(gdslist[[1L]], "command"))
+    if (cmd[1L] != "snpgdsGRM")
+        stop("The GDS files should be created by snpgdsGRM()")
     for (i in seq_along(filelist))
     {
         f <- gdslist[[i]]
@@ -657,7 +659,8 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
             num[!weight] <- -num[!weight]
         weight <- num / sum(num)
     }
-    if (verbose) cat("Weight: ", paste(weight, collapse=", "), "\n", sep="")
+    if (verbose)
+        cat("Weight: ", paste(sprintf("%g", weight), collapse=", "), "\n", sep="")
 
     if (!is.null(out.fn))
     {
@@ -701,12 +704,19 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
     }
 
     # call C
-    rv <- .Call(gnrGRMMerge, out.gds, gdslist, weight, verbose)
+    rv <- .Call(gnrGRMMerge, out.gds, gdslist, cmd[-1L], weight, verbose)
 
     if (is.null(out.gds))
-        list(sample.id=sampid, snp.id=sid, grm=rv)
-    else
+    {
+        rv <- list(sample.id=sampid, snp.id=sid, grm=rv)
+        if (cmd[2L] %in% c(":method = IndivBeta"))
+            rv$avg_val <- .Call(gnrGRM_avg_val)
+        rv
+    } else {
+        if (cmd[2L] %in% c(":method = IndivBeta"))
+            add.gdsn(out.gds, "avg_val", .Call(gnrGRM_avg_val))
         invisible()
+    }
 }
 
 
