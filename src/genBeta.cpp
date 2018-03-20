@@ -257,6 +257,53 @@ static void CPU_Flag()
 }
 
 
+extern double grm_avg_value;
+
+/// Compute individual beta - based GRM
+COREARRAY_DLL_EXPORT void CalcIndivBetaGRM_Mat(CdMatTri<double> &beta,
+	int NumThread, bool Verbose)
+{
+	if (Verbose) CPU_Flag();
+
+	const size_t n = MCWorkingGeno.Space().SampleNum();
+	CdMatTri<TS_Beta> IBS(n);
+	CIndivBeta Work(MCWorkingGeno.Space());
+	Work.Run(IBS, NumThread, Verbose);
+
+	// output variables
+	double *pBeta = beta.Get();
+	TS_Beta *p = IBS.Get();
+	double avg = 0;
+	double min = double(p->ibscnt) / p->num - 1, r;
+
+	// for-loop, average
+	for (size_t i=0; i < n; i++)
+	{
+		*pBeta++ = r = double(p->ibscnt) / p->num - 1; p++;
+		if (min > r) min = r;
+		for (size_t j=i+1; j < n; j++)
+		{
+			*pBeta++ = r = (0.5 * p->ibscnt) / p->num; p++;
+			avg += r;
+			if (min > r) min = r;
+		}
+	}
+	avg /= C_Int64(n) * (n-1) / 2;
+	grm_avg_value = avg;
+
+	// transformation
+	pBeta = beta.Get();
+	double scale = 2.0 / (1 - min);
+	for (size_t i=0; i < n; i++)
+	{
+		*pBeta = (*pBeta - min) * scale * 0.5 + 1;
+		pBeta ++;
+		for (size_t j=i+1; j < n; j++, pBeta++)
+			*pBeta = (*pBeta - min) * scale;
+	}
+}
+
+
 /// Compute individual beta - based GRM
 COREARRAY_DLL_EXPORT SEXP CalcIndivBetaGRM(int NumThread, bool Verbose)
 {
@@ -271,31 +318,21 @@ COREARRAY_DLL_EXPORT SEXP CalcIndivBetaGRM(int NumThread, bool Verbose)
 	SEXP rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 	double *pBeta = REAL(rv_ans);
 	TS_Beta *p = IBS.Get();
-	// double avg = 0;
+	double avg = 0;
 
 	// for-loop, average
 	for (size_t i=0; i < n; i++)
 	{
-		pBeta[i*n + i] = double(p->ibscnt) / p->num - 1;
-		p ++;
-		for (size_t j=i+1; j < n; j++, p++)
+		pBeta[i*n + i] = double(p->ibscnt) / p->num - 1; p++;
+		for (size_t j=i+1; j < n; j++)
 		{
-			double s = (0.5 * p->ibscnt) / p->num;
+			double s = (0.5 * p->ibscnt) / p->num; p++;
 			pBeta[i*n + j] = s;
-			// avg += s;
+			avg += s;
 		}
 	}
-
-/*
 	avg /= C_Int64(n) * (n-1) / 2;
-	double bt = 1.0 / (1 - avg);
-	for (size_t i=0; i < n; i++)
-	{
-		pBeta[i*n + i] = (pBeta[i*n + i] - avg) * bt;
-		for (size_t j=i+1; j < n; j++)
-			pBeta[i*n + j] = pBeta[j*n + i] = (pBeta[i*n + j] - avg) * bt;
-	}
-*/
+	grm_avg_value = avg;
 
 	// find the minimum of pairwise beta
 	double min = pBeta[0];
@@ -367,9 +404,10 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_Beta(SEXP Inbreeding, SEXP NumThread,
 		}
 
 		avg /= C_Int64(n) * (n-1) / 2;
-		double bt = 1.0 / (1 - avg);
+		grm_avg_value = avg;
 
 		// for-loop, final update
+		double bt = 1.0 / (1 - avg);
 		for (size_t i=0; i < n; i++)
 		{
 			pBeta[i*n + i] = (pBeta[i*n + i] - avg) * bt;

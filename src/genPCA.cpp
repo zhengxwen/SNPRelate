@@ -1566,6 +1566,14 @@ static void grm_save_to_gds(CdMatTri<double> &mat, PdGDSObj gdsn, bool verbose)
 	}
 }
 
+COREARRAY_DLL_EXPORT double grm_avg_value = 0;
+
+/// Compute the eigenvalues and eigenvectors
+COREARRAY_DLL_EXPORT SEXP gnrGRM_avg_val()
+{
+	return ScalarReal(grm_avg_value);
+}
+
 /// Compute the eigenvalues and eigenvectors
 COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 	SEXP _Verbose)
@@ -1667,10 +1675,17 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 
 		} else if (strcmp(Method, "IndivBeta") == 0)
 		{
-			if (gdsn)
-				throw ErrCoreArray("Not implemented: save Individual beta to a GDS file.");
-			extern SEXP CalcIndivBetaGRM(int NumThread, bool Verbose);
-			rv_ans = PROTECT(CalcIndivBetaGRM(nThread, verbose));
+			if (!gdsn)
+			{
+				extern SEXP CalcIndivBetaGRM(int NumThread, bool Verbose);
+				rv_ans = PROTECT(CalcIndivBetaGRM(nThread, verbose));
+			} else {
+				void CalcIndivBetaGRM_Mat(CdMatTri<double> &beta,
+					int NumThread, bool Verbose);
+				CdMatTri<double> IBD(n);
+				CalcIndivBetaGRM_Mat(IBD, nThread, verbose);
+				grm_save_to_gds(IBD, gdsn, verbose);
+			}
 		} else
 			throw ErrCoreArray("Invalid 'method'!");
 

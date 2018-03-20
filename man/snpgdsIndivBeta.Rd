@@ -48,6 +48,8 @@ snpgdsIndivBetaRel(beta, beta_rel, verbose=TRUE)
             vector of inbreeding coefficients; otherwise, individual variance
             estimates}
         \item{beta}{beta estimates}
+        \item{avg_val}{the average of M_B among all loci, it could be used to
+            calculate each M_ij}
     If \code{with.id = FALSE}, this function returns the genetic relationship
     matrix without sample and SNP IDs.
 }

@@ -571,14 +571,19 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     # return
     if (is.null(out.gds))
     {
-        if (with.id)
-        {
-            rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id,
-                method=method, grm=rv)
-        }
+		if (with.id)
+		{
+			rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id,
+				method=method, grm=rv)
+            if (method %in% c("IndivBeta"))
+                rv$avg_val <- .Call(gnrGRM_avg_val)
+		}
         rv
-    } else
+    } else {
+        if (method %in% c("IndivBeta"))
+            add.gdsn(out.gds, "avg_val", .Call(gnrGRM_avg_val))
         invisible()
+    }
 }
 
 
@@ -815,7 +820,7 @@ snpgdsIndivBeta <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     if (with.id)
     {
         rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id,
-            inbreeding=inbreeding, beta=rv)
+            inbreeding=inbreeding, beta=rv, avg_val=.Call(gnrGRM_avg_val))
     }
     return(rv)
 }
