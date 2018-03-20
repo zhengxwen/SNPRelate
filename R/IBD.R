@@ -573,8 +573,8 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     {
         if (with.id)
         {
-            rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, method=method,
-                grm=rv)
+            rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id,
+                method=method, grm=rv)
         }
         rv
     } else

@@ -257,7 +257,7 @@ static void CPU_Flag()
 }
 
 
-/// Compute the IBD coefficients by individual relatedness beta
+/// Compute individual beta - based GRM
 COREARRAY_DLL_EXPORT SEXP CalcIndivBetaGRM(int NumThread, bool Verbose)
 {
 	if (Verbose) CPU_Flag();
@@ -271,33 +271,48 @@ COREARRAY_DLL_EXPORT SEXP CalcIndivBetaGRM(int NumThread, bool Verbose)
 	SEXP rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
 	double *pBeta = REAL(rv_ans);
 	TS_Beta *p = IBS.Get();
-	double avg = 0;
+	// double avg = 0;
 
 	// for-loop, average
 	for (size_t i=0; i < n; i++)
 	{
-		pBeta[i*n + i] = (0.5 * p->ibscnt) / p->num;
+		pBeta[i*n + i] = double(p->ibscnt) / p->num - 1;
 		p ++;
 		for (size_t j=i+1; j < n; j++, p++)
 		{
 			double s = (0.5 * p->ibscnt) / p->num;
 			pBeta[i*n + j] = s;
-			avg += s;
+			// avg += s;
 		}
 	}
 
+/*
 	avg /= C_Int64(n) * (n-1) / 2;
-	double bt = 2.0 / (1 - avg);
-
-	// for-loop, final update
+	double bt = 1.0 / (1 - avg);
 	for (size_t i=0; i < n; i++)
 	{
 		pBeta[i*n + i] = (pBeta[i*n + i] - avg) * bt;
 		for (size_t j=i+1; j < n; j++)
-		{
-			double s = (pBeta[i*n + j] - avg) * bt;
-			pBeta[i*n + j] = pBeta[j*n + i] = s;
-		}
+			pBeta[i*n + j] = pBeta[j*n + i] = (pBeta[i*n + j] - avg) * bt;
+	}
+*/
+
+	// find the minimum of pairwise beta
+	double min = pBeta[0];
+	for (size_t i=0; i < n; i++)
+	{
+		double *p = pBeta + i*n;
+		for (size_t j=i; j < n; j++)
+			if (min > p[j]) min = p[j];
+	}
+
+	// transformation
+	double scale = 2.0 / (1 - min);
+	for (size_t i=0; i < n; i++)
+	{
+		pBeta[i*n + i] = (pBeta[i*n + i] - min) * scale * 0.5 + 1;
+		for (size_t j=i+1; j < n; j++)
+			pBeta[i*n + j] = pBeta[j*n + i] = (pBeta[i*n + j] - min) * scale;
 	}
 
 	UNPROTECT(1);
@@ -359,10 +374,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_Beta(SEXP Inbreeding, SEXP NumThread,
 		{
 			pBeta[i*n + i] = (pBeta[i*n + i] - avg) * bt;
 			for (size_t j=i+1; j < n; j++)
-			{
-				double s = (pBeta[i*n + j] - avg) * bt;
-				pBeta[i*n + j] = pBeta[j*n + i] = s;
-			}
+				pBeta[i*n + j] = pBeta[j*n + i] = (pBeta[i*n + j] - avg) * bt;
 		}
 
 		if (verbose)

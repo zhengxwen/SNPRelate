@@ -65,8 +65,6 @@ snpgdsIndivBetaRel(beta, beta_rel, verbose=TRUE)
 }
 
 \examples{
-library(SNPRelate)
-
 # open an example dataset (HapMap)
 genofile <- snpgdsOpen(snpgdsExampleFileName())
 

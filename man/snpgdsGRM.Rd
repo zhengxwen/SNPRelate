@@ -33,7 +33,8 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
         "Weighted" -- weighted GCTA, as the same as "EIGMIX",
         "Corr" -- Scaled GCTA GRM (dividing each i,j element by the
             product of the square root of the i,i and j,j elements),
-        "IndivBeta" -- two times individual beta estimate; see details}
+        "IndivBeta" -- two times individual beta estimate relative to the
+            minimum of beta; see details}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
     \item{out.fn}{NULL for no GDS output, or a file name}
@@ -46,20 +47,23 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
 }
 \details{
     "GCTA": the genetic relationship matrix in GCTA is defined as
-G_{ij} = avg_l [(g_{il} - 2*p_l)*(g_{jl} - 2*p_l) / 2*p_l*(1 - p_l)] for
+$G_{ij} = avg_l [(g_{il} - 2*p_l)*(g_{jl} - 2*p_l) / 2*p_l*(1 - p_l)]$ for
 individuals i,j and locus l;
 
     "Eigenstrat": the genetic covariance matrix in EIGENSTRAT
-G_{ij} = avg_l [(g_{il} - 2*p_l)*(g_{jl} - 2*p_l) / 2*p_l*(1 - p_l)] for
+$G_{ij} = avg_l [(g_{il} - 2*p_l)*(g_{jl} - 2*p_l) / 2*p_l*(1 - p_l)]$ for
 individuals i,j and locus l; the missing genotype is imputed by the dosage
 mean of that locus.
 
     "EIGMIX" / "Weighted": it is the same as `2 * snpgdsEIGMIX(, ibdmat=TRUE,
 diagadj=FALSE)$ibd`:
-G_{ij} = [sum_l (g_{il} - 2*p_l)*(g_{jl} - 2*p_l)] / [sum_l 2*p_l*(1 - p_l)]
+$G_{ij} = [sum_l (g_{il} - 2*p_l)*(g_{jl} - 2*p_l)] / [sum_l 2*p_l*(1 - p_l)]$
 for individuals i,j and locus l;
 
-    "IndivBeta": it is the same as `2 * snpgdsIndivBeta(, inbreeding=FALSE)`.
+    "IndivBeta": `beta = snpgdsIndivBeta(, inbreeding=TRUE)`, and beta-based
+GRM is $grm_{ij} = 2 * (beta_{ij} - beta_{min}) / (1 - beta_{min})$ for $i!=j$,
+$grm_{ij} = 1 + (beta_{i} - beta_{min}) / (1 - beta_{min})$ for $i=j$. It is
+relative to the minimum value of beta estimates.
 }
 \value{
     Return a list if \code{with.id = TRUE}:
@@ -101,7 +105,6 @@ for individuals i,j and locus l;
 \examples{
 # open an example dataset (HapMap)
 genofile <- snpgdsOpen(snpgdsExampleFileName())
-
 
 rv <- snpgdsGRM(genofile, method="GCTA")
 eig <- eigen(rv$grm)  # Eigen-decomposition

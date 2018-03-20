@@ -1667,9 +1667,10 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 
 		} else if (strcmp(Method, "IndivBeta") == 0)
 		{
+			if (gdsn)
+				throw ErrCoreArray("Not implemented: save Individual beta to a GDS file.");
 			extern SEXP CalcIndivBetaGRM(int NumThread, bool Verbose);
 			rv_ans = PROTECT(CalcIndivBetaGRM(nThread, verbose));
-
 		} else
 			throw ErrCoreArray("Invalid 'method'!");
 
