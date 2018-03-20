@@ -93,6 +93,10 @@ relative to the minimum value of beta estimates.
     SNPs and SNVs in Forensic Science.
     Forensic Science International: Genetics Supplement Series. 2015.
     doi:10.1016/j.fsigss.2015.09.106
+
+    Weir BS, Goudet J. A Unified Characterization of Population Structure
+    and Relatedness. Genetics. 2017 Aug;206(4):2085-2103.
+    doi: 10.1534/genetics.116.198424.
 }
 \author{Xiuwen Zheng}
 \seealso{
