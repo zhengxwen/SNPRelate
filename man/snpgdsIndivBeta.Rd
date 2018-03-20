@@ -44,7 +44,6 @@ snpgdsIndivBetaRel(beta, beta_rel, verbose=TRUE)
     Return a list if \code{with.id = TRUE}:
         \item{sample.id}{the sample ids used in the analysis}
         \item{snp.id}{the SNP ids used in the analysis}
-        \item{beta}{the genetic relationship matrix; different methods might
         \item{inbreeding}{a logical value; \code{TRUE}, the diagonal is a
             vector of inbreeding coefficients; otherwise, individual variance
             estimates}
