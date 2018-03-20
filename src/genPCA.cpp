@@ -2,7 +2,7 @@
 //
 // genPCA.cpp: Principal Component Analysis on GWAS
 //
-// Copyright (C) 2011-2017    Xiuwen Zheng
+// Copyright (C) 2011-2018    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //

@@ -2,7 +2,7 @@
 //
 // genBeta.cpp: Individual Inbreeding and Relatedness (Beta) on GWAS
 //
-// Copyright (C) 2016-2017    Xiuwen Zheng
+// Copyright (C) 2016-2018    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
