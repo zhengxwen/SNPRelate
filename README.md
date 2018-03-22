@@ -92,7 +92,7 @@ R CMD INSTALL SNPRelate_latest.tar.gz
 |:---------------------|:-------:|:----:|:---:|:----:|:-------:|
 | snpgdsDiss [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsDiss.html)           | X |
 | snpgdsEIGMIX [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsEIGMIX.html)        | X | X | X |
-| snpgdsGRM [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsGRM.html)           | X | X | X |
+| snpgdsGRM [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsGRM.html)           | X | X | X | . |
 | snpgdsIBDKING [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBDKING.html)       | X | X |   | X |
 | snpgdsIBDMoM [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBDMoM.html)        | X |
 | snpgdsIBS [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBS.html)           | X | X |

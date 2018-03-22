@@ -18,7 +18,8 @@ snpgdsLDMat(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
         if NULL, all samples are used}
     \item{snp.id}{a vector of snp id specifying selected SNPs;
         if NULL, all SNPs are used}
-    \item{slide}{# of SNPs, the size of sliding window, see details}
+    \item{slide}{# of SNPs, the size of sliding window; if \code{slide < 0},
+        return a full LD matrix; see details}
     \item{method}{"composite", "r", "dprime", "corr", "cov", see details}
     \item{mat.trim}{if \code{TRUE}, trim the matrix when \code{slide > 0}:
         the function returns a \code{"num_slide x (n_snp - slide)"} matrix}
@@ -67,10 +68,15 @@ sliding window, and the value of i row and j column is LD of j and j+i SNPs.
 # open an example dataset (HapMap)
 genofile <- snpgdsOpen(snpgdsExampleFileName())
 
+# missing proportion and MAF
+ff <- snpgdsSNPRateFreq(genofile)
+
 # chromosome 15
 snpset <- read.gdsn(index.gdsn(genofile, "snp.id"))[
-    read.gdsn(index.gdsn(genofile, "snp.chromosome")) == 15]
+    ff$MissingRate==0 & ff$MinorFreq>0 &
+    read.gdsn(index.gdsn(genofile, "snp.chromosome"))==15]
 length(snpset)
+
 
 # LD matrix without sliding window
 ld.noslide <- snpgdsLDMat(genofile, snp.id=snpset, slide=-1, method="composite")
