@@ -75,19 +75,7 @@ genofile <- snpgdsOpen(snpgdsExampleFileName())
 b <- snpgdsIndivBeta(genofile, inbreeding=FALSE)
 b$beta[1:10, 1:10]
 
-min(eigen(b$beta, symmetric=TRUE)$values)
-
-min(b$beta)
-min(diag(b$beta))
-
-mm <- 0
-for (i in 1:1000)
-{
-z <- snpgdsIndivBetaRel(b, mm)
-cat(mm, ", ", min(eigen(z$beta, symmetric=TRUE)$values), "\n")
-mm <- mm - 10
-}
-
+z <- snpgdsIndivBetaRel(b, min(b$beta))
 
 # close the file
 snpgdsClose(genofile)
