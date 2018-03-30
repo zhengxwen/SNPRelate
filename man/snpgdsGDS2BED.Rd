@@ -2,7 +2,7 @@
 \alias{snpgdsGDS2BED}
 \title{Conversion from GDS to PLINK BED}
 \description{
-    Convert a GDS file to a PLINK binary ped file.
+    Convert a GDS file to a PLINK binary ped (BED) file.
 }
 \usage{
 snpgdsGDS2BED(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, snpfirstdim=NULL,

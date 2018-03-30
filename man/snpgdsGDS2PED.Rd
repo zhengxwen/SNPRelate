@@ -2,7 +2,7 @@
 \alias{snpgdsGDS2PED}
 \title{Conversion from GDS to PED}
 \description{
-    Convert a GDS file to a PLINK ped file.
+    Convert a GDS file to a PLINK text ped file.
 }
 \usage{
 snpgdsGDS2PED(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL, use.snp.rsid=TRUE,
