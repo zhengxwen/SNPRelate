@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.13.3-1.13.9
+CHANGES IN VERSION 1.13.3-1.13.10
 -------------------------
 
     o the default compression is "LZMA_RA" in `snpgdsBED2GDS()`,
@@ -12,6 +12,8 @@ CHANGES IN VERSION 1.13.3-1.13.9
       GVH.major.only, GVH.minor.only
 
     o force to use integers for 'snp.position' in `snpgdsCreateGeno()`
+
+    o unit tests for merging GRMs in `snpgdsMergeGRM()`
 
 
 CHANGES IN VERSION 1.12.2
