@@ -38,23 +38,20 @@ snpgdsCreateGenoSet(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 \examples{
 # open an example dataset (HapMap)
 (genofile <- snpgdsOpen(snpgdsExampleFileName()))
-# +     [  ] *
-# |--+ sample.id    { FStr8 279 ZIP(23.10%) }
-# |--+ snp.id   { Int32 9088 ZIP(34.76%) }
-# |--+ snp.rs.id    { FStr8 9088 ZIP(42.66%) }
-# |--+ snp.position { Int32 9088 ZIP(94.73%) }
-# |--+ snp.chromosome   { UInt8 9088 ZIP(0.94%) } *
-# |--+ snp.allele   { FStr8 9088 ZIP(14.45%) }
-# |--+ genotype { Bit2 9088x279 } *
-# |--+ sample.annot [ data.frame ] *
-# |  |--+ sample.id { FStr8 279 ZIP(23.10%) }
-# |  |--+ family.id { FStr8 279 ZIP(28.37%) }
-# |  |--+ geneva.id { Int32 279 ZIP(80.29%) }
-# |  |--+ father.id { FStr8 279 ZIP(12.98%) }
-# |  |--+ mother.id { FStr8 279 ZIP(12.86%) }
-# |  |--+ plate.id  { FStr8 279 ZIP(1.29%) }
-# |  |--+ sex   { FStr8 279 ZIP(28.32%) }
-# |  |--+ pop.group { FStr8 279 ZIP(7.89%) }
+# +    [  ] *
+# |--+ sample.id   { VStr8 279 ZIP(29.9%), 679B }
+# |--+ snp.id   { Int32 9088 ZIP(34.8%), 12.3K }
+# |--+ snp.rs.id   { VStr8 9088 ZIP(40.1%), 36.2K }
+# |--+ snp.position   { Int32 9088 ZIP(94.7%), 33.6K }
+# |--+ snp.chromosome   { UInt8 9088 ZIP(0.94%), 85B } *
+# |--+ snp.allele   { VStr8 9088 ZIP(11.3%), 4.0K }
+# |--+ genotype   { Bit2 279x9088, 619.0K } *
+# \--+ sample.annot   [ data.frame ] *
+#    |--+ family.id   { VStr8 279 ZIP(34.4%), 514B }
+#    |--+ father.id   { VStr8 279 ZIP(31.5%), 220B }
+#    |--+ mother.id   { VStr8 279 ZIP(30.9%), 214B }
+#    |--+ sex   { VStr8 279 ZIP(17.0%), 95B }
+#    \--+ pop.group   { VStr8 279 ZIP(6.18%), 69B }
 
 set.seed(1000)
 snpset <- unlist(snpgdsLDpruning(genofile))
@@ -70,14 +67,14 @@ snpgdsCreateGenoSet(snpgdsExampleFileName(), "test.gds", snp.id=snpset)
 # check
 
 (gfile <- snpgdsOpen("test.gds"))
-# +     [  ] *
-# |--+ sample.id    { VStr8 279 ZIP(29.89%) }
-# |--+ snp.id   { Int32 6547 ZIP(34.89%) }
-# |--+ snp.rs.id    { VStr8 6547 ZIP(40.52%) }
-# |--+ snp.position { Int32 6547 ZIP(94.85%) }
-# |--+ snp.chromosome   { Int32 6547 ZIP(0.41%) }
-# |--+ snp.allele   { VStr8 6547 ZIP(11.51%) }
-# |--+ genotype { Bit2 6547x279 } *
+# +    [  ] *
+# |--+ sample.id   { Str8 279 ZIP_ra(31.2%), 715B }
+# |--+ snp.id   { Int32 6547 ZIP_ra(34.9%), 8.9K }
+# |--+ snp.rs.id   { Str8 6547 ZIP_ra(41.5%), 27.1K }
+# |--+ snp.position   { Int32 6547 ZIP_ra(94.9%), 24.3K }
+# |--+ snp.chromosome   { Int32 6547 ZIP_ra(0.45%), 124B }
+# |--+ snp.allele   { Str8 6547 ZIP_ra(11.5%), 3.0K }
+# \--+ genotype   { Bit2 279x6547, 446.0K } *
 
 # close the file
 snpgdsClose(gfile)

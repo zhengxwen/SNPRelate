@@ -1,6 +1,6 @@
 # Export the following names
 useDynLib(SNPRelate,
-    gnrAlleleStrand, gnrAppendGenoSpaceStrand,
+    gnrAlleleStrand,
     gnrChromParse, gnrChromParseNumeric, gnrChromRangeNumeric,
     gnrConvBEDFlag, gnrConvBED2GDS, gnrConvGDS2BED, gnrConvGDS2EIGEN,
     gnrConvGDS2PED, gnrCopyGeno, gnrCopyGenoMem, gnrDiss,

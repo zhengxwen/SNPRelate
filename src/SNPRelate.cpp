@@ -9,7 +9,7 @@
 // SNPRelate.cpp: Relatedness, Linkage Disequilibrium and
 //				  Principal Component Analysis
 //
-// Copyright (C) 2011-2017    Xiuwen Zheng [zhengxwen@gmail.com]
+// Copyright (C) 2011-2018    Xiuwen Zheng [zhengxwen@gmail.com]
 //
 // This file is part of SNPRelate.
 //
@@ -377,46 +377,6 @@ COREARRAY_DLL_EXPORT SEXP gnrCopyGenoMem(SEXP snpfirstdim, SEXP snpread,
 			*pMem = (*p8 < 3) ? (*p8) : NA_INTEGER;
 		}
 		UNPROTECT(1);
-
-	COREARRAY_CATCH
-}
-
-
-/// Append genotypes with switch strand
-COREARRAY_DLL_EXPORT SEXP gnrAppendGenoSpaceStrand(SEXP Node,
-	SEXP snpfirstorder, SEXP StrandFlag)
-{
-	int firstorder = Rf_asLogical(snpfirstorder);
-	int *pFlag = LOGICAL(StrandFlag);
-
-	COREARRAY_TRY
-
-		PdGDSObj Obj = GDS_R_SEXP2Obj(Node, FALSE);
-		if (firstorder == TRUE)
-		{
-			const R_xlen_t n = MCWorkingGeno.Space().SNPNum();
-			CdBufSpace buf(MCWorkingGeno.Space(), false, CdBufSpace::acInc);
-			for (long i=0; i < buf.IdxCnt(); i++)
-			{
-				C_UInt8 *p = buf.ReadGeno(i);
-				for (int k=0; k < n; k++)
-					if (pFlag[k] && (p[k]<=2)) p[k] = 2 - p[k];
-				GDS_Array_AppendData(Obj, n, p, svUInt8);
-			}
-		} else {
-			const R_xlen_t n = MCWorkingGeno.Space().SampleNum();
-			CdBufSpace buf(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
-			for (long i=0; i < buf.IdxCnt(); i++)
-			{
-				C_UInt8 *p = buf.ReadGeno(i);
-				if (pFlag[i])
-				{
-					for (int k=0; k < n; k++)
-						if (p[k] <= 2) p[k] = 2 - p[k];
-				}
-				GDS_Array_AppendData(Obj, n, p, svUInt8);
-			}
-		}
 
 	COREARRAY_CATCH
 }
@@ -893,6 +853,7 @@ static inline int ALLELE_MINOR(double freq)
 static inline void split_allele(const char *txt, string &a1, string &a2)
 {
 	const char *p = strchr(txt, '/');
+	if (p == NULL) p = strchr(txt, ',');
 	if (p != NULL)
 	{
 		// the first allele
@@ -913,112 +874,79 @@ static inline void split_allele(const char *txt, string &a1, string &a2)
 	}
 }
 
-COREARRAY_DLL_EXPORT void gnrAlleleStrand(
-	char *allele1[], double afreq1[], int I1[],
-	char *allele2[], double afreq2[], int I2[],
-	int *if_same_strand, int *n,
-	LongBool out_flag[], int *out_n_stand_amb, int *out_n_mismatch,
-	LongBool *out_err)
+
+// return a logical vector to indicate flip or not, NA for mismatched alleles
+COREARRAY_DLL_EXPORT SEXP gnrAlleleStrand(SEXP allele1, SEXP allele2,
+	SEXP afreq1, SEXP afreq2, SEXP same_strand)
 {
-	CORE_TRY
-		// initialize: A-T pair, C-G pair
+	int same_on_strand = asLogical(same_strand);
+	if (same_on_strand == NA_LOGICAL)
+		error("'same.strand' must be TRUE or FALSE.");
+
+	COREARRAY_TRY
+
+		// initialize: A-T pair, C-G pair on different strands
 		map<string, string> MAP;
 		MAP["A"] = "T"; MAP["C"] = "G"; MAP["G"] = "C"; MAP["T"] = "A";
 
-		*out_n_stand_amb = 0;
-		*out_n_mismatch = 0;
-
-		const bool check_strand = (if_same_strand[0] == 0);
-
-		// loop for each SNP
-		for (int i=0; i < *n; i++)
+		int n = LENGTH(allele1);
+		rv_ans = PROTECT(NEW_INTEGER(n));
+		for (int i=0; i < n; i++)
 		{
-			// if true, need switch strand
-			bool switch_flag = false;
-
-			// if true, need to compare the allele frequencies
-			//	 0 -- no switch detect
-			//	 1 -- detect whether switch or not for stand ambiguity
-			//	 2 -- detect whether switch or not for mismatching alleles
-			int switch_freq_detect = 0;
-
-			// ``ref / nonref alleles''
-			string s1, s2;
-			string p1, p2;
-			split_allele(allele1[I1[i]-1], s1, s2);
-			split_allele(allele2[I2[i]-1], p1, p2);
-
-			// allele frequency
-			const double F1 = afreq1[I1[i]-1];
-			const double F2 = afreq2[I2[i]-1];
-
-			if (ATGC(s1) && ATGC(s2) && ATGC(p1) && ATGC(p2))
+			string r_a1, r_a2;  // 'ref / nonref' of allele1
+			split_allele(CHAR(STRING_ELT(allele1, i)), r_a1, r_a2);
+			string d_a1, d_a2;  // 'ref / nonref' of allele2
+			split_allele(CHAR(STRING_ELT(allele2, i)), d_a1, d_a2);
+			int flip_flag = NA_LOGICAL;
+			bool check_afreq = false;
+			if (same_on_strand)
 			{
-				// check
-				if ( (s1 == p1) && (s2 == p2) )
-				{
-					if (check_strand)
-					{
-						// for example, + C/G <---> - C/G, strand ambi
-						if (s1 == MAP[p2])
-							switch_freq_detect = 1;
-					}
-				} else if ( (s1 == p2) && (s2 == p1) )
-				{
-					if (check_strand)
-					{
-						// for example, + C/G <---> - G/C, strand ambi
-						if (s1 == MAP[p1])
-							switch_freq_detect = 1;
-						else
-							switch_flag = true;
-					} else
-						switch_flag = true;
-				} else {
-					if (check_strand)
-					{
-						if ( (s1 == MAP[p1]) && (s2 == MAP[p2]) )
-						{
-							// for example, + C/G <---> - G/C, strand ambi
-							if (s1 == p2)
-								switch_freq_detect = 1;
-						} else if ( (s1 == MAP[p2]) && (s2 == MAP[p1]) )
-							switch_flag = true;
-						else
-							switch_freq_detect = 2;
-					} else
-						switch_freq_detect = 2;
-				}
+				if (r_a1==d_a1 && r_a2==d_a2)
+					flip_flag = FALSE;
+				else if (r_a1==d_a2 && r_a2==d_a1)
+					flip_flag = TRUE;
 			} else {
-				if ((s1 == p1) && (s2 == p2))
+				if (r_a1==d_a1 && r_a2==d_a2)
 				{
-					if (s1 == s2)
-						switch_freq_detect = 1;	 // ambiguous
-				} else if ((s1 == p2) && (s2 == p1))
+					// for example, + C/G <---> - C/G, strand ambiguity
+					if (ATGC(d_a2) && r_a1==MAP[d_a2]) check_afreq = true;
+					flip_flag = FALSE;
+				} else if (r_a1==d_a2 && r_a2==d_a1)
 				{
-					if (s1 == s2)
-						switch_freq_detect = 1;	 // ambiguous
-					else
-						switch_flag = true;
-				} else
-					switch_freq_detect = 2;
+					// for example, + C/G <---> - G/C, strand ambiguity
+					if (ATGC(d_a1) && r_a1==MAP[d_a1]) check_afreq = true;
+					flip_flag = TRUE;
+				} else {
+					if (ATGC(r_a1) && ATGC(r_a2) && ATGC(d_a1) && ATGC(d_a2))
+					{
+						if (r_a1==MAP[d_a1] && r_a2==MAP[d_a2])
+						{
+							// for example, + C/G <---> - G/C, strand ambiguity
+							if (r_a1 == d_a2) check_afreq = true;
+							flip_flag = FALSE;
+						} else if (r_a1==MAP[d_a2] && r_a2==MAP[d_a1])
+						{
+							// for example, + C/G <---> - C/G, strand ambiguity
+							if (r_a1 == d_a1) check_afreq = true;
+							flip_flag = TRUE;
+						}
+					}
+				}
+				// check allele frequency
+				if (check_afreq)
+				{
+					double F1 = REAL(afreq1)[i];
+					double F2 = REAL(afreq2)[i];
+					flip_flag = (ALLELE_MINOR(F1) != ALLELE_MINOR(F2)) ? TRUE : FALSE;
+				}
 			}
-
-			if (switch_freq_detect != 0)
-			{
-				switch_flag = (ALLELE_MINOR(F1) != ALLELE_MINOR(F2));
-				if (switch_freq_detect == 1)
-					(*out_n_stand_amb) ++;
-				else
-					(*out_n_mismatch) ++;
-			}
-
-			out_flag[i] = switch_flag;
+			// set output
+			INTEGER(rv_ans)[i] = flip_flag | (check_afreq ? 2 : 0);
 		}
+		
+		UNPROTECT(1);
 
-		*out_err = 0;
-
-	CORE_CATCH(*out_err = 1)
+	COREARRAY_CATCH
 }
 
 
@@ -1196,9 +1124,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 
 	static R_CallMethodDef callMethods[] =
 	{
-		// gnrAlleleStrand,
-		CALL(gnrAppendGenoSpaceStrand, 3),
-		CALL(gnrStrandSwitch, 5),
+		CALL(gnrAlleleStrand, 5),        CALL(gnrStrandSwitch, 5),
 
 		CALL(gnrChromParse, 1),          CALL(gnrChromParseNumeric, 1),
 		CALL(gnrChromRangeNumeric, 3),

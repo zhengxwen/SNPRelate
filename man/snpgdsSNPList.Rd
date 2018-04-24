@@ -19,7 +19,7 @@ snpgdsSNPList(gdsobj, sample.id=NULL)
 \value{
     Return an object of \code{snpgdsSNPListClass} including the following
 components:
-    \item{rs.id}{SNP id}
+    \item{snp.id}{SNP id}
     \item{chromosome}{SNP chromosome index}
     \item{position}{SNP physical position in basepair}
     \item{allele}{reference / non-ref alleles}
@@ -27,7 +27,7 @@ components:
 }
 \author{Xiuwen Zheng}
 \seealso{
-    \code{\link{snpgdsSNPListIntersect}}, \code{\link{snpgdsSNPListStrand}}
+    \code{\link{snpgdsSNPListIntersect}}
 }
 
 \examples{
@@ -36,6 +36,7 @@ genofile <- snpgdsOpen(snpgdsExampleFileName())
 
 # to get a snp list object
 snplist <- snpgdsSNPList(genofile)
+head(snplist)
 
 # close the file
 snpgdsClose(genofile)

@@ -9,7 +9,7 @@
 \value{
     Return an object of ``snpgdsSNPListClass'' including the following
 components:
-    \item{rs.id}{SNP id}
+    \item{snp.id}{SNP id}
     \item{chromosome}{SNP chromosome index}
     \item{position}{SNP physical position in basepair}
     \item{allele}{reference / non-ref alleles}

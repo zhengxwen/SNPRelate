@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2017        Xiuwen Zheng
+# Copyright (C) 2011 - 2018        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -626,7 +626,7 @@ snpgdsCutTree <- function(hc, z.threshold=15, outlier.n=5, n.perm=5000,
 #######################################################################
 
 #######################################################################
-# To get a list of SNP information including rs, chr, pos, allele
+# To get a list of SNP information including snp id, chr, pos, allele
 #   and allele frequency
 #
 
@@ -635,11 +635,8 @@ snpgdsSNPList <- function(gdsobj, sample.id=NULL)
     # check
     .CheckFile(gdsobj)
 
-    # rs id
-    if (is.null(index.gdsn(gdsobj, "snp.rs.id", silent=TRUE)))
-        rs.id <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
-    else
-        rs.id <- read.gdsn(index.gdsn(gdsobj, "snp.rs.id"))
+    # snp id
+    snp.id <- read.gdsn(index.gdsn(gdsobj, "snp.id"))
     # chromosome
     chromosome <- read.gdsn(index.gdsn(gdsobj, "snp.chromosome"))
     # position
@@ -649,10 +646,11 @@ snpgdsSNPList <- function(gdsobj, sample.id=NULL)
     # allele frequency
     afreq <- snpgdsSNPRateFreq(gdsobj, sample.id=sample.id)$AlleleFreq
 
-    rv <- list(rs.id = rs.id, chromosome = chromosome,
-        position = position, allele = allele, afreq = afreq)
-    class(rv) <- "snpgdsSNPListClass"
-    return(rv)
+    # output
+    rv <- data.frame(snp.id=snp.id, chromosome=chromosome, position=position,
+        allele=allele, afreq=afreq, stringsAsFactors=FALSE)
+    class(rv) <- c("snpgdsSNPListClass", "data.frame")
+    rv
 }
 
 
@@ -662,63 +660,76 @@ snpgdsSNPList <- function(gdsobj, sample.id=NULL)
 #     snp alleles from the first snp object
 #
 
-snpgdsSNPListIntersect <- function(snplist1, snplist2)
+snpgdsSNPListIntersect <- function(snplist1, snplist2, ...,
+    method=c("position", "exact"), na.rm=TRUE, same.strand=FALSE, verbose=TRUE)
 {
     # check
-    stopifnot(inherits(snplist1, "snpgdsSNPListClass"))
-    stopifnot(inherits(snplist2, "snpgdsSNPListClass"))
+    snplst <- list(s1=snplist1, s2=snplist2, ...)
+    for (i in seq_along(snplst))
+    {
+        if (!inherits(snplst[[i]], "snpgdsSNPListClass"))
+            stop("All objects should be 'snpgdsSNPListClass'.")
+    }
+    method <- match.arg(method)
+    stopifnot(is.logical(na.rm), length(na.rm)==1L)
+    stopifnot(is.logical(same.strand), length(same.strand)==1L)
+    stopifnot(is.logical(verbose), length(verbose)==1L)
 
-    s1 <- paste(snplist1$rs.id, snplist1$chromosome, snplist1$position,
-        sep="-")
-    s2 <- paste(snplist2$rs.id, snplist2$chromosome, snplist2$position,
-        sep="-")
-    s <- intersect(s1, s2)
-    flag <- s1 %in% s
+    lst <- vector("list", length(snplst))
+    if (method == "position")
+    {
+        for (i in seq_along(snplst))
+        {
+            lst[[i]] <- with(snplst[[i]], paste0(chromosome, ":", position))
+        }
+    } else if (method == "exact")
+    {
+        for (i in seq_along(snplst))
+        {
+            lst[[i]] <- with(snplst[[i]], paste(snp.id, chromosome,
+                position, allele, sep=":"))
+        }
+    }
 
-    rv <- list(rs.id = snplist1$rs.id[flag],
-        chromosome = snplist1$chromosome[flag],
-        position = snplist1$position[flag],
-        allele = snplist1$allele[flag],
-        afreq = snplist1$afreq[flag])
-    class(rv) <- "snpgdsSNPListClass"
-    return(rv)
+    # get the common
+    snp <- Reduce(intersect, lst)
+
+    # results
+    rv <- vector("list", 0L)
+    for (i in seq_along(lst))
+        rv[[paste0("idx", i)]] <- match(snp, lst[[i]])
+
+    # match by position
+    if (method == "position")
+    {
+        ii <- rv[["idx1"]]
+        al1 <- snplst[[1L]]$allele[ii]
+        af1 <- snplst[[1L]]$afreq[ii]
+        for (i in 2:length(lst))
+        {
+            ii <- rv[[paste0("idx", i)]]
+            rv[[paste0("flip", i)]] <- .Call(gnrAlleleStrand,
+                al1, snplst[[i]]$allele[ii],
+                af1, snplst[[i]]$afreq[ii], same.strand)
+        }
+        # remove mismatched alleles
+        if (isTRUE(na.rm))
+        {
+            x <- rep(TRUE, length(al1))
+            for (i in 2:length(lst))
+                x <- x & !is.na(rv[[paste0("flip", i)]])
+            if (any(!x))
+            {
+                for (i in seq_along(lst))
+                    rv[[paste0("idx", i)]] <- rv[[paste0("idx", i)]][x]
+                for (i in 2:length(lst))
+                    rv[[paste0("flip", i)]] <- rv[[paste0("flip", i)]][x]
+            }
+        }
+    }
+
+    rv
 }
-
-
-
-#######################################################################
-# To get a vector of logical variables, indicating whether genotypes
-#     need to be converted in snplist2.
-#
-
-snpgdsSNPListStrand <- function(snplist1, snplist2, same.strand=FALSE)
-{
-    # check
-    stopifnot(inherits(snplist1, "snpgdsSNPListClass"))
-    stopifnot(inherits(snplist2, "snpgdsSNPListClass"))
-    stopifnot(is.logical(same.strand))
-
-    s1 <- paste(snplist1$rs.id, snplist1$chromosome, snplist1$position,
-        sep="-")
-    s2 <- paste(snplist2$rs.id, snplist2$chromosome, snplist2$position,
-        sep="-")
-    s <- intersect(s1, s2)
-    I1 <- match(s, s1); I2 <- match(s, s2)
-
-    # call
-    rv <- .C(gnrAlleleStrand, snplist1$allele, snplist1$afreq, I1,
-        snplist2$allele, snplist2$afreq, I2,
-        same.strand, length(s), out=logical(length(s)),
-        out.n.ambiguity=integer(1), out.n.mismatching=integer(1),
-        err=integer(1), NAOK=TRUE)
-    if (rv$err != 0) stop(snpgdsErrMsg())
-
-    # result
-    res <- logical(length(s2)); res[I2] <- rv$out
-    res[setdiff(1:length(s2), I2)] <- NA
-    return(res)
-}
-
 
 
 
@@ -1267,206 +1278,156 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 # To merge gds files of SNP genotypes into a single gds file
 #
 
-snpgdsCombineGeno <- function(gds.fn, out.fn,
-    sample.id=NULL, snpobj=NULL, name.prefix=NULL,
-    snpfirstdim=TRUE, compress.annotation="ZIP_RA.MAX", compress.geno="",
-    other.vars=NULL, verbose=TRUE)
+snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
+    compress.annotation="ZIP_RA.MAX", compress.geno="",
+    same.strand=FALSE, snpfirstdim=FALSE, verbose=TRUE)
 {
     # check
-    stopifnot(is.character(gds.fn))
-    if (!is.null(sample.id))
+    stopifnot(is.character(gds.fn), length(gds.fn)>=2L)
+    stopifnot(is.character(out.fn), length(out.fn)==1L)
+    method <- match.arg(method)
+    stopifnot(is.character(compress.annotation))
+    stopifnot(is.character(compress.geno))
+    stopifnot(is.logical(same.strand), length(same.strand)==1L)
+    stopifnot(is.logical(snpfirstdim), length(snpfirstdim)==1L)
+    stopifnot(is.logical(verbose), length(verbose)==1L)
+
+    # open a list of GDS files
+    gs <- vector("list", length(gds.fn))
+    slst <- vector("list", length(gds.fn))
+    snp1d <- logical(length(gds.fn))
+    on.exit({
+        for (i in seq_along(gs))
+            if (!is.null(gs[[i]])) snpgdsClose(gs[[i]])
+    })
+
+    if (verbose)
+        cat("Merge SNP GDS files:\n")
+
+    for (i in seq_along(gs))
     {
-        stopifnot(is.list(sample.id))
-        stopifnot(length(gds.fn) == length(sample.id))
+        if (verbose) cat("    open '", gds.fn[i], "' ...\n", sep="")
+        f <- gs[[i]] <- snpgdsOpen(gds.fn[i])
+        slst[[i]] <- snpgdsSNPList(f)
+        snp1d[i] <- TRUE
+        rd <- names(get.attr.gdsn(index.gdsn(f, "genotype")))
+        if ("snp.order" %in% rd) snp1d[i] <- TRUE
+        if ("sample.order" %in% rd) snp1d[i] <- FALSE
+        if (verbose)
+        {
+            cat("       ", prod(objdesp.gdsn(index.gdsn(f, "sample.id"))$dim),
+                "samples,", prod(objdesp.gdsn(index.gdsn(f, "snp.id"))$dim),
+                "SNPs\n")
+        }
     }
-    if (!is.null(name.prefix))
-    {
-        stopifnot(is.character(name.prefix))
-        stopifnot(length(gds.fn) == length(name.prefix))
-    }
-    stopifnot(is.null(snpobj) | inherits(snpobj, "snpgdsSNPListClass"))
-    stopifnot(is.logical(snpfirstdim))
 
     # samples
-    total.sampid <- NULL
-    for (i in 1:length(gds.fn))
+    samp_id <- read.gdsn(index.gdsn(gs[[1L]], "sample.id"))
+    for (i in 2:length(gs))
     {
-        gdsobj <- snpgdsOpen(gds.fn[i])
-        sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
-        sampid <- sample.id[[i]]
-        if (!is.null(sampid))
-        {
-            n.tmp <- length(sampid)
-            sampid <- sample.ids %in% sampid
-            n.samp <- sum(sampid)
-            if (n.samp != n.tmp)
-            {
-                snpgdsClose(gdsobj)
-                stop("Some of sample.id do not exist!")
-            }
-            if (n.samp <= 0)
-            {
-                snpgdsClose(gdsobj)
-                stop("No sample in the working dataset.")
-            }
-            sample.ids <- sample.ids[sampid]
-        }
-        snpgdsClose(gdsobj)
-        # sample id
-        if (is.null(name.prefix))
-        {
-            total.sampid <- c(total.sampid, sample.ids)
-        } else {
-            total.sampid <- c(total.sampid,
-                paste(name.prefix[i], sample.ids, sep="."))
-        }
+        s <- read.gdsn(index.gdsn(gs[[i]], "sample.id"))
+        samp_id <- intersect(samp_id, s)
     }
 
-    # check whether total.sampid is unique
-    if (length(unique(total.sampid)) != length(total.sampid))
+    if (length(samp_id) > 0L)
     {
-        if (!is.null(name.prefix))
-        {
-            stop("Unable to make sample id unique, please ",
-                "specify correct `name.prefix'.")
-        }
-
-        snpgdsCombineGeno(gds.fn=gds.fn, out.fn=out.fn,
-            sample.id=sample.id, snpobj=snpobj,
-            name.prefix = sprintf("p%02d", 1:length(gds.fn)),
-            snpfirstdim=snpfirstdim,
-            compress.annotation=compress.annotation,
-            compress.geno=compress.geno,
-            other.vars=other.vars, verbose=verbose)
-
         if (verbose)
-        {
-            warning("Has specified the value of `name.prefix' to ",
-                "make sample id unique.")
-        }
-        return(invisible(NULL))
-    }
-
-    # SNPs
-    for (i in 1:length(gds.fn))
-    {
-        gdsobj <- snpgdsOpen(gds.fn[i])
-        s <- snpgdsSNPList(gdsobj)
-        if (is.null(snpobj))
-        {
-            # get unique snp id
-            tmps <- paste(s$rs.id, s$chromosome, s$position, sep="-")
-            i <- match(unique(tmps), tmps)
-            snpobj <- s
-            snpobj$rs.id <- snpobj$rs.id[i]
-            snpobj$chromosome <- snpobj$chromosome[i]
-            snpobj$position <- snpobj$position[i]
-            snpobj$allele <- snpobj$allele[i]
-            snpobj$afreq <- snpobj$afreq[i]
-        } else
-            snpobj <- snpgdsSNPListIntersect(snpobj, s)
-        snpgdsClose(gdsobj)
-        # check
-        if (length(snpobj$rs.id) <= 0)
+            cat("Concatenate SNPs ...\n")
+        return("Not implemented yet!")
+    } else {
+        if (verbose)
+            cat("Concatenate samples (mapping to the first GDS file) ...\n")
+        opt <- slst
+        opt$method <- method
+        opt$same.strand <- same.strand
+        opt$verbose <- verbose
+        snp <- do.call(snpgdsSNPListIntersect, opt)
+        if (length(snp$idx1) <= 0L)
             stop("There is no common SNP.")
-    }
 
-    # create a gds file
-    gfile <- createfn.gds(out.fn)
-    if (verbose)
-    {
-        cat("Create", out.fn, "with", length(total.sampid), "samples and",
-            length(snpobj$rs.id), "SNPs\n")
-    }
-
-    # add a flag
-    put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
-
-    add.gdsn(gfile, "sample.id", total.sampid, compress=compress.annotation,
-        closezip=TRUE)
-    if (length(snpobj$rs.id) == length(unique(snpobj$rs.id)))
-    {
-        add.gdsn(gfile, "snp.id", snpobj$rs.id,
-            compress=compress.annotation, closezip=TRUE)
-    } else {
-        add.gdsn(gfile, "snp.id", as.integer(1:length(snpobj$rs.id)),
-            compress=compress.annotation, closezip=TRUE)
-        add.gdsn(gfile, "snp.rs.id", snpobj$rs.id,
-            compress=compress.annotation, closezip=TRUE)
-    }
-    add.gdsn(gfile, "snp.position", snpobj$position,
-        compress=compress.annotation, closezip=TRUE)
-    add.gdsn(gfile, "snp.chromosome", snpobj$chromosome,
-        compress=compress.annotation, closezip=TRUE)
-    add.gdsn(gfile, "snp.allele", snpobj$allele,
-        compress=compress.annotation, closezip=TRUE)
-
-    # add genotype
-    if (snpfirstdim)
-    {
-        node.geno <- add.gdsn(gfile, "genotype",
-            valdim=c(length(snpobj$rs.id), 0),
-            storage="bit2", compress=compress.geno)
-        put.attr.gdsn(node.geno, "snp.order")
-    } else {
-        node.geno <- add.gdsn(gfile, "genotype",
-            valdim=c(length(total.sampid), 0),
-            storage="bit2", compress=compress.geno)
-        put.attr.gdsn(node.geno, "sample.order")
-    }
-
-    for (i in 1:length(gds.fn))
-    {
-        # open the file
-        gdsobj <- snpgdsOpen(gds.fn[i])
-
-        # samples
-        sample.ids <- read.gdsn(index.gdsn(gdsobj, "sample.id"))
-        sampid <- sample.id[[i]]
-        if (!is.null(sampid))
-            sampid <- sample.ids %in% sampid
-        # SNPs
-        L <- snpgdsSNPListStrand(snpobj, snpgdsSNPList(gdsobj))
-        if (anyNA(L))
+        # get all samples
+        samp_id <- NULL
+        for (i in seq_along(gs))
         {
-            warning(sprintf(
-                "%d SNPs allele mis-matched and removed.", sum(is.na(L)),
-                immediate.=TRUE))
+            samp_id <- c(samp_id, read.gdsn(index.gdsn(gs[[i]], "sample.id")))
+            if (verbose)
+            {
+                if (i == 1L)
+                {
+                    cat("    reference:", length(snp$idx1), "SNPs\n")
+                } else {
+                    x <- snp[[paste0("flip",i)]]
+                    cat("    file ", i, ": ", sum(x %in% c(1L,3L), na.rm=TRUE),
+                        " allele flips, ", sum(x %in% c(2L,3L), na.rm=TRUE),
+                        " ambiguous locus/loci\n", sep="")
+                }
+            }
         }
 
+        # create a gds file
+        gfile <- createfn.gds(out.fn)
+        on.exit({ if (!is.null(gfile)) closefn.gds(gfile) }, add=TRUE)
         if (verbose)
         {
-            cat("\tOpen the gds file ", gds.fn[i], ".\n", sep="")
-            cat("\t\t", sum(L, na.rm=TRUE),
-                " strands of SNP loci need to be switched.\n", sep="")
+            cat("    create '", out.fn, "': ", length(samp_id),
+                " samples, ", length(snp$idx1), " SNPs\n", sep="")
         }
 
-        # set genotype working space
-        rv <- .Call(gnrSetGenoSpace, index.gdsn(gdsobj, "genotype"),
-            sampid, !is.na(L))
-        if (rv[1L] != length(snpobj$position))
-            stop("Invalid snp alleles.")
+        put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
+        add.gdsn(gfile, "sample.id", samp_id, compress=compress.annotation,
+            closezip=TRUE)
+        add.gdsn(gfile, "snp.id", slst[[1L]]$snp.id[snp$idx1],
+            compress=compress.annotation, closezip=TRUE)
+        add.gdsn(gfile, "snp.position", slst[[1L]]$position[snp$idx1],
+            compress=compress.annotation, closezip=TRUE)
+        add.gdsn(gfile, "snp.chromosome", slst[[1L]]$chromosome[snp$idx1],
+            compress=compress.annotation, closezip=TRUE)
+        add.gdsn(gfile, "snp.allele", slst[[1L]]$allele[snp$idx1],
+            compress=compress.annotation, closezip=TRUE)
+        sync.gds(gfile)
 
-        # write genotypes
-        .Call(gnrAppendGenoSpaceStrand, node.geno, snpfirstdim, L[!is.na(L)])
+        ng <- add.gdsn(gfile, "genotype", valdim=c(length(samp_id), 0L),
+            storage="bit2", compress=compress.geno)
+        put.attr.gdsn(ng, "sample.order")
+        if (verbose)
+            cat("    writing genotypes ...\n")
 
-        # close the file
-        snpgdsClose(gdsobj)
-    }
-
-    # other variables
-    if (!is.null(other.vars))
-    {
-        for (i in 1:length(other.vars))
+        idx <- 1L
+        N <- length(snp$idx1)
+        while (idx <= N)
         {
-            nm <- names(other.vars)[i]
-            add.gdsn(gfile, nm, val=other.vars[[i]],
-                compress=compress.annotation)
+            k <- idx + 1024L
+            if (k > N) k <- N + 1L
+            L <- k - idx
+            ii <- seq.int(idx, length.out=L)
+            idx <- idx + L
+            geno <- NULL
+            for (i in 1:length(gds.fn))
+            {
+                n <- index.gdsn(gs[[i]], "genotype")
+                if (snp1d[i])
+                    ss <- list(snp[[paste0("idx",i)]][ii], NULL)
+                else
+                    ss <- list(NULL, snp[[paste0("idx",i)]][ii])
+                g <- readex.gdsn(n, ss, simplify="none", .value=3L,
+                    .substitute=NA_integer_)
+                if (i > 1L)
+                {
+                    x <- ifelse(snp[[paste0("flip",i)]][ii] %in% c(1L,3L), 2L, 0L)
+                    g <- abs(t(x - t(g)))
+                }
+                geno <- rbind(geno, g)
+            }
+            geno[is.na(geno)] <- 3L
+            append.gdsn(ng, geno)
         }
     }
 
-    # close the gds file
+    # close file
     closefn.gds(gfile)
+    gfile <- NULL
+    cleanup.gds(out.fn, verbose=verbose)
+    if (verbose) cat("Done.\n")
 
     # return
     invisible()

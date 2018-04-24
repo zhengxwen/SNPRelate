@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.13.3-1.13.10
+CHANGES IN VERSION 1.14.0
 -------------------------
 
     o the default compression is "LZMA_RA" in `snpgdsBED2GDS()`,
@@ -14,6 +14,12 @@ CHANGES IN VERSION 1.13.3-1.13.10
     o force to use integers for 'snp.position' in `snpgdsCreateGeno()`
 
     o unit tests for merging GRMs in `snpgdsMergeGRM()`
+
+    o the function `snpgdsSNPListStrand()` is merged to
+      `snpgdsSNPListIntersect()`, and it is removed from the package
+
+    o update `snpgdsSNPListIntersect()` and `snpgdsCombineGeno()` (work
+      correctly)
 
 
 CHANGES IN VERSION 1.12.2
