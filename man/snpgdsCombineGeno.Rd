@@ -28,7 +28,7 @@ snpgdsCombineGeno(gds.fn, out.fn, method=c("position", "exact"),
 }
 \details{
     This function calls \code{\link{snpgdsSNPListIntersect}} internally to
-determine the common SNPs.
+determine the common SNPs. Allele definitions are taken from the first GDS file.
 }
 \value{
     None.

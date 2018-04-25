@@ -897,25 +897,31 @@ COREARRAY_DLL_EXPORT SEXP gnrAlleleStrand(SEXP allele1, SEXP allele2,
 			split_allele(CHAR(STRING_ELT(allele1, i)), r_a1, r_a2);
 			string d_a1, d_a2;  // 'ref / nonref' of allele2
 			split_allele(CHAR(STRING_ELT(allele2, i)), d_a1, d_a2);
+
+			// flip_flag & 0x01: 0 -- no flip, 1 -- flip
+			// flip_flag & 0x02: 0 -- on the same strand, 2 -- on the different strands
+			// flip_flag & 0x04: 0 -- no strand ambiguity, 4 -- ambiguous allele names
+			// flip_flag == NA: mismatched allele names
 			int flip_flag = NA_LOGICAL;
 			bool check_afreq = false;
+
 			if (same_on_strand)
 			{
 				if (r_a1==d_a1 && r_a2==d_a2)
-					flip_flag = FALSE;
+					flip_flag = 0;
 				else if (r_a1==d_a2 && r_a2==d_a1)
-					flip_flag = TRUE;
+					flip_flag = 1;
 			} else {
 				if (r_a1==d_a1 && r_a2==d_a2)
 				{
 					// for example, + C/G <---> - C/G, strand ambiguity
 					if (ATGC(d_a2) && r_a1==MAP[d_a2]) check_afreq = true;
-					flip_flag = FALSE;
+					flip_flag = 0;
 				} else if (r_a1==d_a2 && r_a2==d_a1)
 				{
 					// for example, + C/G <---> - G/C, strand ambiguity
 					if (ATGC(d_a1) && r_a1==MAP[d_a1]) check_afreq = true;
-					flip_flag = TRUE;
+					flip_flag = 1;
 				} else {
 					if (ATGC(r_a1) && ATGC(r_a2) && ATGC(d_a1) && ATGC(d_a2))
 					{
@@ -923,25 +929,26 @@ COREARRAY_DLL_EXPORT SEXP gnrAlleleStrand(SEXP allele1, SEXP allele2,
 						{
 							// for example, + C/G <---> - G/C, strand ambiguity
 							if (r_a1 == d_a2) check_afreq = true;
-							flip_flag = FALSE;
+							flip_flag = 2;
 						} else if (r_a1==MAP[d_a2] && r_a2==MAP[d_a1])
 						{
 							// for example, + C/G <---> - C/G, strand ambiguity
 							if (r_a1 == d_a1) check_afreq = true;
-							flip_flag = TRUE;
+							flip_flag = 3;
 						}
 					}
 				}
 				// check allele frequency
-				if (check_afreq)
+				if (check_afreq && flip_flag!=NA_LOGICAL)
 				{
 					double F1 = REAL(afreq1)[i];
 					double F2 = REAL(afreq2)[i];
-					flip_flag = (ALLELE_MINOR(F1) != ALLELE_MINOR(F2)) ? TRUE : FALSE;
+					flip_flag = (ALLELE_MINOR(F1)!=ALLELE_MINOR(F2) ? 1 : 0) |
+						(flip_flag & ~0x01) | 0x04;
 				}
 			}
 			// set output
-			INTEGER(rv_ans)[i] = flip_flag | (check_afreq ? 2 : 0);
+			INTEGER(rv_ans)[i] = flip_flag;
 		}
 		
 		UNPROTECT(1);

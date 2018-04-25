@@ -1344,6 +1344,7 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
         snp <- do.call(snpgdsSNPListIntersect, opt)
         if (length(snp$idx1) <= 0L)
             stop("There is no common SNP.")
+        n_snp <- length(snp$idx1)
 
         # get all samples
         samp_id <- NULL
@@ -1369,8 +1370,8 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
         on.exit({ if (!is.null(gfile)) closefn.gds(gfile) }, add=TRUE)
         if (verbose)
         {
-            cat("    create '", out.fn, "': ", length(samp_id),
-                " samples, ", length(snp$idx1), " SNPs\n", sep="")
+            cat("    create '", out.fn, "': ", length(samp_id), " samples, ",
+                n_snp, " SNPs\n", sep="")
         }
 
         put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
@@ -1413,7 +1414,7 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
                     .substitute=NA_integer_)
                 if (i > 1L)
                 {
-                    x <- ifelse(snp[[paste0("flip",i)]][ii] %in% c(1L,3L), 2L, 0L)
+                    x <- ifelse(bitwAnd(snp[[paste0("flip",i)]][ii], 1), 2L, 0L)
                     g <- abs(t(x - t(g)))
                 }
                 geno <- rbind(geno, g)
@@ -1421,6 +1422,21 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
             geno[is.na(geno)] <- 3L
             append.gdsn(ng, geno)
         }
+    }
+
+    if (snpfirstdim)
+    {
+        if (verbose)
+            cat("    transposing the genotype matrix ...\n")
+        newnode <- add.gdsn(gfile, "!genotype", storage="bit2",
+            valdim=c(n_snp, 0L), compress=compress.geno)
+        put.attr.gdsn(newnode, "snp.order")
+        # write data
+        apply.gdsn(ng, margin=1L, FUN=c, as.is="gdsnode", target.node=newnode,
+            .useraw=TRUE)
+        readmode.gdsn(newnode)
+        # move and replace
+        moveto.gdsn(newnode, ng, relpos="replace+rename")
     }
 
     # close file

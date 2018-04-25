@@ -28,11 +28,16 @@ components:
     \item{idx2}{the indices of common SNPs in the second GDS file}
     \item{idx...}{}
     \item{idx\code{n}}{the indices of common SNPs in the n-th GDS file}
-    \item{flip2}{flip flag for each common SNP for the second GDS file:
-        0 -- no flip; 1 -- flip;
-        2 -- no flip (determined by allele frequencies);
-        3 -- flip (determined by allele frequencies);
-        NA -- mismatched allele names (there is no NA if \code{na.rm=TRUE})}
+    \item{flip2}{an integer vector, flip flag for each common SNP for the
+        second GDS file (assuming a value \code{v}):
+        \code{bitwAnd(v, 1)}: 0 -- no flip of allele names,
+            1 -- flip of allele names;
+        \code{bitwAnd(v, 2)}: 0 -- on the same strand,
+            2 -- on the different strands, comparing with the first GDS file;
+        \code{bitwAnd(v, 4)}: 0 -- no strand ambiguity,
+            4 -- ambiguous allele names, determined by allele frequencies;
+        \code{NA} -- mismatched allele names
+        (there is no NA if \code{na.rm=TRUE})}
     \item{flip...}{}
     \item{flip\code{n}}{flip flag for each common SNP for the n-th GDS file}
 }
