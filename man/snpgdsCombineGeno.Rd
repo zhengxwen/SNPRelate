@@ -67,7 +67,7 @@ identical(geno[1:30, ], g)  # TRUE
 
 # split the GDS file with different SNPs
 snpgdsCreateGenoSet(fn, "t1.gds", snp.id=snp_id[1:100])
-snpgdsCreateGenoSet(fn, "t2.gds", snp.id=snp_id[101:200])
+snpgdsCreateGenoSet(fn, "t2.gds", snp.id=snp_id[101:300])
 
 # combine with different SNPs
 snpgdsCombineGeno(c("t1.gds", "t2.gds"), "test.gds")
@@ -75,7 +75,7 @@ f <- snpgdsOpen("test.gds")
 g <- read.gdsn(index.gdsn(f, "genotype"))
 snpgdsClose(f)
 
-identical(geno[1:200, ], g)  # TRUE
+identical(geno[, 1:300], g)  # TRUE
 
 
 # delete the temporary files

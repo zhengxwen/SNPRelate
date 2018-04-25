@@ -1332,11 +1332,99 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
     if (length(samp_id) > 0L)
     {
         if (verbose)
-            cat("Concatenate SNPs ...\n")
-        return("Not implemented yet!")
+            cat("Concatenating SNPs ...\n")
+        # get the total number of SNPs
+        n_snp <- 0L
+        for (i in seq_along(gs))
+            n_snp <- n_snp + prod(objdesp.gdsn(index.gdsn(gs[[i]], "snp.id"))$dim)
+
+        # create a gds file
+        gfile <- createfn.gds(out.fn)
+        on.exit({ if (!is.null(gfile)) closefn.gds(gfile) }, add=TRUE)
+        if (verbose)
+        {
+            cat("    create '", out.fn, "': ", length(samp_id), " samples, ",
+                n_snp, " SNPs\n", sep="")
+        }
+
+        put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
+        add.gdsn(gfile, "sample.id", samp_id, compress=compress.annotation,
+            closezip=TRUE)
+        add.gdsn(gfile, "snp.id", 1:n_snp, compress=compress.annotation,
+            closezip=TRUE)
+
+        n <- index.gdsn(gs[[1L]], "snp.rs.id", silent=TRUE)
+        if (!is.null(n))
+        {
+            ng <- add.gdsn(gfile, "snp.rs.id", storage="string",
+                compress=compress.annotation)
+            for (i in seq_along(gs))
+            {
+                n <- index.gdsn(gs[[i]], "snp.rs.id", silent=TRUE)
+                if (is.null(n))
+                {
+                    n <- prod(objdesp.gdsn(index.gdsn(gs[[i]], "snp.id"))$dim)
+                    append.gdsn(ng, rep("", n))
+                } else {
+                    append.gdsn(ng, n)
+                }
+            }
+            readmode.gdsn(ng)
+        }
+
+        ng <- add.gdsn(gfile, "snp.position", storage="int32",
+            compress=compress.annotation)
+        for (i in seq_along(gs))
+            append.gdsn(ng, index.gdsn(gs[[i]], "snp.position"))
+        readmode.gdsn(ng)
+
+        ng <- add.gdsn(gfile, "snp.chromosome", storage=index.gdsn(gs[[1L]],
+            "snp.chromosome"), compress=compress.annotation)
+        for (i in seq_along(gs))
+            append.gdsn(ng, index.gdsn(gs[[i]], "snp.chromosome"))
+        readmode.gdsn(ng)
+
+        ng <- add.gdsn(gfile, "snp.allele", storage="string",
+            compress=compress.annotation)
+        for (i in seq_along(gs))
+            append.gdsn(ng, index.gdsn(gs[[i]], "snp.allele"))
+        readmode.gdsn(ng)
+
+        sync.gds(gfile)
+
+        ng <- add.gdsn(gfile, "genotype", valdim=c(length(samp_id), 0L),
+            storage="bit2", compress=compress.geno)
+        put.attr.gdsn(ng, "sample.order")
+        if (verbose)
+            cat("    writing genotypes ...\n")
+        for (i in seq_along(gs))
+        {
+            f <- gs[[i]]
+            ii_samp <- match(samp_id, read.gdsn(index.gdsn(f, "sample.id")))
+            idx <- 1L
+            N <- prod(objdesp.gdsn(index.gdsn(f, "snp.id"))$dim)
+            n <- index.gdsn(gs[[i]], "genotype")
+            while (idx <= N)
+            {
+                k <- idx + 1024L
+                if (k > N) k <- N + 1L
+                L <- k - idx
+                ii <- seq.int(idx, length.out=L)
+                idx <- idx + L
+                if (snp1d[i])
+                {
+                    g <- readex.gdsn(n, list(ii, ii_samp), simplify="none")
+                    g <- t(g)
+                } else {
+                    g <- readex.gdsn(n, list(ii_samp, ii), simplify="none")
+                }
+                append.gdsn(ng, g)
+            }
+        }
+
     } else {
         if (verbose)
-            cat("Concatenate samples (mapping to the first GDS file) ...\n")
+            cat("Concatenating samples (mapping to the first GDS file) ...\n")
         opt <- slst
         opt$method <- method
         opt$same.strand <- same.strand
@@ -1379,6 +1467,14 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
             closezip=TRUE)
         add.gdsn(gfile, "snp.id", slst[[1L]]$snp.id[snp$idx1],
             compress=compress.annotation, closezip=TRUE)
+
+        n <- index.gdsn(gs[[1L]], "snp.rs.id", silent=TRUE)
+        if (!is.null(n))
+        {
+            add.gdsn(gfile, "snp.rs.id", read.gdsn(n)[snp$idx1],
+                compress=compress.annotation, closezip=TRUE)
+        }
+
         add.gdsn(gfile, "snp.position", slst[[1L]]$position[snp$idx1],
             compress=compress.annotation, closezip=TRUE)
         add.gdsn(gfile, "snp.chromosome", slst[[1L]]$chromosome[snp$idx1],
@@ -1407,11 +1503,14 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
             {
                 n <- index.gdsn(gs[[i]], "genotype")
                 if (snp1d[i])
-                    ss <- list(snp[[paste0("idx",i)]][ii], NULL)
-                else
-                    ss <- list(NULL, snp[[paste0("idx",i)]][ii])
-                g <- readex.gdsn(n, ss, simplify="none", .value=3L,
-                    .substitute=NA_integer_)
+                {
+                    g <- readex.gdsn(n, list(snp[[paste0("idx",i)]][ii], NULL),
+                        simplify="none", .value=3L, .substitute=NA_integer_)
+                    g <- t(g)
+                } else {
+                    g <- readex.gdsn(n, list(NULL, snp[[paste0("idx",i)]][ii]),
+                        simplify="none", .value=3L, .substitute=NA_integer_)
+                }
                 if (i > 1L)
                 {
                     x <- ifelse(bitwAnd(snp[[paste0("flip",i)]][ii], 1), 2L, 0L)
@@ -1428,6 +1527,7 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
     {
         if (verbose)
             cat("    transposing the genotype matrix ...\n")
+        readmode.gdsn(index.gdsn(gfile, "genotype"))
         newnode <- add.gdsn(gfile, "!genotype", storage="bit2",
             valdim=c(n_snp, 0L), compress=compress.geno)
         put.attr.gdsn(newnode, "snp.order")
