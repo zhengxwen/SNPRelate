@@ -2,7 +2,7 @@
 //
 // genKING.cpp: KINK Identity-by-descent (IBD) Analysis on GWAS
 //
-// Copyright (C) 2011-2017    Xiuwen Zheng
+// Copyright (C) 2011-2018    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -528,8 +528,8 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Homo(SEXP NumThread, SEXP _Verbose)
 				double theta = 0.5 - p->SumSq / (8 * p->SumAFreq);
 				double k0 = p->IBS0 / (2 * p->SumAFreq2);
 				double k1 = 2 - 2*k0 - 4*theta;
-				pK0[i*n + j] = pK0[j*n + i] = k0;
-				pK1[i*n + j] = pK1[j*n + i] = k1;
+				pK0[i*n + j] = pK0[j*n + i] = R_FINITE(k0) ? k0 : R_NaN;
+				pK1[i*n + j] = pK1[j*n + i] = R_FINITE(k1) ? k1 : R_NaN;
 			}
 		}
 
@@ -596,14 +596,16 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
 			p ++;
 			for (size_t j=i+1; j < n; j++, p++)
 			{
-				pIBS0[i*n + j] = pIBS0[j*n + i] = double(p->IBS0) / p->nLoci;
+				pIBS0[i*n + j] = pIBS0[j*n + i] = (p->nLoci > 0) ?
+					(double(p->IBS0) / p->nLoci) : R_NaN;
 
 				int f1 = FamID_Ptr[i];
 				int f2 = FamID_Ptr[j];
-				pKinship[i*n + j] = pKinship[j*n + i] =
-					((f1 == f2) && (f1 != NA_INTEGER)) ?
+				double v = (f1==f2 && f1!=NA_INTEGER) ?
 					(0.5 - p->SumSq / (2.0 *(p->N1_Aa + p->N2_Aa))) :
 					(0.5 - p->SumSq / (4.0 * min(p->N1_Aa, p->N2_Aa)));
+				if (!R_FINITE(v)) v = R_NaN;
+				pKinship[i*n + j] = pKinship[j*n + i] = v;
 			}
 		}
 

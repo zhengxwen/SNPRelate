@@ -21,6 +21,8 @@ CHANGES IN VERSION 1.14.0
     o update `snpgdsSNPListIntersect()` and `snpgdsCombineGeno()` (work
       correctly)
 
+    o replace -INF by NaN in the output of `snpgdsIBDKING()`
+
 
 CHANGES IN VERSION 1.12.2
 -------------------------
