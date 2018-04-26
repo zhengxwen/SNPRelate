@@ -28,7 +28,7 @@ components:
     \item{idx2}{the indices of common SNPs in the second GDS file}
     \item{idx...}{}
     \item{idx\code{n}}{the indices of common SNPs in the n-th GDS file}
-    \item{flip2}{an integer vector, flip flag for each common SNP for the
+    \item{flag2}{an integer vector, flip flag for each common SNP for the
         second GDS file (assuming a value \code{v}):
         \code{bitwAnd(v, 1)}: 0 -- no flip of allele names,
             1 -- flip of allele names;
@@ -38,8 +38,8 @@ components:
             4 -- ambiguous allele names, determined by allele frequencies;
         \code{NA} -- mismatched allele names
         (there is no NA if \code{na.rm=TRUE})}
-    \item{flip...}{}
-    \item{flip\code{n}}{flip flag for each common SNP for the n-th GDS file}
+    \item{flag...}{}
+    \item{flag\code{n}}{flip flag for each common SNP for the n-th GDS file}
 }
 \author{Xiuwen Zheng}
 \seealso{
@@ -62,9 +62,9 @@ names(v)
 # a common snp list, matching by position
 v <- snpgdsSNPListIntersect(snplist1, snplist2, method="pos")
 names(v)
-# "idx1"  "idx2"  "flip2"
+# "idx1"  "idx2"  "flag2"
 
-table(v$flip2, exclude=NULL)
+table(v$flag2, exclude=NULL)
 
 
 # close the file

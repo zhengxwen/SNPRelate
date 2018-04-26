@@ -708,7 +708,7 @@ snpgdsSNPListIntersect <- function(snplist1, snplist2, ...,
         for (i in 2:length(lst))
         {
             ii <- rv[[paste0("idx", i)]]
-            rv[[paste0("flip", i)]] <- .Call(gnrAlleleStrand,
+            rv[[paste0("flag", i)]] <- .Call(gnrAlleleStrand,
                 al1, snplst[[i]]$allele[ii],
                 af1, snplst[[i]]$afreq[ii], same.strand)
         }
@@ -717,13 +717,13 @@ snpgdsSNPListIntersect <- function(snplist1, snplist2, ...,
         {
             x <- rep(TRUE, length(al1))
             for (i in 2:length(lst))
-                x <- x & !is.na(rv[[paste0("flip", i)]])
+                x <- x & !is.na(rv[[paste0("flag", i)]])
             if (any(!x))
             {
                 for (i in seq_along(lst))
                     rv[[paste0("idx", i)]] <- rv[[paste0("idx", i)]][x]
                 for (i in 2:length(lst))
-                    rv[[paste0("flip", i)]] <- rv[[paste0("flip", i)]][x]
+                    rv[[paste0("flag", i)]] <- rv[[paste0("flag", i)]][x]
             }
         }
     }
@@ -1443,12 +1443,25 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
             {
                 if (i == 1L)
                 {
-                    cat("    reference:", length(snp$idx1), "SNPs\n")
+                    cat(sprintf("    reference: %d SNPs (%.1f%%)\n", n_snp,
+                        100.0*n_snp/prod(objdesp.gdsn(index.gdsn(gs[[1L]], "snp.id"))$dim)))
                 } else {
-                    x <- snp[[paste0("flip",i)]]
-                    cat("    file ", i, ": ", sum(x %in% c(1L,3L), na.rm=TRUE),
-                        " allele flips, ", sum(x %in% c(2L,3L), na.rm=TRUE),
+                    x <- snp[[paste0("flag",i)]]
+                    cat("    file ", i, ": ", sum(bitwAnd(x, 1L), na.rm=TRUE),
+                        " allele flips, ", sum(bitwAnd(x, 4L), na.rm=TRUE),
                         " ambiguous locus/loci\n", sep="")
+                    y <- sapply(0:7, function(v) sum(x==v, na.rm=TRUE))
+                    y <- c(y, sum(is.na(x)))
+                    a <- c("no flip", "flip", "no flip on different strand",
+                        "flip on different strand",
+                        "no flip / ambiguous strand", "flip / ambiguous strand",
+                        "no flip / different and ambiguous strand",
+                        "flip / different and ambiguous strand", "mismatch")
+                    for (i in seq_along(y))
+                    {
+                        if (y[i] > 0)
+                            cat("        [", a[i], "]: ", y[i], "\n", sep="")
+                    }
                 }
             }
         }
@@ -1513,7 +1526,7 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
                 }
                 if (i > 1L)
                 {
-                    x <- ifelse(bitwAnd(snp[[paste0("flip",i)]][ii], 1), 2L, 0L)
+                    x <- ifelse(bitwAnd(snp[[paste0("flag",i)]][ii], 1), 2L, 0L)
                     g <- abs(t(x - t(g)))
                 }
                 geno <- rbind(geno, g)
