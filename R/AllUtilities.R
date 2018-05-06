@@ -39,7 +39,7 @@ snpgdsOpen <- function(filename, readonly=TRUE, allow.duplicate=FALSE,
     on.exit({ closefn.gds(ans) })
 
     ##  error information
-    err <- "Invalid SNP GDS file: "
+    err <- "\nInvalid SNP GDS file: "
 
     ##  FileFormat
     at <- get.attr.gdsn(ans$root)
@@ -50,8 +50,9 @@ snpgdsOpen <- function(filename, readonly=TRUE, allow.duplicate=FALSE,
         if (identical(at$FileFormat, "SEQ_ARRAY"))
         {
             stop(err,
-            "please open the file using 'seqOpen()' in the SeqArray package, ",
-            "since 'FileFormat = SEQ_ARRAY'.")
+            "please open the file using 'seqOpen()' in the SeqArray package ",
+            "since 'FileFormat=SEQ_ARRAY', or run 'SeqArray::seqSNP2GDS()' ",
+            "to convert the file to GWAS SNP GDS format.")
         }
         if (!identical(at$FileFormat, "SNP_ARRAY"))
             stop(err, "'FileFormat' should be 'SNP_ARRAY'.")
