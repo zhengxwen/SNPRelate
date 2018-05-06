@@ -34,6 +34,8 @@ Development Version: v1.15.0
 
 * Supports the [SeqArray](http://bioconductor.org/packages/release/bioc/html/SeqArray.html) GDS format, see [the vignette](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html#integration-with-snprelate).
 
+* See [package news](NEWS)
+
 
 ## Tutorials
 
