@@ -536,8 +536,9 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSNum(SEXP NumThread, SEXP _Verbose)
 
 /// Compute the IBD coefficients by PLINK method of moment
 COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
-	SEXP UseSpecificAFreq, SEXP KinshipConstrict, SEXP _Verbose)
+	SEXP UseSpecificAFreq, SEXP KinshipConstrict, SEXP useMatrix, SEXP _Verbose)
 {
+	const bool kc = Rf_asLogical(KinshipConstrict)==TRUE;
 	const bool verbose = SEXP_Verbose(_Verbose);
 
 	COREARRAY_TRY
@@ -565,23 +566,41 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 			Rf_asLogical(UseSpecificAFreq)==TRUE ? REAL(AlleleFreq) : NULL,
 			out_afreq, Rf_asLogical(UseSpecificAFreq)!=TRUE);
 
-		SEXP k0 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-		SEXP k1 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-		double *out_k0    = REAL(k0);
-		double *out_k1    = REAL(k1);
-
-		bool kc = Rf_asLogical(KinshipConstrict) == TRUE;
-		IBS::TIBS *p = IBS.Get();
-		for (size_t i=0; i < n; i++)
+		SEXP k0, k1;
+		if (Rf_asLogical(useMatrix) != TRUE)
 		{
-			out_k0[i*n + i] = out_k1[i*n + i] = 0;
-			p++;
-			for (size_t j=i+1; j < n; j++, p++)
+			k0 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			k1 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			double *out_k0=REAL(k0), *out_k1=REAL(k1);
+			IBS::TIBS *p = IBS.Get();
+			for (size_t i=0; i < n; i++)
 			{
-				double k0, k1;
-				IBD::Est_PLINK_Kinship(p->IBS0, p->IBS1, p->IBS2, k0, k1, kc);
-				out_k0[i*n + j] = out_k0[j*n + i] = k0;
-				out_k1[i*n + j] = out_k1[j*n + i] = k1;
+				out_k0[i*n + i] = out_k1[i*n + i] = 0;
+				p++;
+				for (size_t j=i+1; j < n; j++, p++)
+				{
+					double k0, k1;
+					IBD::Est_PLINK_Kinship(p->IBS0, p->IBS1, p->IBS2, k0, k1, kc);
+					out_k0[i*n + j] = out_k0[j*n + i] = k0;
+					out_k1[i*n + j] = out_k1[j*n + i] = k1;
+				}
+			}
+		} else {
+			const size_t ns = n*(n+1)/2;
+			k0 = PROTECT(NEW_NUMERIC(ns));
+			k1 = PROTECT(NEW_NUMERIC(ns));
+			double *out_k0=REAL(k0), *out_k1=REAL(k1);
+			IBS::TIBS *p = IBS.Get();
+			for (size_t i=0; i < n; i++)
+			{
+				*out_k0++ = *out_k1++ = 0;
+				p++;
+				for (size_t j=i+1; j < n; j++, p++)
+				{
+					double k0, k1;
+					IBD::Est_PLINK_Kinship(p->IBS0, p->IBS1, p->IBS2, k0, k1, kc);
+					*out_k0++ = k0; *out_k1++ = k1;
+				}
 			}
 		}
 

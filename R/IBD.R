@@ -22,8 +22,8 @@
 
 snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    allele.freq=NULL, kinship=FALSE, kinship.constraint=FALSE, num.thread=1,
-    verbose=TRUE)
+    allele.freq=NULL, kinship=FALSE, kinship.constraint=FALSE, num.thread=1L,
+    useMatrix=FALSE, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -34,8 +34,9 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         num.thread=num.thread,
         verbose=verbose)
 
-    stopifnot(is.logical(kinship))
-    stopifnot(is.logical(kinship.constraint))
+    stopifnot(is.logical(kinship), length(kinship)==1L)
+    stopifnot(is.logical(kinship.constraint), length(kinship.constraint)==1L)
+    stopifnot(is.logical(useMatrix), length(useMatrix)==1L)
 
     # verbose
     if (verbose & !is.null(ws$allele.freq))
@@ -48,19 +49,25 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     }
 
     # call C function
-    rv <- .Call(gnrIBD_PLINK, ws$num.thread,
-        as.double(ws$allele.freq), !is.null(ws$allele.freq),
-        kinship.constraint, verbose)
+    rv <- .Call(gnrIBD_PLINK, ws$num.thread, as.double(ws$allele.freq),
+        !is.null(ws$allele.freq), kinship.constraint, useMatrix, verbose)
     names(rv) <- c("k0", "k1", "afreq")
 
     # return
-    rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
-        afreq = rv$afreq, k0 = rv$k0, k1 = rv$k1)
+    ans <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=rv$afreq)
+    ans$afreq[ans$afreq < 0] <- NaN
+    if (useMatrix)
+    {
+        ans$k0 <- .newmat(ws$n.samp, rv$k0)
+        ans$k1 <- .newmat(ws$n.samp, rv$k1)
+    } else {
+        ans$k0 <- rv$k0
+        ans$k1 <- rv$k1
+    }
     if (kinship)
-        rv$kinship <- 0.5*(1 - rv$k0 - rv$k1) + 0.25*rv$k1
-    rv$afreq[rv$afreq < 0] <- NaN
-    class(rv) <- "snpgdsIBDClass"
-    return(rv)
+        ans$kinship <- 0.5*(1 - ans$k0 - ans$k1) + 0.25*ans$k1
+    class(ans) <- "snpgdsIBDClass"
+    return(ans)
 }
 
 

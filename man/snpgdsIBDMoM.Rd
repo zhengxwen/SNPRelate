@@ -10,7 +10,8 @@
 \usage{
 snpgdsIBDMoM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, allele.freq=NULL,
-    kinship=FALSE, kinship.constraint=FALSE, num.thread=1, verbose=TRUE)
+    kinship=FALSE, kinship.constraint=FALSE, num.thread=1L, useMatrix=FALSE,
+    verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -35,6 +36,8 @@ snpgdsIBDMoM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         ($k_0,k_1,k_2$) in the geneloical region ($2 k_0 k_1 >= k_2^2$)}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
+    \item{useMatrix}{if TRUE, use \code{Matrix::dspMatrix} to store the output
+        square matrix}
     \item{verbose}{if TRUE, show information}
 }
 \details{

@@ -1,3 +1,10 @@
+CHANGES IN VERSION 1.15.1
+-------------------------
+
+    o a new option 'useMatrix' in `snpgdsIBDMoM()` to allow for the packed
+      symmetric matrix using the Matrix package
+
+
 CHANGES IN VERSION 1.14.0
 -------------------------
 

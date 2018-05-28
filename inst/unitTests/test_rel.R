@@ -191,13 +191,23 @@ test.PLINK.MoM <- function()
 
 	# run on one core
 	ibd.1 <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90],
-		num.thread=1, verbose=FALSE)
+		num.thread=1L, verbose=FALSE)
 	checkEquals(ibd.1, valid.dta, "PLINK MoM (one core)")
+
+	ibd <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90],
+		num.thread=1L, useMatrix=TRUE, verbose=FALSE)
+	checkEquals(as.numeric(ibd.1$k0), as.numeric(ibd$k0), "PLINK MoM (one core)")
+	checkEquals(as.numeric(ibd.1$k1), as.numeric(ibd$k1), "PLINK MoM (one core)")
 
 	# run on two cores
 	ibd.2 <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90],
-		num.thread=2, verbose=FALSE)
+		num.thread=2L, verbose=FALSE)
 	checkEquals(ibd.2, valid.dta, "PLINK MoM (two cores)")
+
+	ibd <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90],
+		num.thread=1L, useMatrix=TRUE, verbose=FALSE)
+	checkEquals(as.numeric(ibd.2$k0), as.numeric(ibd$k0), "PLINK MoM (two cores)")
+	checkEquals(as.numeric(ibd.2$k1), as.numeric(ibd$k1), "PLINK MoM (two cores)")
 
 	# close the file
 	snpgdsClose(genofile)

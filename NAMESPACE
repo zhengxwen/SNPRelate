@@ -31,6 +31,7 @@ export(.onAttach)
 # Import all packages listed as Imports or Depends
 import(gdsfmt)
 
+importFrom(methods, new)
 importFrom(utils, count.fields, read.table, write.table, packageVersion)
 importFrom(stats, as.dendrogram, as.dist, dendrapply, hclust, is.leaf, sd,
     rnorm)
