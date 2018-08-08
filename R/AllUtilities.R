@@ -363,7 +363,7 @@ snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     r <- .Call(gnrIndInb, allele.freq, method, reltol, out.num.iter)
 
     # output
-    rv <- list(sample.id = ws$sample.ids, snp.id = ws$snp.ids,
+    rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
         inbreeding = r[[1]])
     if (!is.null(r[[2]]))
         rv$out.num.iter <- r[[2]]
