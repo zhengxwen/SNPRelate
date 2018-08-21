@@ -2,7 +2,7 @@
 //
 // genIBD.cpp: Identity by descent (IBD) Analysis on GWAS
 //
-// Copyright (C) 2011-2017    Xiuwen Zheng
+// Copyright (C) 2011-2018    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -1347,7 +1347,7 @@ namespace INBREEDING
 				if (R_FINITE(val)) { F += val; nValid++; }
 			}
 		}
-		if (nValid > 0) F /= nValid;
+		if (nValid > 0) F /= nValid; else F = R_NaN;
 		return F;
 	}
 
@@ -1959,15 +1959,10 @@ COREARRAY_DLL_EXPORT SEXP gnrIndInb(SEXP afreq, SEXP method, SEXP reltol,
 	SEXP num_iter)
 {
 	double *AF = REAL(AS_NUMERIC(afreq));
-	const char *met  = CHAR(STRING_ELT(method, 0));
+	const char *met = CHAR(STRING_ELT(method, 0));
 	
-	if (XLENGTH(reltol) != 1)
-		error("`reltol' should a real number.");
-	double rtol = REAL(AS_NUMERIC(reltol))[0];
-
-	if (XLENGTH(num_iter) != 1)
-		error("`out.num.iter' should a logical value.");
-	bool if_iternum = LOGICAL(num_iter)[0];
+	double rtol = Rf_asReal(reltol);
+	bool if_iternum = Rf_asLogical(num_iter)==TRUE;
 
 	COREARRAY_TRY
 
@@ -1985,21 +1980,61 @@ COREARRAY_DLL_EXPORT SEXP gnrIndInb(SEXP afreq, SEXP method, SEXP reltol,
 		PROTECT(rv_ans = NEW_LIST(2));
 		SET_ELEMENT(rv_ans, 0, OutCoeff);
 
-		if (strcmp(met, "mom.weir") == 0)
+		if (strcmp(met, "mom.weir")==0)
 		{
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
 				pCoeff[i] = INBREEDING::_inb_mom_ratio(n, p, AF);
 			}
-		} else if (strcmp(met, "mom.visscher") == 0)
+		} else if (strcmp(met, "mom.visscher")==0 || strcmp(met, "gcta3")==0)
 		{
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
 				pCoeff[i] = INBREEDING::_inb_mom(n, p, AF);
 			}
-		} else if (strcmp(met, "mle") == 0)
+		} else if (strcmp(met, "gcta1")==0)
+		{
+			for (long i=0; i < buf.IdxCnt(); i++)
+			{
+				C_UInt8 *p = buf.ReadGeno(i);
+				double F = 0;
+				int nValid = 0;
+				for (int j=0; j < n; j++)
+				{
+					int g = *p++;
+					if ((0 <= g) && (g <= 2))
+					{
+						double p = AF[j];
+						double val = (g - 2*p)*(g - 2*p) / (2*p*(1-p)) - 1;
+						if (R_FINITE(val)) { F += val; nValid++; }
+					}
+				}
+				if (nValid > 0) F /= nValid; else F = R_NaN;
+				pCoeff[i] = F;
+			}
+		} else if (strcmp(met, "gcta2")==0)
+		{
+			for (long i=0; i < buf.IdxCnt(); i++)
+			{
+				C_UInt8 *p = buf.ReadGeno(i);
+				double F = 0;
+				int nValid = 0;
+				for (int j=0; j < n; j++)
+				{
+					int g = *p++;
+					if ((0 <= g) && (g <= 2))
+					{
+						double p = AF[j];
+						double val = 1 - g*(2-g) / (2*p*(1-p));
+						if (R_FINITE(val)) { F += val; nValid++; }
+					}
+				}
+				if (nValid > 0) F /= nValid; else F = R_NaN;
+				pCoeff[i] = F;
+			}
+		} else if (strcmp(met, "mle")==0)
 		{
 			SEXP Num = NULL;
 			if (if_iternum)

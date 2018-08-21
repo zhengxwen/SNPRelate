@@ -9,8 +9,9 @@
 \usage{
 snpgdsIndInb(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("mom.weir", "mom.visscher", "mle"), allele.freq=NULL,
-    out.num.iter=TRUE, reltol=.Machine$double.eps^0.75, verbose=TRUE)
+    method=c("mom.weir", "mom.visscher", "mle", "gcta1", "gcta2", "gcta3"),
+    allele.freq=NULL, out.num.iter=TRUE, reltol=.Machine$double.eps^0.75,
+    verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -40,7 +41,11 @@ snpgdsIndInb(gdsobj, sample.id=NULL, snp.id=NULL,
     The \code{method} can be:
     "mom.weir": a modified Visscher's estimator, proposed by Bruce Weir;
     "mom.visscher": Visscher's estimator described in Yang et al. (2010);
-    "mle": the maximum likelihood estimation.
+    "mle": the maximum likelihood estimation;
+    "gcta1": F^I in GCTA, avg [(g_i - 2p_i)^2 / (2*p_i*(1-p_i)) - 1];
+    "gcta2": F^II in GCTA, avg [1 - g_i*(2 - g_i) / (2*p_i*(1-p_i))];
+    "gcta3": F^III in GCTA, the same as "mom.visscher",
+        avg [g_i^2 - (1 + 2p_i)*g_i + 2*p_i^2] / (2*p_i*(1-p_i)).
 }
 \value{
     Return estimated inbreeding coefficient.
@@ -50,6 +55,10 @@ snpgdsIndInb(gdsobj, sample.id=NULL, snp.id=NULL,
     Heath AC, Martin NG, Montgomery GW, Goddard ME, Visscher PM. 2010.
     Common SNPs explain a large proportion of the heritability for human height.
     Nat Genet. 42(7):565-9. Epub 2010 Jun 20.
+
+    Yang, J., Lee, S. H., Goddard, M. E. & Visscher, P. M.
+    GCTA: a tool for genome-wide complex trait analysis.
+    American journal of human genetics 88, 76-82 (2011).
 }
 \author{Xiuwen Zheng}
 

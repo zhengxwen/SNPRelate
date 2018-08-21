@@ -167,10 +167,8 @@ snpgdsIBDMLELogLik <- function(gdsobj, ibdobj, k0=NaN, k1=NaN,
     stopifnot(inherits(ibdobj, "snpgdsIBDClass"))
     .InitFile(gdsobj, ibdobj$sample.id, ibdobj$snp.id)
 
-    stopifnot(is.numeric(k0) & is.vector(k0))
-    stopifnot(length(k0) == 1)
-    stopifnot(is.numeric(k1) & is.vector(k1))
-    stopifnot(length(k1) == 1)
+    stopifnot(is.numeric(k0), is.vector(k0), length(k0)==1L)
+    stopifnot(is.numeric(k1), is.vector(k1), length(k1)==1L)
 
     relatedness <- match.arg(relatedness)
     if (relatedness == "self")

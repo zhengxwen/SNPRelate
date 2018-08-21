@@ -1,8 +1,12 @@
-CHANGES IN VERSION 1.15.1
+CHANGES IN VERSION 1.15.1-1.15.2
 -------------------------
 
     o a new option 'useMatrix' in `snpgdsIBDMoM()` to allow for the packed
       symmetric matrix using the Matrix package
+
+    o fix a bug of missing sample and SNP IDs in the output of `snpgdsIndInb()`
+
+    o new methods in `snpgdsIndInb()`: gcta1, gcta2, gcta3
 
 
 CHANGES IN VERSION 1.14.0

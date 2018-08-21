@@ -340,7 +340,7 @@ snpgdsIndInbCoef <- function(x, p, method=c("mom.weir", "mom.visscher", "mle"),
 
 snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("mom.weir", "mom.visscher", "mle"),
+    method=c("mom.weir", "mom.visscher", "mle", "gcta1", "gcta2", "gcta3"),
     allele.freq=NULL, out.num.iter=TRUE, reltol=.Machine$double.eps^0.75,
     verbose=TRUE)
 {
@@ -352,8 +352,8 @@ snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         maf=maf, missing.rate=missing.rate, allele.freq=allele.freq,
         verbose=verbose)
     method <- match.arg(method)
-    stopifnot(is.logical(out.num.iter))
-    stopifnot(is.numeric(reltol))
+    stopifnot(is.logical(out.num.iter), length(out.num.iter)==1L)
+    stopifnot(is.numeric(reltol), length(reltol)==1L)
 
     # call allele frequency
     if (is.null(allele.freq))
@@ -363,10 +363,9 @@ snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     r <- .Call(gnrIndInb, allele.freq, method, reltol, out.num.iter)
 
     # output
-    rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
-        inbreeding = r[[1]])
-    if (!is.null(r[[2]]))
-        rv$out.num.iter <- r[[2]]
+    rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, inbreeding=r[[1L]])
+    if (!is.null(r[[2L]]))
+        rv$out.num.iter <- r[[2L]]
     return(rv)
 }
 
