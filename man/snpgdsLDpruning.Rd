@@ -7,10 +7,11 @@
     Recursively removes SNPs within a sliding window
 }
 \usage{
-snpgdsLDpruning(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
-    remove.monosnp = TRUE, maf = NaN, missing.rate = NaN,
-    method = c("composite", "r", "dprime", "corr"), slide.max.bp = 500000,
-    slide.max.n = NA, ld.threshold = 0.2, num.thread = 1, verbose = TRUE)
+snpgdsLDpruning(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    method=c("composite", "r", "dprime", "corr"), slide.max.bp=500000L,
+    slide.max.n=NA, ld.threshold=0.2, start.pos=c("random", "first", "last"),
+    num.thread=1L, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -30,6 +31,8 @@ snpgdsLDpruning(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
     \item{slide.max.bp}{the maximum basepairs in the sliding window}
     \item{slide.max.n}{the maximum number of SNPs in the sliding window}
     \item{ld.threshold}{the LD threshold}
+    \item{start.pos}{"random": a random starting position; "first": start from
+        the first position; "last": start from the last position}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
     \item{verbose}{if TRUE, show information}
@@ -55,8 +58,9 @@ chromosomes.
     The pruning algorithm on a chromosome is described as follows (n is
 the total number of SNPs on that chromosome):
 
-    1) Randomly select a starting position i, and let the current SNP set
-S = \{ i \};
+    1) Randomly select a starting position i (\code{start.pos="random"}), 
+i=1 if \code{start.pos="first"}, or i=last if \code{start.pos="last"}; and let
+the current SNP set S=\{ i \};
 
     2) For each right position j from i+1 to n: if any LD between j and k is
 greater than \code{ld.threshold}, where k belongs to S, and both of j and k

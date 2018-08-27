@@ -2,7 +2,7 @@
 //
 // genLD.cpp: Linkage Disequilibrium (LD) Analysis on GWAS
 //
-// Copyright (C) 2011-2017    Xiuwen Zheng
+// Copyright (C) 2011-2018    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -952,10 +952,10 @@ COREARRAY_DLL_EXPORT SEXP gnrLDpruning(SEXP StartIdx, SEXP pos_bp,
 	COREARRAY_TRY
 
 		vector<C_BOOL> flag(MCWorkingGeno.Space().SNPNum());
-		LD::LD_Method = INTEGER(method)[0];
-		LD::Perform_LD_Pruning(INTEGER(StartIdx)[0], INTEGER(pos_bp),
-			INTEGER(slide_max_bp)[0], INTEGER(slide_max_n)[0],
-			REAL(LD_threshold)[0], &flag[0]);
+		LD::LD_Method = Rf_asInteger(method);
+		LD::Perform_LD_Pruning(Rf_asInteger(StartIdx)-1, INTEGER(pos_bp),
+			Rf_asInteger(slide_max_bp), Rf_asInteger(slide_max_n),
+			Rf_asReal(LD_threshold), &flag[0]);
 
 		PROTECT(rv_ans = NEW_LOGICAL(MCWorkingGeno.Space().SNPNum()));
 		int *p = LOGICAL(rv_ans);

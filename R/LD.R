@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2017        Xiuwen Zheng
+# Copyright (C) 2011 - 2018        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -104,8 +104,8 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
 snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
     method=c("composite", "r", "dprime", "corr"),
-    slide.max.bp=500000, slide.max.n=NA, ld.threshold=0.2,
-    num.thread=1L, verbose=TRUE)
+    slide.max.bp=500000L, slide.max.n=NA, ld.threshold=0.2,
+    start.pos=c("random", "first", "last"), num.thread=1L, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -118,14 +118,17 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
     stopifnot(is.na(slide.max.bp) | is.numeric(slide.max.bp))
     stopifnot(is.na(slide.max.n) | is.numeric(slide.max.n))
-    stopifnot(is.numeric(ld.threshold) & is.finite(ld.threshold))
-    stopifnot(is.numeric(num.thread) & (num.thread>0))
+    stopifnot(is.numeric(ld.threshold), is.finite(ld.threshold),
+        length(ld.threshold)==1L)
+    stopifnot(is.numeric(num.thread), num.thread>0)
     if (num.thread > 1)
     {
         warning("The current version of 'snpgdsLDpruning()' ",
             "does not support multi-threading.")
     }
-    stopifnot(is.logical(verbose))
+    stopifnot(is.logical(verbose), length(verbose)==1L)
+
+    start.pos <- match.arg(start.pos)
 
     if (verbose)
     {
@@ -198,11 +201,12 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             }
 
             # call LD prune for this chromosome
-            startidx <- sample(1:n.tmp, 1L)
-
-            rv <- .Call(gnrLDpruning, as.integer(startidx-1L), position[flag],
-                as.integer(slide.max.bp), as.integer(slide.max.n),
-                as.double(ld.threshold), method)
+            startidx <- switch(start.pos,
+                random = sample.int(n.tmp, 1L),
+                first  = 1L,
+                last   = n.tmp)
+            rv <- .Call(gnrLDpruning, startidx, position[flag],
+                slide.max.bp, slide.max.n, ld.threshold, method)
 
             # output
             L <- rep(FALSE, length(total.snp.ids))
