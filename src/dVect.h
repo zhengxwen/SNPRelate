@@ -305,6 +305,12 @@ namespace Vectorization
 	/// *p += (*s) * v
 	COREARRAY_DLL_DEFAULT double *vec_f64_addmul(double *p, const double *s,
 		size_t n, double v);
+
+
+	/// *p /= (*s)
+	COREARRAY_DLL_DEFAULT void vec_f64_div(double *p, const int *s, size_t n);
+	/// *p /= (*s)
+	COREARRAY_DLL_DEFAULT void vec_f64_div(double *p, const double *s, size_t n);
 }
 
 #endif /* _HEADER_VECTORIZATION_ */

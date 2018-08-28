@@ -346,7 +346,7 @@ snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 {
     # check
     ws <- .InitFile2(
-        cmd="Estimate individual inbreeding coefficients:",
+        cmd="Estimating individual inbreeding coefficients:",
         gdsobj=gdsobj, sample.id=sample.id, snp.id=snp.id,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, allele.freq=allele.freq,
@@ -356,11 +356,11 @@ snpgdsIndInb <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.numeric(reltol), length(reltol)==1L)
 
     # call allele frequency
-    if (is.null(allele.freq))
+    if (is.null(allele.freq) & method=="mle")
         allele.freq <- .Call(gnrSNPFreq)
 
     # call individual inbreeding coefficients
-    r <- .Call(gnrIndInb, allele.freq, method, reltol, out.num.iter)
+    r <- .Call(gnrIndInb, allele.freq, method, reltol, out.num.iter, verbose)
 
     # output
     rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, inbreeding=r[[1L]])

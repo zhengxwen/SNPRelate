@@ -1954,94 +1954,60 @@ COREARRAY_DLL_EXPORT SEXP gnrIndInbCoef(SEXP snp, SEXP afreq, SEXP reltol)
 }
 
 
+// calculate the allele frequency
+static double calc_afreq(C_UInt8 *geno, size_t n)
+{
+	double sum = 0;
+	int num = 0;
+	for (; n > 0; n--, geno++)
+	{
+		if (*geno <= 2)
+		{
+			sum += *geno;
+			num ++;
+		}
+	}
+	return sum / num * 0.5;
+}
+
 // to compute the inbreeding coefficient
 COREARRAY_DLL_EXPORT SEXP gnrIndInb(SEXP afreq, SEXP method, SEXP reltol,
-	SEXP num_iter)
+	SEXP num_iter, SEXP verbose)
 {
-	double *AF = REAL(AS_NUMERIC(afreq));
-	const char *met = CHAR(STRING_ELT(method, 0));
-	
+	double *AF = NULL;
+	if (!Rf_isNull(afreq)) AF = REAL(AS_NUMERIC(afreq));
+
+	const char *met_str = CHAR(STRING_ELT(method, 0));
 	double rtol = Rf_asReal(reltol);
 	bool if_iternum = Rf_asLogical(num_iter)==TRUE;
+	bool if_verbose = Rf_asLogical(verbose)==TRUE;
 
 	COREARRAY_TRY
 
-		// the number of SNPs
-		const R_xlen_t n = MCWorkingGeno.Space().SNPNum();
-		// buffer object
-		CdBufSpace buf(MCWorkingGeno.Space(), false, CdBufSpace::acInc);
-		// the number of samples
-		const R_xlen_t m = buf.IdxCnt();
+		if (strcmp(met_str, "mle") == 0)
+		{
+			// MLE method
+			// the number of SNPs
+			const R_xlen_t n = MCWorkingGeno.Space().SNPNum();
+			// buffer object
+			CdBufSpace buf(MCWorkingGeno.Space(), false, CdBufSpace::acInc);
+			// the number of samples
+			const R_xlen_t m = buf.IdxCnt();
 
-		SEXP OutCoeff;
-		PROTECT(OutCoeff = NEW_NUMERIC(m));
-		double *pCoeff = REAL(OutCoeff);
+			PROTECT(rv_ans = NEW_LIST(2));
+			SEXP OutCoeff = NEW_NUMERIC(m);
+			SET_ELEMENT(rv_ans, 0, OutCoeff);
+			double *pCoeff = REAL(OutCoeff);
 
-		PROTECT(rv_ans = NEW_LIST(2));
-		SET_ELEMENT(rv_ans, 0, OutCoeff);
-
-		if (strcmp(met, "mom.weir")==0)
-		{
-			for (long i=0; i < buf.IdxCnt(); i++)
-			{
-				C_UInt8 *p = buf.ReadGeno(i);
-				pCoeff[i] = INBREEDING::_inb_mom_ratio(n, p, AF);
-			}
-		} else if (strcmp(met, "mom.visscher")==0 || strcmp(met, "gcta3")==0)
-		{
-			for (long i=0; i < buf.IdxCnt(); i++)
-			{
-				C_UInt8 *p = buf.ReadGeno(i);
-				pCoeff[i] = INBREEDING::_inb_mom(n, p, AF);
-			}
-		} else if (strcmp(met, "gcta1")==0)
-		{
-			for (long i=0; i < buf.IdxCnt(); i++)
-			{
-				C_UInt8 *p = buf.ReadGeno(i);
-				double F = 0;
-				int nValid = 0;
-				for (int j=0; j < n; j++)
-				{
-					int g = *p++;
-					if ((0 <= g) && (g <= 2))
-					{
-						double p = AF[j];
-						double val = (g - 2*p)*(g - 2*p) / (2*p*(1-p)) - 1;
-						if (R_FINITE(val)) { F += val; nValid++; }
-					}
-				}
-				if (nValid > 0) F /= nValid; else F = R_NaN;
-				pCoeff[i] = F;
-			}
-		} else if (strcmp(met, "gcta2")==0)
-		{
-			for (long i=0; i < buf.IdxCnt(); i++)
-			{
-				C_UInt8 *p = buf.ReadGeno(i);
-				double F = 0;
-				int nValid = 0;
-				for (int j=0; j < n; j++)
-				{
-					int g = *p++;
-					if ((0 <= g) && (g <= 2))
-					{
-						double p = AF[j];
-						double val = 1 - g*(2-g) / (2*p*(1-p));
-						if (R_FINITE(val)) { F += val; nValid++; }
-					}
-				}
-				if (nValid > 0) F /= nValid; else F = R_NaN;
-				pCoeff[i] = F;
-			}
-		} else if (strcmp(met, "mle")==0)
-		{
 			SEXP Num = NULL;
 			if (if_iternum)
 			{
-				PROTECT(Num = NEW_INTEGER(m));
+				Num = NEW_INTEGER(m);
 				SET_ELEMENT(rv_ans, 1, Num);
 			}
+
+			CProgress prog(if_verbose ? m : -1);
+
 			for (long i=0; i < buf.IdxCnt(); i++)
 			{
 				C_UInt8 *p = buf.ReadGeno(i);
@@ -2049,12 +2015,119 @@ COREARRAY_DLL_EXPORT SEXP gnrIndInb(SEXP afreq, SEXP method, SEXP reltol,
 				pCoeff[i] = INBREEDING::_inb_mle(n, p, AF, rtol, &iter_num);
 				if (Num)
 					INTEGER(Num)[i] = iter_num;
+				prog.Forward(1);
 			}
-			if (Num) UNPROTECT(1);
-		} else
-			throw "Invalid 'method'.";
+		} else {
+			const int nSamp = MCWorkingGeno.Space().SampleNum();
+			const int nSNP  = MCWorkingGeno.Space().SNPNum();
+			CdBufSpace BufSNP(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
+			vector<int> cnt(nSamp);
 
-		UNPROTECT(2);
+			PROTECT(rv_ans = NEW_LIST(2));
+			SEXP OutCoeff = NEW_NUMERIC(nSamp);
+			SET_ELEMENT(rv_ans, 0, OutCoeff);
+			double *pCoeff = REAL(OutCoeff);
+
+			// initialize
+			memset(&cnt[0], 0, sizeof(int)*nSamp);
+			memset(pCoeff, 0, sizeof(double)*nSamp);
+
+			CProgress prog(if_verbose ? nSNP : -1);
+
+			if (strcmp(met_str, "gcta1") == 0)
+			{
+				for (int i=0; i < nSNP; i++)
+				{
+					C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+					double p = AF ? AF[i] : calc_afreq(pGeno, nSamp);
+					double h = 2 * p * (1 - p);
+					for (int j=0; j < nSamp; j++)
+					{
+						double v = R_NaN;
+						C_UInt8 g = pGeno[j];
+						if (g <= 2)
+						{
+							double x = (g - 2*p);
+							v = x * x / h - 1;
+						}
+						if (R_FINITE(v))
+						{
+							pCoeff[j] += v;
+							cnt[j] ++;
+						}
+					}
+					prog.Forward(1);
+				}
+				vec_f64_div(pCoeff, &cnt[0], nSamp);
+
+			} else if (strcmp(met_str, "gcta2") == 0)
+			{
+				for (int i=0; i < nSNP; i++)
+				{
+					C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+					double p = AF ? AF[i] : calc_afreq(pGeno, nSamp);
+					double h = 2 * p * (1 - p);
+					for (int j=0; j < nSamp; j++)
+					{
+						C_UInt8 g = pGeno[j];
+						double v = (g <= 2) ? (1 - g*(2-g) / h) : R_NaN;
+						if (R_FINITE(v))
+						{
+							pCoeff[j] += v;
+							cnt[j] ++;
+						}
+					}
+					prog.Forward(1);
+				}
+				vec_f64_div(pCoeff, &cnt[0], nSamp);
+
+			} else if (strcmp(met_str, "mom.visscher")==0 || strcmp(met_str, "gcta3")==0)
+			{
+				for (int i=0; i < nSNP; i++)
+				{
+					C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+					double p = AF ? AF[i] : calc_afreq(pGeno, nSamp);
+					double h = 2 * p * (1 - p);
+					double p1 = 1 + 2*p, p2 = 2*p*p;
+					for (int j=0; j < nSamp; j++)
+					{
+						C_UInt8 g = pGeno[j];
+						double v = (g <= 2) ? ((g*g - g*p1 + p2) / h) : R_NaN;
+						if (R_FINITE(v))
+						{
+							pCoeff[j] += v;
+							cnt[j] ++;
+						}
+					}
+					prog.Forward(1);
+				}
+				vec_f64_div(pCoeff, &cnt[0], nSamp);
+
+			} else if (strcmp(met_str, "mom.weir") == 0)
+			{
+				vector<double> denom(nSamp, 0.0);
+				for (int i=0; i < nSNP; i++)
+				{
+					C_UInt8 *pGeno = BufSNP.ReadGeno(i);
+					double p = AF ? AF[i] : calc_afreq(pGeno, nSamp);
+					double h = 2 * p * (1 - p);
+					double p1 = 1 + 2*p, p2 = 2*p*p;
+					for (int j=0; j < nSamp; j++)
+					{
+						C_UInt8 g = pGeno[j];
+						if (g <= 2)
+						{
+							pCoeff[j] += g*g - g*p1 + p2;
+							denom[j] += h;
+						}
+					}
+					prog.Forward(1);
+				}
+				vec_f64_div(pCoeff, &denom[0], nSamp);
+			}
+		}
+
+		UNPROTECT(1);
 
 	COREARRAY_CATCH
 }

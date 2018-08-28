@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.15.1-1.15.2
+CHANGES IN VERSION 1.15.1-1.15.3
 -------------------------
 
     o a new option 'useMatrix' in `snpgdsIBDMoM()` to allow for the packed
@@ -6,9 +6,10 @@ CHANGES IN VERSION 1.15.1-1.15.2
 
     o fix a bug of missing sample and SNP IDs in the output of `snpgdsIndInb()`
 
-    o new methods in `snpgdsIndInb()`: gcta1, gcta2, gcta3
-
     o new option 'start.pos' in `snpgdsLDpruning()`
+
+    o new methods in `snpgdsIndInb()`: gcta1, gcta2, gcta3; progress
+      information is shown during running the function
 
 
 CHANGES IN VERSION 1.14.0

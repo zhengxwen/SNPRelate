@@ -1107,7 +1107,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrIBDSelSampID_List2(SEXP, SEXP);
 	extern SEXP gnrIBSAve(SEXP, SEXP);
 	extern SEXP gnrIBSNum(SEXP, SEXP);
-	extern SEXP gnrIndInb(SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrIndInb(SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrIndInbCoef(SEXP, SEXP, SEXP);
 	extern SEXP gnrLDMat(SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrLDpair(SEXP, SEXP, SEXP);

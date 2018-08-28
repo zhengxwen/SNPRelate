@@ -455,4 +455,18 @@ COREARRAY_DLL_DEFAULT double *vec_f64_addmul(double *p, const double *s,
 	return p;
 }
 
+
+// *p /= (*s)
+COREARRAY_DLL_DEFAULT void vec_f64_div(double *p, const int *s, size_t n)
+{
+	for (; n > 0; n--) (*p++) /= (*s++);
+}
+
+// *p /= (*s)
+COREARRAY_DLL_DEFAULT void vec_f64_div(double *p, const double *s, size_t n)
+{
+	for (; n > 0; n--) (*p++) /= (*s++);
+}
+
+
 }
