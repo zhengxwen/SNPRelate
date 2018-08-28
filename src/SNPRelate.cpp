@@ -1155,7 +1155,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrIBD_PLINK, 6),
 		CALL(gnrIBDSelSampID_List1, 2),  CALL(gnrIBDSelSampID_List2, 2),
 		CALL(gnrIBSAve, 2),              CALL(gnrIBSNum, 2),
-		CALL(gnrIndInb, 4),              CALL(gnrIndInbCoef, 3),
+		CALL(gnrIndInb, 5),              CALL(gnrIndInbCoef, 3),
 		CALL(gnrSSEFlag, 0),             CALL(gnrLDMat, 5),
 		CALL(gnrLDpair, 3),              CALL(gnrLDpruning, 6),
 		CALL(gnrPairScore, 7),
