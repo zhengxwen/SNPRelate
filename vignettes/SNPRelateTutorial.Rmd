@@ -481,7 +481,8 @@ names(snpset)
 head(snpset$chr1)  # snp.id
 
 # Get all selected snp id
-snpset.id <- unlist(snpset)
+snpset.id <- unlist(unname(snpset))
+head(snpset.id)
 ```
 
 $~$

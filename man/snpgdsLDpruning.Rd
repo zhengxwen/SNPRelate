@@ -105,7 +105,7 @@ head(snpset$chr1)
 # [1] 1 2 3 4 5 6
 
 # get SNP ids
-snp.id <- unlist(snpset)
+snp.id <- unlist(unname(snpset))
 
 # close the genotype file
 snpgdsClose(genofile)
