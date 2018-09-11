@@ -54,8 +54,11 @@ snpgdsOpen <- function(filename, readonly=TRUE, allow.duplicate=FALSE,
             "since 'FileFormat=SEQ_ARRAY', or run 'SeqArray::seqSNP2GDS()' ",
             "to convert the file to GWAS SNP GDS format.")
         }
-        if (!identical(at$FileFormat, "SNP_ARRAY"))
-            stop(err, "'FileFormat' should be 'SNP_ARRAY'.")
+        if (!identical(at$FileFormat, "SNP_ARRAY") &&
+            !identical(at$FileFormat, "IMPUTED_DOSAGE"))
+        {
+            stop(err, "'FileFormat' should be 'SNP_ARRAY' or 'IMPUTED_DOSAGE'.")
+        }
     }
 
     ##  check the validation
@@ -1279,7 +1282,7 @@ snpgdsCreateGenoSet <- function(src.fn, dest.fn, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
-    compress.annotation="ZIP_RA.MAX", compress.geno="",
+    compress.annotation="ZIP_RA.MAX", compress.geno="ZIP_RA",
     same.strand=FALSE, snpfirstdim=FALSE, verbose=TRUE)
 {
     # check
@@ -1323,7 +1326,7 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
 
     # samples
     samp_id <- read.gdsn(index.gdsn(gs[[1L]], "sample.id"))
-    for (i in 2:length(gs))
+    for (i in 2L:length(gs))
     {
         s <- read.gdsn(index.gdsn(gs[[i]], "sample.id"))
         samp_id <- intersect(samp_id, s)
@@ -1347,10 +1350,17 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
                 n_snp, " SNPs\n", sep="")
         }
 
-        put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
+        # genotypes in the first GDS file
+        gn1 <- index.gdsn(gs[[1L]], "genotype")
+        filefmt <- ifelse(objdesp.gdsn(gn1)$type=="Real", "IMPUTED_DOSAGE",
+            "SNP_ARRAY")
+        if (verbose)
+            cat("    FileFormat = ", filefmt, "\n", sep="")
+
+        put.attr.gdsn(gfile$root, "FileFormat", filefmt)
         add.gdsn(gfile, "sample.id", samp_id, compress=compress.annotation,
             closezip=TRUE)
-        add.gdsn(gfile, "snp.id", 1:n_snp, compress=compress.annotation,
+        add.gdsn(gfile, "snp.id", seq_len(n_snp), compress=compress.annotation,
             closezip=TRUE)
 
         n <- index.gdsn(gs[[1L]], "snp.rs.id", silent=TRUE)
@@ -1392,9 +1402,11 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
 
         sync.gds(gfile)
 
+        # add a genotype node
         ng <- add.gdsn(gfile, "genotype", valdim=c(length(samp_id), 0L),
-            storage="bit2", compress=compress.geno)
+            storage=gn1, compress=compress.geno)
         put.attr.gdsn(ng, "sample.order")
+
         if (verbose)
             cat("    writing genotypes ...\n")
         for (i in seq_along(gs))
@@ -1475,7 +1487,14 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
                 n_snp, " SNPs\n", sep="")
         }
 
-        put.attr.gdsn(gfile$root, "FileFormat", "SNP_ARRAY")
+        # genotypes in the first GDS file
+        gn1 <- index.gdsn(gs[[1L]], "genotype")
+        filefmt <- ifelse(objdesp.gdsn(gn1)$type=="Real", "IMPUTED_DOSAGE",
+            "SNP_ARRAY")
+        if (verbose)
+            cat("    FileFormat = ", filefmt, "\n", sep="")
+
+        put.attr.gdsn(gfile$root, "FileFormat", filefmt)
         add.gdsn(gfile, "sample.id", samp_id, compress=compress.annotation,
             closezip=TRUE)
         add.gdsn(gfile, "snp.id", slst[[1L]]$snp.id[snp$idx1],
@@ -1497,7 +1516,7 @@ snpgdsCombineGeno <- function(gds.fn, out.fn, method=c("position", "exact"),
         sync.gds(gfile)
 
         ng <- add.gdsn(gfile, "genotype", valdim=c(length(samp_id), 0L),
-            storage="bit2", compress=compress.geno)
+            storage=gn1, compress=compress.geno)
         put.attr.gdsn(ng, "sample.order")
         if (verbose)
             cat("    writing genotypes ...\n")

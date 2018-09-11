@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.15.1-1.15.3
+CHANGES IN VERSION 1.15.1-1.15.4
 -------------------------
 
     o a new option 'useMatrix' in `snpgdsIBDMoM()` to allow for the packed
@@ -10,6 +10,8 @@ CHANGES IN VERSION 1.15.1-1.15.3
 
     o new methods in `snpgdsIndInb()`: gcta1, gcta2, gcta3; progress
       information is shown during running the function
+
+    o `snpgdsCombineGeno()` supports dosages
 
 
 CHANGES IN VERSION 1.14.0

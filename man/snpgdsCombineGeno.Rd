@@ -8,7 +8,7 @@
 }
 \usage{
 snpgdsCombineGeno(gds.fn, out.fn, method=c("position", "exact"),
-    compress.annotation="ZIP_RA.MAX", compress.geno="",
+    compress.annotation="ZIP_RA.MAX", compress.geno="ZIP_RA",
     same.strand=FALSE, snpfirstdim=FALSE, verbose=TRUE)
 }
 \arguments{
