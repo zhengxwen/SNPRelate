@@ -824,7 +824,7 @@ snpgdsSummary <- function(gds, show=TRUE)
         if (any(!flag))
         {
             message("Some values of 'snp.chromosome' are invalid ",
-                "(should be finite and >= 1)!")
+                "(should be finite and >= 0)!")
             message("Hint: specifying 'autosome.only=FALSE' in ",
                 "the analysis could avoid detecting chromosome coding.")
             warn.flag <- TRUE

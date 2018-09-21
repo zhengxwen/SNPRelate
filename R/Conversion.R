@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2017        Xiuwen Zheng
+# Copyright (C) 2011 - 2018        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -488,7 +488,6 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
         cat("\tFAM file: \"", fam.fn, "\", DONE.\n", sep="")
 
     ##  read bim.fn  ##
-
     f <- .OpenConnText(bim.fn, TRUE)
     bimD <- read.table(f$con, header=FALSE, stringsAsFactors=FALSE)
     .CloseConnection(f)
@@ -503,6 +502,12 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
         for (i in names(chrcode))
             chr[bimD$chr == i] <- chrcode[[i]]
         chr <- as.integer(chr)
+        if (any(is.na(chr)))
+        {
+            warning(
+            "Please use cvt.chr=\"char\" for non-numeric chromosome codes, otherwise non-numeric codes are replaced by zero.",
+            immediate.=TRUE)
+        }
         chr[is.na(chr)] <- 0L
     } else {
         if (!is.null(option))

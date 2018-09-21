@@ -55,8 +55,9 @@ Zheng X, Gogarten S, Lawrence M, Stilp A, Conomos M, Weir BS, Laurie C, Levine D
 
 * Bioconductor repository:
 ```R
-source("http://bioconductor.org/biocLite.R")
-biocLite("SNPRelate")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("SNPRelate")
 ```
 
 * Development version from Github:

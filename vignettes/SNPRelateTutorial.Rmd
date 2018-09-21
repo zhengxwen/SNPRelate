@@ -42,9 +42,10 @@ To install the package [SNPRelate](http://www.bioconductor.org/packages/SNPRelat
 
 Install the package from Bioconductor repository:
 ```{r eval=FALSE}
-source("http://bioconductor.org/biocLite.R")
-biocLite("gdsfmt")
-biocLite("SNPRelate")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("gdsfmt")
+BiocManager::install("SNPRelate")
 ```
 
 Install the development version from Github:

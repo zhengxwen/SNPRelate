@@ -570,6 +570,13 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
 			Rprintf("\n");
 		}
 
+		// check the number of SNPs, 2^32 / 4
+		if (MCWorkingGeno.Space().SNPNum() >= 1073741824)
+		{
+			throw ErrCoreArray(
+				"The number of SNPs should be less than 1,073,741,824.");
+		}
+
 		// the number of samples
 		const size_t n = MCWorkingGeno.Space().SampleNum();
 
