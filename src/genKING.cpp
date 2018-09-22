@@ -491,7 +491,8 @@ extern "C"
 using namespace IBD_KING;
 
 /// Compute the IBD coefficients by KING method of moment (KING-homo)
-COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Homo(SEXP NumThread, SEXP _Verbose)
+COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Homo(SEXP NumThread, SEXP useMatrix,
+	SEXP _Verbose)
 {
 	bool verbose = SEXP_Verbose(_Verbose);
 
@@ -510,26 +511,50 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Homo(SEXP NumThread, SEXP _Verbose)
 			Work.Run(IBS, Rf_asInteger(NumThread), verbose);
 		}
 
-		// initialize output variables
-		SEXP K0 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-		SEXP K1 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-
-		double *pK0 = REAL(K0);
-		double *pK1 = REAL(K1);
-
-		// output
-		TS_KINGHomo *p = IBS.Get();
-		for (size_t i=0; i < n; i++)
+		// output variables
+		SEXP K0, K1;
+		if (Rf_asLogical(useMatrix) != TRUE)
 		{
-			pK0[i*n + i] = pK1[i*n + i] = 0;
-			p ++;
-			for (size_t j=i+1; j < n; j++, p++)
+			K0 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			K1 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			double *pK0 = REAL(K0);
+			double *pK1 = REAL(K1);
+			// output
+			TS_KINGHomo *p = IBS.Get();
+			for (size_t i=0; i < n; i++)
 			{
-				double theta = 0.5 - p->SumSq / (8 * p->SumAFreq);
-				double k0 = p->IBS0 / (2 * p->SumAFreq2);
-				double k1 = 2 - 2*k0 - 4*theta;
-				pK0[i*n + j] = pK0[j*n + i] = R_FINITE(k0) ? k0 : R_NaN;
-				pK1[i*n + j] = pK1[j*n + i] = R_FINITE(k1) ? k1 : R_NaN;
+				pK0[i*n + i] = pK1[i*n + i] = 0;
+				p ++;
+				for (size_t j=i+1; j < n; j++, p++)
+				{
+					double theta = 0.5 - p->SumSq / (8 * p->SumAFreq);
+					double k0 = p->IBS0 / (2 * p->SumAFreq2);
+					double k1 = 2 - 2*k0 - 4*theta;
+					pK0[i*n + j] = pK0[j*n + i] = R_FINITE(k0) ? k0 : R_NaN;
+					pK1[i*n + j] = pK1[j*n + i] = R_FINITE(k1) ? k1 : R_NaN;
+				}
+			}
+		} else {
+			// triangle matrix
+			const size_t ns = n*(n+1)/2;
+			K0 = PROTECT(NEW_NUMERIC(ns));
+			K1 = PROTECT(NEW_NUMERIC(ns));
+			double *pK0 = REAL(K0);
+			double *pK1 = REAL(K1);
+			// output
+			TS_KINGHomo *p = IBS.Get();
+			for (size_t i=0; i < n; i++)
+			{
+				*pK0++ = *pK1++ = 0;
+				p ++;
+				for (size_t j=i+1; j < n; j++, p++)
+				{
+					double theta = 0.5 - p->SumSq / (8 * p->SumAFreq);
+					double k0 = p->IBS0 / (2 * p->SumAFreq2);
+					double k1 = 2 - 2*k0 - 4*theta;
+					*pK0++ = R_FINITE(k0) ? k0 : R_NaN;
+					*pK1++ = R_FINITE(k1) ? k1 : R_NaN;
+				}
 			}
 		}
 
@@ -550,7 +575,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Homo(SEXP NumThread, SEXP _Verbose)
 
 /// Compute the IBD coefficients by KING method of moment (KING-robust)
 COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
-	SEXP _Verbose)
+	SEXP useMatrix, SEXP _Verbose)
 {
 	bool verbose = SEXP_Verbose(_Verbose);
 
@@ -588,31 +613,57 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_KING_Robust(SEXP FamilyID, SEXP NumThread,
 		}
 
 		// output variables
-		SEXP IBS0 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-		SEXP Kinship = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-
-		double *pIBS0 = REAL(IBS0);
-		double *pKinship = REAL(Kinship);
+		SEXP IBS0, Kinship;
 		int *FamID_Ptr = INTEGER(FamilyID);
 
-		// output
-		TS_KINGRobust *p = IBS.Get();
-		for (size_t i=0; i < n; i++)
+		if (Rf_asLogical(useMatrix) != TRUE)
 		{
-			pIBS0[i*n + i] = 0; pKinship[i*n + i] = 0.5;
-			p ++;
-			for (size_t j=i+1; j < n; j++, p++)
+			IBS0 = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			Kinship = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			double *pIBS0 = REAL(IBS0);
+			double *pKinship = REAL(Kinship);
+			// output
+			TS_KINGRobust *p = IBS.Get();
+			for (size_t i=0; i < n; i++)
 			{
-				pIBS0[i*n + j] = pIBS0[j*n + i] = (p->nLoci > 0) ?
-					(double(p->IBS0) / p->nLoci) : R_NaN;
-
-				int f1 = FamID_Ptr[i];
-				int f2 = FamID_Ptr[j];
-				double v = (f1==f2 && f1!=NA_INTEGER) ?
-					(0.5 - p->SumSq / (2.0 *(p->N1_Aa + p->N2_Aa))) :
-					(0.5 - p->SumSq / (4.0 * min(p->N1_Aa, p->N2_Aa)));
-				if (!R_FINITE(v)) v = R_NaN;
-				pKinship[i*n + j] = pKinship[j*n + i] = v;
+				pIBS0[i*n + i] = 0; pKinship[i*n + i] = 0.5;
+				p ++;
+				for (size_t j=i+1; j < n; j++, p++)
+				{
+					pIBS0[i*n + j] = pIBS0[j*n + i] = (p->nLoci > 0) ?
+						(double(p->IBS0) / p->nLoci) : R_NaN;
+					int f1 = FamID_Ptr[i], f2 = FamID_Ptr[j];
+					double v = (f1==f2 && f1!=NA_INTEGER) ?
+						(0.5 - p->SumSq / (2.0 *(p->N1_Aa + p->N2_Aa))) :
+						(0.5 - p->SumSq / (4.0 * min(p->N1_Aa, p->N2_Aa)));
+					if (!R_FINITE(v)) v = R_NaN;
+					pKinship[i*n + j] = pKinship[j*n + i] = v;
+				}
+			}
+		} else {
+			// triangle matrix
+			const size_t ns = n*(n+1)/2;
+			IBS0 = PROTECT(NEW_NUMERIC(ns));
+			Kinship = PROTECT(NEW_NUMERIC(ns));
+			double *pIBS0 = REAL(IBS0);
+			double *pKinship = REAL(Kinship);
+			// output
+			TS_KINGRobust *p = IBS.Get();
+			for (size_t i=0; i < n; i++)
+			{
+				*pIBS0++ = 0; *pKinship++ = 0.5;
+				p ++;
+				for (size_t j=i+1; j < n; j++, p++)
+				{
+					*pIBS0++ = (p->nLoci > 0) ?
+						(double(p->IBS0) / p->nLoci) : R_NaN;
+					int f1 = FamID_Ptr[i], f2 = FamID_Ptr[j];
+					double v = (f1==f2 && f1!=NA_INTEGER) ?
+						(0.5 - p->SumSq / (2.0 *(p->N1_Aa + p->N2_Aa))) :
+						(0.5 - p->SumSq / (4.0 * min(p->N1_Aa, p->N2_Aa)));
+					if (!R_FINITE(v)) v = R_NaN;
+					*pKinship++ = v;
+				}
 			}
 		}
 

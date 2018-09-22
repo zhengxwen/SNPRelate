@@ -36,8 +36,8 @@ snpgdsIBDMoM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         ($k_0,k_1,k_2$) in the geneloical region ($2 k_0 k_1 >= k_2^2$)}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
-    \item{useMatrix}{if TRUE, use \code{Matrix::dspMatrix} to store the output
-        square matrix}
+    \item{useMatrix}{if \code{TRUE}, use \code{Matrix::dspMatrix} to store
+        the output square matrix to save memory}
     \item{verbose}{if TRUE, show information}
 }
 \details{

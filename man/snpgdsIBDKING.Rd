@@ -9,8 +9,8 @@
 \usage{
 snpgdsIBDKING(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    type=c("KING-robust", "KING-homo"), family.id=NULL,
-    num.thread=1, verbose=TRUE)
+    type=c("KING-robust", "KING-homo"), family.id=NULL, num.thread=1L,
+    useMatrix=FALSE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -37,6 +37,8 @@ snpgdsIBDKING(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         \code{sample.id}}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
+    \item{useMatrix}{if \code{TRUE}, use \code{Matrix::dspMatrix} to store
+        the output square matrix to save memory}
     \item{verbose}{if TRUE, show information}
 }
 \details{
@@ -89,7 +91,7 @@ CEU.id <- samp.id[
 ####  relationship inference in the presence of population stratification
 ####               robust relationship inference across family
 
-ibd.robust <- snpgdsIBDKING(genofile, sample.id=CEU.id, family.id=NULL)
+ibd.robust <- snpgdsIBDKING(genofile, sample.id=CEU.id)
 names(ibd.robust)
 # [1] "sample.id" "snp.id"    "afreq"     "IBS0"      "kinship"
 
@@ -99,6 +101,12 @@ head(dat)
 
 plot(dat$IBS0, dat$kinship, xlab="Proportion of Zero IBS",
     ylab="Estimated Kinship Coefficient (KING-robust)")
+
+
+# using Matrix
+ibd.robust <- snpgdsIBDKING(genofile, sample.id=CEU.id, useMatrix=TRUE)
+is(ibd.robust$IBS0)  # dspMatrix
+is(ibd.robust$kinship)  # dspMatrix
 
 
 
@@ -134,6 +142,13 @@ head(dat)
 
 plot(dat$k0, dat$kinship, xlab="Pr(IBD=0)",
     ylab="Estimated Kinship Coefficient (KING-homo)")
+
+
+# using Matrix
+ibd.homo <- snpgdsIBDKING(genofile, sample.id=CEU.id, type="KING-homo",
+    useMatrix=TRUE)
+is(ibd.homo$k0)  # dspMatrix
+is(ibd.homo$k1)  # dspMatrix
 
 
 # close the genotype file

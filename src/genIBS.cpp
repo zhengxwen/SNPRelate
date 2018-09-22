@@ -2,7 +2,7 @@
 //
 // genIBS.cpp: Identity by state (IBS) Analysis on GWAS
 //
-// Copyright (C) 2011-2017    Xiuwen Zheng
+// Copyright (C) 2011-2018    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -586,6 +586,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_PLINK(SEXP NumThread, SEXP AlleleFreq,
 				}
 			}
 		} else {
+			// triangle matrix
 			const size_t ns = n*(n+1)/2;
 			k0 = PROTECT(NEW_NUMERIC(ns));
 			k1 = PROTECT(NEW_NUMERIC(ns));

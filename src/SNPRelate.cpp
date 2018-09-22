@@ -1096,8 +1096,8 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrGRMMerge(SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrGRM_avg_val();
 	extern SEXP gnrIBD_Beta(SEXP, SEXP, SEXP);
-	extern SEXP gnrIBD_KING_Homo(SEXP, SEXP);
-	extern SEXP gnrIBD_KING_Robust(SEXP, SEXP, SEXP);
+	extern SEXP gnrIBD_KING_Homo(SEXP, SEXP, SEXP);
+	extern SEXP gnrIBD_KING_Robust(SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrIBD_LogLik(SEXP, SEXP, SEXP);
 	extern SEXP gnrIBD_LogLik_k01(SEXP, SEXP, SEXP);
 	extern SEXP gnrIBD_MLE(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1149,7 +1149,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrGRM, 4),                 CALL(gnrGRMMerge, 5),
 		CALL(gnrGRM_avg_val, 0),
 		CALL(gnrIBD_Beta, 3),
-		CALL(gnrIBD_KING_Homo, 2),       CALL(gnrIBD_KING_Robust, 3),
+		CALL(gnrIBD_KING_Homo, 3),       CALL(gnrIBD_KING_Robust, 4),
 		CALL(gnrIBD_LogLik, 3),          CALL(gnrIBD_LogLik_k01, 3),
 		CALL(gnrIBD_MLE, 9),             CALL(gnrIBD_MLE_Jacquard, 8),
 		CALL(gnrIBD_PLINK, 6),

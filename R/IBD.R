@@ -37,6 +37,7 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.logical(kinship), length(kinship)==1L)
     stopifnot(is.logical(kinship.constraint), length(kinship.constraint)==1L)
     stopifnot(is.logical(useMatrix), length(useMatrix)==1L)
+    stopifnot(is.logical(verbose), length(verbose)==1L)
 
     # verbose
     if (verbose & !is.null(ws$allele.freq))
@@ -333,7 +334,7 @@ snpgdsPairIBDMLELogLik <- function(geno1, geno2, allele.freq, k0=NaN, k1=NaN,
 snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
     type=c("KING-robust", "KING-homo"), family.id=NULL,
-    num.thread=1, verbose=TRUE)
+    num.thread=1L, useMatrix=FALSE, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -342,6 +343,7 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
         verbose=verbose)
+    stopifnot(is.logical(useMatrix), length(useMatrix)==1L)
 
     type <- match.arg(type)
 
@@ -383,11 +385,17 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             cat("Relationship inference in a homogeneous population.\n")
 
         # call the C function
-        rv <- .Call(gnrIBD_KING_Homo, ws$num.thread, verbose)
-
-        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=NULL,
-            k0=rv[[1]], k1=rv[[2]])
-
+        v <- .Call(gnrIBD_KING_Homo, ws$num.thread, useMatrix, verbose)
+        # output
+        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=NULL)
+        if (useMatrix)
+        {
+            rv$k0 <- .newmat(ws$n.samp, v[[1L]])
+            rv$k1 <- .newmat(ws$n.samp, v[[2L]])
+        } else {
+            rv$k0 <- v[[1L]]
+            rv$k1 <- v[[2L]]
+        }
     } else if (type == "KING-robust")
     {
         if (verbose)
@@ -395,13 +403,19 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             cat("Relationship inference in the presence of",
                 "population stratification.\n")
         }
-
         # call the C function
-        rv <- .Call(gnrIBD_KING_Robust, as.integer(family.id),
-            ws$num.thread, verbose)
-
-        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=NULL,
-            IBS0=rv[[1]], kinship=rv[[2]])
+        v <- .Call(gnrIBD_KING_Robust, as.integer(family.id),
+            ws$num.thread, useMatrix, verbose)
+        # output
+        rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=NULL)
+        if (useMatrix)
+        {
+            rv$IBS0 <- .newmat(ws$n.samp, v[[1L]])
+            rv$kinship <- .newmat(ws$n.samp, v[[2L]])
+        } else {
+            rv$IBS0 <- v[[1L]]
+            rv$kinship <- v[[2L]]
+        }
     } else
         stop("Invalid 'type'.")
 
