@@ -37,7 +37,6 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.logical(kinship), length(kinship)==1L)
     stopifnot(is.logical(kinship.constraint), length(kinship.constraint)==1L)
     stopifnot(is.logical(useMatrix), length(useMatrix)==1L)
-    stopifnot(is.logical(verbose), length(verbose)==1L)
 
     # verbose
     if (verbose & !is.null(ws$allele.freq))
@@ -57,7 +56,7 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     # return
     ans <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=rv$afreq)
     ans$afreq[ans$afreq < 0] <- NaN
-    if (useMatrix)
+    if (isTRUE(useMatrix))
     {
         ans$k0 <- .newmat(ws$n.samp, rv$k0)
         ans$k1 <- .newmat(ws$n.samp, rv$k1)
@@ -388,7 +387,7 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         v <- .Call(gnrIBD_KING_Homo, ws$num.thread, useMatrix, verbose)
         # output
         rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=NULL)
-        if (useMatrix)
+        if (isTRUE(useMatrix))
         {
             rv$k0 <- .newmat(ws$n.samp, v[[1L]])
             rv$k1 <- .newmat(ws$n.samp, v[[2L]])
@@ -408,7 +407,7 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             ws$num.thread, useMatrix, verbose)
         # output
         rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=NULL)
-        if (useMatrix)
+        if (isTRUE(useMatrix))
         {
             rv$IBS0 <- .newmat(ws$n.samp, v[[1L]])
             rv$kinship <- .newmat(ws$n.samp, v[[2L]])

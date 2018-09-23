@@ -7,9 +7,9 @@
     Calculate the fraction of identity by state for each pair of samples
 }
 \usage{
-snpgdsIBS(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
-    remove.monosnp = TRUE, maf = NaN, missing.rate = NaN,
-    num.thread = 1L, verbose = TRUE)
+snpgdsIBS(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
+    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1L,
+    useMatrix=FALSE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -27,6 +27,8 @@ snpgdsIBS(gdsobj, sample.id = NULL, snp.id = NULL, autosome.only = TRUE,
         if NaN, no missing threshold}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
+    \item{useMatrix}{if \code{TRUE}, use \code{Matrix::dspMatrix} to store
+        the output square matrix to save memory}
     \item{verbose}{if TRUE, show information}
 }
 \details{

@@ -436,7 +436,8 @@ extern "C"
 //
 
 /// Compute the average IBS
-COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)
+COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP useMatrix,
+	SEXP _Verbose)
 {
 	const bool verbose = SEXP_Verbose(_Verbose);
 
@@ -457,15 +458,32 @@ COREARRAY_DLL_EXPORT SEXP gnrIBSAve(SEXP NumThread, SEXP _Verbose)
 		}
 
 		// output variables
-		rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-		double *pIBS = REAL(rv_ans);
-		IBS::TIBS *p = IBS.Get();
-		for (size_t i=0; i < n; i++)
+		if (Rf_asLogical(useMatrix) != TRUE)
 		{
-			for (size_t j=i; j < n; j++, p++)
+			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			double *pIBS = REAL(rv_ans);
+			IBS::TIBS *p = IBS.Get();
+			for (size_t i=0; i < n; i++)
 			{
-				pIBS[i*n + j] = pIBS[j*n + i] =
-					(0.5 * p->IBS1 + p->IBS2) / (p->IBS0 + p->IBS1 + p->IBS2);
+				for (size_t j=i; j < n; j++, p++)
+				{
+					pIBS[i*n + j] = pIBS[j*n + i] =
+						(0.5 * p->IBS1 + p->IBS2) / (p->IBS0 + p->IBS1 + p->IBS2);
+				}
+			}
+		} else {
+			// triangle matrix
+			const size_t ns = n*(n+1)/2;
+			rv_ans = PROTECT(NEW_NUMERIC(ns));
+			double *pIBS = REAL(rv_ans);
+			IBS::TIBS *p = IBS.Get();
+			for (size_t i=0; i < n; i++)
+			{
+				for (size_t j=i; j < n; j++, p++)
+				{
+					*pIBS++ = (0.5 * p->IBS1 + p->IBS2) /
+						(p->IBS0 + p->IBS1 + p->IBS2);
+				}
 			}
 		}
 

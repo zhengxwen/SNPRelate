@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2017        Xiuwen Zheng
+# Copyright (C) 2011 - 2018        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -22,7 +22,7 @@
 
 snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    num.thread=1L, verbose=TRUE)
+    num.thread=1L, useMatrix=FALSE, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -31,11 +31,17 @@ snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
         verbose=verbose)
+    stopifnot(is.logical(useMatrix), length(useMatrix)==1L)
 
     # call the C function
-    ibs <- .Call(gnrIBSAve, ws$num.thread, verbose)
+    ibs <- .Call(gnrIBSAve, ws$num.thread, useMatrix, verbose)
 
-    rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id, ibs=ibs)
+    # output
+    rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id)
+    if (isTRUE(useMatrix))
+        rv$ibs <- .newmat(ws$n.samp, ibs)
+    else
+        rv$ibs <- ibs
     class(rv) <- "snpgdsIBSClass"
     return(rv)
 }

@@ -1,8 +1,9 @@
-CHANGES IN VERSION 1.15.1-1.15.4
+CHANGES IN VERSION 1.15.1-1.15.5
 -------------------------
 
-    o a new option 'useMatrix' in `snpgdsIBDMoM()` and `snpgdsIBDKING()` to
-      allow for the packed symmetric matrix using the Matrix package
+    o a new option 'useMatrix' to allow for the packed symmetric matrix using
+      the Matrix package in `snpgdsIBDMoM()`, `snpgdsIBDKING()` and
+      `snpgdsIBS()`
 
     o fix a bug of missing sample and SNP IDs in the output of `snpgdsIndInb()`
 
