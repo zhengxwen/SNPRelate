@@ -1103,8 +1103,6 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrIBD_MLE(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrIBD_MLE_Jacquard(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrIBD_PLINK(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-	extern SEXP gnrIBDSelSampID_List1(SEXP, SEXP);
-	extern SEXP gnrIBDSelSampID_List2(SEXP, SEXP);
 	extern SEXP gnrIBSAve(SEXP, SEXP);
 	extern SEXP gnrIBSNum(SEXP, SEXP);
 	extern SEXP gnrIndInb(SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1153,7 +1151,6 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrIBD_LogLik, 3),          CALL(gnrIBD_LogLik_k01, 3),
 		CALL(gnrIBD_MLE, 9),             CALL(gnrIBD_MLE_Jacquard, 8),
 		CALL(gnrIBD_PLINK, 6),
-		CALL(gnrIBDSelSampID_List1, 2),  CALL(gnrIBDSelSampID_List2, 2),
 		CALL(gnrIBSAve, 2),              CALL(gnrIBSNum, 2),
 		CALL(gnrIndInb, 5),              CALL(gnrIndInbCoef, 3),
 		CALL(gnrSSEFlag, 0),             CALL(gnrLDMat, 5),

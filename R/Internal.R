@@ -28,7 +28,7 @@
 
 .newmat <- function(n, x)
 {
-    if (!requireNamespace("Matrix"))
+    if (!requireNamespace("Matrix", quietly=TRUE))
         stop("The 'Matrix' package should be installed.")
     new("dspMatrix", uplo="L", Dim=c(n, n), x=x)
 }

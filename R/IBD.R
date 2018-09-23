@@ -511,14 +511,17 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
     {
         flag <- lower.tri(ibdobj$kinship) & (ibdobj$kinship >= kinship.cutoff)
         flag[is.na(flag)] <- FALSE
-    } else
+    } else {
         flag <- lower.tri(ibdobj$kinship)
+    }
+
+    xx <- flag
+    if (inherits(flag, "Matrix")) xx <- as.matrix(xx)
 
     # output
-    n <- length(ibdobj$sample.id)
+    ii <- which(xx, TRUE)
     ans <- data.frame(
-        ID1 = .Call(gnrIBDSelSampID_List1, ibdobj$sample.id, flag),
-        ID2 = .Call(gnrIBDSelSampID_List2, ibdobj$sample.id, flag),
+        ID1 = ibdobj$sample.id[ii[,2L]], ID2 = ibdobj$sample.id[ii[,1L]],
         stringsAsFactors=FALSE)
     for (i in ns)
         ans[[i]] <- ibdobj[[i]][flag]
