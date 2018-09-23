@@ -420,7 +420,8 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         stop("Invalid 'type'.")
 
     # return
-    rv$afreq[rv$afreq < 0] <- NaN
+    if (!is.null(rv$afreq))
+        rv$afreq[rv$afreq < 0] <- NaN
     class(rv) <- "snpgdsIBDClass"
     return(rv)
 }
