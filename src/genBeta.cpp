@@ -359,7 +359,7 @@ COREARRAY_DLL_EXPORT SEXP CalcIndivBetaGRM(int NumThread, bool Verbose)
 
 /// Compute the IBD coefficients by individual relatedness beta
 COREARRAY_DLL_EXPORT SEXP gnrIBD_Beta(SEXP Inbreeding, SEXP NumThread,
-	SEXP Verbose)
+	SEXP useMatrix, SEXP Verbose)
 {
 	int inbreeding = Rf_asLogical(Inbreeding);
 	if (inbreeding == NA_LOGICAL)
@@ -382,37 +382,74 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_Beta(SEXP Inbreeding, SEXP NumThread,
 		}
 
 		// output variables
-		rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-		double *pBeta = REAL(rv_ans);
-		TS_Beta *p = IBS.Get();
-		double avg = 0;
-
-		// for-loop, average
-		for (size_t i=0; i < n; i++)
+		if (Rf_asLogical(useMatrix) != TRUE)
 		{
-			if (inbreeding)
-				pBeta[i*n + i] = double(p->ibscnt) / p->num - 1;
-			else
-				pBeta[i*n + i] = (0.5 * p->ibscnt) / p->num;
-			p ++;
-			for (size_t j=i+1; j < n; j++, p++)
+			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			double *pBeta = REAL(rv_ans);
+			TS_Beta *p = IBS.Get();
+			double avg = 0;
+			// for-loop, average
+			for (size_t i=0; i < n; i++)
 			{
-				double s = (0.5 * p->ibscnt) / p->num;
-				pBeta[i*n + j] = s;
-				avg += s;
+				if (inbreeding)
+					pBeta[i*n + i] = double(p->ibscnt) / p->num - 1;
+				else
+					pBeta[i*n + i] = (0.5 * p->ibscnt) / p->num;
+				p ++;
+				for (size_t j=i+1; j < n; j++, p++)
+				{
+					double s = (0.5 * p->ibscnt) / p->num;
+					pBeta[i*n + j] = s;
+					avg += s;
+				}
 			}
-		}
-
-		avg /= C_Int64(n) * (n-1) / 2;
-		grm_avg_value = avg;
-
-		// for-loop, final update
-		double bt = 1.0 / (1 - avg);
-		for (size_t i=0; i < n; i++)
-		{
-			pBeta[i*n + i] = (pBeta[i*n + i] - avg) * bt;
-			for (size_t j=i+1; j < n; j++)
-				pBeta[i*n + j] = pBeta[j*n + i] = (pBeta[i*n + j] - avg) * bt;
+			avg /= C_Int64(n) * (n-1) / 2;
+			grm_avg_value = avg;
+			// for-loop, final update
+			double bt = 1.0 / (1 - avg);
+			for (size_t i=0; i < n; i++)
+			{
+				pBeta[i*n + i] = (pBeta[i*n + i] - avg) * bt;
+				for (size_t j=i+1; j < n; j++)
+					pBeta[i*n + j] = pBeta[j*n + i] = (pBeta[i*n + j] - avg) * bt;
+			}
+		} else {
+			// triangle matrix
+			const size_t ns = n*(n+1)/2;
+			rv_ans = PROTECT(NEW_NUMERIC(ns));
+			double *pBeta = REAL(rv_ans);
+			TS_Beta *p = IBS.Get();
+			double avg = 0;
+			// for-loop, average
+			for (size_t i=0; i < n; i++)
+			{
+				if (inbreeding)
+					*pBeta++ = double(p->ibscnt) / p->num - 1;
+				else
+					*pBeta++ = (0.5 * p->ibscnt) / p->num;
+				p ++;
+				for (size_t j=i+1; j < n; j++, p++)
+				{
+					double s = (0.5 * p->ibscnt) / p->num;
+					*pBeta++ = s;
+					avg += s;
+				}
+			}
+			avg /= C_Int64(n) * (n-1) / 2;
+			grm_avg_value = avg;
+			// for-loop, final update
+			double bt = 1.0 / (1 - avg);
+			pBeta = REAL(rv_ans);
+			for (size_t i=0; i < n; i++)
+			{
+				*pBeta = (*pBeta - avg) * bt;
+				pBeta++;
+				for (size_t j=i+1; j < n; j++)
+				{
+					*pBeta = (*pBeta - avg) * bt;
+					pBeta++;
+				}
+			}
 		}
 
 		if (verbose)

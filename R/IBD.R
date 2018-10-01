@@ -833,7 +833,7 @@ snpgdsFst <- function(gdsobj, population, method=c("W&C84", "W&H02"),
 snpgdsIndivBeta <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
     method=c("weighted"), inbreeding=TRUE, num.thread=1L, with.id=TRUE,
-    verbose=TRUE)
+    useMatrix=FALSE, verbose=TRUE)
 {
     # check and initialize ...
     method <- match.arg(method)
@@ -843,13 +843,16 @@ snpgdsIndivBeta <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         autosome.only=autosome.only, remove.monosnp=remove.monosnp,
         maf=maf, missing.rate=missing.rate, num.thread=num.thread,
         verbose=verbose)
-    stopifnot(is.logical(with.id))
+    stopifnot(is.logical(with.id), length(with.id)==1L)
+    stopifnot(is.logical(useMatrix), length(useMatrix)==1L)
 
     # call GRM C function
-    rv <- .Call(gnrIBD_Beta, inbreeding, ws$num.thread, verbose)
+    rv <- .Call(gnrIBD_Beta, inbreeding, ws$num.thread, useMatrix, verbose)
+    if (isTRUE(useMatrix))
+        rv <- .newmat(ws$n.samp, rv)
 
     # return
-    if (with.id)
+    if (isTRUE(with.id))
     {
         rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id,
             inbreeding=inbreeding, beta=rv, avg_val=.Call(gnrGRM_avg_val))

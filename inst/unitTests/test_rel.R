@@ -284,6 +284,12 @@ test.IndivBeta <- function()
 		num.thread=1, verbose=FALSE)
 	checkEquals(beta.1$beta, valid.dta$beta, "Individual Beta (one core)")
 
+	beta.1 <- snpgdsIndivBeta(genofile, sample.id=samp.id[1:90],
+		num.thread=1, useMatrix=TRUE, verbose=FALSE)
+	beta.1$beta <- as.matrix(beta.1$beta)
+	dimnames(beta.1$beta) <- NULL
+	checkEquals(beta.1$beta, valid.dta$beta, "Individual Beta (one core, Matrix)")
+
 	# run on two cores
 	beta.2 <- snpgdsIndivBeta(genofile, sample.id=samp.id[1:90],
 		num.thread=2, verbose=FALSE)

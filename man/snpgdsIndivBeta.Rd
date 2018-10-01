@@ -11,7 +11,7 @@ using SNP genotype data.
 \usage{
 snpgdsIndivBeta(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, method=c("weighted"),
-    inbreeding=TRUE, num.thread=1L, with.id=TRUE, verbose=TRUE)
+    inbreeding=TRUE, num.thread=1L, with.id=TRUE, useMatrix=FALSE, verbose=TRUE)
 snpgdsIndivBetaRel(beta, beta_rel, verbose=TRUE)
 }
 \arguments{
@@ -35,6 +35,8 @@ snpgdsIndivBetaRel(beta, beta_rel, verbose=TRUE)
         the number of cores automatically}
     \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id}
         and \code{sample.id}}
+    \item{useMatrix}{if \code{TRUE}, use \code{Matrix::dspMatrix} to store
+        the output square matrix to save memory}
     \item{beta}{the object returned from \code{snpgdsIndivBeta()}}
     \item{beta_rel}{the beta-based matrix is generated relative to
         \code{beta_rel}}
