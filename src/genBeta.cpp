@@ -304,7 +304,7 @@ COREARRAY_DLL_EXPORT void CalcIndivBetaGRM_Mat(CdMatTri<double> &beta,
 }
 
 
-/// Compute individual beta - based GRM
+/// Compute individual beta-based GRM, return SEXP
 COREARRAY_DLL_EXPORT SEXP CalcIndivBetaGRM(int NumThread, bool Verbose)
 {
 	if (Verbose) CPU_Flag();

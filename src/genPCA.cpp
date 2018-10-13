@@ -1566,6 +1566,25 @@ static void grm_save_to_gds(CdMatTri<double> &mat, PdGDSObj gdsn, bool verbose)
 	}
 }
 
+static void grm_output(size_t n, CdMatTri<double> &Mat, PdGDSObj gdsn,
+	SEXP useMatrix, SEXP &rv_ans, bool verbose)
+{
+	if (!gdsn)
+	{
+		if (Rf_asLogical(useMatrix) != TRUE)
+		{
+			rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
+			Mat.SaveTo(REAL(rv_ans));
+		} else {
+			const size_t ns = n*(n+1)/2;
+			rv_ans = PROTECT(NEW_NUMERIC(ns));
+			memcpy(REAL(rv_ans), Mat.Get(), ns*sizeof(double));
+		}
+	} else
+		grm_save_to_gds(Mat, gdsn, verbose);
+}
+
+
 COREARRAY_DLL_EXPORT double grm_avg_value = 0;
 
 /// Compute the eigenvalues and eigenvectors
@@ -1576,7 +1595,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM_avg_val()
 
 /// Compute the eigenvalues and eigenvectors
 COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
-	SEXP _Verbose)
+	SEXP useMatrix, SEXP _Verbose)
 {
 	const int nThread  = Rf_asInteger(_NumThread);
 	const char *Method = CHAR(STRING_ELT(_Method, 0));
@@ -1608,12 +1627,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 			double scale = double(n-1) / TraceXTX;
 			vec_f64_mul(IBD.Get(), IBD.Size(), scale);
 			// output
-			if (!gdsn)
-			{
-				rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-				IBD.SaveTo(REAL(rv_ans));
-			} else
-				grm_save_to_gds(IBD, gdsn, verbose);
+			grm_output(n, IBD, gdsn, useMatrix, rv_ans, verbose);
 
 		} else if (strcmp(Method, "GCTA") == 0)
 		{
@@ -1622,12 +1636,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 			CGCTA_AlgArith GCTA(MCWorkingGeno.Space());
 			GCTA.Run(IBD, nThread, verbose);
 			// output
-			if (!gdsn)
-			{
-				rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-				IBD.SaveTo(REAL(rv_ans));
-			} else
-				grm_save_to_gds(IBD, gdsn, verbose);
+			grm_output(n, IBD, gdsn, useMatrix, rv_ans, verbose);
 
 		} else if (strcmp(Method, "Corr") == 0)
 		{
@@ -1664,14 +1673,8 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 				bool Verbose);
 			CdMatTri<double> IBD(n);
 			CalcEigMixGRM(IBD, nThread, verbose);
-
 			// output
-			if (!gdsn)
-			{
-				rv_ans = PROTECT(Rf_allocMatrix(REALSXP, n, n));
-				IBD.SaveTo(REAL(rv_ans));
-			} else
-				grm_save_to_gds(IBD, gdsn, verbose);
+			grm_output(n, IBD, gdsn, useMatrix, rv_ans, verbose);
 
 		} else if (strcmp(Method, "IndivBeta") == 0)
 		{

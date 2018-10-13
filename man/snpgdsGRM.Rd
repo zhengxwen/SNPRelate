@@ -10,7 +10,7 @@
 snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
     method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "Corr", "IndivBeta"),
-    num.thread=1L, out.fn=NULL, out.prec=c("double", "single"),
+    num.thread=1L, useMatrix=FALSE, out.fn=NULL, out.prec=c("double", "single"),
     out.compress="LZMA_RA", with.id=TRUE, verbose=TRUE)
 }
 \arguments{
@@ -37,6 +37,8 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
             minimum of beta; see details}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
+    \item{useMatrix}{if \code{TRUE}, use \code{Matrix::dspMatrix} to store
+        the output square matrix to save memory}
     \item{out.fn}{NULL for no GDS output, or a file name}
     \item{out.prec}{double or single precision for storage}
     \item{out.compress}{the compression method for storing the GRM matrix in

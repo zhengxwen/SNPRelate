@@ -541,7 +541,7 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
     method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "Corr", "IndivBeta"),
-    num.thread=1L, out.fn=NULL, out.prec=c("double", "single"),
+    num.thread=1L, useMatrix=FALSE, out.fn=NULL, out.prec=c("double", "single"),
     out.compress="LZMA_RA", with.id=TRUE, verbose=TRUE)
 {
     # check and initialize ...
@@ -556,6 +556,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         mtxt <- "Scaled GCTA (correlation)"
     }
 
+    stopifnot(is.logical(useMatrix), length(useMatrix)==1L)
     stopifnot(is.logical(with.id), length(with.id)==1L)
     ws <- .InitFile2(
         cmd=paste("Genetic Relationship Matrix (GRM, ", mtxt, "):", sep=""),
@@ -588,11 +589,13 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         out.gds <- NULL
 
     # call GRM C function
-    rv <- .Call(gnrGRM, ws$num.thread, method, out.gds, verbose)
+    rv <- .Call(gnrGRM, ws$num.thread, method, out.gds, useMatrix, verbose)
 
     # return
     if (is.null(out.gds))
     {
+        if (isTRUE(useMatrix))
+            rv <- .newmat(ws$n.samp, rv)
 		if (with.id)
 		{
 			rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id,
