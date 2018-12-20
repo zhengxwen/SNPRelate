@@ -12,3 +12,8 @@ r_binary_packages:
 r_github_packages:
   - zhengxwen/gdsfmt
 
+# systems
+os:
+  - linux
+  - osx
+

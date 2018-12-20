@@ -93,18 +93,18 @@ R CMD INSTALL SNPRelate_latest.tar.gz
 
 | Function             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
 |:---------------------|:-------:|:----:|:---:|:----:|:-------:|
-| snpgdsDiss [»](https://rdrr.io/bioc/SNPRelate/release/help/snpgdsDiss.html)           | X |
-| snpgdsEIGMIX [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsEIGMIX.html)        | X | X | X |
-| snpgdsGRM [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsGRM.html)           | X | X | X | . |
-| snpgdsIBDKING [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsIBDKING.html)       | X | X |   | X |
-| snpgdsIBDMoM [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsIBDMoM.html)        | X |
-| snpgdsIBS [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsIBS.html)           | X | X |
-| snpgdsIBSNum [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsIBSNum.html)        | X | X |
-| snpgdsIndivBeta [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsIndivBeta.html)     | X | X | P | X |
-| snpgdsPCA [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsPCA.html)           | X | X | X |
-| snpgdsPCACorr [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsPCACorr.html)       | X |
-| snpgdsPCASampLoading [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsPCASampLoading.html) | X |
-| snpgdsPCASNPLoading [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsPCASNPLoading.html) | X |
+| snpgdsDiss [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsDiss.html)           | X |
+| snpgdsEIGMIX [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsEIGMIX.html)        | X | X | X |
+| snpgdsGRM [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsGRM.html)           | X | X | X | . |
+| snpgdsIBDKING [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsIBDKING.html)       | X | X |   | X |
+| snpgdsIBDMoM [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsIBDMoM.html)        | X |
+| snpgdsIBS [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsIBS.html)           | X | X |
+| snpgdsIBSNum [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsIBSNum.html)        | X | X |
+| snpgdsIndivBeta [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsIndivBeta.html)     | X | X | P | X |
+| snpgdsPCA [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsPCA.html)           | X | X | X |
+| snpgdsPCACorr [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsPCACorr.html)       | X |
+| snpgdsPCASampLoading [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsPCASampLoading.html) | X |
+| snpgdsPCASNPLoading [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsPCASNPLoading.html) | X |
 | [...](http://rdrr.io/bioc/SNPRelate/man) |
 
 `X: fully supported;  .: partially supported;  P: POPCNT instruction.`

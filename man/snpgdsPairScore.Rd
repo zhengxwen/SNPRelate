@@ -9,8 +9,8 @@ identity-by-state (IBS) measure
 }
 \usage{
 snpgdsPairScore(gdsobj, sample1.id, sample2.id, snp.id=NULL,
-    method=c("IBS", "GVH", "HVG", "GVH.major", "GVH.minor", "GVH.major.only", "GVH.minor.only"),
-    type=c("per.pair", "per.snp", "matrix", "gds.file"),
+    method=c("IBS", "GVH", "HVG", "GVH.major", "GVH.minor", "GVH.major.only",
+    "GVH.minor.only"), type=c("per.pair", "per.snp", "matrix", "gds.file"),
     dosage=TRUE, with.id=TRUE, output=NULL, verbose=TRUE)
 }
 \arguments{
