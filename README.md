@@ -25,7 +25,7 @@ Release Version: v1.16.0
 
 [http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 
-Development Version: v1.17.0
+Development Version: v1.17.1
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
@@ -93,19 +93,19 @@ R CMD INSTALL SNPRelate_latest.tar.gz
 
 | Function             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
 |:---------------------|:-------:|:----:|:---:|:----:|:-------:|
-| snpgdsDiss [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsDiss.html)           | X |
-| snpgdsEIGMIX [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsEIGMIX.html)        | X | X | X |
-| snpgdsGRM [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsGRM.html)           | X | X | X | . |
-| snpgdsIBDKING [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBDKING.html)       | X | X |   | X |
-| snpgdsIBDMoM [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBDMoM.html)        | X |
-| snpgdsIBS [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBS.html)           | X | X |
-| snpgdsIBSNum [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIBSNum.html)        | X | X |
-| snpgdsIndivBeta [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsIndivBeta.html)     | X | X | P | X |
-| snpgdsPCA [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCA.html)           | X | X | X |
-| snpgdsPCACorr [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCACorr.html)       | X |
-| snpgdsPCASampLoading [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCASampLoading.html) | X |
-| snpgdsPCASNPLoading [»](http://zhengxwen.github.io/SNPRelate/release/help/snpgdsPCASNPLoading.html) | X |
-| [...](http://zhengxwen.github.io/SNPRelate/release/help/00Index.html) |
+| snpgdsDiss [»](https://rdrr.io/bioc/SNPRelate/release/help/snpgdsDiss.html)           | X |
+| snpgdsEIGMIX [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsEIGMIX.html)        | X | X | X |
+| snpgdsGRM [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsGRM.html)           | X | X | X | . |
+| snpgdsIBDKING [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsIBDKING.html)       | X | X |   | X |
+| snpgdsIBDMoM [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsIBDMoM.html)        | X |
+| snpgdsIBS [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsIBS.html)           | X | X |
+| snpgdsIBSNum [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsIBSNum.html)        | X | X |
+| snpgdsIndivBeta [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsIndivBeta.html)     | X | X | P | X |
+| snpgdsPCA [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsPCA.html)           | X | X | X |
+| snpgdsPCACorr [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsPCACorr.html)       | X |
+| snpgdsPCASampLoading [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsPCASampLoading.html) | X |
+| snpgdsPCASNPLoading [»](http://rdrr.io/bioc/SNPRelate/release/help/snpgdsPCASNPLoading.html) | X |
+| [...](http://rdrr.io/bioc/SNPRelate/man) |
 
 `X: fully supported;  .: partially supported;  P: POPCNT instruction.`
 

@@ -61,9 +61,7 @@ CMutex::CMutex()
 CMutex::~CMutex()
 {
 #if defined(COREARRAY_POSIX_THREAD)
-	int v = pthread_mutex_destroy(&mutex);
-	if (v != 0)
-		throw ErrThread(ERR_PTHREAD, "pthread_mutex_destroy", v);
+	pthread_mutex_destroy(&mutex);
 #elif defined(COREARRAY_PLATFORM_WINDOWS)
 	DeleteCriticalSection(&mutex);
 #endif
@@ -266,7 +264,7 @@ CThread::~CThread()
 		Terminate();
 		EndThread();
 	} catch (...) {
-		_Done(); throw;
+		_Done(); // throw;
 	}
 	_Done();
 }

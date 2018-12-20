@@ -2,7 +2,7 @@
 //
 // dGenGWAS.cpp: Workspace of Genome-Wide Association Studies
 //
-// Copyright (C) 2011-2017    Xiuwen Zheng
+// Copyright (C) 2011-2018    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -853,8 +853,10 @@ static void InitSeqArrayProc()
 	{
 		static const char *SeqArray_pkg_name = "SeqArray";
 
-		#define LOAD(var, name)    \
-			*((DL_FUNC*)&var) = R_GetCCallable(SeqArray_pkg_name, name)
+		#define LOAD(var, name)    { \
+			DL_FUNC f = R_GetCCallable(SeqArray_pkg_name, name); \
+			memcpy(&var, &f, sizeof(f)); \
+		}
 
 		LOAD(fn_seq_InitSeqArray, "SNPRelate_InitSeqArray");
 		LOAD(fn_seq_DoneSeqArray, "SNPRelate_DoneSeqArray");
