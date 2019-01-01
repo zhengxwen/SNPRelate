@@ -438,6 +438,13 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 {
     # check
     stopifnot(is.character(bed.fn), length(bed.fn)==1L)
+    if (missing(fam.fn) && missing(bim.fn))
+    {
+        fn <- gsub("\\.bed$", "", bed.fn, ignore.case=TRUE)
+        bed.fn <- paste(fn, ".bed", sep="")
+        fam.fn <- paste(fn, ".fam", sep="")
+        bim.fn <- paste(fn, ".bim", sep="")
+    }
     stopifnot(is.character(fam.fn), length(fam.fn)==1L)
     stopifnot(is.character(bim.fn), length(bim.fn)==1L)
     stopifnot(is.character(out.gdsfn), length(out.gdsfn)==1L)

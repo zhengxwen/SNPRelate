@@ -1,7 +1,8 @@
-CHANGES IN VERSION 1.17.1
+CHANGES IN VERSION 1.17.1-1.17.2
 -------------------------
 
-    o 
+    o `snpgdsBED2GDS()` allows a single file name without the extended file
+      names (.bed, .fam, .bim)
 
 
 CHANGES IN VERSION 1.16.0
