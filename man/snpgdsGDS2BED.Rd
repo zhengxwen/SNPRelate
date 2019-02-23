@@ -11,7 +11,7 @@ snpgdsGDS2BED(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL, snpfirstdim=NULL,
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
         a SNP GDS file; or characters, the file name of GDS}
-    \item{bed.fn}{the file name of output}
+    \item{bed.fn}{the file name of output, without the filename extension ".bed"}
     \item{sample.id}{a vector of sample id specifying selected samples;
         if NULL, all samples are used}
     \item{snp.id}{a vector of snp id specifying selected SNPs;
