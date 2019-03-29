@@ -12,6 +12,12 @@ install:
 
 # Adapt as necessary starting from here
 
+environment:
+  matrix:
+  - R_VERSION: stable
+    R_ARCH: x64
+    BIOC_USE_DEVEL: FALSE
+
 build_script:
   - travis-tool.sh install_bioc_deps
   - travis-tool.sh install_github zhengxwen/gdsfmt

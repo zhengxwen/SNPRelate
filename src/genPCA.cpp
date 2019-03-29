@@ -2,7 +2,7 @@
 //
 // genPCA.cpp: Principal Component Analysis on GWAS
 //
-// Copyright (C) 2011-2018    Xiuwen Zheng
+// Copyright (C) 2011-2019    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -218,7 +218,7 @@ void CProdMat_AlgArith::PCA_Detect_BlockNumSNP(int nSamp)
 	size_t Cache = GetOptimzedCache();
 	BlockNumSNP = Cache / (sizeof(double)*nSamp);
 	BlockNumSNP = (BlockNumSNP / 4) * 4;
-	if (BlockNumSNP < 16) BlockNumSNP = 16;
+	if (BlockNumSNP < 64) BlockNumSNP = 64;
 }
 
 // time-consuming function
