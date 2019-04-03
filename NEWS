@@ -1,8 +1,10 @@
-CHANGES IN VERSION 1.17.1-1.17.2
+CHANGES IN VERSION 1.17.1-1.17.3
 -------------------------
 
     o `snpgdsBED2GDS()` allows a single file name without the extended file
       names (.bed, .fam, .bim)
+
+    o `snpgdsGRM()` saves lower triangular GRM matrix to a GDS file
 
 
 CHANGES IN VERSION 1.16.0

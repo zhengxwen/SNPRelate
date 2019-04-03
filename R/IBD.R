@@ -618,7 +618,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single"),
-    out.compress="LZMA_RA", weight=NULL, verbose=TRUE)
+    out.compress="LZMA_RA", weight=NULL, useMatrix=TRUE, verbose=TRUE)
 {
     # check
     stopifnot(is.character(filelist), length(filelist)>0L)
@@ -632,6 +632,8 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
         stopifnot(is.numeric(weight) || is.logical(weight),
             length(weight)==length(filelist))
     }
+    stopifnot(is.logical(useMatrix), length(useMatrix)==1L)
+    stopifnot(is.logical(verbose), length(verbose)==1L)
 
     # open the existing GDS files
     gdslist <- vector("list", length(filelist))
@@ -729,7 +731,7 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
     }
 
     # call C
-    rv <- .Call(gnrGRMMerge, out.gds, gdslist, cmd[-1L], weight, verbose)
+    rv <- .Call(gnrGRMMerge, out.gds, gdslist, cmd[-1L], weight, useMatrix, verbose)
 
     if (is.null(out.gds))
     {

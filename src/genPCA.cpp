@@ -1557,12 +1557,12 @@ static void grm_save_to_gds(CdMatTri<double> &mat, PdGDSObj gdsn, bool verbose)
 		Rprintf("Saving to the GDS file:\n");
 	const size_t n = mat.N();
 	vector<double> buf(n);
-	CProgress prog(verbose ? n : -1);
+	CProgress prog(verbose ? mat.Size() : -1);
 	for (size_t i=0; i < n; i++)
 	{
-		mat.GetRow(&buf[0], i);
+		mat.GetRowNaN(&buf[0], i);
 		GDS_Array_AppendData(gdsn, n, &buf[0], svFloat64);
-		prog.Forward(1);
+		prog.Forward(n-i);
 	}
 }
 
@@ -1702,16 +1702,17 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 
 /// Combine GRM matrices
 COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Cmd,
-	SEXP Weight, SEXP Verbose)
+	SEXP Weight, SEXP useMatrix, SEXP Verbose)
 {
 	const double *weight = REAL(Weight);
+	const bool use_mat = Rf_asLogical(useMatrix)==TRUE;
 	const bool verbose = SEXP_Verbose(Verbose);
-	const int n = LENGTH(Weight);
+	const int nGDS = LENGTH(Weight);
 
 	COREARRAY_TRY
 		// input gds files
-		vector<PdGDSObj> list_gdsn(n);
-		for (int i=0; i < n; i++)
+		vector<PdGDSObj> list_gdsn(nGDS);
+		for (int i=0; i < nGDS; i++)
 		{
 			list_gdsn[i] = GDS_Node_Path(
 				GDS_R_SEXP2FileRoot(VECTOR_ELT(GDSList, i)), "grm", TRUE);
@@ -1728,8 +1729,8 @@ COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Cmd,
 		{
 			// merge beta-based GRM
 			// get avg_val from all GDS files
-			vector<double> avg_val(n), M_b(n), M_b_inv(n);
-			for (int k=0; k < n; k++)
+			vector<double> avg_val(nGDS), M_b(nGDS), M_b_inv(nGDS);
+			for (int k=0; k < nGDS; k++)
 			{
 				PdGDSObj node = GDS_Node_Path(GDS_R_SEXP2FileRoot(
 					VECTOR_ELT(GDSList, k)), "avg_val", TRUE);
@@ -1740,9 +1741,9 @@ COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Cmd,
 			// get the baseline for each GDS file
 			vector<double> buf(N);
 			{
-				CProgress prog(verbose ? N*n*2 : -1);
+				CProgress prog(verbose ? N*nGDS*2 : -1);
 				C_Int32 st[2]={0, 0}, cnt[2]={1, N};
-				for (int k=0; k < n; k++)
+				for (int k=0; k < nGDS; k++)
 				{
 					double sum = 0;
 					for (int i=0; i < N; i++)
@@ -1763,7 +1764,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Cmd,
 					st[0] = i;
 					double *p = REAL(rv_ans) + i*N;
 					memset(p, 0, sizeof(double)*N);
-					for (int k=0; k < n; k++)
+					for (int k=0; k < nGDS; k++)
 					{
 						GDS_Array_ReadData(list_gdsn[k], st, cnt, &buf[0], svFloat64);
 						for (int j=0; j < N; j++)
@@ -1817,22 +1818,23 @@ COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Cmd,
 		} else {
 			if (!out_gdsn)
 				rv_ans = Rf_allocMatrix(REALSXP, N, N);
-			vector<double> sum(N), buf(N);
+			vector<double> sum(N), buf(N*nGDS);
 			CProgress prog(verbose ? N : -1);
 			C_Int32 cnt[2] = { 1, N };
 			// for-loop
 			for (int i=0; i < N; i++)
 			{
-				double *p = out_gdsn ? &sum[0] : (REAL(rv_ans) + i*N);
-				memset(p, 0, sizeof(double)*N);
+				memset(&sum[0], 0, sizeof(double)*N);
 				const C_Int32 st[2] = { i, 0 };
-				for (int k=0; k < n; k++)
+				for (int k=0; k < nGDS; k++)
 				{
 					GDS_Array_ReadData(list_gdsn[k], st, cnt, &buf[0], svFloat64);
-					vec_f64_addmul(p, &buf[0], N, weight[k]);
+					vec_f64_addmul(&sum[0], &buf[0], N, weight[k]);
 				}
 				if (out_gdsn)
 					GDS_Array_AppendData(out_gdsn, N, &sum[0], svFloat64);
+				else
+					memcpy(REAL(rv_ans) + i*N, &sum[0], sizeof(double)*N);
 				prog.Forward(1);
 			}
 		}
