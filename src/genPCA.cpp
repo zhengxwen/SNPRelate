@@ -1700,6 +1700,75 @@ COREARRAY_DLL_EXPORT SEXP gnrGRM(SEXP _NumThread, SEXP _Method, SEXP _GDS,
 }
 
 
+
+// ================================================================================== //
+
+static SEXP merge_mat(PdGDSObj out_gdsn, PdGDSObj list_gdsn[], const int nGDS,
+	const size_t N, const double weight[], const bool use_mat, const bool verbose)
+{
+	// the returned variable
+	SEXP rv_ans = R_NilValue;
+	double *pAns = NULL;
+	if (out_gdsn == NULL)
+	{
+		rv_ans = use_mat ? NEW_NUMERIC(N*(N+1)/2) : Rf_allocMatrix(REALSXP, N, N);
+		pAns = REAL(rv_ans);
+	}
+	// the buffer
+	vector<double> buf(N*nGDS), sum(N), sumW(N);
+	CProgress prog(verbose ? N : -1);
+	C_Int32 cnt[2] = { 1, N };
+	// for-loop
+	for (int i=0; i < N; i++)
+	{
+		// initialize
+		memset(&sum[0], 0, sizeof(double)*N);
+		memset(&sumW[0], 0, sizeof(double)*N);
+		const C_Int32 st[2] = { i, 0 };
+		// read data from GDS files
+		for (int k=0; k < nGDS; k++)
+		{
+			const double w = weight[k];
+			double *p = &buf[N*k];
+			GDS_Array_ReadData(list_gdsn[k], st, cnt, p, svFloat64);
+			for (size_t j=0; j < N; j++)
+				if (R_FINITE(p[j])) sumW[j] += w;
+		}
+		// weighted average matrices
+		for (int k=0; k < nGDS; k++)
+		{
+			const double w = weight[k];
+			double *p = &buf[N*k];
+			for (size_t j=0; j < N; j++)
+			{
+				if (R_FINITE(p[j]))
+					sum[j] += (w==sumW[j]) ? p[j] : (p[j] * w / sumW[j]);
+			}
+		}
+		// set NaN
+		for (size_t j=0; j < N; j++)
+			if (sumW[j] == 0) sum[j] = R_NaReal;
+		// save
+		if (out_gdsn)
+		{
+			GDS_Array_AppendData(out_gdsn, N, &sum[0], svFloat64);
+		} else {
+			if (use_mat)
+			{
+				memcpy(pAns, &sum[i], sizeof(double)*(N-i));
+				pAns += N-i;
+			} else {
+				double *p = pAns + N*i;
+				for (int j=0; j < i; j++) p[j] = pAns[N*j + i];
+				memcpy(&p[i], &sum[i], sizeof(double)*(N-i));
+			}
+		}
+		prog.Forward(1);
+	}
+	return rv_ans;
+}
+
+
 /// Combine GRM matrices
 COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Cmd,
 	SEXP Weight, SEXP useMatrix, SEXP Verbose)
@@ -1816,27 +1885,9 @@ COREARRAY_DLL_EXPORT SEXP gnrGRMMerge(SEXP OutGDS, SEXP GDSList, SEXP Cmd,
 			}
 
 		} else {
-			if (!out_gdsn)
-				rv_ans = Rf_allocMatrix(REALSXP, N, N);
-			vector<double> sum(N), buf(N*nGDS);
-			CProgress prog(verbose ? N : -1);
-			C_Int32 cnt[2] = { 1, N };
-			// for-loop
-			for (int i=0; i < N; i++)
-			{
-				memset(&sum[0], 0, sizeof(double)*N);
-				const C_Int32 st[2] = { i, 0 };
-				for (int k=0; k < nGDS; k++)
-				{
-					GDS_Array_ReadData(list_gdsn[k], st, cnt, &buf[0], svFloat64);
-					vec_f64_addmul(&sum[0], &buf[0], N, weight[k]);
-				}
-				if (out_gdsn)
-					GDS_Array_AppendData(out_gdsn, N, &sum[0], svFloat64);
-				else
-					memcpy(REAL(rv_ans) + i*N, &sum[0], sizeof(double)*N);
-				prog.Forward(1);
-			}
+			// merge general GRM matrices
+			rv_ans = merge_mat(out_gdsn, &list_gdsn[0], nGDS, N, weight,
+				use_mat, verbose);
 		}
 	COREARRAY_CATCH
 }

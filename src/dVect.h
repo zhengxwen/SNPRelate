@@ -2,7 +2,7 @@
 //
 // dVect.h: Classess and functions for vectorization
 //
-// Copyright (C) 2007-2017    Xiuwen Zheng
+// Copyright (C) 2007-2019    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //

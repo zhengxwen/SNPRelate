@@ -56,20 +56,6 @@ extern "C"
 // the public functions
 // ===========================================================
 
-/// initialize the package, return the flag of SSE2
-COREARRAY_DLL_EXPORT SEXP gnrSSEFlag()
-{
-#if defined(COREARRAY_SIMD_AVX)
-	int I = 2;
-#elif defined(COREARRAY_SIMD_SSE2)
-	int I = 1;
-#else
-	int I = 0;
-#endif
-	return ScalarInteger(I);
-}
-
-
 // the functions for the SNP genotype working space
 
 /// set the genotype node
@@ -1153,7 +1139,8 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrIBD_PLINK, 6),
 		CALL(gnrIBSAve, 3),              CALL(gnrIBSNum, 2),
 		CALL(gnrIndInb, 5),              CALL(gnrIndInbCoef, 3),
-		CALL(gnrSSEFlag, 0),             CALL(gnrLDMat, 5),
+
+		CALL(gnrLDMat, 5),
 		CALL(gnrLDpair, 3),              CALL(gnrLDpruning, 6),
 		CALL(gnrPairScore, 7),
 		CALL(gnrPairIBD, 8),             CALL(gnrPairIBDLogLik, 5),

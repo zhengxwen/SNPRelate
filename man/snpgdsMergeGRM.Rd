@@ -8,7 +8,7 @@
 }
 \usage{
 snpgdsMergeGRM(filelist, out.fn=NULL, out.prec=c("double", "single"),
-    out.compress="LZMA_RA", weight=NULL, verbose=TRUE)
+    out.compress="LZMA_RA", weight=NULL, useMatrix=FALSE, verbose=TRUE)
 }
 \arguments{
     \item{filelist}{a character vector, list of GDS file names}
@@ -20,6 +20,8 @@ snpgdsMergeGRM(filelist, out.fn=NULL, out.prec=c("double", "single"),
     \item{weight}{NULL, weights proportional to the numbers of SNPs;
         a numeric vector, or a logical vector (FALSE for excluding some GRMs
         with a negative weight, weights proportional to the numbers of SNPs)}
+    \item{useMatrix}{if TRUE, return a symmetric matrix of \code{Matrix::dspMatrix}
+        in packed storage}
     \item{verbose}{if \code{TRUE}, show information}
 }
 \details{

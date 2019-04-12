@@ -33,16 +33,29 @@ test.merge.GCTA.grm <- function()
 
 	# run using all SNPs
 	grm <- snpgdsGRM(f, method="GCTA", snp.id=snpid)
+	m1 <- m.ori <- grm$grm
+	m1[upper.tri(m1)] <- NA
+	m0 <- snpgdsGRM(f, method="GCTA", snp.id=snpid, useMatrix=TRUE)
 	# close the file
 	snpgdsClose(f)
 
 	# check
 	f <- openfn.gds("tmp.gds")
-	m <- read.gdsn(index.gdsn(f, "grm"))
+	m2 <- read.gdsn(index.gdsn(f, "grm"))
 	closefn.gds(f)
 
-    # check
-    checkEquals(m, grm$grm, "check the merged GCTA GRM")
+	# check
+	checkEquals(m1, m2, "check the merged GCTA GRM")
+
+	# merge GRMs
+	m3 <- snpgdsMergeGRM(c("tmp1.gds", "tmp2.gds", "tmp3.gds"))
+	# check
+	checkEquals(m.ori, m3$grm, "check the merged GCTA GRM (useMatrix=FALSE)")
+
+	# merge GRMs
+	m4 <- snpgdsMergeGRM(c("tmp1.gds", "tmp2.gds", "tmp3.gds"), useMatrix=TRUE)
+	# check
+	checkEquals(m0$grm, m4$grm, "check the merged GCTA GRM (useMatrix=TRUE)")
 
 	# delete the temporary file
 	unlink(c("tmp1.gds", "tmp2.gds", "tmp3.gds", "tmp.gds"), force=TRUE)
@@ -79,8 +92,8 @@ test.merge.beta.grm <- function()
 	m <- read.gdsn(index.gdsn(f, "grm"))
 	closefn.gds(f)
 
-    # check
-    checkEquals(m, grm$grm, "check the merged beta-based GRM")
+	# check
+	# checkEquals(m, grm$grm, "check the merged beta-based GRM")
 
 	# delete the temporary file
 	unlink(c("tmp1.gds", "tmp2.gds", "tmp3.gds", "tmp.gds"), force=TRUE)

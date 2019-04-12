@@ -540,7 +540,7 @@ namespace GWAS
 		void GetRowNaN(TYPE *outbuf, size_t i)
 		{
 			for (size_t j = 0; j < i; j++)
-				outbuf[j] = R_NaN;
+				outbuf[j] = R_NaReal;
 			for (size_t j = i; j < fN; j++)
 				outbuf[j] = ptr[j + i*(2*fN-i-1)/2];
 		}

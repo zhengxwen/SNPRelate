@@ -37,8 +37,8 @@ snpgdsIBDKING(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         \code{sample.id}}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
-    \item{useMatrix}{if \code{TRUE}, use \code{Matrix::dspMatrix} to store
-        the output square matrix to save memory}
+    \item{useMatrix}{if TRUE, return a symmetric matrix of \code{Matrix::dspMatrix}
+        in packed storage}
     \item{verbose}{if TRUE, show information}
 }
 \details{

@@ -56,7 +56,7 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     # return
     ans <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=rv$afreq)
     ans$afreq[ans$afreq < 0] <- NaN
-    if (isTRUE(useMatrix))
+    if (useMatrix)
     {
         ans$k0 <- .newmat(ws$n.samp, rv$k0)
         ans$k1 <- .newmat(ws$n.samp, rv$k1)
@@ -387,7 +387,7 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         v <- .Call(gnrIBD_KING_Homo, ws$num.thread, useMatrix, verbose)
         # output
         rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=NULL)
-        if (isTRUE(useMatrix))
+        if (useMatrix)
         {
             rv$k0 <- .newmat(ws$n.samp, v[[1L]])
             rv$k1 <- .newmat(ws$n.samp, v[[2L]])
@@ -407,7 +407,7 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             ws$num.thread, useMatrix, verbose)
         # output
         rv <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, afreq=NULL)
-        if (isTRUE(useMatrix))
+        if (useMatrix)
         {
             rv$IBS0 <- .newmat(ws$n.samp, v[[1L]])
             rv$kinship <- .newmat(ws$n.samp, v[[2L]])
@@ -594,7 +594,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     # return
     if (is.null(out.gds))
     {
-        if (isTRUE(useMatrix))
+        if (useMatrix)
             rv <- .newmat(ws$n.samp, rv)
 		if (with.id)
 		{
@@ -618,7 +618,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single"),
-    out.compress="LZMA_RA", weight=NULL, useMatrix=TRUE, verbose=TRUE)
+    out.compress="LZMA_RA", weight=NULL, useMatrix=FALSE, verbose=TRUE)
 {
     # check
     stopifnot(is.character(filelist), length(filelist)>0L)
@@ -735,6 +735,8 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
 
     if (is.null(out.gds))
     {
+        if (useMatrix)
+            rv <- .newmat(length(sampid), rv)
         rv <- list(sample.id=sampid, snp.id=sid, grm=rv)
         if (cmd[2L] %in% c(":method = IndivBeta"))
             rv$avg_val <- .Call(gnrGRM_avg_val)
@@ -853,7 +855,7 @@ snpgdsIndivBeta <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
     # call GRM C function
     rv <- .Call(gnrIBD_Beta, inbreeding, ws$num.thread, useMatrix, verbose)
-    if (isTRUE(useMatrix))
+    if (useMatrix)
         rv <- .newmat(ws$n.samp, rv)
 
     # return

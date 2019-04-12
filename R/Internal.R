@@ -547,20 +547,3 @@
         close(conn$con2)
     }
 }
-
-
-
-#######################################################################
-# Internal R library functions
-#######################################################################
-
-.onAttach <- function(lib, pkg)
-{
-    # information
-    s <- switch(.Call(gnrSSEFlag),
-        " -- supported by Streaming SIMD Extensions 2 (SSE2)",
-        " -- supported by Advanced Vector Extensions (AVX)"
-    )
-    packageStartupMessage("SNPRelate", s)
-    TRUE
-}
