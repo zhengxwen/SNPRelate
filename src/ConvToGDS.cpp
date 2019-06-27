@@ -2,7 +2,7 @@
 //
 // ConvToGDS.cpp: PED/VCF to GDS Format
 //
-// Copyright (C) 2013-2017    Xiuwen Zheng
+// Copyright (C) 2013-2019    Xiuwen Zheng
 //
 // This file is part of SeqArray.
 //
@@ -565,6 +565,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBEDFlag(SEXP File, SEXP ReadBinFun, SEXP Rho)
 COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP GenoNode, SEXP Num, SEXP File,
 	SEXP ReadBinFun, SEXP Rho, SEXP Verbose)
 {
+	const bool verbose = (Rf_asLogical(Verbose) == TRUE);
 	COREARRAY_TRY
 
 		PdAbstractArray Seq = GDS_R_SEXP2Obj(GenoNode, FALSE);
@@ -572,10 +573,6 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP GenoNode, SEXP Num, SEXP File,
 
 		int DLen[2];
 		GDS_Array_GetDim(Seq, DLen, 2);
-
-		MCWorkingGeno.Progress.Info = " ";
-		MCWorkingGeno.Progress.Show() = (Rf_asLogical(Verbose) == TRUE);
-		MCWorkingGeno.Progress.Init(n);
 
 		int nRe = DLen[1] % 4;
 		int nRe4 = DLen[1] / 4;
@@ -586,6 +583,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP GenoNode, SEXP Num, SEXP File,
 			LCONS(ReadBinFun, LCONS(File,
 			LCONS(NEW_RAW(0), LCONS(ScalarInteger(nPack), R_NilValue)))));
 
+		CProgress Progress(verbose ? n : -1);
 		vector<C_UInt8> dstgeno(DLen[1]);
 		static const C_UInt8 cvt[4] = { 2, 3, 1, 0 };
 
@@ -616,7 +614,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP GenoNode, SEXP Num, SEXP File,
 
 			// append
 			GDS_Array_AppendData(Seq, DLen[1], &dstgeno[0], svUInt8);
-			MCWorkingGeno.Progress.Forward(1);
+			Progress.Forward(1);
 		}
 
 		UNPROTECT(1);

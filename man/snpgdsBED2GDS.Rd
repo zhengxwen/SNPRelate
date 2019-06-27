@@ -13,10 +13,10 @@ snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 \arguments{
     \item{bed.fn}{the file name of binary file, genotype information}
     \item{fam.fn}{the file name of first six columns of \code{".ped"}; if it is
-        missing, }
+        missing, ".fam" is added to \code{bed.fn}}
     \item{bim.fn}{the file name of extended MAP file: two extra columns =
-        allele names; if it is missing, }
-    \item{out.gdsfn}{the output GDS file}
+        allele names; if it is missing, ".bim" is added to \code{bim.fn}}
+    \item{out.gdsfn}{the output file name of GDS file}
     \item{family}{if \code{TRUE}, to include family information in the
         sample annotation}
     \item{snpfirstdim}{if TRUE, genotypes are stored in the individual-major
@@ -59,8 +59,6 @@ It also allow define new chromosome coding, e.g.,
     Maller J, Sklar P, de Bakker PIW, Daly MJ & Sham PC. 2007.
     PLINK: a toolset for whole-genome association and population-based linkage
     analysis. American Journal of Human Genetics, 81.
-
-    \url{http://corearray.sourceforge.net/}
 }
 \author{Xiuwen Zheng}
 \seealso{

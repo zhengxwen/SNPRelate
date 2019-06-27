@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2018        Xiuwen Zheng
+# Copyright (C) 2011 - 2019        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -460,7 +460,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     stopifnot(is.logical(verbose), length(verbose)==1L)
 
     if (verbose)
-        cat("Start snpgdsBED2GDS ...\n")
+        cat("Start file conversion from PLINK BED to SNP GDS ...\n")
 
     ##  open and detect bed.fn  ##
 
@@ -469,11 +469,12 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     bed.flag <- .Call(gnrConvBEDFlag, bedfile$con, readBin, new.env())
     if (verbose)
     {
-        cat("\tBED file: \"", bed.fn, "\"", sep="")
+        cat("    BED file: ", shQuote(bed.fn), "\n", sep="")
+        s <- .pretty_size(file.size(bed.fn))
         if (bed.flag == 0L)
-            cat(" in the individual-major mode (SNP X Sample)\n")
+            cat("        individual-major mode (SNP X Sample), ", s, "\n", sep="")
         else
-            cat(" in the SNP-major mode (Sample X SNP)\n")
+            cat("        SNP-major mode (Sample X SNP), ", s, "\n", sep="")
     }
 
     ##  read fam.fn  ##
@@ -492,7 +493,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
             stop("IDs in PLINK BED are not unique!")
     }
     if (verbose)
-        cat("\tFAM file: \"", fam.fn, "\", DONE.\n", sep="")
+        cat("    FAM file: ", shQuote(fam.fn), "\n", sep="")
 
     ##  read bim.fn  ##
     f <- .OpenConnText(bim.fn, TRUE)
@@ -539,7 +540,7 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     }
 
     if (verbose)
-        cat("\tBIM file: \"", bim.fn, "\", DONE.\n", sep="")
+        cat("    BIM file: ", shQuote(bim.fn), "\n", sep="")
 
     # create GDS file
     gfile <- createfn.gds(out.gdsfn)
@@ -594,8 +595,8 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     nSamp <- dim(famD)[1L]; nSNP <- dim(bimD)[1L]
     if (verbose)
     {
-        cat(date(), "\tstore sample id, snp id, position, and chromosome.\n")
-        cat(sprintf("\tstart writing: %d samples, %d SNPs ...\n", nSamp, nSNP))
+        cat(date(), "    (store sample id, snp id, position, and chromosome)\n")
+        cat(sprintf("    start writing: %d samples, %d SNPs ...\n", nSamp, nSNP))
     }
 
     # add "gonetype", 2 bits to store one genotype
@@ -993,7 +994,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
 
     if (verbose)
     {
-        cat("VCF Format ==> SNP GDS Format\n")
+        cat("Start file conversion from VCF to SNP GDS ...\n")
         if (metidx == 1L)
             cat("Method: exacting biallelic SNPs\n")
         else

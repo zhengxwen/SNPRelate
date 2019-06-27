@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.18.1
+-------------------------
+
+    o support long vector in `snpgdsIBDSelection()`
+
+
 CHANGES IN VERSION 1.18.0
 -------------------------
 

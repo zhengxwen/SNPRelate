@@ -1203,7 +1203,7 @@ void CProgress::ShowProgress()
 		if (fCounter >= fTotalCount)
 		{
 			s = difftime(_last_time, _start_time);
-			Rprintf("\r[%s] 100%%, completed in %s\n", bar, time_str(s));
+			Rprintf("\r[%s] 100%%, completed, %s\n", bar, time_str(s));
 		} else if ((interval >= 5) || (fCounter <= 0))
 		{
 			Rprintf("\r[%s] %2.0f%%, ETC: %s        ", bar, p, time_str(s));
