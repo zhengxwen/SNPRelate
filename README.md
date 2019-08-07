@@ -21,25 +21,23 @@ The GDS format offers the efficient operations specifically designed for integer
 
 ## Bioconductor
 
-Release Version: v1.18.0
+Release Version: v1.18.1
 
-[http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
+[http://www.bioconductor.org/packages/SNPRelate](http://www.bioconductor.org/packages/SNPRelate)
 
-Development Version: v1.19.0
+Development Version: v1.19.1
 
 [http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html](http://www.bioconductor.org/packages/devel/bioc/html/SNPRelate.html)
 
 
 ## News
 
-* Supports the [SeqArray](http://bioconductor.org/packages/release/bioc/html/SeqArray.html) GDS format, see [the vignette](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html#integration-with-snprelate).
+* SNPRelate (≥ v1.4.0) supports the [SeqArray](http://bioconductor.org/packages/release/bioc/html/SeqArray.html) GDS format, see [the vignette](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html#integration-with-snprelate)
 
 * See [package news](NEWS)
 
 
 ## Tutorials
-
-[http://corearray.sourceforge.net/tutorials/SNPRelate](http://corearray.sourceforge.net/tutorials/SNPRelate)
 
 [http://www.bioconductor.org/packages/devel/bioc/vignettes/SNPRelate/inst/doc/SNPRelateTutorial.html](http://www.bioconductor.org/packages/devel/bioc/vignettes/SNPRelate/inst/doc/SNPRelateTutorial.html)
 
