@@ -2,8 +2,8 @@ Package: SNPRelate
 Type: Package
 Title: Parallel Computing Toolset for Relatedness and Principal Component
         Analysis of SNP Data
-Version: 1.18.1
-Date: 2019-06-27
+Version: 1.19.2
+Date: 2019-08-21
 Depends: R (>= 2.15), gdsfmt (>= 1.8.3)
 LinkingTo: gdsfmt
 Imports: methods
@@ -31,7 +31,8 @@ Description: Genome-wide association studies (GWAS) are widely used to
         GWASTools package with the support of S4 classes and generic functions.
         The extended GDS format is implemented in the SeqArray package to
         support the storage of single nucleotide variations (SNVs),
-        insertion/deletion polymorphism (indel) and structural variation calls.
+        insertion/deletion polymorphism (indel) and structural variation calls in
+        whole-genome and whole-exome variant data.
 License: GPL-3
 VignetteBuilder: knitr
 URL: http://github.com/zhengxwen/SNPRelate,

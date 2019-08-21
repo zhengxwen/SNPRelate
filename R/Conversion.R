@@ -418,7 +418,7 @@ snpgdsGDS2BED <- function(gdsobj, bed.fn, sample.id=NULL, snp.id=NULL,
         cat("Output a BED file ...\n");
 
     # call C function
-    .Call(gnrConvGDS2BED, paste(bed.fn, ".bed", sep=""),
+    .Call(gnrConvGDS2BED, path.expand(paste(bed.fn, ".bed", sep="")),
         snpfirstdim, verbose)
 
     if (verbose) cat("Done.\n")
