@@ -10,11 +10,11 @@ Imports: methods
 Suggests: parallel, Matrix, RUnit, knitr, MASS, BiocGenerics
 Enhances: SeqArray (>= 1.12.0)
 Authors@R: c(person("Xiuwen", "Zheng", role=c("aut", "cre", "cph"),
-        email="zhengx@u.washington.edu"),
+        email="zhengx@u.washington.edu", comment=c(ORCID="0000-0002-1390-0708")),
         person("Stephanie", "Gogarten", role="ctb"),
         person("Cathy", "Laurie", role="ctb"),
         person("Bruce", "Weir", role=c("ctb", "ths"),
-        email="bsweir@u.washington.edu"))
+        email="bsweir@u.washington.edu", comment=c(ORCID="0000-0002-4883-1247")))
 Description: Genome-wide association studies (GWAS) are widely used to
         investigate the genetic basis of diseases and traits, but they
         pose many computational challenges. We developed an R package
