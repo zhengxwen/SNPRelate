@@ -1,7 +1,10 @@
-CHANGES IN VERSION 1.19.2
+CHANGES IN VERSION 1.20.0
 -------------------------
 
     o a leading tilde in the file path is allowed in `snpgdsGDS2BED()`
+
+    o change the file name "vignettes/SNPRelateTutorial.Rmd" to "vignettes/SNPRelate.Rmd",
+      so `vignette("SNPRelate")` can work directly
 
 
 CHANGES IN VERSION 1.18.1

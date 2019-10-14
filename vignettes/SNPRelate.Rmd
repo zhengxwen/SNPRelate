@@ -3,24 +3,24 @@ title: "Tutorials for the R/Bioconductor Package SNPRelate"
 author: "Xiuwen Zheng (Department of Biostatistics, University of Washington -- Seattle)"
 date: "Mar 20, 2018"
 output:
-  html_document:
-    theme: spacelab
-    toc: yes
-  pdf_document:
-    toc: yes
-    toc_depth: 3
+    html_document:
+        theme: spacelab
+        toc: yes
+    pdf_document:
+        toc: yes
+        toc_depth: 3
 vignette: >
-  %\VignetteIndexEntry{SNPRelate Tutorial}
-  %\VignetteDepends{gdsfmt}
-  %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{SNPRelate Tutorial}
+    %\VignetteDepends{gdsfmt}
+    %\VignetteEngine{knitr::rmarkdown}
 ---
 
 
 # Overview
 
-Genome-wide association studies (GWAS) are widely used to help determine the genetic basis of diseases and traits, but they pose many computational challenges. We developed [gdsfmt](http://www.bioconductor.org/packages/gdsfmt/) and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/) (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures^1^. The kernels of our algorithms are written in C/C++ and have been highly optimized. The calculations of the genetic covariance matrix in PCA and pairwise IBD coefficients are split into non-overlapping parts and assigned to multiple cores for performance acceleration, as shown in Figure 1.
+Genome-wide association studies (GWAS) are widely used to help determine the genetic basis of diseases and traits, but they pose many computational challenges. We developed [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures^1^. The kernels of our algorithms are written in C/C++ and have been highly optimized. The calculations of the genetic covariance matrix in PCA and pairwise IBD coefficients are split into non-overlapping parts and assigned to multiple cores for performance acceleration, as shown in Figure 1.
 
-GDS is also used by the R/Bioconductor package [GWASTools](http://www.bioconductor.org/packages/GWASTools/) as one of its data storage formats^2,3^. [GWASTools](http://www.bioconductor.org/packages/GWASTools/) provides many functions for quality control and analysis of GWAS, including statistics by SNP or scan, batch quality, chromosome anomalies, association tests, etc. The extended GDS format is implemented in the [SeqArray](http://www.bioconductor.org/packages/SeqArray/) package to support the storage of single nucleotide variation (SNV), insertion/deletion polymorphism (indel) and structural variation calls. It is strongly suggested to use SeqArray for large-scale  whole-exome and whole-genome sequencing variant data instead of SNPRelate.
+GDS is also used by the R/Bioconductor package [GWASTools](http://www.bioconductor.org/packages/GWASTools) as one of its data storage formats^2,3^. [GWASTools](http://www.bioconductor.org/packages/GWASTools) provides many functions for quality control and analysis of GWAS, including statistics by SNP or scan, batch quality, chromosome anomalies, association tests, etc. The extended GDS format is implemented in the [SeqArray](http://www.bioconductor.org/packages/SeqArray) package to support the storage of single nucleotide variation (SNV), insertion/deletion polymorphism (indel) and structural variation calls. It is strongly suggested to use SeqArray for large-scale  whole-exome and whole-genome sequencing variant data instead of SNPRelate.
 
 
 ![Flowchart](SNPRelate-Flowchart.png)
@@ -29,7 +29,7 @@ GDS is also used by the R/Bioconductor package [GWASTools](http://www.bioconduct
 
 ~
 
-R is the most popular statistical programming environment, but one not typically optimized for high performance or parallel computing which would ease the burden of large-scale GWAS calculations. To overcome these limitations we have developed a project named CoreArray ([http://corearray.sourceforge.net/](http://corearray.sourceforge.net/)) that includes two R packages: [gdsfmt](http://www.bioconductor.org/packages/gdsfmt/) to provide efficient, platform independent memory and file management for genome-wide numerical data, and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/) to solve large-scale, numerically intensive GWAS calculations (i.e., PCA and IBD) on multi-core symmetric multiprocessing (SMP) computer architectures.
+R is the most popular statistical programming environment, but one not typically optimized for high performance or parallel computing which would ease the burden of large-scale GWAS calculations. To overcome these limitations we have developed a project named CoreArray ([http://corearray.sourceforge.net/](http://corearray.sourceforge.net/)) that includes two R packages: [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) to provide efficient, platform independent memory and file management for genome-wide numerical data, and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) to solve large-scale, numerically intensive GWAS calculations (i.e., PCA and IBD) on multi-core symmetric multiprocessing (SMP) computer architectures.
 
 This vignette takes the user through the relatedness and principal component analysis used for genome wide association data. The methods in these vignettes have been introduced in the paper of Zheng *et al.* (2012)^1^. For replication purposes the data used here are taken from the HapMap Phase II project. These data were kindly provided by the Center for Inherited Disease Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard University (Broad). The data supplied here should not be used for any purpose other than this tutorial.
 
@@ -38,7 +38,7 @@ $~$
 
 # Installation of the package SNPRelate
 
-To install the package [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/), you need a current version (>=2.14.0) of [R](http://www.r-project.org) and the R package [gdsfmt](http://www.bioconductor.org/packages/gdsfmt/). After installing [R](http://www.r-project.org) you can run the following commands from the [R](http://www.r-project.org) command shell to install the R package [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/).
+To install the package [SNPRelate](http://www.bioconductor.org/packages/SNPRelate), you need a current version (>=2.14.0) of [R](http://www.r-project.org) and the R package [gdsfmt](http://www.bioconductor.org/packages/gdsfmt). After installing [R](http://www.r-project.org) you can run the following commands from the [R](http://www.r-project.org) command shell to install the R package [SNPRelate](http://www.bioconductor.org/packages/SNPRelate).
 
 Install the package from Bioconductor repository:
 ```{r eval=FALSE}
@@ -63,7 +63,7 @@ $~$
 
 ## Data formats used in SNPRelate
 
-To support efficient memory management for genome-wide numerical data, the [gdsfmt](http://www.bioconductor.org/packages/gdsfmt/) package provides the genomic data structure (GDS) file format for array-oriented bioinformatic data, which is a container for storing annotation data and SNP genotypes. In this format each byte encodes up to four SNP genotypes thereby reducing file size and access time. The GDS format supports data blocking so that only the subset of data that is being processed needs to reside in memory. GDS formatted data is also designed for efficient random access to large data sets. A tutorial for the R/Bioconductor package [gdsfmt](http://www.bioconductor.org/packages/gdsfmt/) can be found: [http://corearray.sourceforge.net/tutorials/gdsfmt/](http://corearray.sourceforge.net/tutorials/gdsfmt/).
+To support efficient memory management for genome-wide numerical data, the [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) package provides the genomic data structure (GDS) file format for array-oriented bioinformatic data, which is a container for storing annotation data and SNP genotypes. In this format each byte encodes up to four SNP genotypes thereby reducing file size and access time. The GDS format supports data blocking so that only the subset of data that is being processed needs to reside in memory. GDS formatted data is also designed for efficient random access to large data sets. A tutorial for the R/Bioconductor package [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) can be found: [http://corearray.sourceforge.net/tutorials/gdsfmt/](http://corearray.sourceforge.net/tutorials/gdsfmt/).
 
 ```{r}
 # Load the R packages: gdsfmt and SNPRelate
@@ -76,14 +76,14 @@ Here is a typical GDS file:
 snpgdsSummary(snpgdsExampleFileName())
 ```
 
-`snpgdsExampleFileName()` returns the file name of a GDS file used as an example in [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/), and it is a subset of data from the HapMap project and the samples were genotyped by the Center for Inherited Disease Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard University (Broad). `snpgdsSummary()` summarizes the genotypes stored in the GDS file. "Individual-major mode" indicates listing all SNPs for an individual before listing the SNPs for the next individual, etc. Conversely, "SNP-major mode" indicates listing all individuals for the first SNP before listing all individuals for the second SNP, etc. Sometimes "SNP-major mode" is more computationally efficient than "individual-major model". For example, the calculation of genetic covariance matrix deals with genotypic data SNP by SNP, and then "SNP-major mode" should be more efficient.
+`snpgdsExampleFileName()` returns the file name of a GDS file used as an example in [SNPRelate](http://www.bioconductor.org/packages/SNPRelate), and it is a subset of data from the HapMap project and the samples were genotyped by the Center for Inherited Disease Research (CIDR) at Johns Hopkins University and the Broad Institute of MIT and Harvard University (Broad). `snpgdsSummary()` summarizes the genotypes stored in the GDS file. "Individual-major mode" indicates listing all SNPs for an individual before listing the SNPs for the next individual, etc. Conversely, "SNP-major mode" indicates listing all individuals for the first SNP before listing all individuals for the second SNP, etc. Sometimes "SNP-major mode" is more computationally efficient than "individual-major model". For example, the calculation of genetic covariance matrix deals with genotypic data SNP by SNP, and then "SNP-major mode" should be more efficient.
 
 ```{r}
 # Open a GDS file
 (genofile <- snpgdsOpen(snpgdsExampleFileName()))
 ```
 
-The output lists all variables stored in the GDS file. At the first level, it stores variables *sample.id*, *snp.id*, etc. The additional information are displayed in the braces indicating data type, size, compressed or not + compression ratio. The second-level variables *sex* and *pop.group* are both stored in the folder of *sample.annot*. All of the functions in [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/) require a minimum set of variables in the annotation data. The minimum required variables are
+The output lists all variables stored in the GDS file. At the first level, it stores variables *sample.id*, *snp.id*, etc. The additional information are displayed in the braces indicating data type, size, compressed or not + compression ratio. The second-level variables *sex* and *pop.group* are both stored in the folder of *sample.annot*. All of the functions in [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) require a minimum set of variables in the annotation data. The minimum required variables are
 
 * *sample.id*, a unique identifier for each sample.
 * *snp.id*, a unique identifier for each SNP.
@@ -169,7 +169,7 @@ snpgdsClose(genofile)
 
 ### Using the gdsfmt package
 
-In the following code, the functions `createfn.gds()`, `add.gdsn()`, `put.attr.gdsn()`, `write.gdsn()` and `index.gdsn()` are defined in the package [gdsfmt](http://www.bioconductor.org/packages/gdsfmt/):
+In the following code, the functions `createfn.gds()`, `add.gdsn()`, `put.attr.gdsn()`, `write.gdsn()` and `index.gdsn()` are defined in the package [gdsfmt](http://www.bioconductor.org/packages/gdsfmt):
 
 ```{r eval=FALSE}
 # Create a new GDS file
@@ -247,7 +247,7 @@ closefn.gds(newfile)
 
 ## Format conversion from PLINK text/binary files
 
-The [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/) package provides a function `snpgdsPED2GDS()` and `snpgdsBED2GDS()` for converting a PLINK text/binary file to a GDS file:
+The [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) package provides a function `snpgdsPED2GDS()` and `snpgdsBED2GDS()` for converting a PLINK text/binary file to a GDS file:
 
 ```{r}
 # The PLINK BED file, using the example in the SNPRelate package
@@ -272,7 +272,7 @@ snpgdsSummary("test.gds")
 
 ## Format conversion from VCF files
 
-The [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/) package provides a function `snpgdsVCF2GDS()` to reformat a VCF file. There are two options for extracting markers from a VCF file for downstream analyses:
+The [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) package provides a function `snpgdsVCF2GDS()` to reformat a VCF file. There are two options for extracting markers from a VCF file for downstream analyses:
 1. to extract and store dosage of the reference allele only for biallelic SNPs
 2. to extract and store dosage of the reference allele for all variant sites, including bi-allelic SNPs, multi-allelic SNPs, indels and structural variants.
 
@@ -295,7 +295,7 @@ snpgdsSummary("test.gds")
 
 ## Format conversion from VCF files using SeqArray
 
-The [SeqArray](http://www.bioconductor.org/packages/SeqArray/) package provides a function `seqVCF2GDS()` to reformat a VCF file, and it allows merging multiple VCF files during format conversion. The genotypic and annotation data are stored in a compressed manner by default. SeqArray is suited for large-scale whole-exome and whole-genome sequencing variant data. See: [SeqArray Data Management](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/SeqArrayTutorial.html) for more details. It is strongly suggested to use SeqArray for large-scale whole-genome sequencing variant data.
+The [SeqArray](http://www.bioconductor.org/packages/SeqArray) package provides a function `seqVCF2GDS()` to reformat a VCF file, and it allows merging multiple VCF files during format conversion. The genotypic and annotation data are stored in a compressed manner by default. SeqArray is suited for large-scale whole-exome and whole-genome sequencing variant data. See: [SeqArray Data Management](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/SeqArrayTutorial.html) for more details. It is strongly suggested to use SeqArray for large-scale whole-genome sequencing variant data.
 
 ```R
 library(SeqArray)
@@ -359,7 +359,7 @@ Get Data:
 # open a GDS file
 genofile <- seqOpen("test.gds")
 ```
-It is suggested to use `seqGetData()` to take out data from the SeqArray file since this function can take care of variable-length data and multi-allelic genotypes, although users could also use `read.gdsn()` in the [gdsfmt](http://www.bioconductor.org/packages/gdsfmt/) package to read data.
+It is suggested to use `seqGetData()` to take out data from the SeqArray file since this function can take care of variable-length data and multi-allelic genotypes, although users could also use `read.gdsn()` in the [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) package to read data.
 
 ```R
 # take out sample id
@@ -449,7 +449,7 @@ $~$
 
 # Data Analysis
 
-We developed [gdsfmt](http://www.bioconductor.org/packages/gdsfmt/) and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/) (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures.
+We developed [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) (high-performance computing R packages for multi-core symmetric multiprocessing computer architectures) to accelerate two key computations in GWAS: principal component analysis (PCA) and relatedness analysis using identity-by-descent (IBD) measures.
 
 ```{r}
 # Open the GDS file
@@ -490,7 +490,7 @@ $~$
 
 ## Principal Component Analysis (PCA)
 
-The functions in [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/) for PCA include calculating the genetic covariance matrix from genotypes, computing the correlation coefficients between sample loadings and genotypes for each SNP, calculating SNP eigenvectors (loadings), and estimating the sample loadings of a new dataset from specified SNP eigenvectors.
+The functions in [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) for PCA include calculating the genetic covariance matrix from genotypes, computing the correlation coefficients between sample loadings and genotypes for each SNP, calculating SNP eigenvectors (loadings), and estimating the sample loadings of a new dataset from specified SNP eigenvectors.
 
 ```{r}
 # Run PCA
@@ -619,7 +619,7 @@ $~$
 
 ## Relatedness Analysis
 
-For relatedness analysis, identity-by-descent (IBD) estimation in [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/) can be done by either the method of moments (MoM) (Purcell et al., 2007) or maximum likelihood estimation (MLE) (Milligan, 2003; Choi et al., 2009). For both of these methods it is preffered to use a LD pruned SNP set.
+For relatedness analysis, identity-by-descent (IBD) estimation in [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) can be done by either the method of moments (MoM) (Purcell et al., 2007) or maximum likelihood estimation (MLE) (Milligan, 2003; Choi et al., 2009). For both of these methods it is preffered to use a LD pruned SNP set.
 
 ```{r}
 # YRI samples
@@ -788,8 +788,8 @@ $~$
 # Resources
 
 1. The CoreArray project: [http://corearray.sourceforge.net/](http://corearray.sourceforge.net/)
-2. [gdsfmt](http://www.bioconductor.org/packages/gdsfmt/) R package: [http://www.bioconductor.org/packages/gdsfmt/](http://www.bioconductor.org/packages/gdsfmt/)
-3. [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/) R package: [http://www.bioconductor.org/packages/SNPRelate/](http://www.bioconductor.org/packages/SNPRelate/)
+2. [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) R package: [http://www.bioconductor.org/packages/gdsfmt](http://www.bioconductor.org/packages/gdsfmt)
+3. [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) R package: [http://www.bioconductor.org/packages/SNPRelate](http://www.bioconductor.org/packages/SNPRelate)
 4. GENEVA software: [http://www.genome.gov/27541319](http://www.genome.gov/27541319)
 5. [GWASTools](http://www.bioconductor.org/packages/release/bioc/html/GWASTools.html): an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies
 
@@ -820,4 +820,4 @@ $~$
 
 # Acknowledgements
 
-The author would like to thank members of the GENEVA consortium ([http://www.genome.gov/27541319](http://www.genome.gov/27541319)) for access to the data used for testing the [gdsfmt](http://www.bioconductor.org/packages/gdsfmt/) and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate/) packages.
+The author would like to thank members of the ([GENEVA](http://www.genome.gov/27541319)) consortium (2017-2012) for access to the data used for testing the [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) packages.
