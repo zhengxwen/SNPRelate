@@ -297,7 +297,7 @@ snpgdsSummary("test.gds")
 
 ## Format conversion from VCF files using SeqArray
 
-The [SeqArray](http://www.bioconductor.org/packages/SeqArray) package provides a function `seqVCF2GDS()` to reformat a VCF file, and it allows merging multiple VCF files during format conversion. The genotypic and annotation data are stored in a compressed manner by default. SeqArray is suited for large-scale whole-exome and whole-genome sequencing variant data. See: [SeqArray Data Management](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/SeqArrayTutorial.html) for more details. It is strongly suggested to use SeqArray for large-scale whole-genome sequencing variant data.
+The [SeqArray](http://www.bioconductor.org/packages/SeqArray) package provides a function `seqVCF2GDS()` to reformat a VCF file, and it allows merging multiple VCF files during format conversion. The genotypic and annotation data are stored in a compressed manner by default. SeqArray is suited for large-scale whole-exome and whole-genome sequencing variant data. See: [SeqArray R Integration](http://bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html) for more details. It is strongly suggested to use SeqArray for large-scale whole-genome sequencing variant data.
 
 ```R
 library(SeqArray)
