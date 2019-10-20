@@ -23,9 +23,9 @@ CHANGES IN VERSION 1.18.0
 CHANGES IN VERSION 1.16.0
 -------------------------
 
-    o a new option 'useMatrix' to allow for the packed symmetric matrix using
-      the Matrix package in `snpgdsIBDMoM()`, `snpgdsIBDKING()`,
-      `snpgdsIBS()`, `snpgdsIndivBeta()` and `snpgdsGRM()` to reduce memory usages
+    o a new option 'useMatrix' for the packed symmetric matrix using the Matrix package
+      in `snpgdsIBDMoM()`, `snpgdsIBDKING()`, `snpgdsIBS()`, `snpgdsIndivBeta()` and
+      `snpgdsGRM()` to reduce memory usages
 
     o fix a bug of missing sample and SNP IDs in the output of `snpgdsIndInb()`
 

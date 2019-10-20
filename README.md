@@ -28,7 +28,9 @@ Release Version: v1.20.0
 
 ## News
 
-* SNPRelate (≥ v1.4.0) supports the [SeqArray](http://bioconductor.org/packages/release/bioc/html/SeqArray.html) GDS format, see [the vignette](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html#integration-with-snprelate)
+* v1.16.0: a new option 'useMatrix' for the packed symmetric matrix using [Matrix](https://cran.r-project.org/web/packages/Matrix/index.html) to reduce memory usages
+
+* v1.4.0: supports the [SeqArray](http://bioconductor.org/packages/SeqArray) GDS format, see [the vignette](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html#integration-with-snprelate)
 
 * See [package news](NEWS)
 
@@ -65,8 +67,6 @@ The `install_github()` approach requires that you build from source, i.e. `make`
 
 
 ## Implementation with Intel Intrinsics
-
-### Implementation Table:
 
 | Functions             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
 |:----------------------|:-------:|:----:|:---:|:----:|:-------:|
