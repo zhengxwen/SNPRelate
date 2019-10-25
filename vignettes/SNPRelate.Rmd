@@ -25,7 +25,7 @@ Genome-wide association studies (GWAS) are widely used to help determine the gen
 GDS is also used by the R/Bioconductor package [GWASTools](http://www.bioconductor.org/packages/GWASTools) as one of its data storage formats^2,3^. [GWASTools](http://www.bioconductor.org/packages/GWASTools) provides many functions for quality control and analysis of GWAS, including statistics by SNP or scan, batch quality, chromosome anomalies, association tests, etc. The extended GDS format is implemented in the [SeqArray](http://www.bioconductor.org/packages/SeqArray) package to support the storage of single nucleotide variation (SNV), insertion/deletion polymorphism (indel) and structural variation calls. It is strongly suggested to use SeqArray for large-scale  whole-exome and whole-genome sequencing variant data instead of SNPRelate.
 
 
-![Flowchart](SNPRelate-Flowchart.png)
+![Flowchart](flowchart.svg)
 
 **Figure 1**: Flowchart of parallel computing for principal component analysis and identity-by-descent analysis.
 
@@ -297,7 +297,7 @@ snpgdsSummary("test.gds")
 
 ## Format conversion from VCF files using SeqArray
 
-The [SeqArray](http://www.bioconductor.org/packages/SeqArray) package provides a function `seqVCF2GDS()` to reformat a VCF file, and it allows merging multiple VCF files during format conversion. The genotypic and annotation data are stored in a compressed manner by default. SeqArray is suited for large-scale whole-exome and whole-genome sequencing variant data. See: [SeqArray R Integration](http://bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html) for more details. It is strongly suggested to use SeqArray for large-scale whole-genome sequencing variant data.
+The [SeqArray](http://www.bioconductor.org/packages/SeqArray) package provides a function `seqVCF2GDS()` to reformat a VCF file, and it allows merging multiple VCF files during format conversion. The genotypic and annotation data are stored in a compressed manner by default. SeqArray is suited for large-scale whole-exome and whole-genome sequencing variant data. See: [SeqArray R Integration](http://www.bioconductor.org/packages/devel/bioc/vignettes/SeqArray/inst/doc/SeqArray.html) for more details. It is strongly suggested to use SeqArray for large-scale whole-genome sequencing variant data.
 
 ```R
 library(SeqArray)
