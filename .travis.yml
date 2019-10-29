@@ -9,8 +9,8 @@ r_binary_packages:
   - knitr
 
 # Install packages from github
-r_github_packages:
-  - zhengxwen/gdsfmt
+bioc_packages:
+  - gdsfmt
 
 # systems
 os:
