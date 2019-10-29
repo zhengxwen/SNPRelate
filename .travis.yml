@@ -8,11 +8,11 @@ r_binary_packages:
   - rmarkdown
   - knitr
 
-# Install packages from github
 bioc_packages:
   - gdsfmt
 
 # systems
 os:
   - linux
+  - osx
 
