@@ -792,7 +792,7 @@ $~$
 1. The CoreArray project: [http://corearray.sourceforge.net/](http://corearray.sourceforge.net/)
 2. [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) R package: [http://www.bioconductor.org/packages/gdsfmt](http://www.bioconductor.org/packages/gdsfmt)
 3. [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) R package: [http://www.bioconductor.org/packages/SNPRelate](http://www.bioconductor.org/packages/SNPRelate)
-4. [GENEVA](https://www.biostat.washington.edu/research/collaborators/geneva)
+4. Gene Environment Association Studies ([GENEVA](https://www.biostat.washington.edu/research/collaborators/geneva)) program
 5. [GWASTools](http://www.bioconductor.org/packages/GWASTools): an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies
 
 
@@ -822,4 +822,4 @@ $~$
 
 # Acknowledgements
 
-The author would like to thank members of the ([GENEVA](https://www.biostat.washington.edu/research/collaborators/geneva)) consortium (2017-2012) for access to the data used for testing the [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) packages.
+The author would like to thank members of the ([GENEVA](https://www.biostat.washington.edu/research/collaborators/geneva)) consortium (2007-2012) for access to the data used for testing the [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) packages.
