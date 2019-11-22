@@ -64,9 +64,11 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         class(rv) <- "snpgdsPCAClass"
     } else if (algorithm == "randomized")
     {
+        vp <- 2 * rv[[1L]]^2 / rv[[3L]]
         rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
-            eigenval = rv[[1L]], eigenvect = t(rv[[2L]][seq_len(eigen.cnt), ]),
-            varprop = NaN,
+            eigenval = (length(ws$sample.id)-1L) * vp,
+            eigenvect = t(rv[[2L]][seq_len(eigen.cnt), ]),
+            varprop = vp,
             TraceXTX = rv[[3L]], Bayesian = FALSE)
         class(rv) <- "snpgdsPCAClass"
     }
