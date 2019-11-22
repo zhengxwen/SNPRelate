@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.20.1
+-------------------------
+
+    o TraceXTX is calculated in `snpgdsPCA(, algorithm="randomized")`
+
+
 CHANGES IN VERSION 1.20.0
 -------------------------
 

@@ -473,8 +473,9 @@ private:
 	size_t nSamp;  /// the number of selected samples
 	size_t nSNP;   /// the number of selected SNPs
 	double *AuxMat;  /// auxiliary matrix (G_i = nSamp X AuxDim)
-	size_t AuxDim;  /// the number of columns
-	int IterNum;  /// the number of iterations
+	size_t AuxDim;   /// the number of columns
+	int IterNum;     /// the number of iterations
+	double TraceXTX;  /// Trace of covariance matrix
 
 	size_t hsize;  /// the number of columns
 	VEC_AUTO_PTR<double> MatH;
@@ -490,25 +491,36 @@ private:
 
 	// auxiliary thread variables
 	vector<size_t> thread_start, thread_length;
+	CMutex mutex;
 
+	/// update normalized genotypes (Y)
 	void thread_lookup_y(size_t i, size_t n)
 	{
 		C_UInt8 *g = &Geno[i * nSamp];
 		double *Y = &LookupY[(iSNP + i) * 4];
-		for (; n > 0; n--)
+		double trace = 0;
+		for (; n > 0; n--, g+=nSamp, Y+=4)
 		{
 			C_Int32 sum, num;
 			vec_u8_geno_count(g, nSamp, sum, num);
-			g += nSamp;
 
 			double avg = (num>0) ? (double)sum / num : 0;
 			double p = avg * 0.5;
 			double s = (0<p && p<1) ? 1.0 / sqrt(2*p*(1-p)) : 0;
-
 			Y[0] = (0 - avg) * s; Y[1] = (1 - avg) * s;
 			Y[2] = (2 - avg) * s; Y[3] = 0;
-			Y += 4;
+
+			// get traceXTX
+			for (size_t i=0; i < nSamp; i++)
+			{
+				C_UInt8 gg = g[i];
+				if (gg <= 2) trace += Y[gg] * Y[gg];
+			}
 		}
+		// update TraceXTX
+		mutex.Lock();
+		TraceXTX += trace;
+		mutex.Unlock();
 	}
 
 	void thread_Y_x_G_i(size_t i, size_t num)
@@ -676,6 +688,7 @@ public:
 		AuxMat_mc.Reset(nSamp * AuxDim * (NumThread - 1));
 		thread_start.resize(NumThread);
 		thread_length.resize(NumThread);
+		TraceXTX = 0;
 
 		// thread thpool
 		CThreadPoolEx<CRandomPCA> thpool(NumThread);
@@ -693,10 +706,8 @@ public:
 				// need to initialize the variable LookupY
 				if (iteration == 0)
 					thpool.BatchWork(this, &CRandomPCA::thread_lookup_y, WS.Count());
-
 				// update H_i = Y * G_i (G_i stored in AuxMat)
 				thpool.BatchWork(this, &CRandomPCA::thread_Y_x_G_i, WS.Count());
-
 				// update
 				WS.ProgressForward(WS.Count());
 			}
@@ -706,14 +717,12 @@ public:
 			{
 				memset(AuxMat, 0, sizeof(double)*AuxDim*nSamp);
 				memset(AuxMat_mc.Get(), 0, sizeof(double)*AuxMat_mc.Length());
-
 				WS.Init();
 				while (WS.Read(Geno.Get(), iSNP))
 				{
 					// update G_{i+1} = Y^T * H_i
 					thpool.Split(NumThread, WS.Count(), &thread_start[0], &thread_length[0]);
 					thpool.BatchWork(this, &CRandomPCA::thread_YT_x_H_i, NumThread);
-
 					if (NumThread > 1)
 					{
 						// update G_{i+1} from AuxMat_mc
@@ -721,11 +730,9 @@ public:
 						for (size_t i=0; i < (size_t)NumThread-1; i++)
 							vec_f64_add(AuxMat, &AuxMat_mc[i * n], n);
 					}
-
 					// update
 					WS.ProgressForward(WS.Count());
 				}
-
 				// divide AuxMat by nSNP
 				vec_f64_mul(AuxMat, AuxDim*nSamp, 1.0/nSNP);
 			}
@@ -765,15 +772,18 @@ public:
 		vector<double> sigma(nSamp);
 		svd_vt(&MatT[0], hsize, nSamp, &sigma[0]);
 
-		SEXP rv_ans = PROTECT(NEW_LIST(2));
+		SEXP rv_ans = PROTECT(NEW_LIST(3));
 		{
+			// eigenvalues
 			SEXP d = NEW_NUMERIC(nSamp);
 			memcpy(REAL(d), &sigma[0], sizeof(double) * nSamp);
 			SET_ELEMENT(rv_ans, 0, d);
-
+			// eigenvectors
 			SEXP h = Rf_allocMatrix(REALSXP, hsize, nSamp);
 			memcpy(REAL(h), &MatT[0], sizeof(double) * nSamp * hsize);
 			SET_ELEMENT(rv_ans, 1, h);
+			// trace of XTX
+			SET_ELEMENT(rv_ans, 2, ScalarReal(TraceXTX*2));
 		}
 
 		UNPROTECT(1);
@@ -1335,8 +1345,8 @@ COREARRAY_DLL_LOCAL int CalcEigen(double *pMat, int n, int nEig,
 // ========================================================================
 
 /// Compute the eigenvalues and eigenvectors
-COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm,
-	SEXP NumThread, SEXP ParamList, SEXP Verbose)
+COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm, SEXP NumThread,
+	SEXP ParamList, SEXP Verbose)
 {
 	const bool verbose = SEXP_Verbose(Verbose);
 	int nThread = Rf_asInteger(NumThread);
@@ -1377,7 +1387,6 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm,
 			int nProtected = 0;
 			PROTECT(rv_ans = NEW_LIST(5));
 			nProtected ++;
-
 			SET_ELEMENT(rv_ans, 0, ScalarReal(TraceXTX));
 			SET_ELEMENT(rv_ans, 4, ScalarReal(TraceVal));
 
@@ -1425,6 +1434,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm,
 				Rf_asInteger(RGetListElement(ParamList, "aux.dim")),
 				Rf_asInteger(RGetListElement(ParamList, "iter.num")));
 			rv_ans = pca.Run(nThread, verbose);
+
 		} else
 			throw "Invalid 'algorithm'.";
 

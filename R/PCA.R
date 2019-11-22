@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2017        Xiuwen Zheng
+# Copyright (C) 2011 - 2019        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -65,9 +65,9 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     } else if (algorithm == "randomized")
     {
         rv <- list(sample.id = ws$sample.id, snp.id = ws$snp.id,
-            eigenval = rv[[1L]], eigenvect = t(rv[[2]][seq_len(eigen.cnt), ]),
+            eigenval = rv[[1L]], eigenvect = t(rv[[2L]][seq_len(eigen.cnt), ]),
             varprop = NaN,
-            TraceXTX = NaN, Bayesian = FALSE)
+            TraceXTX = rv[[3L]], Bayesian = FALSE)
         class(rv) <- "snpgdsPCAClass"
     }
     return(rv)
