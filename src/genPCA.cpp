@@ -1727,7 +1727,7 @@ static SEXP merge_mat(PdGDSObj out_gdsn, PdGDSObj list_gdsn[], const int nGDS,
 	// the buffer
 	vector<double> buf(N*nGDS), sum(N), sumW(N);
 	CProgress prog(verbose ? N : -1);
-	C_Int32 cnt[2] = { 1, N };
+	C_Int32 cnt[2] = { 1, (C_Int32)N };
 	// for-loop
 	for (int i=0; i < N; i++)
 	{
