@@ -517,8 +517,19 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
     xx <- flag
     if (inherits(flag, "Matrix")) xx <- as.matrix(xx)
 
+    # get indexes
+    if (length(xx) > 2147483647)
+    {
+        # work around long vector
+        v <- apply(xx, 2L, function(x) which(x))
+        n <- lengths(v)
+        i <- which(n > 0L)
+        ii <- data.frame(i1=unlist(v[i]), i2=rep(i, times=n[i]))
+    } else {
+        ii <- which(xx, TRUE)
+    }
+
     # output
-    ii <- which(xx, TRUE)
     ans <- data.frame(
         ID1 = ibdobj$sample.id[ii[,2L]], ID2 = ibdobj$sample.id[ii[,1L]],
         stringsAsFactors=FALSE)

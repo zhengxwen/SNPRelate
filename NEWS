@@ -1,18 +1,44 @@
-CHANGES IN VERSION 1.17.1-1.17.3
+CHANGES IN VERSION 1.21.1
+-------------------------
+
+    o `snpgdsGRM()` saves lower triangular GRM matrix to a GDS file
+
+
+CHANGES IN VERSION 1.20.1
+-------------------------
+
+    o Bug fix: eigenvalues and TraceXTX are correctly calculated in
+      `snpgdsPCA(, algorithm="randomized")`
+
+
+CHANGES IN VERSION 1.20.0
+-------------------------
+
+    o a leading tilde in the file path is allowed in `snpgdsGDS2BED()`
+
+    o change the file name "vignettes/SNPRelateTutorial.Rmd" to "vignettes/SNPRelate.Rmd",
+      so `vignette("SNPRelate")` can work directly
+
+
+CHANGES IN VERSION 1.18.1
+-------------------------
+
+    o support long vector in `snpgdsIBDSelection()`
+
+
+CHANGES IN VERSION 1.18.0
 -------------------------
 
     o `snpgdsBED2GDS()` allows a single file name without the extended file
       names (.bed, .fam, .bim)
 
-    o `snpgdsGRM()` saves lower triangular GRM matrix to a GDS file
-
 
 CHANGES IN VERSION 1.16.0
 -------------------------
 
-    o a new option 'useMatrix' to allow for the packed symmetric matrix using
-      the Matrix package in `snpgdsIBDMoM()`, `snpgdsIBDKING()`,
-      `snpgdsIBS()`, `snpgdsIndivBeta()` and `snpgdsGRM()`
+    o a new option 'useMatrix' for the packed symmetric matrix using the Matrix package
+      in `snpgdsIBDMoM()`, `snpgdsIBDKING()`, `snpgdsIBS()`, `snpgdsIndivBeta()` and
+      `snpgdsGRM()` to reduce memory usages
 
     o fix a bug of missing sample and SNP IDs in the output of `snpgdsIndInb()`
 
@@ -32,7 +58,7 @@ CHANGES IN VERSION 1.14.0
 
     o support Intel C++ compiler with SSE2/AVX2
     
-    o allow interrupt requests in the calculation
+    o allow interrupting requests in the calculation
 
     o new method options in `snpgdsPairScore()`: GVH.major, GVH.minor,
       GVH.major.only, GVH.minor.only

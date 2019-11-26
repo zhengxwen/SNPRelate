@@ -100,7 +100,7 @@ head(RV$eigenval)
 head(round(RV$varprop*100, 2))
 # [1] 12.23  5.84  1.01  0.95  0.84  0.74
 
-
+# draw
 plot(RV)
 plot(RV, 1:4)
 

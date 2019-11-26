@@ -32,7 +32,8 @@ snpgdsDiss(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     The minor allele frequency and missing rate for each SNP passed in
 \code{snp.id} are calculated over all the samples in \code{sample.id}.
 
-    The individual dissimilarity is defined as 1 - beta_ij (see Weir & Goudet 2017).
+    \code{snpgdsDiss()} returns \code{1 - beta_ij} which is formally described in
+Weir&Goudet (2017).
 }
 \value{
     Return a class "snpgdsDissClass":

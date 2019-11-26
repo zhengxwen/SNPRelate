@@ -29,7 +29,7 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
         no missing threshold}
     \item{method}{"GCTA" -- genetic relationship matrix defined in CGTA;
         "Eigenstrat" -- genetic covariance matrix in EIGENSTRAT;
-        "EIGMIX" -- two times coancestry matrix defined in Zheng & Weir (2015),
+        "EIGMIX" -- two times coancestry matrix defined in Zheng&Weir (2016),
         "Weighted" -- weighted GCTA, as the same as "EIGMIX",
         "Corr" -- Scaled GCTA GRM (dividing each i,j element by the
             product of the square root of the i,i and j,j elements),
@@ -62,10 +62,10 @@ diagadj=FALSE)$ibd`:
 $G_{ij} = [sum_l (g_{il} - 2*p_l)*(g_{jl} - 2*p_l)] / [sum_l 2*p_l*(1 - p_l)]$
 for individuals i,j and locus l;
 
-    "IndivBeta": `beta = snpgdsIndivBeta(, inbreeding=TRUE)`, and beta-based
-GRM is $grm_{ij} = 2 * (beta_{ij} - beta_{min}) / (1 - beta_{min})$ for $i!=j$,
-$grm_{ij} = 1 + (beta_{i} - beta_{min}) / (1 - beta_{min})$ for $i=j$. It is
-relative to the minimum value of beta estimates.
+    "IndivBeta": `beta = snpgdsIndivBeta(, inbreeding=TRUE)` (Weir&Goudet, 2017), and
+beta-based GRM is $grm_{ij} = 2 * (beta_{ij} - beta_{min}) / (1 - beta_{min})$ for $i!=j$,
+$grm_{ij} = 1 + (beta_{i} - beta_{min}) / (1 - beta_{min})$ for $i=j$. It is relative to
+the minimum value of beta estimates.
 }
 \value{
     Return a list if \code{with.id = TRUE}:
