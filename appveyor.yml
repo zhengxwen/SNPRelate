@@ -17,6 +17,7 @@ environment:
   - R_VERSION: stable
     R_ARCH: x64
     BIOC_USE_DEVEL: FALSE
+    PKGTYPE: both
 
 build_script:
   - travis-tool.sh install_bioc_deps
