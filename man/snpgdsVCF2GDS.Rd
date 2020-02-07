@@ -65,6 +65,12 @@ like "1", "22"). It uses "X" and "Y" for non-autosomes instead of numeric
 codes. However, some software format chromosomes in VCF files with a prefix
 "chr". Users should remove that prefix when importing VCF files by setting
 \code{ignore.chr.prefix = "chr"}.
+
+    The extended GDS format is implemented in the SeqArray package to support
+the storage of single nucleotide variation (SNV), insertion/deletion
+polymorphism (indel) and structural variation calls. It is strongly suggested
+to use SeqArray for large-scale whole-exome and whole-genome sequencing variant
+data instead of SNPRelate.
 }
 \references{
     The variant call format and VCFtools.

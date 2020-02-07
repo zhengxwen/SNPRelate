@@ -5,7 +5,7 @@
     Open a SNP GDS file
 }
 \usage{
-snpgdsOpen(filename, readonly=TRUE, allow.duplicate=FALSE, allow.fork=FALSE)
+snpgdsOpen(filename, readonly=TRUE, allow.duplicate=FALSE, allow.fork=TRUE)
 }
 \arguments{
     \item{filename}{the file name}

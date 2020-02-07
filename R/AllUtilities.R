@@ -31,7 +31,7 @@
 #
 
 snpgdsOpen <- function(filename, readonly=TRUE, allow.duplicate=FALSE,
-    allow.fork=FALSE)
+    allow.fork=TRUE)
 {
     ## open the GDS file
     ans <- openfn.gds(filename, readonly,

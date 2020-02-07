@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.21.2
+-------------------------
+
+    o 'allow.fork=TRUE' is the default in `snpgdsOpen()` since v1.21.2
+
+
 CHANGES IN VERSION 1.20.1
 -------------------------
 
@@ -10,8 +16,8 @@ CHANGES IN VERSION 1.20.0
 
     o a leading tilde in the file path is allowed in `snpgdsGDS2BED()`
 
-    o change the file name "vignettes/SNPRelateTutorial.Rmd" to "vignettes/SNPRelate.Rmd",
-      so `vignette("SNPRelate")` can work directly
+    o change the file name "vignettes/SNPRelateTutorial.Rmd" to
+      "vignettes/SNPRelate.Rmd", so `vignette("SNPRelate")` can work directly
 
 
 CHANGES IN VERSION 1.18.1
@@ -30,9 +36,9 @@ CHANGES IN VERSION 1.18.0
 CHANGES IN VERSION 1.16.0
 -------------------------
 
-    o a new option 'useMatrix' for the packed symmetric matrix using the Matrix package
-      in `snpgdsIBDMoM()`, `snpgdsIBDKING()`, `snpgdsIBS()`, `snpgdsIndivBeta()` and
-      `snpgdsGRM()` to reduce memory usages
+    o a new option 'useMatrix' for the packed symmetric matrix using the Matrix
+      package in `snpgdsIBDMoM()`, `snpgdsIBDKING()`, `snpgdsIBS()`,
+      `snpgdsIndivBeta()` and `snpgdsGRM()` to reduce memory usages
 
     o fix a bug of missing sample and SNP IDs in the output of `snpgdsIndInb()`
 
