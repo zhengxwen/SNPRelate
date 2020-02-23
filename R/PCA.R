@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2019        Xiuwen Zheng
+# Copyright (C) 2011 - 2020        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -45,13 +45,22 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
     if (genmat.only) need.genmat <- TRUE
     if (eigen.cnt <= 0L) eigen.cnt <- ws$n.samp
+    if (verbose)
+        .cat("    # of principal components: ", eigen.cnt)
 
     # call parallel PCA
     param <- list(bayesian=bayesian, need.genmat=need.genmat,
         genmat.only=genmat.only, eigen.method=eigen.method,
         aux.dim=aux.dim, iter.num=iter.num)
     if (algorithm == "randomized")
+    {
         param$aux.mat <- rnorm(aux.dim * ws$n.samp)
+        if (verbose)
+        {
+            .cat("    starting from a random matrix [", aux.dim, " x ",
+                ws$n.samp, "]")
+        }
+    }
     rv <- .Call(gnrPCA, eigen.cnt, algorithm, ws$num.thread, param, verbose)
 
     # return
