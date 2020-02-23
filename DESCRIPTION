@@ -2,8 +2,8 @@ Package: SNPRelate
 Type: Package
 Title: Parallel Computing Toolset for Relatedness and Principal Component
         Analysis of SNP Data
-Version: 1.21.1
-Date: 2019-11-21
+Version: 1.21.2
+Date: 2020-02-07
 Depends: R (>= 2.15), gdsfmt (>= 1.8.3)
 LinkingTo: gdsfmt
 Imports: methods
@@ -11,27 +11,28 @@ Suggests: parallel, Matrix, RUnit, knitr, MASS, BiocGenerics
 Enhances: SeqArray (>= 1.12.0)
 Authors@R: c(person("Xiuwen", "Zheng", role=c("aut", "cre", "cph"),
         email="zhengx@u.washington.edu", comment=c(ORCID="0000-0002-1390-0708")),
-        person("Stephanie", "Gogarten", role="ctb"),
-        person("Cathy", "Laurie", role="ctb"),
-        person("Bruce", "Weir", role=c("ctb", "ths"),
-        email="bsweir@u.washington.edu", comment=c(ORCID="0000-0002-4883-1247")))
-Description: Genome-wide association studies (GWAS) are widely used to investigate the
-        genetic basis of diseases and traits, but they pose many computational
-        challenges. We developed an R package SNPRelate to provide a binary format for
-        single-nucleotide polymorphism (SNP) data in GWAS utilizing CoreArray Genomic
-        Data Structure (GDS) data files. The GDS format offers the efficient operations
-        specifically designed for integers with two bits, since a SNP could occupy only
-        two bits. SNPRelate is also designed to accelerate two key computations on SNP
-        data using parallel computing for multi-core symmetric multiprocessing computer
-        architectures: Principal Component Analysis (PCA) and relatedness analysis using
-        Identity-By-Descent measures. The SNP GDS format is also used by the GWASTools
-        package with the support of S4 classes and generic functions. The extended GDS
-        format is implemented in the SeqArray package to support the storage of single
-        nucleotide variations (SNVs), insertion/deletion polymorphism (indel) and
+        person("Stephanie", "Gogarten", role="ctb", email="sdmorris@uw.edu"),
+        person("Cathy", "Laurie", role="ctb", email="cclaurie@uw.edu"),
+        person("Bruce", "Weir", role=c("ctb", "ths"), email="bsweir@uw.edu",
+        comment=c(ORCID="0000-0002-4883-1247")))
+Description: Genome-wide association studies (GWAS) are widely used to
+        investigate the genetic basis of diseases and traits, but they pose many
+        computational challenges. We developed an R package SNPRelate to provide
+        a binary format for single-nucleotide polymorphism (SNP) data in GWAS
+        utilizing CoreArray Genomic Data Structure (GDS) data files. The GDS
+        format offers the efficient operations specifically designed for
+        integers with two bits, since a SNP could occupy only two bits.
+        SNPRelate is also designed to accelerate two key computations on SNP
+        data using parallel computing for multi-core symmetric multiprocessing
+        computer architectures: Principal Component Analysis (PCA) and
+        relatedness analysis using Identity-By-Descent measures. The SNP GDS
+        format is also used by the GWASTools package with the support of S4
+        classes and generic functions. The extended GDS format is implemented
+        in the SeqArray package to support the storage of single nucleotide
+        variations (SNVs), insertion/deletion polymorphism (indel) and
         structural variation calls in whole-genome and whole-exome variant data.
 License: GPL-3
 VignetteBuilder: knitr
-URL: http://github.com/zhengxwen/SNPRelate,
-        http://corearray.sourceforge.net/tutorials/SNPRelate/
+URL: http://github.com/zhengxwen/SNPRelate
 BugReports: http://github.com/zhengxwen/SNPRelate/issues
 biocViews: Infrastructure, Genetics, StatisticalMethod, PrincipalComponent

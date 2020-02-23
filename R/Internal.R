@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2017        Xiuwen Zheng
+# Copyright (C) 2011 - 2020        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -50,6 +50,9 @@
         stop("The 'Matrix' package should be installed.")
     new("dspMatrix", uplo="L", Dim=c(n, n), x=x)
 }
+
+.cat <- function(...) cat(..., "\n", sep="")
+
 
 
 #######################################################################
@@ -256,14 +259,10 @@
             dm <- .seldim(gdsobj)
             if (verbose & verbose.work)
             {
-                cat("Working space: ",
-                    .pretty(dm[1L]), " sample", .plural(dm[1L]), ", ",
-                    .pretty(dm[2L]), " SNV", .plural(dm[2L]), "\n", sep="")
+                .cat("    # of samples: ", .pretty(dm[1L]))
+                .cat("    # of SNVs: ", .plural(dm[2L]))
                 if (verbose.numthread)
-                {
-                    cat("    using ", num.thread, " (CPU) core",
-                        .plural(num.thread), "\n", sep="")
-                }
+                    .cat("    using ", num.thread, " thread", .plural(num.thread))
             }
 
 			if (!is.null(allele.freq))
@@ -467,13 +466,10 @@
 
     if (verbose & verbose.work)
     {
-        cat("Working space: ", .pretty(dm[2L]), " sample", .plural(dm[2L]),
-            ", ", .pretty(dm[1L]), " ", SSS, .plural(dm[1L]), "\n", sep="")
+        .cat("    # of samples: ", .pretty(dm[2L]))
+        .cat("    # of ", SSS, .plural(dm[1L]), ": ", .pretty(dm[1L]))
         if (verbose.numthread)
-        {
-            cat("    using ", num.thread, " (CPU) core", .plural(num.thread),
-                "\n", sep="")
-        }
+            .cat("    using ", num.thread, " thread", .plural(num.thread))
     }
 
     # output

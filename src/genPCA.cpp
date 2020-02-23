@@ -2,7 +2,7 @@
 //
 // genPCA.cpp: Principal Component Analysis on GWAS
 //
-// Copyright (C) 2011-2019    Xiuwen Zheng
+// Copyright (C) 2011-2020    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -681,7 +681,7 @@ public:
 		size_t IncSNP = (256 / NumThread) * NumThread;
 		if (IncSNP < 16) IncSNP = 16;
 		if (verbose)
-			Rprintf("%s\n", TimeToStr());
+			Rprintf("%s    Iterating (n=%d)\n", TimeToStr(), IterNum);
 
 		Geno.Reset(nSamp * IncSNP);
 		Y_mc.Reset(nSamp * NumThread);
@@ -739,7 +739,10 @@ public:
 		}
 
 		if (verbose)
-			Rprintf("%s    Begin projecting genotypes and SVD\n", TimeToStr());
+		{
+			Rprintf("%s    Begin projecting genotypes and SVD (%d x %d)\n",
+				TimeToStr(), hsize, nSNP);
+		}
 
 		// SVD MatH, get vt stored in MatH
 		svd_vt(&MatH[0], hsize, nSNP, NULL);
@@ -748,7 +751,7 @@ public:
 		MatT.Reset(hsize*nSamp*NumThread);
 		memset(MatT.Get(), 0, sizeof(double)*MatT.Length());
 
-		// for-loop
+		// for-loop, TODO
 		WS.Init();
 		while (WS.Read(Geno.Get(), iSNP))
 		{
@@ -1266,14 +1269,14 @@ COREARRAY_DLL_LOCAL int CalcEigen(double *pMat, int n, int nEig,
 	// the method to compute eigenvalues and eigenvectors
 	if (strcmp(EigMethod, "DSPEV") == 0)
 	{
+		// DSPEV -- computes all the eigenvalues and, optionally,
+		// eigenvectors of a real symmetric matrix A in packed storage
+
 		vector<double> tmp_Work(n*3);
 		vector<double> tmp_EigenVec(n*n);
 
 		EigVal = PROTECT(NEW_NUMERIC(n));
 		nProtected ++;
-
-		// DSPEV -- computes all the eigenvalues and, optionally,
-		// eigenvectors of a real symmetric matrix A in packed storage
 
 		int info = 0;
 		F77_NAME(dspev)("V", "L", &n, pMat, REAL(EigVal),
@@ -1300,15 +1303,15 @@ COREARRAY_DLL_LOCAL int CalcEigen(double *pMat, int n, int nEig,
 
 	} else if (strcmp(EigMethod, "DSPEVX") == 0)
 	{
+		// DSPEVX -- compute selected eigenvalues and, optionally,
+		// eigenvectors of a real symmetric matrix A in packed storage
+
 		vector<double> tmp_Work(n*8);
 		vector<int>    tmp_IWork(n*5);
 
 		EigVal = PROTECT(NEW_NUMERIC(n));
 		EigVect = PROTECT(Rf_allocMatrix(REALSXP, n, nEig));
 		nProtected += 2;
-
-		// DSPEVX -- compute selected eigenvalues and, optionally,
-		// eigenvectors of a real symmetric matrix A in packed storage
 
 		int IL = 1, IU = nEig, LDZ = n;
 		double VL = 0, VU = 0;
