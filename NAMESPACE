@@ -31,7 +31,7 @@ export(.onAttach)
 import(gdsfmt)
 
 importFrom(methods, new)
-importFrom(utils, count.fields, read.table, write.table, packageVersion)
+importFrom(utils, count.fields, read.table, write.table, packageVersion, str)
 importFrom(stats, as.dendrogram, as.dist, dendrapply, hclust, is.leaf, sd,
     rnorm)
 importFrom(grDevices, rgb)
@@ -40,5 +40,12 @@ importFrom(graphics, abline, axis, barplot, mtext, par, plot, rect, text,
 importFrom(grDevices, rainbow)
 
 # Registering S3 methods
+S3method(print, snpgdsPCAClass)
 S3method(plot, snpgdsPCAClass)
+S3method(print, snpgdsEigMixClass)
 S3method(plot, snpgdsEigMixClass)
+S3method(print, snpgdsPCASNPLoadingClass)
+S3method(print, snpgdsEigMixSNPLoadingClass)
+S3method(print, snpgdsIBDClass)
+S3method(print, snpgdsDissClass)
+S3method(print, snpgdsIBSClass)

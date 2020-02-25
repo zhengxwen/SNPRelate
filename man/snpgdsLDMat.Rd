@@ -50,14 +50,13 @@ sliding window, and the value of i row and j column is LD of j and j+i SNPs.
 }
 \references{
     Weir B: Inferences about linkage disequilibrium. Biometrics 1979;
-    35: 235-254.
+35: 235-254.
 
     Weir B: Genetic Data Analysis II. Sunderland, MA: Sinauer Associates, 1996.
 
-    Weir BS, Cockerham CC:
-    Complete characterization of disequilibrium at two loci;
-    in Feldman MW (ed): Mathematical Evolutionary Theory.
-    Princeton, NJ: Princeton University Press, 1989.
+    Weir BS, Cockerham CC: Complete characterization of disequilibrium at two
+loci; in Feldman MW (ed): Mathematical Evolutionary Theory. Princeton, NJ:
+Princeton University Press, 1989.
 }
 \author{Xiuwen Zheng}
 \seealso{

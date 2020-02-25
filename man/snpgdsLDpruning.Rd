@@ -76,15 +76,14 @@ are in the sliding window, then skip j; otherwise, let S be S + \{ j \};
     Return a list of SNP IDs stratified by chromosomes.
 }
 \references{
-    Weir B: Inferences about linkage disequilibrium.
-    Biometrics 1979; 35: 235-254.
+    Weir B: Inferences about linkage disequilibrium. Biometrics 1979;
+35: 235-254.
 
     Weir B: Genetic Data Analysis II. Sunderland, MA: Sinauer Associates, 1996.
 
-    Weir BS, Cockerham CC:
-    Complete characterization of disequilibrium at two loci;
-    in Feldman MW (ed): Mathematical Evolutionary Theory.
-    Princeton, NJ: Princeton University Press, 1989.
+    Weir BS, Cockerham CC: Complete characterization of disequilibrium at two
+loci; in Feldman MW (ed): Mathematical Evolutionary Theory. Princeton, NJ:
+Princeton University Press, 1989.
 }
 \author{Xiuwen Zheng}
 \seealso{
@@ -97,6 +96,7 @@ genofile <- snpgdsOpen(snpgdsExampleFileName())
 
 set.seed(1000)
 snpset <- snpgdsLDpruning(genofile)
+str(snpset)
 names(snpset)
 #  [1] "chr1"  "chr2"  "chr3"  "chr4"  "chr5"  "chr6"  "chr7"  "chr8"  "chr9"
 # [10] "chr10" "chr11" "chr12" "chr13" "chr14" "chr15" "chr16" "chr17" "chr18"

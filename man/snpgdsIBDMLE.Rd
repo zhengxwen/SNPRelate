@@ -121,7 +121,7 @@ snpset <- snpgdsLDpruning(genofile, sample.id=YRI.id, maf=0.05,
     missing.rate=0.05)
 snpset <- sample(unlist(snpset), 250)
 mibd <- snpgdsIBDMLE(genofile, sample.id=YRI.id, snp.id=snpset)
-names(mibd)
+mibd
 
 # select a set of pairs of individuals
 d <- snpgdsIBDSelection(mibd, kinship.cutoff=1/8)

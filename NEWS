@@ -3,6 +3,8 @@ CHANGES IN VERSION 1.21.2
 
     o 'allow.fork=TRUE' is the default in `snpgdsOpen()` since v1.21.2
 
+    o 
+
 
 CHANGES IN VERSION 1.20.1
 -------------------------

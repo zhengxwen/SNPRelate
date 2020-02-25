@@ -76,6 +76,7 @@ samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
 
 # run eigen-analysis
 RV <- snpgdsEIGMIX(genofile)
+RV
 
 # eigenvalues
 RV$eigenval

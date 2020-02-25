@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2018        Xiuwen Zheng
+# Copyright (C) 2011 - 2020        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -46,6 +46,7 @@ snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     return(rv)
 }
 
+print.snpgdsIBSClass <- function(x, ...) str(x)
 
 
 #######################################################################
@@ -69,7 +70,7 @@ snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
     # return
     list(sample.id = ws$sample.id, snp.id = ws$snp.id,
-        ibs0 = rv[[1]], ibs1 = rv[[2]], ibs2 = rv[[3]])
+        ibs0 = rv[[1L]], ibs1 = rv[[2L]], ibs2 = rv[[3L]])
 }
 
 
@@ -110,9 +111,10 @@ snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
 
     if (verbose)
     {
-        cat("Working space: ", ws$n.samp, " sample", .plural(ws$n.samp),
-            ", ", ws$n.snp, " SNP", .plural(ws$n.snp), "\n", sep="")
-        cat("Method: ", method, "\n", sep="")
+        cat("Pair Score Calculation:\n")
+        .cat("    # of samples: ", .pretty(ws$n.samp))
+        .cat("    # of SNPs: ", .pretty(ws$n.snp))
+        .cat("Method: ", method)
     }
 
     if (type == "gds.file")
@@ -151,7 +153,7 @@ snpgdsPairScore <- function(gdsobj, sample1.id, sample2.id, snp.id=NULL,
         sync.gds(output)
 
         if (verbose)
-            cat("Output: ", output$filename, "\n", sep="")
+            .cat("Output: ", output$filename)
     } else
         gGeno <- NULL
 

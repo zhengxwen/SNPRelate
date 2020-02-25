@@ -32,8 +32,8 @@ snpgdsDiss(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     The minor allele frequency and missing rate for each SNP passed in
 \code{snp.id} are calculated over all the samples in \code{sample.id}.
 
-    \code{snpgdsDiss()} returns \code{1 - beta_ij} which is formally described in
-Weir&Goudet (2017).
+    \code{snpgdsDiss()} returns \code{1 - beta_ij} which is formally described
+in Weir&Goudet (2017).
 }
 \value{
     Return a class "snpgdsDissClass":
@@ -51,7 +51,8 @@ the department of Biostatistics, University of Washington.
 Forensic Science International: Genetics Supplement Series.
 
     Weir BS, Goudet J. A Unified Characterization of Population Structure and
-Relatedness. Genetics. 2017 Aug;206(4):2085-2103. doi: 10.1534/genetics.116.198424.
+Relatedness. Genetics. 2017 Aug;206(4):2085-2103.
+doi: 10.1534/genetics.116.198424.
 }
 \author{Xiuwen Zheng}
 \seealso{
@@ -67,7 +68,10 @@ pop.group <- as.factor(read.gdsn(index.gdsn(
 pop.level <- levels(pop.group)
 
 diss <- snpgdsDiss(genofile)
+diss
 hc <- snpgdsHCluster(diss)
+names(hc)
+plot(hc$dendrogram)
 
 # close the genotype file
 snpgdsClose(genofile)

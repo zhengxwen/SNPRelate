@@ -92,6 +92,7 @@ genofile <- snpgdsOpen(snpgdsExampleFileName())
 
 # run PCA
 RV <- snpgdsPCA(genofile)
+RV
 
 # eigenvalues
 head(RV$eigenval)

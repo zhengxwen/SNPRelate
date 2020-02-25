@@ -93,20 +93,21 @@ father.id <- father.id[father.id != ""]
 # calculate average genotype scores
 z1 <- snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
     method="IBS", type="per.pair")
-names(z1)
+str(z1)
 head(z1$score)
 
 # calculate average genotype scores
 z1 <- snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
     method="IBS", type="per.pair", dosage=FALSE)
-names(z1)
+str(z1)
 head(z1$score)
 
 
 # calculate average genotype scores
 z2 <- snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
     method="IBS", type="per.snp")
-names(z2)
+str(z2)
+z2$score[, 1:4]
 mean(z2$score["Avg",])
 mean(z2$score["SD",])
 
@@ -116,7 +117,7 @@ plot(z2$score["Avg",], pch=20, cex=0.75, xlab="SNP Index", ylab="IBS score")
 # calculate a matrix of genotype scores over samples and SNPs
 z3 <- snpgdsPairScore(genofile, offspring.id, father.id, snp.id=selsnp,
     method="IBS", type="matrix")
-dim(z3$score)
+str(z3)
 
 
 # output the score matrix to a GDS file

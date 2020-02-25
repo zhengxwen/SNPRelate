@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2018        Xiuwen Zheng
+# Copyright (C) 2011 - 2020        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -70,6 +70,7 @@ snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     return(ans)
 }
 
+print.snpgdsIBDClass <- function(x, ...) str(x)
 
 
 #######################################################################
@@ -364,17 +365,13 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         family.id <- as.factor(family.id)
         if (verbose & (type=="KING-robust"))
         {
-            cat("# of families: ", nlevels(family.id),
+            .cat("# of families: ", nlevels(family.id),
                 ", and within- and between-family relationship ",
-                "are estimated differently.\n",
-                sep="")
+                "are estimated differently.")
         }
     } else {
         if (verbose & (type=="KING-robust"))
-        {
-            cat("No family is specified, and all individuals",
-                "are treated as singletons.\n")
-        }
+            cat("No family is specified, and all individuals are treated as singletons.\n")
         family.id <- rep(NA, ws$n.samp)
     }
 
@@ -398,10 +395,7 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     } else if (type == "KING-robust")
     {
         if (verbose)
-        {
-            cat("Relationship inference in the presence of",
-                "population stratification.\n")
-        }
+            cat("Relationship inference in the presence of population stratification.\n")
         # call the C function
         v <- .Call(gnrIBD_KING_Robust, as.integer(family.id),
             ws$num.thread, useMatrix, verbose)
@@ -456,9 +450,7 @@ snpgdsDiss <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     return(ans)
 }
 
-
-
-
+print.snpgdsDissClass <- function(x, ...) str(x)
 
 
 #######################################################################
@@ -664,8 +656,7 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
         if (verbose)
         {
             n <- prod(objdesp.gdsn(index.gdsn(f, "snp.id"))$dim)
-            cat("    open '", filelist[i], "' (", prettyNum(n, ","),
-                " variants)\n", sep="")
+            .cat("    open '", filelist[i], "' (", prettyNum(n, ","), " variants)")
         }
     }
 
@@ -696,7 +687,7 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
         weight <- num / sum(num)
     }
     if (verbose)
-        cat("Weight: ", paste(sprintf("%g", weight), collapse=", "), "\n", sep="")
+        .cat("Weight: ", paste(sprintf("%g", weight), collapse=", "))
 
     if (!is.null(out.fn))
     {
@@ -795,9 +786,8 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
         else
             cat("Method: Weir & Hill, 2002\n")
         x <- table(population)
-        cat("# of Populations: ", nlevels(population), "\n    ",
-            paste(sprintf("%s (%d)", names(x), x), collapse=", "),
-            "\n", sep="")
+        .cat("# of Populations: ", nlevels(population), "\n    ",
+            paste(sprintf("%s (%d)", names(x), x), collapse=", "))
     }
 
     list(population=population, npop=nlevels(population), method=method)

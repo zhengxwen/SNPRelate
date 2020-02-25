@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2018        Xiuwen Zheng
+# Copyright (C) 2011 - 2020        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -73,16 +73,14 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
 
     if (verbose)
     {
-        cat("Linkage Disequilibrium (LD) estimation on genotypes:\n");
-        cat("Working space:", ws$n.samp, "samples,", ws$n.snp, "SNPs\n");
-        if (num.thread <= 1L)
-            cat("    using", num.thread, "(CPU) core.\n")
-        else
-            cat("    using", num.thread, "(CPU) cores.\n")
+        cat("Linkage Disequilibrium (LD) estimation on genotypes:\n")
+        .cat("    # of samples: ", .pretty(ws$n.samp))
+        .cat("    # of SNPs: ", .pretty(ws$n.snp))
+        .cat("    using ", num.thread, " thread", .plural(num.thread))
         if (slide > 0L)
-            cat("    sliding window size:", slide, "\n")
-        cat("    method: ", c("composite", "R", "D'", "correlation",
-            "covariance")[method], "\n", sep="")
+            .cat("    sliding window size: ", slide)
+        .cat("    method: ",
+            c("composite", "R", "D'", "correlation", "covariance")[method])
     }
 
     # call C function
@@ -90,9 +88,8 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
 
     # output
     if (with.id)
-        list(sample.id=ws$sample.id, snp.id=ws$snp.id, LD=m, slide=slide)
-    else
-        m
+        m <- list(sample.id=ws$sample.id, snp.id=ws$snp.id, LD=m, slide=slide)
+    m
 }
 
 
@@ -120,11 +117,11 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.na(slide.max.n) | is.numeric(slide.max.n))
     stopifnot(is.numeric(ld.threshold), is.finite(ld.threshold),
         length(ld.threshold)==1L)
-    stopifnot(is.numeric(num.thread), num.thread>0)
-    if (num.thread > 1)
+    stopifnot(is.numeric(num.thread), num.thread > 0L)
+    if (num.thread > 1L)
     {
         warning("The current version of 'snpgdsLDpruning()' ",
-            "does not support multi-threading.")
+            "does not support multi-threading.", immediate.=TRUE)
     }
     stopifnot(is.logical(verbose), length(verbose)==1L)
 
@@ -153,10 +150,7 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             "\"composite\", \"r\", \"dprime\" and \"corr\"")
     }
     if (verbose)
-    {
-        cat("    method: ", c("composite", "R", "D'", "correlation")[method],
-            "\n", sep="")
-    }
+        .cat("    method: ", c("composite", "R", "D'", "correlation")[method])
 
     if (!inherits(gdsobj, "SeqVarGDSClass"))
     {
