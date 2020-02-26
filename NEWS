@@ -1,9 +1,11 @@
-CHANGES IN VERSION 1.21.2
+CHANGES IN VERSION 1.21.3
 -------------------------
 
     o 'allow.fork=TRUE' is the default in `snpgdsOpen()` since v1.21.2
 
-    o 
+    o add `print.snpgdsPCAClass`, `print.snpgdsEigMixClass`,
+      `print.snpgdsPCASNPLoadingClass`, `print, snpgdsEigMixSNPLoadingClass`,
+      `print.snpgdsIBDClass`, `print.snpgdsDissClass`, `print.snpgdsIBSClass`
 
 
 CHANGES IN VERSION 1.20.1

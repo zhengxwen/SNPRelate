@@ -480,8 +480,8 @@ set.seed(1000)
 
 # Try different LD thresholds for sensitivity analysis
 snpset <- snpgdsLDpruning(genofile, ld.threshold=0.2)
+str(snpset)
 names(snpset)
-head(snpset$chr1)  # snp.id
 
 # Get all selected snp id
 snpset.id <- unlist(unname(snpset))
