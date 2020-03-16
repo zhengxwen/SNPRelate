@@ -112,12 +112,11 @@ private:
 				sumsq_sum = _mm_add_epi32(_mm_add_epi32(sumsq_sum, het),
 					_mm_slli_epi32(ibs0, 2));
 
-				C_UInt64 m1 = _mm_cvtsi128_si64(mask);
-				C_UInt64 m2 = _mm_cvtsi128_si64(_mm_shuffle_epi32(mask,
-					 _MM_SHUFFLE(1,0,3,2)));
+				C_UInt64 m[2] COREARRAY_SIMD_ATTR_ALIGN;
+				_mm_store_si128((__m128i*)m, mask);
 				for (size_t k=32; k > 0; k--)
 				{
-					switch (m1 & 0x03)
+					switch (m[0] & 0x03)
 					{
 					case 3:
 						sq_sum = _mm_add_pd(sq_sum, _mm_load_pd(pAF));
@@ -132,11 +131,11 @@ private:
 						sq_sum2 = _mm_add_pd(sq_sum2, _mm_set_pd(pAF2[1], 0));
 						break;
 					}
-					pAF += 2; pAF2 += 2; m1 >>= 2;
+					pAF += 2; pAF2 += 2; m[0] >>= 2;
 				}
 				for (size_t k=32; k > 0; k--)
 				{
-					switch (m2 & 0x03)
+					switch (m[1] & 0x03)
 					{
 					case 3:
 						sq_sum = _mm_add_pd(sq_sum, _mm_load_pd(pAF));
@@ -151,7 +150,7 @@ private:
 						sq_sum2 = _mm_add_pd(sq_sum2, _mm_set_pd(pAF2[1], 0));
 						break;
 					}
-					pAF += 2; pAF2 += 2; m2 >>= 2;
+					pAF += 2; pAF2 += 2; m[1] >>= 2;
 				}
 			}
 

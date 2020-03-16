@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.21.3
+CHANGES IN VERSION 1.22.0
 -------------------------
 
     o 'allow.fork=TRUE' is the default in `snpgdsOpen()` since v1.21.2
@@ -6,6 +6,8 @@ CHANGES IN VERSION 1.21.3
     o add `print.snpgdsPCAClass`, `print.snpgdsEigMixClass`,
       `print.snpgdsPCASNPLoadingClass`, `print, snpgdsEigMixSNPLoadingClass`,
       `print.snpgdsIBDClass`, `print.snpgdsDissClass`, `print.snpgdsIBSClass`
+
+    o fix a Win32 compiler issue with gcc-4.9
 
 
 CHANGES IN VERSION 1.20.1
@@ -61,7 +63,7 @@ CHANGES IN VERSION 1.14.0
       `snpgdsVCF2GDS()` and `snpgdsVCF2GDS_R()` for annotations
 
     o support Intel C++ compiler with SSE2/AVX2
-    
+
     o allow interrupting requests in the calculation
 
     o new method options in `snpgdsPairScore()`: GVH.major, GVH.minor,
