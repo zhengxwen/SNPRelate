@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2019        Xiuwen Zheng
+# Copyright (C) 2011 - 2020        Xiuwen Zheng
 # License: GPL-3
 # Email: zhengxwen@gmail.com
 #
@@ -480,7 +480,8 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
     ##  read fam.fn  ##
 
     f <- .OpenConnText(fam.fn, TRUE)
-    famD <- read.table(f$con, header=FALSE, stringsAsFactors=FALSE)
+    famD <- read.table(f$con, header=FALSE, comment.char="",
+        stringsAsFactors=FALSE)
     .CloseConnection(f)
 
     names(famD) <- c("FamilyID", "InvID", "PatID", "MatID", "Sex", "Pheno")
@@ -497,7 +498,8 @@ snpgdsBED2GDS <- function(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 
     ##  read bim.fn  ##
     f <- .OpenConnText(bim.fn, TRUE)
-    bimD <- read.table(f$con, header=FALSE, stringsAsFactors=FALSE)
+    bimD <- read.table(f$con, header=FALSE, comment.char="",
+        stringsAsFactors=FALSE)
     .CloseConnection(f)
     names(bimD) <- c("chr", "snp.id", "map", "pos", "allele1", "allele2")
 

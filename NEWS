@@ -9,6 +9,8 @@ CHANGES IN VERSION 1.22.0
 
     o fix a Win32 compiler issue with gcc-4.9
 
+    o update `snpgdsBED2GDS()` with comment.char=""
+
 
 CHANGES IN VERSION 1.20.1
 -------------------------
