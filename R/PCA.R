@@ -8,7 +8,6 @@
 #
 # Copyright (C) 2011 - 2020        Xiuwen Zheng
 # License: GPL-3
-# Email: zhengxwen@gmail.com
 #
 
 
@@ -270,7 +269,8 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 
         # return
         rv <- list(sample.id = sample.id, snp.id = loadobj$snp.id,
-            eigenval = loadobj$eigenval, eigenvect = mm,
+            eigenval = rep(NaN, length(sample.id)), eigenvect = mm,
+            varprop = rep(NaN, length(sample.id)),
             TraceXTX = loadobj$TraceXTX,
             Bayesian = loadobj$Bayesian, genmat = NULL)
         class(rv) <- "snpgdsPCAClass"
@@ -286,7 +286,7 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 
         # return
         rv <- list(sample.id = sample.id, snp.id = loadobj$snp.id,
-            eigenval = loadobj$eigenval, eigenvect = mm,
+            eigenval = rep(NaN, length(sample.id)), eigenvect = mm,
             afreq = loadobj$afreq)
         class(rv) <- "snpgdsEigMixClass"
     }

@@ -61,15 +61,30 @@ genofile <- snpgdsOpen(snpgdsExampleFileName())
 
 sample.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
 
-PCARV <- snpgdsPCA(genofile, eigen.cnt=8)
-SnpLoad <- snpgdsPCASNPLoading(PCARV, genofile)
+# first PCA
+pca <- snpgdsPCA(genofile, eigen.cnt=8)
+snp_load <- snpgdsPCASNPLoading(pca, genofile)
 
 # calculate sample eigenvectors from SNP loadings
-SL <- snpgdsPCASampLoading(SnpLoad, genofile, sample.id=sample.id[1:100])
+samp_load <- snpgdsPCASampLoading(snp_load, genofile, sample.id=sample.id[1:100])
 
-diff <- PCARV$eigenvect[1:100,] - SL$eigenvect
+diff <- pca$eigenvect[1:100,] - samp_load$eigenvect
 summary(c(diff))
 # ~ ZERO
+
+
+# combine eigenvectors
+allpca <- list(
+    sample.id = c(pca$sample.id, samp_load$sample.id),
+    snp.id = pca$snp.id,
+    eigenval = c(pca$eigenval, samp_load$eigenval),
+    eigenvect = rbind(pca$eigenvect, samp_load$eigenvect),
+    varprop = c(pca$varprop, samp_load$varprop),
+    TraceXTX = pca$TraceXTX
+)
+class(allpca) <- "snpgdsPCAClass"
+allpca
+
 
 # close the genotype file
 snpgdsClose(genofile)

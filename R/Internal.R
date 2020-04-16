@@ -8,7 +8,6 @@
 #
 # Copyright (C) 2011 - 2020        Xiuwen Zheng
 # License: GPL-3
-# Email: zhengxwen@gmail.com
 #
 
 
