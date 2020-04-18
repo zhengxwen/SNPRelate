@@ -1626,25 +1626,21 @@ void CdProgression::ShowProgress()
 
 // ===================================================================== //
 
-static char time_char[128];
+static string time_cstr;
 
 string GWAS::NowDateToStr()
 {
-	time_t tm;
-	time(&tm);
-	string rv(ctime(&tm));
-	rv.erase(rv.size()-1, 1);
-	return rv;
+	time_t tm; time(&tm);
+	const char *s = ctime(&tm);
+	return string(s, strlen(s)-1);
 }
 
 const char *GWAS::TimeToStr()
 {
 	time_t tm; time(&tm);
 	const char *s = ctime(&tm);
-	size_t n = strlen(s) - 1;
-	if (n > 127) n = 127;
-	strncpy(time_char, s, n);
-	return time_char;
+	time_cstr.assign(s, strlen(s)-1);
+	return time_cstr.c_str();
 }
 
 

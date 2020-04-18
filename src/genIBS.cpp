@@ -402,7 +402,9 @@ public:
 	{
 		// Initialize ...
 		GenoPacked.resize(BlockNumSNP * PublicDiss.N());
-		memset(PublicDiss.Get(), 0, sizeof(TS_Dissimilarity)*PublicDiss.Size());
+		void *p = (void*)PublicDiss.Get();
+		size_t n = sizeof(TS_Dissimilarity)*PublicDiss.Size();
+		memset(p, 0, n);
 		GenoAlleleFreq.resize(BlockNumSNP);
 
 		MCWorkingGeno.Progress.Info = Info;
