@@ -35,7 +35,9 @@ snpgdsIBS(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     The minor allele frequency and missing rate for each SNP passed in
 \code{snp.id} are calculated over all the samples in \code{sample.id}.
 
-    The values of the IBS matrix range from ZERO to ONE.
+    The values of the IBS matrix range from ZERO to ONE, and it is defined as
+the average of \code{1 - | g_{1,i} - g_{2,i} | / 2} across the genome for the
+first and second individuals and SNP i.
 }
 \value{
     Return a list (class "snpgdsIBSClass"):
