@@ -931,7 +931,7 @@ snpgdsSummary <- function(gds, show=TRUE)
             if (any(order(pos) != seq_len(length(pos))))
             {
                 message(sprintf(
-            "The SNP positions are not in ascending order on chromosome %d.",
+            "The SNP positions are not in ascending order on chromosome %s.",
                     chr))
                 warn.flag <- TRUE
                 break
