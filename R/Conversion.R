@@ -997,7 +997,7 @@ snpgdsVCF2GDS <- function(vcf.fn, out.fn,
     {
         cat("Start file conversion from VCF to SNP GDS ...\n")
         if (metidx == 1L)
-            cat("Method: exacting biallelic SNPs\n")
+            cat("Method: extracting biallelic SNPs\n")
         else
             cat("Method: dosage (0,1,2) of reference allele for all variant sites\n")
     }
