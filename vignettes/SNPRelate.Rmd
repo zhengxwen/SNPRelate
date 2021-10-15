@@ -101,7 +101,7 @@ get.attr.gdsn(index.gdsn(genofile, "snp.chromosome"))
 ```
 *autosome.start* is the starting numeric code of autosomes, and *autosome.end* is the last numeric code of autosomes. `put.attr.gdsn()` can be used to add a new attribute or modify an existing attribute.
 
-There are four possible values stored in the variable *genotype*: 0, 1, 2 and 3. For bi-allelic SNP sites, "0" indicates two B alleles, "1" indicates one A allele and one B allele, "2" indicates two A alleles, and "3" is a missing genotype. For multi-allelic sites, it is a count of the reference allele (3 meaning no call). "Bit2" indicates that each byte encodes up to four SNP genotypes since one byte consists of eight bits.
+There are four possible values stored in the variable *genotype*: 0, 1, 2 and 3. For bi-allelic SNP sites, "0" indicates two B alleles, "1" indicates one A allele and one B allele, "2" indicates two A alleles, and "3" is a missing genotype. For multi-allelic sites, it is a count of the reference allele (3 meaning no call - can you explain this please?). "Bit2" indicates that each byte encodes up to four SNP genotypes since one byte consists of eight bits.
 ```{r}
 # Take out genotype data for the first 3 samples and the first 5 SNPs
 (g <- read.gdsn(index.gdsn(genofile, "genotype"), start=c(1,1), count=c(5,3)))
