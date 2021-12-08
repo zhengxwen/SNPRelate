@@ -604,6 +604,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 				method=method, grm=rv)
             if (method %in% c("IndivBeta"))
                 rv$avg_val <- .Call(gnrGRM_avg_val)
+            class(rv) <- "snpgdsGRMClass"
 		}
         rv
     } else {

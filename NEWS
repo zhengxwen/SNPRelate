@@ -1,3 +1,10 @@
+CHANGES IN VERSION 1.29.1
+-------------------------
+
+    o return a object of class "snpgdsGRMClass" in `snpgdsGRM()` instead of
+      a list when `with.id=TRUE`
+
+
 CHANGES IN VERSION 1.24.0
 -------------------------
 
