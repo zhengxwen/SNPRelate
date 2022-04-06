@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.29.1
+CHANGES IN VERSION 1.30.0
 -------------------------
 
     o return a object of S3 class "snpgdsGRMClass" in `snpgdsGRM()` instead of

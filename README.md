@@ -21,16 +21,12 @@ The GDS format offers the efficient operations specifically designed for integer
 
 ## Bioconductor
 
-Release Version: v1.28.0
+Release Version: v1.30.0
 
 [http://www.bioconductor.org/packages/SNPRelate](http://www.bioconductor.org/packages/SNPRelate)
 
 
 ## News
-
-* v1.16.0: a new option 'useMatrix' for the packed symmetric matrix using [Matrix](https://cran.r-project.org/web/packages/Matrix/index.html) to reduce memory usages;
-
-* v1.4.0: supports the [SeqArray](http://bioconductor.org/packages/SeqArray) GDS format, see [the vignette](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/SeqArray.html#integration-with-snprelate);
 
 * See [package news](NEWS).
 
@@ -98,8 +94,3 @@ CFLAGS=-g -O3 -march=native -mtune=native
 ## for C++ code
 CXXFLAGS=-g -O3 -march=native -mtune=native
 ```
-
-
-## Implementation with OpenCL
-
-In progress ...
