@@ -614,6 +614,7 @@ snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     }
 }
 
+print.snpgdsGRMClass <- function(x, ...) str(x)
 
 
 #######################################################################
