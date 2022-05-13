@@ -1,3 +1,10 @@
+CHANGES IN VERSION 1.30.1
+-------------------------
+
+    o fix a portable issue with Fortran character strings via
+      USE_FC_LEN_T & FCONE
+
+
 CHANGES IN VERSION 1.30.0
 -------------------------
 

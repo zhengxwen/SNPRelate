@@ -3,7 +3,7 @@
 ###                                                            ###
 
 # additional preprocessor options
-PKG_CPPFLAGS = -DUSING_R -I.
+PKG_CPPFLAGS = -DUSING_R -DUSE_FC_LEN_T -I.
 
 # to set flags for the linker
 PKG_LIBS = -lpthread $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)

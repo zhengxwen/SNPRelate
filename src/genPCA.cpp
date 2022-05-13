@@ -25,6 +25,10 @@
 #include <memory>
 #include <algorithm>
 
+#ifndef FCONE
+#   define FCONE
+#endif
+
 
 namespace PCA
 {
@@ -645,14 +649,14 @@ private:
 
 		int lwork = -1;
 		F77_NAME(dgesvd)("N", "O", &m, &n, a, &m, d, &u, &m, &vt, &n,
-			&w, &lwork, &info);
+			&w, &lwork, &info FCONE FCONE);
 		if (info != 0)
 			throw ErrCoreArray("LAPACK::DGESVD error (%d).", info);
 
 		lwork = (int)w;
 		vector<double> work(lwork);
 		F77_NAME(dgesvd)("N", "O", &m, &n, a, &m, d, &u, &m, &vt, &n,
-			&work[0], &lwork, &info);
+			&work[0], &lwork, &info FCONE FCONE);
 		if (info != 0)
 			throw ErrCoreArray("LAPACK::DGESVD error (%d).", info);
 	}
@@ -1280,7 +1284,7 @@ COREARRAY_DLL_LOCAL int CalcEigen(double *pMat, int n, int nEig,
 
 		int info = 0;
 		F77_NAME(dspev)("V", "L", &n, pMat, REAL(EigVal),
-			&tmp_EigenVec[0], &n, &tmp_Work[0], &info);
+			&tmp_EigenVec[0], &n, &tmp_Work[0], &info FCONE FCONE);
 		if (info != 0)
 		{
 			throw ErrCoreArray(
@@ -1317,13 +1321,13 @@ COREARRAY_DLL_LOCAL int CalcEigen(double *pMat, int n, int nEig,
 		double VL = 0, VU = 0;
 		int M = 0;
 		// it is suggested: ABSTOL is set to twice the underflow threshold, not zero
-		double ABSTOL = 2 * F77_NAME(dlamch)("S");
+		double ABSTOL = 2 * F77_NAME(dlamch)("S" FCONE);
 		vector<int> ifail(n);
 		int info = 0;
 
 		F77_NAME(dspevx)("V", "I", "L", &n, pMat, &VL, &VU, &IL, &IU, &ABSTOL,
 			&M, REAL(EigVal), REAL(EigVect), &LDZ,
-			&tmp_Work[0], &tmp_IWork[0], &ifail[0], &info);
+			&tmp_Work[0], &tmp_IWork[0], &ifail[0], &info FCONE FCONE FCONE);
 		if (info != 0)
 		{
 			throw ErrCoreArray(
