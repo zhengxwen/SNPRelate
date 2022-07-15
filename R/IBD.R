@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2020        Xiuwen Zheng
+# Copyright (C) 2011 - 2022        Xiuwen Zheng
 # License: GPL-3
 #
 
@@ -871,7 +871,7 @@ snpgdsIndivBetaRel <- function(beta, beta_rel, verbose=TRUE)
     # check
     stopifnot(is.numeric(beta_rel), length(beta_rel)==1L)
     stopifnot(is.logical(verbose), length(verbose)==1L)
-    if (class(beta) == "list")
+    if (is.list(beta))
     {
         if (!all(c("sample.id", "snp.id", "beta", "inbreeding") %in% names(beta)))
             stop("'beta' should be the object returned from snpgdsIndivBeta() or snpgdsGRM()")

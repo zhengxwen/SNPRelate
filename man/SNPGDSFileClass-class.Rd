@@ -1,6 +1,5 @@
 \name{SNPGDSFileClass}
 \docType{class}
-
 \alias{SNPGDSFileClass-class}
 \alias{SNPGDSFileClass}
 
@@ -8,7 +7,7 @@
 
 \description{
     A \code{SNPGDSFileClass} object provides access to a GDS file containing
-genome-wide SNP data. It extends the class \code{\link[gdsfmt]{gds.class}} in
+genome-wide SNP data. It extends the class \code{\link{gds.class}} in
 the gdsfmt package.
 }
 

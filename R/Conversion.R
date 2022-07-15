@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2020        Xiuwen Zheng
+# Copyright (C) 2011 - 2022        Xiuwen Zheng
 # License: GPL-3
 #
 
@@ -748,7 +748,7 @@ snpgdsGDS2Eigen <- function(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL,
 
     # making the "*.ind" file ...
     sex <- try(read.gdsn(index.gdsn(gdsobj, "sample.annot/sex")), TRUE)
-    if (class(sex) == "try-error")
+    if (inherits(sex, "try-error"))
     {
         sex <- rep("U", sum(sample.id))
     } else {

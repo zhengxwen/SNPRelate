@@ -33,6 +33,7 @@ Description: Genome-wide association studies (GWAS) are widely used to
         structural variation calls in whole-genome and whole-exome variant data.
 License: GPL-3
 VignetteBuilder: knitr
+LazyData: true
 URL: https://github.com/zhengxwen/SNPRelate
 BugReports: https://github.com/zhengxwen/SNPRelate/issues
 biocViews: Infrastructure, Genetics, StatisticalMethod, PrincipalComponent
