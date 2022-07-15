@@ -33,7 +33,7 @@ Release Version: v1.30.0
 
 ## Tutorials
 
-[http://bioconductor.org/packages/release/bioc/vignettes/SNPRelate/inst/doc/SNPRelateTutorial.html](http://bioconductor.org/packages/release/bioc/vignettes/SNPRelate/inst/doc/SNPRelateTutorial.html)
+[http://www.bioconductor.org/packages/release/bioc/vignettes/SNPRelate/inst/doc/SNPRelate.html](http://www.bioconductor.org/packages/release/bioc/vignettes/SNPRelate/inst/doc/SNPRelate.html)
 
 
 ## Citations
@@ -58,7 +58,7 @@ library("devtools")
 install_github("zhengxwen/gdsfmt")
 install_github("zhengxwen/SNPRelate")
 ```
-The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the [R FAQ](http://cran.r-project.org/faqs.html) for your operating system; you may also need to install dependencies manually.
+The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the [R FAQ](https://cran.r-project.org/faqs.html) for your operating system; you may also need to install dependencies manually.
 
 
 
@@ -67,17 +67,17 @@ The `install_github()` approach requires that you build from source, i.e. `make`
 | Functions             | No SIMD | SSE2 | AVX | AVX2 | AVX-512 |
 |:----------------------|:-------:|:----:|:---:|:----:|:-------:|
 | snpgdsDiss [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsDiss.html)                    | X |
-| snpgdsEIGMIX [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsEIGMIX.html)                 | X | X | X |
-| snpgdsGRM [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsGRM.html)                       | X | X | X | . |
-| snpgdsIBDKING [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsIBDKING.html)               | X | X |   | X |
-| snpgdsIBDMoM [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsIBDMoM.html)                 | X |
-| snpgdsIBS [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsIBS.html)                       | X | X |
-| snpgdsIBSNum [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsIBSNum.html)                 | X | X |
-| snpgdsIndivBeta [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsIndivBeta.html)           | X | X | P | X |
-| snpgdsPCA [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsPCA.html)                       | X | X | X |
-| snpgdsPCACorr [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsPCACorr.html)               | X |
-| snpgdsPCASampLoading [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsPCASampLoading.html) | X |
-| snpgdsPCASNPLoading [»](http://rdrr.io/bioc/SNPRelate/man/snpgdsPCASNPLoading.html)   | X |
+| snpgdsEIGMIX [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsEIGMIX.html)                 | X | X | X |
+| snpgdsGRM [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsGRM.html)                       | X | X | X | . |
+| snpgdsIBDKING [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsIBDKING.html)               | X | X |   | X |
+| snpgdsIBDMoM [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsIBDMoM.html)                 | X |
+| snpgdsIBS [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsIBS.html)                       | X | X |
+| snpgdsIBSNum [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsIBSNum.html)                 | X | X |
+| snpgdsIndivBeta [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsIndivBeta.html)           | X | X | P | X |
+| snpgdsPCA [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsPCA.html)                       | X | X | X |
+| snpgdsPCACorr [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsPCACorr.html)               | X |
+| snpgdsPCASampLoading [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsPCASampLoading.html) | X |
+| snpgdsPCASNPLoading [»](https://rdrr.io/bioc/SNPRelate/man/snpgdsPCASNPLoading.html)   | X |
 | [...](http://rdrr.io/bioc/SNPRelate/man) |
 
 `X: fully supported;  .: partially supported;  P: POPCNT instruction.`
@@ -85,7 +85,7 @@ The `install_github()` approach requires that you build from source, i.e. `make`
 
 ### Install the package from the source code with the support of Intel SIMD Intrinsics:
 
-You have to customize the package compilation, see: [CRAN: Customizing-package-compilation](http://cran.r-project.org/doc/manuals/r-release/R-admin.html#Customizing-package-compilation)
+You have to customize the package compilation, see: [CRAN: Customizing-package-compilation](https://cran.r-project.org/doc/manuals/r-release/R-admin.html#Customizing-package-compilation)
 
 Change `~/.R/Makevars` to, assuming GNU Compilers (gcc/g++) or Clang compiler (clang++) are installed:
 ```sh

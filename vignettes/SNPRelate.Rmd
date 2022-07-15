@@ -40,7 +40,7 @@ $~$
 
 # Installation of the package SNPRelate
 
-To install the package [SNPRelate](http://www.bioconductor.org/packages/SNPRelate), you need a current version (>=2.14.0) of [R](http://www.r-project.org) and the R package [gdsfmt](http://www.bioconductor.org/packages/gdsfmt). After installing [R](http://www.r-project.org) you can run the following commands from the [R](http://www.r-project.org) command shell to install the R package [SNPRelate](http://www.bioconductor.org/packages/SNPRelate).
+To install the package [SNPRelate](http://www.bioconductor.org/packages/SNPRelate), you need a current version (>=2.14.0) of [R](https://www.r-project.org) and the R package [gdsfmt](http://www.bioconductor.org/packages/gdsfmt). After installing [R](https://www.r-project.org) you can run the following commands from the [R](https://www.r-project.org) command shell to install the R package [SNPRelate](http://www.bioconductor.org/packages/SNPRelate).
 
 Install the package from Bioconductor repository:
 ```{r eval=FALSE}
@@ -56,7 +56,7 @@ library("devtools")
 install_github("zhengxwen/gdsfmt")
 install_github("zhengxwen/SNPRelate")
 ```
-The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the [R FAQ](http://cran.r-project.org/faqs.html) for your operating system; you may also need to install dependencies manually.
+The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the [R FAQ](https://cran.r-project.org/faqs.html) for your operating system; you may also need to install dependencies manually.
 
 
 $~$
@@ -664,7 +664,7 @@ lines(c(0,1), c(1,0), col="red", lty=2)
 
 ### Relationship inference Using KING method of moments
 
-Within- and between-family relationship could be inferred by [the KING-robust method](http://people.virginia.edu/~wc9c/KING/) in the presence of population stratification.
+Within- and between-family relationship could be inferred by [the KING-robust method](https://www.chen.kingrelatedness.com) in the presence of population stratification.
 ```{r fig.width=5, fig.height=5, fig.align='center'}
 # Incorporate with pedigree information
 family.id <- read.gdsn(index.gdsn(genofile, "sample.annot/family.id"))
@@ -741,7 +741,7 @@ $~$
 
 # Integration with SeqArray
 
-The extended GDS format is implemented in the SeqArray package to support the storage of single nucleotide variation (SNV), insertion/deletion polymorphism (indel) and structural variation calls. See: [SeqArray R Integration](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/R_Integration.html) ^4^.
+The extended GDS format is implemented in the SeqArray package to support the storage of single nucleotide variation (SNV), insertion/deletion polymorphism (indel) and structural variation calls. See: [SeqArray R Integration](http://www.bioconductor.org/packages/release/bioc/vignettes/SeqArray/inst/doc/SeqArray.html) ^4^.
 
 
 $~$
@@ -792,7 +792,7 @@ $~$
 1. The CoreArray project: [http://corearray.sourceforge.net/](http://corearray.sourceforge.net/)
 2. [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) R package: [http://www.bioconductor.org/packages/gdsfmt](http://www.bioconductor.org/packages/gdsfmt)
 3. [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) R package: [http://www.bioconductor.org/packages/SNPRelate](http://www.bioconductor.org/packages/SNPRelate)
-4. Gene Environment Association Studies ([GENEVA](https://www.biostat.washington.edu/research/collaborators/geneva)) program
+4. Gene Environment Association Studies ([GENEVA](https://www.genome.gov/27541319/gene-environment-association-studes-geneva)) program
 5. [GWASTools](http://www.bioconductor.org/packages/GWASTools): an R/Bioconductor package for quality control and analysis of Genome-Wide Association Studies
 
 
@@ -822,4 +822,4 @@ $~$
 
 # Acknowledgements
 
-The author would like to thank members of the ([GENEVA](https://www.biostat.washington.edu/research/collaborators/geneva)) consortium (2007-2012) for access to the data used for testing the [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) packages.
+The author would like to thank members of the ([GENEVA](https://www.genome.gov/27541319/gene-environment-association-studes-geneva)) consortium (2007-2012) for access to the data used for testing the [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) and [SNPRelate](http://www.bioconductor.org/packages/SNPRelate) packages.

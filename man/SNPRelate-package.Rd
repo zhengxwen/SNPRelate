@@ -23,7 +23,7 @@ written in C/C++ and highly optimized.
     SNPRelate, which utilize the multi-core feature of machine for a single
     computer.
 
-    Webpage: \url{http://github.com/zhengxwen/SNPRelate},
+    Webpage: \url{https://github.com/zhengxwen/SNPRelate},
         \url{http://corearray.sourceforge.net/}
 
     Tutorial: \url{http://corearray.sourceforge.net/tutorials/SNPRelate/}

@@ -42,7 +42,7 @@ are coded on the second line of the header file has changed. \code{version} has
 to be specified, and the function uses ">=2.0" by default.
 }
 \references{
-    \url{http://www.stats.ox.ac.uk/~marchini/software/gwas/file_format.html}
+    \url{https://code.enkre.net/bgen}
 }
 \author{Xiuwen Zheng}
 \seealso{

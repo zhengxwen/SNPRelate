@@ -2,7 +2,7 @@ Package: SNPRelate
 Type: Package
 Title: Parallel Computing Toolset for Relatedness and Principal Component
         Analysis of SNP Data
-Version: 1.30.1
+Version: 1.31.2
 Date: 2022-05-13
 Depends: R (>= 2.15), gdsfmt (>= 1.8.3)
 LinkingTo: gdsfmt
@@ -33,6 +33,6 @@ Description: Genome-wide association studies (GWAS) are widely used to
         structural variation calls in whole-genome and whole-exome variant data.
 License: GPL-3
 VignetteBuilder: knitr
-URL: http://github.com/zhengxwen/SNPRelate
-BugReports: http://github.com/zhengxwen/SNPRelate/issues
+URL: https://github.com/zhengxwen/SNPRelate
+BugReports: https://github.com/zhengxwen/SNPRelate/issues
 biocViews: Infrastructure, Genetics, StatisticalMethod, PrincipalComponent
