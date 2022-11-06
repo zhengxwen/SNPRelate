@@ -1093,15 +1093,15 @@ static const char *time_str(double s)
 	{
 		static char buffer[64];
 		if (s < S_MIN)
-			sprintf(buffer, "%.0fs", s);
+			snprintf(buffer, sizeof(buffer), "%.0fs", s);
 		else if (s < S_HOUR)
-			sprintf(buffer, "%.1fm", s/S_MIN);
+			snprintf(buffer, sizeof(buffer), "%.1fm", s/S_MIN);
 		else if (s < S_DAY)
-			sprintf(buffer, "%.1fh", s/S_HOUR);
+			snprintf(buffer, sizeof(buffer), "%.1fh", s/S_HOUR);
 		else if (s < S_YEAR)
-			sprintf(buffer, "%.1fd", s/S_DAY);
+			snprintf(buffer, sizeof(buffer), "%.1fd", s/S_DAY);
 		else
-			sprintf(buffer, "%.1f years", s/S_YEAR);
+			snprintf(buffer, sizeof(buffer), "%.1f years", s/S_YEAR);
 		return buffer;
 	} else
 		return "---";

@@ -1,3 +1,9 @@
+CHANGES IN VERSION 1.33.1
+-------------------------
+
+    o fix the compiler warning: sprintf is deprecated
+
+
 CHANGES IN VERSION 1.32.0
 -------------------------
 
