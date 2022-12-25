@@ -6,6 +6,7 @@ SNPRelate: Parallel computing toolset for relatedness and principal component an
 
 [![Availability](http://www.bioconductor.org/shields/availability/release/SNPRelate.svg)](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 [![Years-in-BioC](http://www.bioconductor.org/shields/years-in-bioc/SNPRelate.svg)](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
+[![R](https://github.com/zhengxwen/SNPRelate/actions/workflows/r.yml/badge.svg)](https://github.com/zhengxwen/SNPRelate/actions/workflows/r.yml)
 
 
 ## Features
