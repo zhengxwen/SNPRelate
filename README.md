@@ -6,10 +6,6 @@ SNPRelate: Parallel computing toolset for relatedness and principal component an
 
 [![Availability](http://www.bioconductor.org/shields/availability/release/SNPRelate.svg)](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
 [![Years-in-BioC](http://www.bioconductor.org/shields/years-in-bioc/SNPRelate.svg)](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
-[![Build Status](https://travis-ci.org/zhengxwen/SNPRelate.png)](https://travis-ci.org/zhengxwen/SNPRelate)
-[![Build status](https://ci.appveyor.com/api/projects/status/odo1jcrxg65k748g?svg=true)](https://ci.appveyor.com/project/zhengxwen/snprelate)
-[![Comparison is done across all Bioconductor packages over the last 6 months](http://www.bioconductor.org/shields/downloads/SNPRelate.svg)](http://www.bioconductor.org/packages/release/bioc/html/SNPRelate.html)
-[![codecov.io](https://codecov.io/github/Bioconductor-mirror/SNPRelate/coverage.svg?branch=master)](https://codecov.io/github/Bioconductor-mirror/SNPRelate?branch=master)
 
 
 ## Features
@@ -21,7 +17,7 @@ The GDS format offers the efficient operations specifically designed for integer
 
 ## Bioconductor
 
-Release Version: v1.32.0
+Release Version: v1.32.1
 
 [http://www.bioconductor.org/packages/SNPRelate](http://www.bioconductor.org/packages/SNPRelate)
 
