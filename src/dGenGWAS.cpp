@@ -129,7 +129,7 @@ void CdBaseWorkSpace::GetMissingRates(double OutRate[])
 		// initialize
 		for (int i=0; i < fSNPNum; i++)
 			OutRate[i] = 0;
-		vector<C_UInt8> buf(fSNPNum);
+		vector<C_UInt8> buf(fSNPNum + 1);  // avoid a compiler warning (mingw, gcc_12)
 
 		// for-loop for each sample
 		for (int iSamp=0; iSamp < fSampleNum; iSamp++)
