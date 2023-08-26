@@ -53,6 +53,12 @@ snpgdsOpen <- function(filename, readonly=TRUE, allow.duplicate=FALSE,
             "since 'FileFormat=SEQ_ARRAY', or run 'SeqArray::seqSNP2GDS()' ",
             "to convert the file to GWAS SNP GDS format.")
         }
+        if (identical(at$FileFormat, "SC_ARRAY"))
+        {
+            stop(sprintf(
+                "'%s' is a SCArray GDS file, please use SCArray::scOpen().",
+                filename))
+        }
         if (!identical(at$FileFormat, "SNP_ARRAY") &&
             !identical(at$FileFormat, "IMPUTED_DOSAGE"))
         {
