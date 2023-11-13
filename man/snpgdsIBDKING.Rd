@@ -27,8 +27,8 @@ snpgdsIBDKING(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{missing.rate}{to use the SNPs with "<= missing.rate" only; if NaN, no
         missing threshold}
     \item{type}{\code{"KING-robust"} -- relationship inference in the presence
-        of population stratification; \code{"KING-homo"} -- relationship
-        inference in a homogeneous population}
+        of population stratification (by default); \code{"KING-homo"} --
+        relationship inference in a homogeneous population}
     \item{family.id}{if \code{NULL}, all individuals are treated as singletons;
         if family id is given, within- and between-family relationship are
         estimated differently. If \code{sample.id=NULL}, \code{family.id}
