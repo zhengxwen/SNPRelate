@@ -745,7 +745,7 @@ public:
 		if (verbose)
 		{
 			Rprintf("%s    Begin projecting genotypes and SVD (%d x %d)\n",
-				TimeToStr(), hsize, nSNP);
+				TimeToStr(), (int)hsize, (int)nSNP);
 		}
 
 		// SVD MatH, get vt stored in MatH

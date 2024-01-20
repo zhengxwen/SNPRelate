@@ -273,7 +273,7 @@ protected:
 		GDS_SetError(buf);  \
 		has_error = true;  \
 	});  \
-	if (has_error) error(GDS_GetError());  \
+	if (has_error) Rf_error("%s", GDS_GetError());  \
 	return rv_ans;
 
 

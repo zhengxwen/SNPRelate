@@ -1,3 +1,11 @@
+CHANGES IN VERSION 1.36.1
+-------------------------
+
+UTILITIES
+
+    o fix the compiler warning: -Wformat-security
+
+
 CHANGES IN VERSION 1.34.0
 -------------------------
 
