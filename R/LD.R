@@ -120,7 +120,7 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     if (num.thread > 1L)
     {
         warning("The current version of 'snpgdsLDpruning()' ",
-            "does not support multi-threading.", immediate.=TRUE)
+            "does not support multi-threading.", call.=FALSE, immediate.=TRUE)
     }
     stopifnot(is.logical(verbose), length(verbose)==1L)
 
