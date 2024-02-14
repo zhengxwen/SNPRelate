@@ -2,7 +2,7 @@
 //
 // genLD.cpp: Linkage Disequilibrium (LD) Analysis on GWAS
 //
-// Copyright (C) 2011-2018    Xiuwen Zheng
+// Copyright (C) 2011-2024    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -753,7 +753,7 @@ namespace LD
 
 	COREARRAY_DLL_LOCAL void Perform_LD_Pruning(int StartIdx, int *pos_bp,
 		int slide_max_bp, int slide_max_n, const double LD_threshold,
-		C_BOOL *out_SNP)
+		C_BOOL *out_SNP, bool verbose)
 	{
 		// initial variables
 		nPackedSamp = (MCWorkingGeno.Space().SampleNum() % 4 > 0) ?
@@ -769,12 +769,16 @@ namespace LD
 		CdBufSpace BufSNP(MCWorkingGeno.Space(), true, CdBufSpace::acInc);
 		ListGeno.push_back(TSNP(StartIdx, pos_bp[StartIdx], nPackedSamp));
 		BufSNP.ReadPackedGeno(StartIdx, &(ListGeno.back().genobuf[0]));
+		CdProgression progress(2, verbose);
+		if (verbose) Rprintf("|");
 
 		// for-loop, increasing
+		progress.Init(MCWorkingGeno.Space().SNPNum()-StartIdx-1, verbose);
 		for (int i=StartIdx+1; i < MCWorkingGeno.Space().SNPNum(); i++)
 		{
 			// load genotypes
 			BufSNP.ReadPackedGeno(i, &buf[0]);
+			progress.Forward(1, verbose);
 			// detect LD
 			int TotalCnt = 0, ValidCnt = 0;
 			list<TSNP>::iterator it;
@@ -807,12 +811,13 @@ namespace LD
 		// -----------------------------------------------------
 		// decreasing searching: i --> i-1
 
+		if (verbose) Rprintf("|");
 		ListGeno.clear();
 		for (int i=StartIdx; i < MCWorkingGeno.Space().SNPNum(); i++)
 		{
 			if (out_SNP[i])
 			{
-				// check whether it is in the sliding window
+				// check whether it is in the sliding window of StartIdx
 				if ((abs(i - StartIdx) <= slide_max_n) &&
 					(abs(pos_bp[i] - pos_bp[StartIdx]) <= slide_max_bp))
 				{
@@ -824,11 +829,13 @@ namespace LD
 		}
 
 		BufSNP.SetAccessFlag(CdBufSpace::acDec);
-		// for-loop, descreasing
+		progress.Init(StartIdx-1, verbose);
+		// for-loop, decreasing
 		for (int i=StartIdx-1; i >= 0; i--)
 		{
 			// load genotypes
 			BufSNP.ReadPackedGeno(i, &buf[0]);
+			progress.Forward(1, verbose);
 			// detect LD
 			int TotalCnt = 0, ValidCnt = 0;
 			list<TSNP>::iterator it;
@@ -857,6 +864,8 @@ namespace LD
 				memmove(&(ListGeno.front().genobuf[0]), &buf[0], nPackedSamp);
 			}
 		}
+
+		if (verbose) Rprintf("|\n");
 	}
 }
 
@@ -947,7 +956,8 @@ COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP NumSlide, SEXP MatTrim,
 
 /// Prune SNPs based on LD
 COREARRAY_DLL_EXPORT SEXP gnrLDpruning(SEXP StartIdx, SEXP pos_bp,
-	SEXP slide_max_bp, SEXP slide_max_n, SEXP LD_threshold, SEXP method)
+	SEXP slide_max_bp, SEXP slide_max_n, SEXP LD_threshold, SEXP method,
+	SEXP verbose)
 {
 	COREARRAY_TRY
 
@@ -955,7 +965,8 @@ COREARRAY_DLL_EXPORT SEXP gnrLDpruning(SEXP StartIdx, SEXP pos_bp,
 		LD::LD_Method = Rf_asInteger(method);
 		LD::Perform_LD_Pruning(Rf_asInteger(StartIdx)-1, INTEGER(pos_bp),
 			Rf_asInteger(slide_max_bp), Rf_asInteger(slide_max_n),
-			Rf_asReal(LD_threshold), &flag[0]);
+			Rf_asReal(LD_threshold), &flag[0],
+			Rf_asLogical(verbose) == TRUE);
 
 		PROTECT(rv_ans = NEW_LOGICAL(MCWorkingGeno.Space().SNPNum()));
 		int *p = LOGICAL(rv_ans);

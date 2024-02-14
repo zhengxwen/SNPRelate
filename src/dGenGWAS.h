@@ -2,7 +2,7 @@
 //
 // dGenGWAS.h: Workspace of Genome-Wide Association Studies
 //
-// Copyright (C) 2011-2017    Xiuwen Zheng
+// Copyright (C) 2011-2024    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -414,6 +414,8 @@ namespace GWAS
 		int fPercent;
 		bool fShow;
 		clock_t TimeInterval, OldTime;
+	private:
+		int current_bar;  // used when type=2
 	};
 
 

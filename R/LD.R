@@ -98,10 +98,10 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
 #
 
 snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
-    method=c("composite", "r", "dprime", "corr"),
-    slide.max.bp=500000L, slide.max.n=NA, ld.threshold=0.2,
-    start.pos=c("random", "first", "last"), num.thread=1L, verbose=TRUE)
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=0.005, missing.rate=0.05,
+    method=c("composite", "r", "dprime", "corr"), slide.max.bp=500000L,
+    slide.max.n=NA, ld.threshold=0.2, start.pos=c("random", "first", "last"),
+    num.thread=1L, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -199,7 +199,7 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                 first  = 1L,
                 last   = n.tmp)
             rv <- .Call(gnrLDpruning, startidx, position[flag],
-                slide.max.bp, slide.max.n, ld.threshold, method)
+                slide.max.bp, slide.max.n, ld.threshold, method, verbose)
 
             # output
             L <- rep(FALSE, length(total.snp.ids))

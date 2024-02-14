@@ -5,6 +5,11 @@ UTILITIES
 
     o fix the compiler warning: -Wformat-security
 
+    o set 'maf=0.005' & 'missing.rate=0.05' by default in `snpgdsLDpruning()`
+      (for WGS data)
+
+    o show a progress bar in `snpgdsLDpruning()` when 'verbose=TRUE'
+
 
 CHANGES IN VERSION 1.34.0
 -------------------------

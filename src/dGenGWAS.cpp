@@ -1544,7 +1544,6 @@ CdProgression::CdProgression(int type, bool show)
 {
 	fShow = show;
 	Init(0, false);
-
 	switch (fType = type)
 	{
 	case 0:
@@ -1552,6 +1551,9 @@ CdProgression::CdProgression(int type, bool show)
 		break;
 	case 1:
 		TimeInterval = 5 * CLOCKS_PER_SEC;
+		break;
+	case 2:
+		TimeInterval = 15 * CLOCKS_PER_SEC;
 		break;
 	}
 }
@@ -1571,6 +1573,7 @@ void CdProgression::Init(C_Int64 TotalCnt, bool ShowInit)
 	fTotal = TotalCnt;
 	fCurrent = fPercent = 0;
 	OldTime = clock();
+	current_bar = 0;
 	if (ShowInit) ShowProgress();
 }
 
@@ -1617,6 +1620,16 @@ void CdProgression::ShowProgress()
 				Rprintf("\r%s%s", s1.c_str(), s2.c_str());
 				// fflush(stdout);
 				break;
+			}
+		case 2:
+			{
+				int n = (int)round(fPercent * 0.20);
+				if (n > current_bar)
+				{
+					string s(n - current_bar, '=');
+					Rprintf("%s", s.c_str());
+					current_bar = n;
+				}
 			}
 		}
 	}
