@@ -60,11 +60,14 @@ with zero IBS (\code{IBS0}) and kinship coefficient (\code{kinship}). With
     Return a list:
     \item{sample.id}{the sample ids used in the analysis}
     \item{snp.id}{the SNP ids used in the analysis}
-    \item{k0}{IBD coefficient, the probability of sharing zero IBD}
-    \item{k1}{IBD coefficient, the probability of sharing one IBD}
-    \item{IBS0}{proportion of SNPs with zero IBS}
-    \item{kinship}{the estimated kinship coefficients, if the parameter
-        \code{kinship=TRUE}}
+    \item{k0}{a matrix for IBD coefficients, the probability of sharing zero
+        IBD, if \code{type="KING-homo"}}
+    \item{k1}{a matrix for IBD coefficients, the probability of sharing one
+        IBD, if \code{type="KING-homo"}}
+    \item{IBS0}{a matrix for the proportions of SNPs with zero IBS, if
+        \code{type="KING-robust"}}
+    \item{kinship}{a matrix for the estimated kinship coefficients, if
+        \code{type="KING-robust"}}
 }
 \references{
     Manichaikul A, Mychaleckyj JC, Rich SS, Daly K, Sale M, Chen WM.
