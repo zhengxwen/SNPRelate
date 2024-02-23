@@ -10,6 +10,8 @@ UTILITIES
 
     o show a progress bar in `snpgdsLDpruning()` when 'verbose=TRUE'
 
+    o update the help files of `snpgdsAdmixProp()` and `snpgdsAdmixPlot()`
+
 
 CHANGES IN VERSION 1.34.0
 -------------------------

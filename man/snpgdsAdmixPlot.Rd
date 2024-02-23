@@ -15,12 +15,15 @@ snpgdsAdmixTable(propmat, group, sort=FALSE)
 \arguments{
     \item{propmat}{a sample-by-ancestry matrix of proportion estimates,
         returned from \code{\link{snpgdsAdmixProp}()}}
-    \item{group}{a character vector of a factor according to the samples
+    \item{group}{a character vector of a factor according to the rows
         in \code{propmat}}
-    \item{col}{specify colors}
+    \item{col}{specify colors; if \code{group} is not specified, it is a color
+        for each sample; otherwise specify colors for the groups}
     \item{multiplot}{single plot or multiple plots}
-    \item{showgrp}{show group names in the plot}
-    \item{shownum}{\code{TRUE}: show the number of each group in the figure}
+    \item{showgrp}{show group names in the plot; applicable when \code{group}
+        is used}
+    \item{shownum}{\code{TRUE}: show the number of each group on the X-axis
+        in the figure; applicable when \code{group} is used}
     \item{ylim}{\code{TRUE}: y-axis is limited to [0, 1];
         \code{FALSE}: \code{ylim <- range(propmat)};
         a 2-length numeric vector: \code{ylim} used in \code{plot()}}
@@ -71,10 +74,15 @@ groups <- list(CEU = samp.id[pop_code == "CEU"],
     YRI = samp.id[pop_code == "YRI"],
     CHB = samp.id[is.element(pop_code, c("HCB", "JPT"))])
 
-prop <- snpgdsAdmixProp(RV, groups=groups)
+prop <- snpgdsAdmixProp(RV, groups=groups, bound=TRUE)
 
 # draw
 snpgdsAdmixPlot(prop, group=pop_code)
+
+# use user-defined colors for the groups
+snpgdsAdmixPlot(prop, group=pop_code, multiplot=FALSE, col=c(3,2,4))
+
+snpgdsAdmixTable(prop, group=pop_code)
 
 # close the genotype file
 snpgdsClose(genofile)

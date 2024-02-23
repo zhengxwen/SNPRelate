@@ -16,20 +16,17 @@ snpgdsAdmixProp(eigobj, groups, bound=FALSE)
     \item{groups}{a list of sample IDs, such like \code{groups = list(
         CEU = c("NA0101", "NA1022", ...), YRI = c("NAxxxx", ...),
         Asia = c("NA1234", ...))}}
-    \item{bound}{if \code{TRUE}, the estimates are bounded so that no
-        component < 0 or > 1, and the sum of proportions is one}
+    \item{bound}{if \code{TRUE}, the estimates are bounded in [0, 1], and
+        the sum of proportions is one; \code{bound=FALSE} for unbiased
+        estimates}
 }
 \details{
     The minor allele frequency and missing rate for each SNP passed in
 \code{snp.id} are calculated over all the samples in \code{sample.id}.
 }
 \value{
-    Return a \code{snpgdsEigMixClass} object, and it is a list:
-    \item{sample.id}{the sample ids used in the analysis}
-    \item{snp.id}{the SNP ids used in the analysis}
-    \item{eigenval}{eigenvalues}
-    \item{eigenvect}{eigenvactors, "# of samples" x "eigen.cnt"}
-    \item{ibdmat}{the IBD matrix}
+    Return a matrix of ancestral proportions with rows for study individuals
+(\code{rownames()} is sample ID).
 }
 
 \references{
@@ -72,7 +69,7 @@ head(tab)
 # draw
 plot(tab$EV2, tab$EV1, col=as.integer(tab$pop),
     xlab="eigenvector 2", ylab="eigenvector 1")
-legend("topleft", legend=levels(tab$pop), pch="o", col=1:4)
+legend("bottomleft", legend=levels(tab$pop), pch="o", col=1:4)
 
 
 # define groups
@@ -81,6 +78,7 @@ groups <- list(CEU = samp.id[pop_code == "CEU"],
     CHB = samp.id[is.element(pop_code, c("HCB", "JPT"))])
 
 prop <- snpgdsAdmixProp(RV, groups=groups)
+head(prop)
 
 # draw
 plot(prop[, "YRI"], prop[, "CEU"], col=as.integer(tab$pop),

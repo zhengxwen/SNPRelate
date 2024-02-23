@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2020        Xiuwen Zheng
+# Copyright (C) 2011 - 2024        Xiuwen Zheng
 # License: GPL-3
 #
 
@@ -343,7 +343,6 @@ snpgdsAdmixProp <- function(eigobj, groups, bound=FALSE)
     # 'sample.id' and 'eigenvect' should exist
     stopifnot(!is.null(eigobj$sample.id))
     stopifnot(is.matrix(eigobj$eigenvect))
-
     stopifnot(is.list(groups))
     stopifnot(length(groups) > 1)
     if (length(groups) > (ncol(eigobj$eigenvect)+1))
@@ -374,8 +373,7 @@ snpgdsAdmixProp <- function(eigobj, groups, bound=FALSE)
         grlist <- c(grlist, groups[[i]])
     }
 
-    stopifnot(is.logical(bound) & is.vector(bound))
-    stopifnot(length(bound) == 1)
+    stopifnot(is.logical(bound), length(bound)==1L)
 
     # calculate ...
 
@@ -393,7 +391,7 @@ snpgdsAdmixProp <- function(eigobj, groups, bound=FALSE)
     }
 
     # check
-    if (any(is.na(mat)))
+    if (anyNA(mat))
         stop("The eigenvectors should not have missing value!")
 
     T.P <- mat[length(groups), ]
@@ -407,11 +405,11 @@ snpgdsAdmixProp <- function(eigobj, groups, bound=FALSE)
     rownames(new.p) <- eigobj$sample.id
 
     # whether bounded
-    if (bound)
+    if (isTRUE(bound))
     {
         new.p[new.p < 0] <- 0
-        r <- 1.0 / rowSums(new.p)
-        new.p <- new.p * r
+        new.p[new.p > 1] <- 1
+        new.p <- new.p / rowSums(new.p)
     }
 
     new.p
