@@ -780,19 +780,18 @@ namespace LD
 			BufSNP.ReadPackedGeno(i, &buf[0]);
 			progress.Forward(1, verbose);
 			// detect LD
-			int TotalCnt = 0, ValidCnt = 0;
-			list<TSNP>::iterator it;
-			for (it=ListGeno.begin(); it != ListGeno.end(); TotalCnt++)
+			bool to_include = true;
+			for (list<TSNP>::iterator it=ListGeno.begin(); it != ListGeno.end(); )
 			{
 				// check whether it is in the sliding window
 				if ((abs(i - it->idx) <= slide_max_n) &&
 					(abs(pos_bp[i] - it->pos_bp) <= slide_max_bp))
 				{
-					if (fabs(_CalcLD(&(it->genobuf[0]), &buf[0])) <= LD_threshold)
-						ValidCnt ++;
+					if (to_include &&
+						(fabs(_CalcLD(&(it->genobuf[0]), &buf[0])) > LD_threshold))
+						to_include = false;
 					it ++;
 				} else {
-					ValidCnt ++;
 					// delete it
 					list<TSNP>::iterator tmp_it = it;
 					it ++;
@@ -800,7 +799,7 @@ namespace LD
 				}
 			}
 			// handle
-			out_SNP[i] = (ValidCnt == TotalCnt);
+			out_SNP[i] = to_include;
 			if (out_SNP[i])
 			{
 				ListGeno.push_back(TSNP(i, pos_bp[i], nPackedSamp));
@@ -837,19 +836,18 @@ namespace LD
 			BufSNP.ReadPackedGeno(i, &buf[0]);
 			progress.Forward(1, verbose);
 			// detect LD
-			int TotalCnt = 0, ValidCnt = 0;
-			list<TSNP>::iterator it;
-			for (it=ListGeno.begin(); it != ListGeno.end(); TotalCnt++)
+			bool to_include = true;
+			for (list<TSNP>::iterator it=ListGeno.begin(); it != ListGeno.end(); )
 			{
 				// check whether it is in the sliding window
 				if ((abs(i - it->idx) <= slide_max_n) &&
 					(abs(pos_bp[i] - it->pos_bp) <= slide_max_bp))
 				{
-					if (fabs(_CalcLD(&(it->genobuf[0]), &buf[0])) <= LD_threshold)
-						ValidCnt ++;
+					if (to_include &&
+						(fabs(_CalcLD(&(it->genobuf[0]), &buf[0])) > LD_threshold))
+						to_include = false;
 					it++;
 				} else {
-					ValidCnt ++;
 					// delete it
 					list<TSNP>::iterator tmp_it = it;
 					it++;
@@ -857,7 +855,7 @@ namespace LD
 				}
 			}
 			// handle
-			out_SNP[i] = (ValidCnt == TotalCnt);
+			out_SNP[i] = to_include;
 			if (out_SNP[i])
 			{
 				ListGeno.push_front(TSNP(i, pos_bp[i], nPackedSamp));

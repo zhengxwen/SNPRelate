@@ -1,3 +1,11 @@
+CHANGES IN VERSION 1.37.2
+-------------------------
+
+UTILITIES
+
+    o faster `snpgdsLDpruning()`
+
+
 CHANGES IN VERSION 1.36.1
 -------------------------
 
