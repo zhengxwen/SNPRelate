@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2020        Xiuwen Zheng
+# Copyright (C) 2011 - 2024        Xiuwen Zheng
 # License: GPL-3
 #
 
@@ -117,11 +117,6 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.numeric(ld.threshold), is.finite(ld.threshold),
         length(ld.threshold)==1L)
     stopifnot(is.numeric(num.thread), num.thread > 0L)
-    if (num.thread > 1L)
-    {
-        warning("The current version of 'snpgdsLDpruning()' ",
-            "does not support multi-threading.", call.=FALSE, immediate.=TRUE)
-    }
     stopifnot(is.logical(verbose), length(verbose)==1L)
 
     start.pos <- match.arg(start.pos)
@@ -199,7 +194,8 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                 first  = 1L,
                 last   = n.tmp)
             rv <- .Call(gnrLDpruning, startidx, position[flag],
-                slide.max.bp, slide.max.n, ld.threshold, method, verbose)
+                slide.max.bp, slide.max.n, ld.threshold, method,
+                num.thread, verbose)
 
             # output
             L <- rep(FALSE, length(total.snp.ids))

@@ -3,7 +3,7 @@ CHANGES IN VERSION 1.37.2
 
 UTILITIES
 
-    o faster `snpgdsLDpruning()`
+    o faster `snpgdsLDpruning()` and new multi-threading implementation
 
 
 CHANGES IN VERSION 1.36.1
