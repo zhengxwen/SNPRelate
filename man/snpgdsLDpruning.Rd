@@ -11,7 +11,7 @@ snpgdsLDpruning(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=0.005, missing.rate=0.05,
     method=c("composite", "r", "dprime", "corr"), slide.max.bp=500000L,
     slide.max.n=NA, ld.threshold=0.2, start.pos=c("random", "first", "last"),
-    num.thread=1L, verbose=TRUE)
+    num.thread=1L, autosave=NULL, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},
@@ -35,6 +35,8 @@ snpgdsLDpruning(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
         the first position; "last": start from the last position}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
+    \item{autosave}{NULL or a file name for autosaving a single R object
+        (saving via \code{\link{saveRDS}})}
     \item{verbose}{if TRUE, show information}
 }
 \details{

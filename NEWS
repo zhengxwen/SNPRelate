@@ -5,6 +5,8 @@ UTILITIES
 
     o faster `snpgdsLDpruning()` and new multi-threading implementation
 
+    o new option 'autosave' in `snpgdsLDpruning()`
+
 
 CHANGES IN VERSION 1.36.1
 -------------------------

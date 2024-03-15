@@ -101,7 +101,7 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=0.005, missing.rate=0.05,
     method=c("composite", "r", "dprime", "corr"), slide.max.bp=500000L,
     slide.max.n=NA, ld.threshold=0.2, start.pos=c("random", "first", "last"),
-    num.thread=1L, verbose=TRUE)
+    num.thread=1L, autosave=NULL, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -117,6 +117,12 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     stopifnot(is.numeric(ld.threshold), is.finite(ld.threshold),
         length(ld.threshold)==1L)
     stopifnot(is.numeric(num.thread), num.thread > 0L)
+    stopifnot(is.null(autosave) | is.character(autosave))
+    if (is.character(autosave))
+    {
+        if (length(autosave)!=1L || anyNA(autosave) || autosave=="")
+            stop("'autosave' should be NULL or a file name.")
+    }
     stopifnot(is.logical(verbose), length(verbose)==1L)
 
     start.pos <- match.arg(start.pos)
@@ -212,6 +218,14 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                     prettyNum(ntmp, ",", scientific=FALSE),
                     prettyNum(ntot, ",", scientific=FALSE)))
             }
+
+            # autosave
+            if (is.character(autosave))
+            {
+                if (verbose)
+                    cat("Save to ", sQuote(autosave), "\n", sep="")
+                saveRDS(res, file=autosave)
+            }
         }
     }
 
@@ -221,8 +235,9 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             "markers are selected in total.\n")
     }
 
-    # return
-    return(res)
+    # output
+    if (is.character(autosave)) return(invisible(res))
+    res
 }
 
 
