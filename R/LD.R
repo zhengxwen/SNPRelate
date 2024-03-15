@@ -207,7 +207,7 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             if (verbose)
             {
                 ntmp <- sum(rv); ntot <- sum(chr == ch)
-                cat(sprintf("Chromosome %s: %0.2f%%, %s/%s\n",
+                cat(sprintf("Chromosome %s: %0.2f%%, %s / %s\n",
                     as.character(ch), 100*ntmp/ntot,
                     prettyNum(ntmp, ",", scientific=FALSE),
                     prettyNum(ntot, ",", scientific=FALSE)))
