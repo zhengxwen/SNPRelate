@@ -571,6 +571,6 @@
         " -- supported by Streaming SIMD Extensions 2 (SSE2)",
         " -- supported by Advanced Vector Extensions (AVX)"
     )
-    packageStartupMessage("SNPRelate", s)
+    if (!is.null(s)) packageStartupMessage("SNPRelate", s)
     TRUE
 }

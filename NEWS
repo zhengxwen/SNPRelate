@@ -7,6 +7,8 @@ UTILITIES
 
     o new option 'autosave' in `snpgdsLDpruning()`
 
+    o Fix the welcome message when running in a non x86 system
+
 
 CHANGES IN VERSION 1.36.1
 -------------------------
