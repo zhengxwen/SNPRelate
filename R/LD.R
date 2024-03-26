@@ -193,6 +193,7 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             } else {
                 .Call(gnrSetSeqSpace, gdsobj, samp.flag, flag)
             }
+            if (verbose) cat(sprintf("Chrom %s: ", ch))
 
             # call LD prune for this chromosome
             startidx <- switch(start.pos,
@@ -214,10 +215,10 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
             if (verbose)
             {
                 ntmp <- sum(rv); ntot <- sum(chr == ch)
-                cat(sprintf("Chromosome %s: %0.2f%%, %s / %s\n",
-                    as.character(ch), 100*ntmp/ntot,
+                cat(sprintf("    %0.2f%%, %s / %s (%s)\n", 100*ntmp/ntot,
                     prettyNum(ntmp, ",", scientific=FALSE),
-                    prettyNum(ntot, ",", scientific=FALSE)))
+                    prettyNum(ntot, ",", scientific=FALSE),
+                    date()))
             }
 
             # autosave
