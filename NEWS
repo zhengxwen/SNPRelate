@@ -7,6 +7,10 @@ UTILITIES
 
     o new option 'autosave' in `snpgdsLDpruning()`
 
+    o new option `start.pos="random.f500"` in `snpgdsLDpruning()`, allowing
+      faster genotype scanning (it is used by default now). To be compatible
+      with the previous versions, please specify `start.pos="random"` manually
+
     o Fix the welcome message when running in a non x86 system
 
 

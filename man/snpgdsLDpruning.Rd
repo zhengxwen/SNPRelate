@@ -10,7 +10,8 @@
 snpgdsLDpruning(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     remove.monosnp=TRUE, maf=0.005, missing.rate=0.05,
     method=c("composite", "r", "dprime", "corr"), slide.max.bp=500000L,
-    slide.max.n=NA, ld.threshold=0.2, start.pos=c("random", "first", "last"),
+    slide.max.n=NA, ld.threshold=0.2,
+    start.pos=c("random.f500", "random", "first", "last"),
     num.thread=1L, autosave=NULL, verbose=TRUE)
 }
 \arguments{
@@ -31,8 +32,10 @@ snpgdsLDpruning(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
     \item{slide.max.bp}{the maximum basepairs in the sliding window}
     \item{slide.max.n}{the maximum number of SNPs in the sliding window}
     \item{ld.threshold}{the LD threshold}
-    \item{start.pos}{"random": a random starting position; "first": start from
-        the first position; "last": start from the last position}
+    \item{start.pos}{"random.f500", a starting postion randomly selected from
+        the first 500 markers (by default); "random": a random starting
+        position; "first": start from the first position; "last": start from
+        the last position. "random.f500" is applicable for >= v1.37.2}
     \item{num.thread}{the number of (CPU) cores used; if \code{NA}, detect
         the number of cores automatically}
     \item{autosave}{NULL or a file name for autosaving a single R object

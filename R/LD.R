@@ -100,7 +100,8 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
 snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
     autosome.only=TRUE, remove.monosnp=TRUE, maf=0.005, missing.rate=0.05,
     method=c("composite", "r", "dprime", "corr"), slide.max.bp=500000L,
-    slide.max.n=NA, ld.threshold=0.2, start.pos=c("random", "first", "last"),
+    slide.max.n=NA, ld.threshold=0.2,
+    start.pos=c("random.f500", "random", "first", "last"),
     num.thread=1L, autosave=NULL, verbose=TRUE)
 {
     # check
@@ -123,9 +124,8 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
         if (length(autosave)!=1L || anyNA(autosave) || autosave=="")
             stop("'autosave' should be NULL or a file name.")
     }
-    stopifnot(is.logical(verbose), length(verbose)==1L)
-
     start.pos <- match.arg(start.pos)
+    stopifnot(is.logical(verbose), length(verbose)==1L)
 
     if (verbose)
     {
@@ -196,6 +196,7 @@ snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
             # call LD prune for this chromosome
             startidx <- switch(start.pos,
+                random.f500 = sample.int(min(n.tmp, 500L), 1L),
                 random = sample.int(n.tmp, 1L),
                 first  = 1L,
                 last   = n.tmp)
