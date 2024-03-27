@@ -746,7 +746,7 @@ namespace LD
 		}
 	}
 
-	class CThreadPoolLD
+	class COREARRAY_DLL_DEFAULT CThreadPoolLD
 	{
 	public:
 		const C_UInt8 *BaseGeno;
