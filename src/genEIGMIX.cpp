@@ -2,7 +2,7 @@
 //
 // genEIGMIX.cpp: Eigen-analysis with admixture on GWAS
 //
-// Copyright (C) 2017    Xiuwen Zheng
+// Copyright (C) 2017-2024    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -23,8 +23,8 @@
 #ifndef _HEADER_EIGMIX_
 #define _HEADER_EIGMIX_
 
-#include "genPCA.h"
 #include <algorithm>
+#include "genPCA.h"
 
 
 namespace EIGMIX

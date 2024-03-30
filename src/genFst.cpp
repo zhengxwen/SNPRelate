@@ -2,7 +2,7 @@
 //
 // genFst.cpp: Fixation index (Fst) Estimation
 //
-// Copyright (C) 2015-2017    Xiuwen Zheng
+// Copyright (C) 2015-2024    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -22,13 +22,13 @@
 #ifndef _HEADER_FST_
 #define _HEADER_FST_
 
-// CoreArray library header
-#include "dGenGWAS.h"
-#include "dVect.h"
-
 // Standard library header
 #include <vector>
 #include <cmath>
+
+// CoreArray library header
+#include "dGenGWAS.h"
+#include "dVect.h"
 
 namespace Fst
 {

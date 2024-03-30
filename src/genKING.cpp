@@ -2,7 +2,7 @@
 //
 // genKING.cpp: KINK Identity-by-descent (IBD) Analysis on GWAS
 //
-// Copyright (C) 2011-2018    Xiuwen Zheng
+// Copyright (C) 2011-2024    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -22,16 +22,16 @@
 #ifndef _HEADER_IBD_KING_
 #define _HEADER_IBD_KING_
 
-// CoreArray library header
-#include <dGenGWAS.h>
-#include <dVect.h>
-#include "ThreadPool.h"
-
 // Standard library header
 #include <cmath>
 #include <cfloat>
 #include <memory>
 #include <algorithm>
+
+// CoreArray library header
+#include <dGenGWAS.h>
+#include <dVect.h>
+#include "ThreadPool.h"
 
 
 namespace IBD_KING

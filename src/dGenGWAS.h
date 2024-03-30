@@ -22,13 +22,13 @@
 #ifndef _HEADER_GWAS_
 #define _HEADER_GWAS_
 
-#include <R_GDS_CPP.h>
 #include <ctime>
 #include <vector>
 #include <string>
 #include <algorithm>
 #include <memory>
 
+#include <R_GDS_CPP.h>
 #include "ThreadPool.h"
 #include "dVect.h"
 

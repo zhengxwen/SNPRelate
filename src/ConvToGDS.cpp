@@ -2,7 +2,7 @@
 //
 // ConvToGDS.cpp: PED/VCF to GDS Format
 //
-// Copyright (C) 2013-2023    Xiuwen Zheng
+// Copyright (C) 2013-2024    Xiuwen Zheng
 //
 // This file is part of SeqArray.
 //
@@ -19,16 +19,16 @@
 // along with SeqArray.
 // If not, see <http://www.gnu.org/licenses/>.
 
-#include <R_GDS_CPP.h>
 #include <string>
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <fstream>
 
+#include <R_GDS_CPP.h>
 using namespace CoreArray;
 
 #include <dGenGWAS.h>
-#include <fstream>
 using namespace GWAS;
 
 

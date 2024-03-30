@@ -9,7 +9,7 @@
 // SNPRelate.cpp: Relatedness, Linkage Disequilibrium and
 //				  Principal Component Analysis
 //
-// Copyright (C) 2011-2018    Xiuwen Zheng [zhengxwen@gmail.com]
+// Copyright (C) 2011-2024    Xiuwen Zheng [zhengx@u.washington.edu]
 //
 // This file is part of SNPRelate.
 //
@@ -27,19 +27,19 @@
 // If not, see <http://www.gnu.org/licenses/>.
 
 
-#include <dGenGWAS.h>
-#include <dVect.h>
-
-#include <Rinternals.h>
-#include <R_ext/Lapack.h>
-#include <R_ext/Rdynload.h>
-
 #include <fstream>
 #include <vector>
 #include <set>
 #include <map>
 #include <utility>
 #include <algorithm>
+
+#include <dGenGWAS.h>
+#include <dVect.h>
+
+#include <Rinternals.h>
+#include <R_ext/Lapack.h>
+#include <R_ext/Rdynload.h>
 
 
 using namespace std;

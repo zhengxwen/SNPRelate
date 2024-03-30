@@ -2,7 +2,7 @@
 //
 // ThreadPool.h: a C++ implementation of thread pool
 //
-// Copyright (C) 2016-2017    Xiuwen Zheng
+// Copyright (C) 2016-2024    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -21,9 +21,9 @@
 
 /**
  *	\file     ThreadPool.h
- *	\author   Xiuwen Zheng [zhengxwen@gmail.com]
+ *	\author   Xiuwen Zheng [zhengx@u.washington.edu]
  *	\version  1.0
- *	\date     2016-2017
+ *	\date     2016-2024
  *	\brief    a C++ implementation of thread pool
  *	\details
 **/
@@ -31,19 +31,18 @@
 #ifndef _HEADER_THREAD_POOL_
 #define _HEADER_THREAD_POOL_
 
-#include <CoreDEF.h>
-#include <R_GDS_CPP.h>
 #include <vector>
 #include <queue>
+#include <CoreDEF.h>
 
 #ifdef COREARRAY_PLATFORM_WINDOWS
 #   include <windows.h>
 #endif
-
 #ifdef COREARRAY_POSIX_THREAD
 #   include <pthread.h>
 #endif
 
+#include <R_GDS_CPP.h>
 
 namespace CoreArray
 {

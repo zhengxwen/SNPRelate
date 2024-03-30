@@ -2,7 +2,7 @@
 //
 // genIBD.cpp: Identity by descent (IBD) Analysis on GWAS
 //
-// Copyright (C) 2011-2018    Xiuwen Zheng
+// Copyright (C) 2011-2024    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -23,10 +23,6 @@
 #ifndef _HEADER_IBD_
 #define _HEADER_IBD_
 
-// CoreArray library header
-#include "dGenGWAS.h"
-#include "dVect.h"
-
 // Standard library header
 #include <limits>
 #include <vector>
@@ -34,6 +30,10 @@
 #include <cfloat>
 #include <memory>
 #include <algorithm>
+
+// CoreArray library header
+#include "dGenGWAS.h"
+#include "dVect.h"
 
 
 #ifdef COREARRAY_SIMD_SSE

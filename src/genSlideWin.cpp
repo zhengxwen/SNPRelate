@@ -2,7 +2,7 @@
 //
 // genSlideWin.cpp: The Method of Sliding Windows
 //
-// Copyright (C) 2015-2017    Xiuwen Zheng
+// Copyright (C) 2015-2024    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -22,12 +22,12 @@
 #ifndef _HEADER_SLIDE_WINDOW_
 #define _HEADER_SLIDE_WINDOW_
 
-// CoreArray library header
-#include "dGenGWAS.h"
-
 // Standard library header
 #include <vector>
 #include <cmath>
+
+// CoreArray library header
+#include "dGenGWAS.h"
 
 // using namespace
 using namespace std;

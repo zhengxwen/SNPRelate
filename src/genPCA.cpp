@@ -2,7 +2,7 @@
 //
 // genPCA.cpp: Principal Component Analysis on GWAS
 //
-// Copyright (C) 2011-2020    Xiuwen Zheng
+// Copyright (C) 2011-2024    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -19,11 +19,11 @@
 // with SNPRelate.
 // If not, see <http://www.gnu.org/licenses/>.
 
-#include "genPCA.h"
-#include <R_ext/Lapack.h>
 #include <cmath>
 #include <memory>
 #include <algorithm>
+#include "genPCA.h"
+#include <R_ext/Lapack.h>
 
 #ifndef FCONE
 #   define FCONE
