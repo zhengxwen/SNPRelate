@@ -643,8 +643,8 @@ namespace LD
 	static void Entry_LD_SlideMat(PdThread Thread, int ThreadIndex, void *Param)
 	{
 		TParam_LD_SlideMat *pm = (TParam_LD_SlideMat*)Param;
-		C_Int64 StartIndex[pm->Num_Thread];
-		Array_SplitJobs(pm->Num_Thread, pm->TotalCount, StartIndex,
+		vector<C_Int64> StartIndex(pm->Num_Thread);
+		Array_SplitJobs(pm->Num_Thread, pm->TotalCount, &StartIndex[0],
 			Array_Thread_MatCnt);
 
 		// starting point
