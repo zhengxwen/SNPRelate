@@ -32,7 +32,7 @@ snpgdsFst(gdsobj, population, method=c("W&C84", "W&H02"), sample.id=NULL,
     \item{missing.rate}{to use the SNPs with "<= missing.rate" only;
         if NaN, no missing threshold}
     \item{with.id}{if \code{TRUE}, the returned value with \code{sample.id} and
-        \code{sample.id}}
+        \code{snp.id}}
     \item{verbose}{if \code{TRUE}, show information}
 }
 \details{
