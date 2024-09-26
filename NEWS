@@ -1,4 +1,13 @@
-CHANGES IN VERSION 1.37.4
+CHANGES IN VERSION 1.38.1
+-------------------------
+
+UTILITIES
+
+    o update the C codes according to '_R_USE_STRICT_R_HEADERS_=true' &
+      '_R_CXX_USE_NO_REMAP_=true'
+
+
+CHANGES IN VERSION 1.38.0
 -------------------------
 
 UTILITIES

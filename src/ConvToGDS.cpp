@@ -236,7 +236,7 @@ protected:
 		}
 
 		// call ReadLine R function
-		SEXP val = eval(_ReadFun, _Rho);
+		SEXP val = Rf_eval(_ReadFun, _Rho);
 		PROTECT(val);
 		nProt ++;
 
@@ -544,17 +544,17 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBEDFlag(SEXP File, SEXP ReadBinFun, SEXP Rho)
 	// 'readBin(File, raw(), 3)'
 	SEXP R_Read_Call = PROTECT(
 		LCONS(ReadBinFun, LCONS(File,
-		LCONS(NEW_RAW(0), LCONS(ScalarInteger(3), R_NilValue)))));
+		LCONS(NEW_RAW(0), LCONS(Rf_ScalarInteger(3), R_NilValue)))));
 
 	// call ...
-	SEXP val = PROTECT(eval(R_Read_Call, Rho));
+	SEXP val = PROTECT(Rf_eval(R_Read_Call, Rho));
 	unsigned char *prefix = RAW(val);
 
 	if ((prefix[0] != 0x6C) || (prefix[1] != 0x1B))
-		error("Invalid prefix in the bed file.");
+		Rf_error("Invalid prefix in the bed file.");
 
 	UNPROTECT(2);
-	return ScalarInteger((C_UInt8)prefix[2]);
+	return Rf_ScalarInteger((C_UInt8)prefix[2]);
 }
 
 
@@ -578,7 +578,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP GenoNode, SEXP Num, SEXP File,
 		// 'readBin(File, raw(), 3)'
 		SEXP R_Read_Call = PROTECT(
 			LCONS(ReadBinFun, LCONS(File,
-			LCONS(NEW_RAW(0), LCONS(ScalarInteger(nPack), R_NilValue)))));
+			LCONS(NEW_RAW(0), LCONS(Rf_ScalarInteger(nPack), R_NilValue)))));
 
 		CProgress Progress(verbose ? n : -1);
 		vector<C_UInt8> dstgeno(DLen[1]);
@@ -587,7 +587,7 @@ COREARRAY_DLL_EXPORT SEXP gnrConvBED2GDS(SEXP GenoNode, SEXP Num, SEXP File,
 		for (int i=0; i < n; i++)
 		{
 			// read genotypes
-			SEXP val = eval(R_Read_Call, Rho);
+			SEXP val = Rf_eval(R_Read_Call, Rho);
 			unsigned char *srcgeno = RAW(val);
 
 			// unpacked
@@ -670,9 +670,9 @@ COREARRAY_DLL_EXPORT SEXP gnrParseVCF4(SEXP vcf_fn, SEXP gds_root,
 {
 	const char *fn = CHAR(STRING_ELT(vcf_fn, 0));
 	int met_idx = INTEGER(method)[0];
-	int verbose = asLogical(Verbose);
+	int verbose = Rf_asLogical(Verbose);
 	if (verbose == NA_LOGICAL)
-		error("'verbose' must be TRUE or FALSE.");
+		Rf_error("'verbose' must be TRUE or FALSE.");
 
 	// define a variable for reading lines
 	CReadLine RL;
@@ -991,7 +991,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParseVCF4(SEXP vcf_fn, SEXP gds_root,
 		}
 
 		UNPROTECT(1);
-		rv_ans = ScalarInteger(GDS_Variant_Index - old_variant_index);
+		rv_ans = Rf_ScalarInteger(GDS_Variant_Index - old_variant_index);
 
 	COREARRAY_TRY_END
 }
@@ -1017,9 +1017,9 @@ COREARRAY_DLL_EXPORT SEXP gnrParseGEN(SEXP gen_fn, SEXP gds_root,
 	SEXP ReadLine_N, SEXP rho, SEXP Verbose)
 {
 	const char *fn = CHAR(STRING_ELT(gen_fn, 0));
-	int verbose = asLogical(Verbose);
+	int verbose = Rf_asLogical(Verbose);
 	if (verbose == NA_LOGICAL)
-		error("'verbose' must be TRUE or FALSE.");
+		Rf_error("'verbose' must be TRUE or FALSE.");
 	const double CallProb = REAL(CallThreshold)[0];
 
 	// define a variable for reading lines
@@ -1151,7 +1151,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParseGEN(SEXP gen_fn, SEXP gds_root,
 		}
 
 		UNPROTECT(1);
-		rv_ans = ScalarInteger(LN);
+		rv_ans = Rf_ScalarInteger(LN);
 
 	COREARRAY_TRY_END
 }
@@ -1179,7 +1179,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParsePED(SEXP ped_fn, SEXP gds_root,
 	const char *fn = CHAR(STRING_ELT(ped_fn, 0));
 	int verbose = Rf_asLogical(Verbose);
 	if (verbose == NA_LOGICAL)
-		error("'verbose' must be TRUE or FALSE.");
+		Rf_error("'verbose' must be TRUE or FALSE.");
 
 	// the number of SNPs
 	const int nSNP  = Rf_length(SNPIdx);
@@ -1215,7 +1215,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParsePED(SEXP ped_fn, SEXP gds_root,
 		// 'readLine(con, n)'
 		SEXP R_Read_Call = PROTECT(
 			LCONS(ReadLineFun, LCONS(ReadLine_File1,
-			LCONS(ScalarInteger(1), R_NilValue))));
+			LCONS(Rf_ScalarInteger(1), R_NilValue))));
 		RL.Init(R_Read_Call, rho);
 		RL.SplitBySpaceTab();
 
@@ -1282,7 +1282,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParsePED(SEXP ped_fn, SEXP gds_root,
 		// 'readLine(con, n)'
 		R_Read_Call = PROTECT(
 			LCONS(ReadLineFun, LCONS(ReadLine_File2,
-			LCONS(ScalarInteger(1), R_NilValue))));
+			LCONS(Rf_ScalarInteger(1), R_NilValue))));
 		RL.Init(R_Read_Call, rho);
 		RL.SplitBySpaceTab();
 
@@ -1383,7 +1383,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParseGProbs(SEXP ped_fn, SEXP gds_root,
 	const char *fn = CHAR(STRING_ELT(ped_fn, 0));
 	int verbose = Rf_asLogical(Verbose);
 	if (verbose == NA_LOGICAL)
-		error("'verbose' must be TRUE or FALSE.");
+		Rf_error("'verbose' must be TRUE or FALSE.");
 
 	// the number of SNPs
 	const int nSNP  = Rf_length(SNPIdx);
@@ -1419,7 +1419,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParseGProbs(SEXP ped_fn, SEXP gds_root,
 		// 'readLine(con, n)'
 		SEXP R_Read_Call = PROTECT(
 			LCONS(ReadLineFun, LCONS(ReadLine_File1,
-			LCONS(ScalarInteger(1), R_NilValue))));
+			LCONS(Rf_ScalarInteger(1), R_NilValue))));
 		RL.Init(R_Read_Call, rho);
 		RL.SplitBySpaceTab();
 
@@ -1486,7 +1486,7 @@ COREARRAY_DLL_EXPORT SEXP gnrParseGProbs(SEXP ped_fn, SEXP gds_root,
 		// 'readLine(con, n)'
 		R_Read_Call = PROTECT(
 			LCONS(ReadLineFun, LCONS(ReadLine_File2,
-			LCONS(ScalarInteger(1), R_NilValue))));
+			LCONS(Rf_ScalarInteger(1), R_NilValue))));
 		RL.Init(R_Read_Call, rho);
 		RL.SplitBySpaceTab();
 

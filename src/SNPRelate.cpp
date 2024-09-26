@@ -66,7 +66,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSSEFlag()
 #else
 	int I = 0;
 #endif
-	return ScalarInteger(I);
+	return Rf_ScalarInteger(I);
 }
 
 
@@ -168,7 +168,7 @@ COREARRAY_DLL_EXPORT SEXP gnrGetGenoDim()
 COREARRAY_DLL_EXPORT SEXP gnrGetGenoDimInfo()
 {
 	COREARRAY_TRY
-		rv_ans = ScalarLogical(
+		rv_ans = Rf_ScalarLogical(
 			MCWorkingGeno.Space().GenoDimType() == RDim_Sample_X_SNP ?
 			FALSE : TRUE);
 	COREARRAY_CATCH
@@ -195,7 +195,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSelSNP_Base(SEXP remove_mono, SEXP maf,
 			RM_MONO==TRUE, MAF, MRATE, &sel[0]);
 
 		rv_ans = PROTECT(NEW_LIST(2));
-		SET_ELEMENT(rv_ans, 0, ScalarInteger(OutNum));
+		SET_ELEMENT(rv_ans, 0, Rf_ScalarInteger(OutNum));
 		SEXP Flag = PROTECT(NEW_LOGICAL(n));
 		SET_ELEMENT(rv_ans, 1, Flag);
 
@@ -227,7 +227,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSelSNP_Base_Ex(SEXP afreq, SEXP remove_mono,
 			pFreq, RM_MONO == TRUE, MAF, MRATE, &sel[0]);
 
 		rv_ans = PROTECT(NEW_LIST(2));
-		SET_ELEMENT(rv_ans, 0, ScalarInteger(OutNum));
+		SET_ELEMENT(rv_ans, 0, Rf_ScalarInteger(OutNum));
 		SEXP Flag = PROTECT(NEW_LOGICAL(n));
 		SET_ELEMENT(rv_ans, 1, Flag);
 
@@ -286,9 +286,9 @@ COREARRAY_DLL_EXPORT SEXP gnrSampFreq()
 /// copy genotypes
 COREARRAY_DLL_EXPORT SEXP gnrCopyGeno(SEXP Node, SEXP snpfirstorder)
 {
-	int snpdim = asLogical(snpfirstorder);
+	int snpdim = Rf_asLogical(snpfirstorder);
 	if (snpdim == NA_LOGICAL)
-		error("'snpfirstdim' must be TRUE or FALSE.");
+		Rf_error("'snpfirstdim' must be TRUE or FALSE.");
 
 	COREARRAY_TRY
 
@@ -407,7 +407,7 @@ static void _ParseAlleleString(const char *str, string &A1, string &A2)
 COREARRAY_DLL_EXPORT SEXP gnrStrandSwitch(SEXP Node, SEXP AlleleNode,
 	SEXP NewAlleleNode, SEXP SNP_First_Dim, SEXP A_Allele)
 {
-	int snpfirstdim = asLogical(SNP_First_Dim);
+	int snpfirstdim = Rf_asLogical(SNP_First_Dim);
 
 	COREARRAY_TRY
 
@@ -665,10 +665,10 @@ COREARRAY_DLL_EXPORT SEXP gnrConvGDS2PED(SEXP pedfn, SEXP SampID, SEXP Allele,
 	SEXP fmt_code, SEXP verbose)
 {
 	const char *fn = CHAR(STRING_ELT(pedfn, 0));
-	int fmt = asInteger(fmt_code);
-	int if_verbose = asLogical(verbose);
+	int fmt = Rf_asInteger(fmt_code);
+	int if_verbose = Rf_asLogical(verbose);
 	if (if_verbose == NA_LOGICAL)
-		error("'verbose' must be TRUE or FALSE.");
+		Rf_error("'verbose' must be TRUE or FALSE.");
 
 	COREARRAY_TRY
 
@@ -750,10 +750,10 @@ COREARRAY_DLL_EXPORT SEXP gnrConvGDS2PED(SEXP pedfn, SEXP SampID, SEXP Allele,
 COREARRAY_DLL_EXPORT SEXP gnrConvGDS2BED(SEXP bedfn, SEXP SNPOrder, SEXP Verbose)
 {
 	const char *fn = CHAR(STRING_ELT(bedfn, 0));
-	int if_snp = (asLogical(SNPOrder) == TRUE);
-	int if_verbose = asLogical(Verbose);
+	int if_snp = (Rf_asLogical(SNPOrder) == TRUE);
+	int if_verbose = Rf_asLogical(Verbose);
 	if (if_verbose == NA_LOGICAL)
-		error("'verbose' must be TRUE or FALSE.");
+		Rf_error("'verbose' must be TRUE or FALSE.");
 
 	COREARRAY_TRY
 
@@ -807,9 +807,9 @@ COREARRAY_DLL_EXPORT SEXP gnrConvGDS2BED(SEXP bedfn, SEXP SNPOrder, SEXP Verbose
 COREARRAY_DLL_EXPORT SEXP gnrConvGDS2EIGEN(SEXP pedfn, SEXP verbose)
 {
 	const char *fn = CHAR(STRING_ELT(pedfn, 0));
-	int if_verbose = asLogical(verbose);
+	int if_verbose = Rf_asLogical(verbose);
 	if (if_verbose == NA_LOGICAL)
-		error("'verbose' must be TRUE or FALSE.");
+		Rf_error("'verbose' must be TRUE or FALSE.");
 
 	COREARRAY_TRY
 
@@ -879,9 +879,9 @@ static inline void split_allele(const char *txt, string &a1, string &a2)
 COREARRAY_DLL_EXPORT SEXP gnrAlleleStrand(SEXP allele1, SEXP allele2,
 	SEXP afreq1, SEXP afreq2, SEXP same_strand)
 {
-	int same_on_strand = asLogical(same_strand);
+	int same_on_strand = Rf_asLogical(same_strand);
 	if (same_on_strand == NA_LOGICAL)
-		error("'same.strand' must be TRUE or FALSE.");
+		Rf_error("'same.strand' must be TRUE or FALSE.");
 
 	COREARRAY_TRY
 
@@ -993,15 +993,15 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParse(SEXP gdsobj)
 		if (chr_max == -INT_MAX) chr_max = NA_INTEGER;
 
 		PROTECT(rv_ans = NEW_LIST(3));
-		SET_ELEMENT(rv_ans, 0, ScalarInteger(chr_min));
-		SET_ELEMENT(rv_ans, 1, ScalarInteger(chr_max));
+		SET_ELEMENT(rv_ans, 0, Rf_ScalarInteger(chr_min));
+		SET_ELEMENT(rv_ans, 1, Rf_ScalarInteger(chr_max));
 
 		SEXP tmp = PROTECT(NEW_CHARACTER(set_val.size()));
 		SET_ELEMENT(rv_ans, 2, tmp);
 		int id = 0;
 		for (set<string>::iterator i=set_val.begin(); i != set_val.end(); i++)
 		{
-			SET_STRING_ELT(tmp, id, mkChar(i->c_str()));
+			SET_STRING_ELT(tmp, id, Rf_mkChar(i->c_str()));
 			id ++;
 		}
 
@@ -1077,7 +1077,7 @@ COREARRAY_DLL_EXPORT SEXP gnrChromParseNumeric(SEXP gdsobj)
 /// get an error message
 COREARRAY_DLL_EXPORT SEXP gnrErrMsg()
 {
-	SEXP ans_rv = mkString(GDS_GetError());
+	SEXP ans_rv = Rf_mkString(GDS_GetError());
 	GDS_SetError(NULL);
 	return ans_rv;
 }

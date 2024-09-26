@@ -363,7 +363,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_Beta(SEXP Inbreeding, SEXP NumThread,
 {
 	int inbreeding = Rf_asLogical(Inbreeding);
 	if (inbreeding == NA_LOGICAL)
-		error("'inbreeding' must be TRUE or FALSE.");
+		Rf_error("'inbreeding' must be TRUE or FALSE.");
 	bool verbose = SEXP_Verbose(Verbose);
 
 	COREARRAY_TRY

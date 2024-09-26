@@ -659,10 +659,10 @@ COREARRAY_DLL_EXPORT SEXP gnrEigMix(SEXP EigenCnt, SEXP NumThread,
 	const bool verbose = SEXP_Verbose(Verbose);
 	int diag_adj = Rf_asLogical(RGetListElement(ParamList, "diagadj"));
 	if (diag_adj == NA_LOGICAL)
-		error("'diagadj' must be TRUE or FALSE.");
+		Rf_error("'diagadj' must be TRUE or FALSE.");
 	int need_ibd = Rf_asLogical(RGetListElement(ParamList, "ibdmat"));
 	if (need_ibd == NA_LOGICAL)
-		error("'ibdmat' must be TRUE or FALSE.");
+		Rf_error("'ibdmat' must be TRUE or FALSE.");
 
 	COREARRAY_TRY
 
@@ -748,7 +748,7 @@ COREARRAY_DLL_EXPORT SEXP gnrEigMixSNPLoading(SEXP EigenVal, SEXP EigenVect,
 		CachingSNPData("SNP Loading", verbose);
 
 		// scale eigenvectors with eigenvalues
-		SEXP EigVect = PROTECT(duplicate(EigenVect));
+		SEXP EigVect = PROTECT(Rf_duplicate(EigenVect));
 		{
 			const size_t n = MCWorkingGeno.Space().SampleNum();
 			for (int i=0; i < LenEig; i++)

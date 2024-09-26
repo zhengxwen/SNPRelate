@@ -1482,7 +1482,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE(SEXP AlleleFreq, SEXP KinshipConstraint,
 		// initialize the packed genotypes
 		IBD::InitPackedGeno(&(tmp_buffer[0]));
 		// initialize the internal matrix
-		IBD::Init_EPrIBD_IBS(isNull(AlleleFreq) ? NULL : REAL(AlleleFreq),
+		IBD::Init_EPrIBD_IBS(Rf_isNull(AlleleFreq) ? NULL : REAL(AlleleFreq),
 			NULL, false);
 
 		IBD::nIterMax = Rf_asInteger(MaxIterCnt);
@@ -1505,7 +1505,7 @@ COREARRAY_DLL_EXPORT SEXP gnrIBD_MLE(SEXP AlleleFreq, SEXP KinshipConstraint,
 
 		// Calculate the IBD matrix
 		IBD::Do_MLE_IBD_Calc(
-			isNull(AlleleFreq) ? NULL : REAL(AlleleFreq), IBD,
+			Rf_isNull(AlleleFreq) ? NULL : REAL(AlleleFreq), IBD,
 			(Rf_asLogical(IfOutNum) == TRUE) ? &niter : NULL,
 			REAL(afreq), Rf_asInteger(NumThread), "MLE IBD:",
 			&(tmp_AF[0]), verbose);
@@ -1802,7 +1802,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPairIBDLogLik(SEXP geno1, SEXP geno2,
 		}
 
 		// output
-		rv_ans = ScalarReal(LogLik);
+		rv_ans = Rf_ScalarReal(LogLik);
 
 	COREARRAY_CATCH
 }
@@ -1818,11 +1818,11 @@ COREARRAY_DLL_EXPORT SEXP gnrIndInbCoef(SEXP snp, SEXP afreq, SEXP reltol)
 	double *AF  = REAL(AS_NUMERIC(afreq));
 
 	if (XLENGTH(reltol) != 1)
-		error("`reltol' should a real number.");
+		Rf_error("`reltol' should a real number.");
 	double rtol = REAL(AS_NUMERIC(reltol))[0];
 
 	COREARRAY_TRY
-		rv_ans = ScalarReal(INBREEDING::_inb_mle<int>(n, G, AF, rtol, NULL));
+		rv_ans = Rf_ScalarReal(INBREEDING::_inb_mle<int>(n, G, AF, rtol, NULL));
 	COREARRAY_CATCH
 }
 

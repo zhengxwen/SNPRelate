@@ -49,23 +49,24 @@ snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
 }
 \details{
     "GCTA": the genetic relationship matrix in GCTA is defined as
-$G_{ij} = avg_l [(g_{il} - 2*p_l)*(g_{jl} - 2*p_l) / 2*p_l*(1 - p_l)]$ for
+$G_ij = avg_l [(g_il - 2*p_l*(g_jl - 2*p_l) / 2*p_l*(1 - p_l)]$ for
 individuals i,j and locus l;
 
     "Eigenstrat": the genetic covariance matrix in EIGENSTRAT
-$G_{ij} = avg_l [(g_{il} - 2*p_l)*(g_{jl} - 2*p_l) / 2*p_l*(1 - p_l)]$ for
+$G_ij = avg_l [(g_il - 2*p_l)*(g_jl - 2*p_l) / 2*p_l*(1 - p_l)]$ for
 individuals i,j and locus l; the missing genotype is imputed by the dosage
 mean of that locus.
 
     "EIGMIX" / "Weighted": it is the same as `2 * snpgdsEIGMIX(, ibdmat=TRUE,
 diagadj=FALSE)$ibd`:
-$G_{ij} = [sum_l (g_{il} - 2*p_l)*(g_{jl} - 2*p_l)] / [sum_l 2*p_l*(1 - p_l)]$
+$G_ij = [sum_l (g_il - 2*p_l)*(g_jl - 2*p_l)] / [sum_l 2*p_l*(1 - p_l)]$
 for individuals i,j and locus l;
 
-    "IndivBeta": `beta = snpgdsIndivBeta(, inbreeding=TRUE)` (Weir&Goudet, 2017), and
-beta-based GRM is $grm_{ij} = 2 * (beta_{ij} - beta_{min}) / (1 - beta_{min})$ for $i!=j$,
-$grm_{ij} = 1 + (beta_{i} - beta_{min}) / (1 - beta_{min})$ for $i=j$. It is relative to
-the minimum value of beta estimates.
+    "IndivBeta": `beta = snpgdsIndivBeta(, inbreeding=TRUE)`
+(Weir&Goudet, 2017), and beta-based GRM is
+$grm_ij = 2 * (beta_ij - beta_min) / (1 - beta_min)$ for $i!=j$,
+$grm_ij = 1 + (beta_i - beta_min) / (1 - beta_min)$ for $i=j$.
+It is relative to the minimum value of beta estimates.
 }
 \value{
     Return a list if \code{with.id = TRUE}:

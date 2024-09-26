@@ -960,10 +960,10 @@ COREARRAY_DLL_EXPORT SEXP gnrLDMat(SEXP method, SEXP NumSlide, SEXP MatTrim,
 	int n_slide = Rf_asInteger(NumSlide);
 	int trim_flag = Rf_asLogical(MatTrim);
 	if (trim_flag == NA_INTEGER)
-		error("'mat.trim' should be TRUE or FALSE");
+		Rf_error("'mat.trim' should be TRUE or FALSE");
 	int nThread = Rf_asInteger(NumThread);
 	if (nThread <= 0)
-		error("Invalid 'num.thread'.");
+		Rf_error("Invalid 'num.thread'.");
 	bool verbose = SEXP_Verbose(Verbose);
 
 	COREARRAY_TRY

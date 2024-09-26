@@ -44,7 +44,7 @@ extern SEXP gnrSNPRateFreq();
 static SEXP GetListElement(SEXP list, const char *str)
 {
 	SEXP elmt = R_NilValue;
-	SEXP names = getAttrib(list, R_NamesSymbol);
+	SEXP names = Rf_getAttrib(list, R_NamesSymbol);
 	R_xlen_t n = XLENGTH(list);
 	for (R_xlen_t i=0; i < n; i++)
 	{
@@ -89,7 +89,7 @@ static int SlidingNumWin(int start, int end, int winsize, int shift)
 COREARRAY_DLL_EXPORT SEXP gnrSlidingNumWin(SEXP Start, SEXP End,
 	SEXP WinSize, SEXP Shift)
 {
-	return ScalarInteger(
+	return Rf_ScalarInteger(
 		SlidingNumWin(
 			Rf_asInteger(Start), Rf_asInteger(End),
 			Rf_asInteger(WinSize), Rf_asInteger(Shift))
@@ -114,7 +114,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 	const bool is_basepair = (strcmp(c_Unit, "basepair") == 0);
 
 	if (MCWorkingGeno.Space().TotalSNPNum() != XLENGTH(chflag))
-		error("Internal error in 'gnrSlidingWindow': invalid chflag.");
+		Rf_error("Internal error in 'gnrSlidingWindow': invalid chflag.");
 
 	int nProtected = 0;
 	SEXP ans_rv = PROTECT(NEW_LIST(4));
@@ -134,7 +134,7 @@ COREARRAY_DLL_EXPORT SEXP gnrSlidingWindow(SEXP FUNIdx, SEXP WinSize,
 		p ++;
 	}
 	if ((PosMin == NA_INTEGER) || (PosMax == NA_INTEGER))
-		error("Internal error in 'gnrSlidingWindow': invalid position.");
+		Rf_error("Internal error in 'gnrSlidingWindow': invalid position.");
 
 	// posrange
 	SEXP posrange = PROTECT(NEW_INTEGER(2));

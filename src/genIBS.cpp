@@ -744,7 +744,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPairScore(SEXP SampIdx1, SEXP SampIdx2,
 
 	const int dosage = Rf_asLogical(Dosage);
 	if (dosage == NA_LOGICAL)
-		error("'dosage' must be TRUE or FALSE.");
+		Rf_error("'dosage' must be TRUE or FALSE.");
 
 	COREARRAY_TRY
 

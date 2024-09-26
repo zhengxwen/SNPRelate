@@ -204,7 +204,7 @@ COREARRAY_DLL_EXPORT SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method)
 
 			// output
 			PROTECT(rv_ans = NEW_LIST(2));
-			SET_ELEMENT(rv_ans, 0, ScalarReal(Numerator/Denominator));
+			SET_ELEMENT(rv_ans, 0, Rf_ScalarReal(Numerator/Denominator));
 			SET_ELEMENT(rv_ans, 1, ratio);
 			UNPROTECT(2);
 
@@ -232,7 +232,7 @@ COREARRAY_DLL_EXPORT SEXP gnrFst(SEXP Pop, SEXP nPop, SEXP Method)
 			PROTECT(rv_ans = NEW_LIST(3));
 			SEXP beta = PROTECT(Rf_allocMatrix(REALSXP, NumPop, NumPop));
 			double r = WH02_beta(nSamp, NumPop, &SumH[0], REAL(beta));
-			SET_ELEMENT(rv_ans, 0, ScalarReal(r));
+			SET_ELEMENT(rv_ans, 0, Rf_ScalarReal(r));
 			SET_ELEMENT(rv_ans, 1, ratio);
 			SET_ELEMENT(rv_ans, 2, beta);
 			UNPROTECT(3);

@@ -790,7 +790,7 @@ public:
 			memcpy(REAL(h), &MatT[0], sizeof(double) * nSamp * hsize);
 			SET_ELEMENT(rv_ans, 1, h);
 			// trace of XTX
-			SET_ELEMENT(rv_ans, 2, ScalarReal(TraceXTX*2));
+			SET_ELEMENT(rv_ans, 2, Rf_ScalarReal(TraceXTX*2));
 		}
 
 		UNPROTECT(1);
@@ -1394,8 +1394,8 @@ COREARRAY_DLL_EXPORT SEXP gnrPCA(SEXP EigenCnt, SEXP Algorithm, SEXP NumThread,
 			int nProtected = 0;
 			PROTECT(rv_ans = NEW_LIST(5));
 			nProtected ++;
-			SET_ELEMENT(rv_ans, 0, ScalarReal(TraceXTX));
-			SET_ELEMENT(rv_ans, 4, ScalarReal(TraceVal));
+			SET_ELEMENT(rv_ans, 0, Rf_ScalarReal(TraceXTX));
+			SET_ELEMENT(rv_ans, 4, Rf_ScalarReal(TraceVal));
 
 			if (Rf_asLogical(RGetListElement(ParamList, "need.genmat")) == TRUE)
 			{
@@ -1498,7 +1498,7 @@ COREARRAY_DLL_EXPORT SEXP gnrPCASNPLoading(SEXP EigenVal, SEXP EigenVect,
 		CachingSNPData("SNP Loading", verbose);
 
 		// scale eigenvectors with eigenvalues
-		SEXP EigVect = PROTECT(duplicate(EigenVect));
+		SEXP EigVect = PROTECT(Rf_duplicate(EigenVect));
 		{
 			const size_t n = MCWorkingGeno.Space().SampleNum();
 			const double Scale = double(n - 1) / Rf_asReal(TraceXTX);
@@ -1607,7 +1607,7 @@ COREARRAY_DLL_EXPORT double grm_avg_value = 0;
 /// Compute the eigenvalues and eigenvectors
 COREARRAY_DLL_EXPORT SEXP gnrGRM_avg_val()
 {
-	return ScalarReal(grm_avg_value);
+	return Rf_ScalarReal(grm_avg_value);
 }
 
 /// Compute the eigenvalues and eigenvectors

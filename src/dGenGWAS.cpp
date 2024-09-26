@@ -2252,7 +2252,7 @@ void GWAS::Array_SplitJobs(int nJob, C_Int64 TotalCount, C_Int64 outStart[],
 SEXP GWAS::RGetListElement(SEXP list, const char *name)
 {
 	SEXP elmt = R_NilValue;
-	SEXP names = getAttrib(list, R_NamesSymbol);
+	SEXP names = Rf_getAttrib(list, R_NamesSymbol);
 	size_t n = (!Rf_isNull(names)) ? XLENGTH(names) : 0;
 	for (size_t i = 0; i < n; i++)
 	{
@@ -2269,7 +2269,7 @@ bool GWAS::SEXP_Verbose(SEXP Verbose)
 {
 	int flag = Rf_asLogical(Verbose);
 	if (flag == NA_LOGICAL)
-		error("'verbose' must be TRUE or FALSE.");
+		Rf_error("'verbose' must be TRUE or FALSE.");
 	return (flag == TRUE);
 }
 
