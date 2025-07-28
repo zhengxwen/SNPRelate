@@ -1,3 +1,12 @@
+CHANGES IN VERSION 1.42.1
+-------------------------
+
+UTILITIES
+
+    o tweak the display (by showing # of variants) when calculating allele
+      counts and frequencies and using SeqArray GDS
+
+
 CHANGES IN VERSION 1.38.1
 -------------------------
 
