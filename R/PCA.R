@@ -190,7 +190,8 @@ snpgdsPCASNPLoading <- function(pcaobj, gdsobj, num.thread=1L, verbose=TRUE)
         cat("SNP Loading:\n")
         .cat("    # of samples: ", .pretty(ws$n.samp))
         .cat("    # of SNPs: ", .pretty(ws$n.snp))
-        .cat("    using ", num.thread, " thread", .plural(num.thread))
+        s <- .plural(num.thread)
+        .cat("    using ", num.thread, " thread", s, "/core", s)
         cat("    using the top", dim(pcaobj$eigenvect)[2L], "eigenvectors\n")
     }
 
@@ -252,7 +253,8 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
         cat("Sample Loading:\n")
         .cat("    # of samples: ", .pretty(ws$n.samp))
         .cat("    # of SNPs: ", .pretty(ws$n.snp))
-        .cat("    using ", num.thread, " thread", .plural(num.thread))
+        s <- .plural(num.thread)
+        .cat("    using ", num.thread, " thread", s, "/core", s)
         cat("    using the top", eigcnt, "eigenvectors\n")
     }
 

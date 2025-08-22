@@ -264,7 +264,10 @@
                 .cat("    # of samples: ", .pretty(dm[1L]))
                 .cat("    # of SNVs: ", .pretty(dm[2L]))
                 if (verbose.numthread)
-                    .cat("    using ", num.thread, " thread", .plural(num.thread))
+                {
+                    s <- .plural(num.thread)
+                    .cat("    using ", num.thread, " thread", s, "/core", s)
+                }
             }
 
 			if (!is.null(allele.freq))
@@ -468,7 +471,10 @@
         .cat("    # of samples: ", .pretty(dm[2L]))
         .cat("    # of ", SSS, .plural(dm[1L]), ": ", .pretty(dm[1L]))
         if (verbose.numthread)
-            .cat("    using ", num.thread, " thread", .plural(num.thread))
+        {
+            s <- .plural(num.thread)
+            .cat("    using ", num.thread, " thread", s, "/core", s)
+        }
     }
 
     # output
