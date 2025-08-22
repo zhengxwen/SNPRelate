@@ -2,7 +2,7 @@
 //
 // dGenGWAS.cpp: Workspace of Genome-Wide Association Studies
 //
-// Copyright (C) 2011-2018    Xiuwen Zheng
+// Copyright (C) 2011-2025    Xiuwen Zheng
 //
 // This file is part of SNPRelate.
 //
@@ -1639,21 +1639,21 @@ void CdProgression::ShowProgress()
 
 // ===================================================================== //
 
-static string time_cstr;
-
 string GWAS::NowDateToStr()
 {
-	time_t tm; time(&tm);
-	const char *s = ctime(&tm);
-	return string(s, strlen(s)-1);
+	return GWAS::TimeToStr();
 }
 
 const char *GWAS::TimeToStr()
 {
-	time_t tm; time(&tm);
-	const char *s = ctime(&tm);
-	time_cstr.assign(s, strlen(s)-1);
-	return time_cstr.c_str();
+	static char buffer[96];
+	time_t rawtime;
+	time(&rawtime);
+	struct tm *p = localtime(&rawtime);
+	snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d",
+		p->tm_year+1900, p->tm_mon+1, p->tm_mday,
+		p->tm_hour, p->tm_min, p->tm_sec);
+	return buffer;
 }
 
 
