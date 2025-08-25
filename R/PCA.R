@@ -63,6 +63,7 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 
     # set the number of threads in BLAS
     nt_old <- blas_get_num_procs()
+    if (is.na(nt_old)) nt_old <- 1L
     blas_set_num_threads(ws$num.thread)
     on.exit(blas_set_num_threads(nt_old))
     # run the C code
