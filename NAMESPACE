@@ -29,6 +29,7 @@ export(.onAttach)
 
 # Import all packages listed as Imports or Depends
 import(gdsfmt)
+importFrom(RhpcBLASctl, blas_get_num_procs, blas_set_num_threads)
 
 importFrom(methods, new)
 importFrom(utils, count.fields, read.table, write.table, packageVersion, str)

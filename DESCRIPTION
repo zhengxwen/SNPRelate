@@ -3,10 +3,10 @@ Type: Package
 Title: Parallel Computing Toolset for Relatedness and Principal Component
         Analysis of SNP Data
 Version: 1.42.1
-Date: 2025-07-27
+Date: 2025-08-25
 Depends: R (>= 2.15), gdsfmt (>= 1.8.3)
 LinkingTo: gdsfmt
-Imports: methods
+Imports: methods, RhpcBLASctl
 Suggests: parallel, Matrix, RUnit, knitr, markdown, rmarkdown, MASS,
         BiocGenerics
 Enhances: SeqArray (>= 1.12.0)

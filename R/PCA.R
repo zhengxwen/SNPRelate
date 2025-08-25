@@ -6,7 +6,7 @@
 #     A High-performance Computing Toolset for Relatedness and
 # Principal Component Analysis of SNP Data
 #
-# Copyright (C) 2011 - 2024        Xiuwen Zheng
+# Copyright (C) 2011 - 2025        Xiuwen Zheng
 # License: GPL-3
 #
 
@@ -60,6 +60,12 @@ snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
                 ws$n.samp, "]")
         }
     }
+
+    # set the number of threads in BLAS
+    nt_old <- blas_get_num_procs()
+    blas_set_num_threads(ws$num.thread)
+    on.exit(blas_set_num_threads(nt_old))
+    # run the C code
     rv <- .Call(gnrPCA, eigen.cnt, algorithm, ws$num.thread, param, verbose)
 
     # return
