@@ -10,7 +10,7 @@ individual pairs by Maximum Likelihood Estimation.
 }
 \usage{
 snpgdsIBDMLE(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
-    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, kinship=FALSE,
+    remove.monosnp=TRUE, maf=NaN, missing.rate=0.01, kinship=FALSE,
     kinship.constraint=FALSE, allele.freq=NULL,
     method=c("EM", "downhill.simplex", "Jacquard"), max.niter=1000L,
     reltol=sqrt(.Machine$double.eps), coeff.correct=TRUE,

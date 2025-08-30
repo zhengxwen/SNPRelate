@@ -20,7 +20,7 @@
 #
 
 snpgdsPCA <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=0.01,
     algorithm=c("exact", "randomized"),
     eigen.cnt=ifelse(identical(algorithm, "randomized"), 16L, 32L),
     num.thread=1L, bayesian=FALSE, need.genmat=FALSE,
@@ -309,7 +309,7 @@ snpgdsPCASampLoading <- function(loadobj, gdsobj, sample.id=NULL,
 #
 
 snpgdsEIGMIX <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=0.01,
     num.thread=1L, eigen.cnt=32L, diagadj=TRUE, ibdmat=FALSE, verbose=TRUE)
 {
     # check and initialize ...

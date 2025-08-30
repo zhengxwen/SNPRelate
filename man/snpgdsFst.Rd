@@ -10,7 +10,7 @@ indices) for given populations
 \usage{
 snpgdsFst(gdsobj, population, method=c("W&C84", "W&H02"), sample.id=NULL,
     snp.id=NULL, autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN,
-    missing.rate=NaN, with.id=FALSE, verbose=TRUE)
+    missing.rate=0.01, with.id=FALSE, verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},

@@ -20,7 +20,7 @@
 #
 
 snpgdsIBDMoM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=0.01,
     allele.freq=NULL, kinship=FALSE, kinship.constraint=FALSE, num.thread=1L,
     useMatrix=FALSE, verbose=TRUE)
 {
@@ -77,7 +77,7 @@ print.snpgdsIBDClass <- function(x, ...) str(x)
 #
 
 snpgdsIBDMLE <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=0.01,
     kinship=FALSE, kinship.constraint=FALSE, allele.freq=NULL,
     method=c("EM", "downhill.simplex", "Jacquard"), max.niter=1000L,
     reltol=sqrt(.Machine$double.eps), coeff.correct=TRUE, out.num.iter=TRUE,
@@ -331,7 +331,7 @@ snpgdsPairIBDMLELogLik <- function(geno1, geno2, allele.freq, k0=NaN, k1=NaN,
 #
 
 snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=0.01,
     type=c("KING-robust", "KING-homo"), family.id=NULL,
     num.thread=1L, useMatrix=FALSE, verbose=TRUE)
 {
@@ -430,7 +430,7 @@ snpgdsIBDKING <- function(gdsobj, sample.id=NULL, snp.id=NULL,
 #
 
 snpgdsDiss <- function(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
-    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1, verbose=TRUE)
+    remove.monosnp=TRUE, maf=NaN, missing.rate=0.01, num.thread=1, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -541,7 +541,7 @@ snpgdsIBDSelection <- function(ibdobj, kinship.cutoff=NaN, samp.sel=NULL)
 #
 
 snpgdsGRM <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=0.01,
     method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "Corr", "IndivBeta"),
     num.thread=1L, useMatrix=FALSE, out.fn=NULL, out.prec=c("double", "single"),
     out.compress="LZMA_RA", with.id=TRUE, verbose=TRUE)
@@ -796,7 +796,7 @@ snpgdsMergeGRM <- function(filelist, out.fn=NULL, out.prec=c("double", "single")
 
 snpgdsFst <- function(gdsobj, population, method=c("W&C84", "W&H02"),
     sample.id=NULL, snp.id=NULL, autosome.only=TRUE, remove.monosnp=TRUE,
-    maf=NaN, missing.rate=NaN, with.id=FALSE, verbose=TRUE)
+    maf=NaN, missing.rate=0.01, with.id=FALSE, verbose=TRUE)
 {
     # check
     ws <- .InitFile2(
@@ -836,7 +836,7 @@ snpgdsFst <- function(gdsobj, population, method=c("W&C84", "W&H02"),
 #
 
 snpgdsIndivBeta <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=0.01,
     method=c("weighted"), inbreeding=TRUE, num.thread=1L, with.id=TRUE,
     useMatrix=FALSE, verbose=TRUE)
 {

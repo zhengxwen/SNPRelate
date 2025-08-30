@@ -8,7 +8,7 @@
 }
 \usage{
 snpgdsIBDKING(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
-    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    remove.monosnp=TRUE, maf=NaN, missing.rate=0.01,
     type=c("KING-robust", "KING-homo"), family.id=NULL, num.thread=1L,
     useMatrix=FALSE, verbose=TRUE)
 }

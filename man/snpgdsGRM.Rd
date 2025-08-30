@@ -8,7 +8,7 @@
 }
 \usage{
 snpgdsGRM(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=0.01,
     method=c("GCTA", "Eigenstrat", "EIGMIX", "Weighted", "Corr", "IndivBeta"),
     num.thread=1L, useMatrix=FALSE, out.fn=NULL, out.prec=c("double", "single"),
     out.compress="LZMA_RA", with.id=TRUE, verbose=TRUE)

@@ -11,7 +11,7 @@ CreateIBS <- function()
 {
 	genofile <- snpgdsOpen(snpgdsExampleFileName())
 	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
-	ibs <- snpgdsIBS(genofile, sample.id=samp.id[1:90])
+	ibs <- snpgdsIBS(genofile, sample.id=samp.id[1:90], missing.rate=NaN)
 	save(ibs, file="Validate.IBS.RData", compress="xz")
 	snpgdsClose(genofile)
 }
@@ -23,7 +23,8 @@ CreatePCA <- function()
 	f <- snpgdsOpen(snpgdsExampleFileName())
 
 	samp.id <- read.gdsn(index.gdsn(f, "sample.id"))
-	pca <- snpgdsPCA(f, sample.id=samp.id[1:90], need.genmat=TRUE, eigen.cnt=8L)
+	pca <- snpgdsPCA(f, sample.id=samp.id[1:90], need.genmat=TRUE,
+	    eigen.cnt=8L, missing.rate=NaN)
 	corr <- round(snpgdsPCACorr(pca, f, eig.which=1:2)$snpcorr, 3)
 
 	SnpLoad <- snpgdsPCASNPLoading(pca, f)
@@ -45,7 +46,7 @@ CreatePLINK <- function()
 {
 	genofile <- snpgdsOpen(snpgdsExampleFileName())
 	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
-	ibd <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90])
+	ibd <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90], missing.rate=NaN)
 	save(ibd, file="Validate.MoM.RData", compress="xz")
 	snpgdsClose(genofile)
 }
@@ -55,8 +56,10 @@ CreateKING <- function()
 {
 	genofile <- snpgdsOpen(snpgdsExampleFileName())
 	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
-	v1 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60], type="KING-robust")
-	v2 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60], type="KING-homo")
+	v1 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60], missing.rate=NaN,
+	    type="KING-robust")
+	v2 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60], missing.rate=NaN,
+	    type="KING-homo")
 	.king <- list(v1, v2)
 	save(.king, file="Validate.KING.RData", compress="xz")
 	snpgdsClose(genofile)
@@ -67,7 +70,8 @@ CreateIndivBeta <- function()
 {
 	genofile <- snpgdsOpen(snpgdsExampleFileName())
 	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
-	.beta <- snpgdsIndivBeta(genofile, sample.id=samp.id[1:90])
+	.beta <- snpgdsIndivBeta(genofile, sample.id=samp.id[1:90],
+	    missing.rate=NaN)
 	save(.beta, file="Validate.Beta.RData", compress="xz")
 	snpgdsClose(genofile)
 }
@@ -78,7 +82,7 @@ CreateEIGMIX <- function()
 	genofile <- snpgdsOpen(snpgdsExampleFileName())
 	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
 	.eigmix <- snpgdsEIGMIX(genofile, sample.id=samp.id[1:90], eigen.cnt=0,
-		ibdmat=TRUE)$ibd
+		ibdmat=TRUE, missing.rate=NaN)$ibd
 	save(.eigmix, file="Validate.EIGMIX.RData", compress="xz")
 	snpgdsClose(genofile)
 }
@@ -100,18 +104,18 @@ test.IBS <- function()
 	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
 
 	# run on one core
-	ibs.1 <- snpgdsIBS(genofile, sample.id=samp.id[1:90],
+	ibs.1 <- snpgdsIBS(genofile, sample.id=samp.id[1:90], missing.rate=NaN,
 		num.thread=1, verbose=FALSE)
 	checkEquals(ibs.1, valid.dta, "IBS (one core)")
 
-	ibs.1 <- snpgdsIBS(genofile, sample.id=samp.id[1:90],
+	ibs.1 <- snpgdsIBS(genofile, sample.id=samp.id[1:90], missing.rate=NaN,
 		num.thread=1, useMatrix=TRUE, verbose=FALSE)
 	z <- as.matrix(ibs.1$ibs)
 	dimnames(z) <- NULL
 	checkEquals(z, valid.dta$ibs, "IBS (one core, Matrix)")
 
 	# run on two cores
-	ibs.2 <- snpgdsIBS(genofile, sample.id=samp.id[1:90],
+	ibs.2 <- snpgdsIBS(genofile, sample.id=samp.id[1:90], missing.rate=NaN,
 		num.thread=2, verbose=FALSE)
 	checkEquals(ibs.2, valid.dta, "IBS (two cores)")
 
@@ -133,7 +137,7 @@ test.PCA <- function()
 	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
 
 	# run on one core
-	pca <- snpgdsPCA(genofile, sample.id=samp.id[1:90],
+	pca <- snpgdsPCA(genofile, sample.id=samp.id[1:90], missing.rate=NaN,
 		num.thread=1, need.genmat=TRUE, eigen.cnt=8L, verbose=FALSE)
 	checkEquals(pca$genmat, valid.dta$genmat, "PCA (one core)")
 
@@ -157,7 +161,7 @@ test.PCA <- function()
 
 
 	# run on two cores
-	pca <- snpgdsPCA(genofile, sample.id=samp.id[1:90],
+	pca <- snpgdsPCA(genofile, sample.id=samp.id[1:90], missing.rate=NaN,
 		num.thread=2, need.genmat=TRUE, eigen.cnt=8L, verbose=FALSE)
 	checkEquals(pca$genmat, valid.dta$genmat, "PCA (two cores)")
 
@@ -196,21 +200,21 @@ test.PLINK.MoM <- function()
 	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
 
 	# run on one core
-	ibd.1 <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90],
+	ibd.1 <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90], missing.rate=NaN,
 		num.thread=1L, verbose=FALSE)
 	checkEquals(ibd.1, valid.dta, "PLINK MoM (one core)")
 
-	ibd <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90],
+	ibd <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90], missing.rate=NaN,
 		num.thread=1L, useMatrix=TRUE, verbose=FALSE)
 	checkEquals(as.numeric(ibd.1$k0), as.numeric(ibd$k0), "PLINK MoM (one core)")
 	checkEquals(as.numeric(ibd.1$k1), as.numeric(ibd$k1), "PLINK MoM (one core)")
 
 	# run on two cores
-	ibd.2 <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90],
+	ibd.2 <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90], missing.rate=NaN,
 		num.thread=2L, verbose=FALSE)
 	checkEquals(ibd.2, valid.dta, "PLINK MoM (two cores)")
 
-	ibd <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90],
+	ibd <- snpgdsIBDMoM(genofile, sample.id=samp.id[1:90], missing.rate=NaN,
 		num.thread=1L, useMatrix=TRUE, verbose=FALSE)
 	checkEquals(as.numeric(ibd.2$k0), as.numeric(ibd$k0), "PLINK MoM (two cores)")
 	checkEquals(as.numeric(ibd.2$k1), as.numeric(ibd$k1), "PLINK MoM (two cores)")
@@ -231,11 +235,11 @@ test.KING <- function()
 	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
 
 	# run on one core
-	king.1 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60],
+	king.1 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60], missing.rate=NaN,
 		type="KING-robust", num.thread=1L, verbose=FALSE)
 	checkEquals(king.1, valid.dta[[1L]], "KING robust MoM (one core)")
 
-	king.1 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60],
+	king.1 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60], missing.rate=NaN,
 		type="KING-robust", num.thread=1L, useMatrix=TRUE, verbose=FALSE)
 	king.1$IBS0 <- as.matrix(king.1$IBS0)
 	dimnames(king.1$IBS0) <- NULL
@@ -243,11 +247,11 @@ test.KING <- function()
 	dimnames(king.1$kinship) <- NULL
 	checkEquals(king.1, valid.dta[[1L]], "KING robust MoM (one core, Matrix)")
 
-	king.2 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60],
+	king.2 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60], missing.rate=NaN,
 		type="KING-homo", num.thread=1L, verbose=FALSE)
 	checkEquals(king.2, valid.dta[[2L]], "KING homo MoM (one core)")
 
-	king.2 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60],
+	king.2 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60], missing.rate=NaN,
 		type="KING-homo", num.thread=1L, verbose=FALSE)
 	king.2$k0 <- as.matrix(king.2$k0)
 	dimnames(king.2$k0) <- NULL
@@ -256,11 +260,11 @@ test.KING <- function()
 	checkEquals(king.2, valid.dta[[2L]], "KING homo MoM (one core, Matrix)")
 
 	# run on two cores
-	king.1 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60],
+	king.1 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60], missing.rate=NaN,
 		type="KING-robust", num.thread=2L, verbose=FALSE)
 	checkEquals(king.1, valid.dta[[1L]], "KING robust MoM (two cores)")
 
-	king.2 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60],
+	king.2 <- snpgdsIBDKING(genofile, sample.id=samp.id[1:60], missing.rate=NaN,
 		type="KING-homo", num.thread=2L, verbose=FALSE)
 	checkEquals(king.2, valid.dta[[2L]], "KING homo MoM (two cores)")
 
@@ -281,18 +285,18 @@ test.IndivBeta <- function()
 
 	# run on one core
 	beta.1 <- snpgdsIndivBeta(genofile, sample.id=samp.id[1:90],
-		num.thread=1, verbose=FALSE)
+		missing.rate=NaN, num.thread=1, verbose=FALSE)
 	checkEquals(beta.1$beta, valid.dta$beta, "Individual Beta (one core)")
 
 	beta.1 <- snpgdsIndivBeta(genofile, sample.id=samp.id[1:90],
-		num.thread=1, useMatrix=TRUE, verbose=FALSE)
+		missing.rate=NaN, num.thread=1, useMatrix=TRUE, verbose=FALSE)
 	beta.1$beta <- as.matrix(beta.1$beta)
 	dimnames(beta.1$beta) <- NULL
 	checkEquals(beta.1$beta, valid.dta$beta, "Individual Beta (one core, Matrix)")
 
 	# run on two cores
 	beta.2 <- snpgdsIndivBeta(genofile, sample.id=samp.id[1:90],
-		num.thread=2, verbose=FALSE)
+		missing.rate=NaN, num.thread=2, verbose=FALSE)
 	checkEquals(beta.2$beta, valid.dta$beta, "Individual Beta (two cores)")
 
 	# close the file
@@ -312,12 +316,12 @@ test.EIGMIX <- function()
 
 	# run on one core
 	eigmix.1 <- snpgdsEIGMIX(genofile, sample.id=samp.id[1:90], ibdmat=TRUE,
-		num.thread=1, verbose=FALSE)
+		missing.rate=NaN, num.thread=1, verbose=FALSE)
 	checkEquals(eigmix.1$ibd, valid.dta, "EIGMIX (one core)")
 
 	# run on two cores
 	eigmix.2 <- snpgdsEIGMIX(genofile, sample.id=samp.id[1:90], ibdmat=TRUE,
-		num.thread=2, verbose=FALSE)
+		missing.rate=NaN, num.thread=2, verbose=FALSE)
 	checkEquals(eigmix.2$ibd, valid.dta, "EIGMIX (two cores)")
 
 	# close the file

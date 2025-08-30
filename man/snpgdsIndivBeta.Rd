@@ -10,7 +10,7 @@ using SNP genotype data.
 }
 \usage{
 snpgdsIndivBeta(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
-    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, method=c("weighted"),
+    remove.monosnp=TRUE, maf=NaN, missing.rate=0.01, method=c("weighted"),
     inbreeding=TRUE, num.thread=1L, with.id=TRUE, useMatrix=FALSE, verbose=TRUE)
 snpgdsIndivBetaRel(beta, beta_rel, verbose=TRUE)
 }

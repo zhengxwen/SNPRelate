@@ -8,7 +8,7 @@
 }
 \usage{
 snpgdsIBS(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
-    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1L,
+    remove.monosnp=TRUE, maf=NaN, missing.rate=0.01, num.thread=1L,
     useMatrix=FALSE, verbose=TRUE)
 }
 \arguments{

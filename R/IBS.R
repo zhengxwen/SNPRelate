@@ -20,7 +20,7 @@
 #
 
 snpgdsIBS <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=0.01,
     num.thread=1L, useMatrix=FALSE, verbose=TRUE)
 {
     # check
@@ -53,7 +53,7 @@ print.snpgdsIBSClass <- function(x, ...) str(x)
 #
 
 snpgdsIBSNum <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=NaN,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=NaN, missing.rate=0.01,
     num.thread=1L, verbose=TRUE)
 {
     # check

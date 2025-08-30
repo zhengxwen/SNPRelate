@@ -8,7 +8,8 @@
 }
 \usage{
 snpgdsDiss(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
-    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, num.thread=1, verbose=TRUE)
+    remove.monosnp=TRUE, maf=NaN, missing.rate=0.01, num.thread=1,
+    verbose=TRUE)
 }
 \arguments{
     \item{gdsobj}{an object of class \code{\link{SNPGDSFileClass}},

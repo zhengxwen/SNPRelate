@@ -98,7 +98,7 @@ snpgdsLDMat <- function(gdsobj, sample.id=NULL, snp.id=NULL, slide=250L,
 #
 
 snpgdsLDpruning <- function(gdsobj, sample.id=NULL, snp.id=NULL,
-    autosome.only=TRUE, remove.monosnp=TRUE, maf=0.005, missing.rate=0.05,
+    autosome.only=TRUE, remove.monosnp=TRUE, maf=0.005, missing.rate=0.01,
     method=c("composite", "r", "dprime", "corr"), slide.max.bp=500000L,
     slide.max.n=NA, ld.threshold=0.2,
     start.pos=c("random.f500", "random", "first", "last"),

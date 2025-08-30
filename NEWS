@@ -1,4 +1,4 @@
-CHANGES IN VERSION 1.42.1
+CHANGES IN VERSION 1.43.1
 -------------------------
 
 UTILITIES
@@ -9,6 +9,12 @@ UTILITIES
     o tweak the display of date
 
     o import RhpcBLASctl to control the number of threads in BLAS and LAPACK
+      in `snpgdsPCA()`
+
+    o set the threshold 'missing.rate=0.01' by default in
+      `snpgdsIBDMoM()`, `snpgdsIBDMLE()`, `snpgdsIBDKING()`, `snpgdsDiss()`,
+      `snpgdsGRM()`, `snpgdsFst()`, `snpgdsIndivBeta()`, `snpgdsIBS()`,
+      `snpgdsIBSNum()`, `snpgdsLDpruning()`, `snpgdsPCA()`, `snpgdsEIGMIX()`
 
 
 CHANGES IN VERSION 1.38.1

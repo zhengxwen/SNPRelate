@@ -9,7 +9,7 @@
 }
 \usage{
 snpgdsIBDMoM(gdsobj, sample.id=NULL, snp.id=NULL, autosome.only=TRUE,
-    remove.monosnp=TRUE, maf=NaN, missing.rate=NaN, allele.freq=NULL,
+    remove.monosnp=TRUE, maf=NaN, missing.rate=0.01, allele.freq=NULL,
     kinship=FALSE, kinship.constraint=FALSE, num.thread=1L, useMatrix=FALSE,
     verbose=TRUE)
 }
