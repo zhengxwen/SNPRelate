@@ -1,10 +1,10 @@
-CHANGES IN VERSION 1.43.1
+CHANGES IN VERSION 1.44.0
 -------------------------
 
 UTILITIES
 
-    o tweak the display (by showing # of variants) when calculating allele
-      counts and frequencies and using SeqArray GDS
+    o tweak the display (by showing # of variants) when calculating the allele
+      counts and frequencies of a SeqArray GDS file
 
     o tweak the display of date
 
