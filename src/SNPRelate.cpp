@@ -546,23 +546,38 @@ static void _RunDissZ(double *dist, int n_dist, int I[], int N1, int N2,
 
 
 // to compute mean and standard deviation of individual dissimilarity by permutation
-COREARRAY_DLL_EXPORT void gnrDistPerm(int *n_dist, double *dist, int *merge,
-	int *n_perm, double *z_threshold,
-	double Out_Merge_Z[], int Out_Merge_N1[], int Out_Merge_N2[],
-	int Out_Ind_Grp[], int *out_err)
+COREARRAY_DLL_EXPORT SEXP gnrDistPerm(SEXP N_Dist, SEXP Dist, SEXP Merge,
+	SEXP N_Perm, SEXP Z_Threshold)
 {
+	const int n_dist = Rf_asInteger(N_Dist);
+	const int n_perm = Rf_asInteger(N_Perm);
+	const double z_threshold = Rf_asReal(Z_Threshold);
+	double *dist = REAL(Dist);
+	int *merge = INTEGER(Merge);
+
 	GetRNGstate();
 
-	CORE_TRY
-		//
-		vector< vector<int> > Array(*n_dist - 1);
-		vector<double> d_buffer(*n_perm);
+	COREARRAY_TRY
 
-		for (int i_merge=0; i_merge < (*n_dist - 1); i_merge++)
+		// allocate output vectors
+		SEXP OutZ = PROTECT(Rf_allocVector(REALSXP, n_dist - 1));
+		SEXP OutN1 = PROTECT(Rf_allocVector(INTSXP, n_dist - 1));
+		SEXP OutN2 = PROTECT(Rf_allocVector(INTSXP, n_dist - 1));
+		SEXP OutGrp = PROTECT(Rf_allocVector(INTSXP, n_dist));
+		double *Out_Merge_Z = REAL(OutZ);
+		int *Out_Merge_N1 = INTEGER(OutN1);
+		int *Out_Merge_N2 = INTEGER(OutN2);
+		int *Out_Ind_Grp = INTEGER(OutGrp);
+
+		//
+		vector< vector<int> > Array(n_dist - 1);
+		vector<double> d_buffer(n_perm);
+
+		for (int i_merge=0; i_merge < (n_dist - 1); i_merge++)
 		{
 			// individual index
 			int i1 = merge[i_merge];
-			int i2 = merge[i_merge + (*n_dist - 1)];
+			int i2 = merge[i_merge + (n_dist - 1)];
 			int n1, n2;
 			vector<int> &A = Array[i_merge];
 
@@ -591,37 +606,37 @@ COREARRAY_DLL_EXPORT void gnrDistPerm(int *n_dist, double *dist, int *merge,
 				Out_Merge_Z[i_merge] = 0;
 			} else {
 
-				double L = _distance(dist, *n_dist, &(A[0]), n1, n2);
-				_RunDissZ(dist, *n_dist, &(A[0]), n1, n2, &(d_buffer[0]), *n_perm);
+				double L = _distance(dist, n_dist, &(A[0]), n1, n2);
+				_RunDissZ(dist, n_dist, &(A[0]), n1, n2, &(d_buffer[0]), n_perm);
 
 				// calculate mean
 				double _mean = 0;
-				for (int i=0; i < *n_perm; i++)
+				for (int i=0; i < n_perm; i++)
 					_mean += d_buffer[i];
-				_mean /= *n_perm;
+				_mean /= n_perm;
 
 				// standard deviation
 				double _sd = 0;
-				for (int i=0; i < *n_perm; i++)
+				for (int i=0; i < n_perm; i++)
 					_sd += (d_buffer[i] - _mean)*(d_buffer[i] - _mean);
-				_sd /= (*n_perm - 1);
+				_sd /= (n_perm - 1);
 
 				Out_Merge_Z[i_merge] = (_sd > 0) ? ((L - _mean)/sqrt(_sd)) : 0;
 			}
 		}
 
 		// determine groups
-		vector<int> grp_flag(*n_dist - 1, 0);
-		for (int i=0; i < *n_dist; i++) Out_Ind_Grp[i] = 1;
+		vector<int> grp_flag(n_dist - 1, 0);
+		for (int i=0; i < n_dist; i++) Out_Ind_Grp[i] = 1;
 
-		for (int i_merge=0; i_merge < (*n_dist - 1); i_merge++)
+		for (int i_merge=0; i_merge < (n_dist - 1); i_merge++)
 		{
-			bool b = (Out_Merge_Z[i_merge] >= *z_threshold);
+			bool b = (Out_Merge_Z[i_merge] >= z_threshold);
 			if (!b)
 			{
 				// individual index
 				int i1 = merge[i_merge];
-				int i2 = merge[i_merge + (*n_dist - 1)];
+				int i2 = merge[i_merge + (n_dist - 1)];
 				if ((i1 > 0) && (grp_flag[i1-1] != 0))
 					b = true;
 				if ((i2 > 0) && (grp_flag[i2-1] != 0))
@@ -648,11 +663,17 @@ COREARRAY_DLL_EXPORT void gnrDistPerm(int *n_dist, double *dist, int *merge,
 			}
 		}
 
-		// output
-		*out_err = 0;
-	CORE_CATCH(*out_err = 1)
+		// output: a list with OutZ, OutN1, OutN2, OutGrp
+		rv_ans = PROTECT(Rf_allocVector(VECSXP, 4));
+		SET_VECTOR_ELT(rv_ans, 0, OutZ);
+		SET_VECTOR_ELT(rv_ans, 1, OutN1);
+		SET_VECTOR_ELT(rv_ans, 2, OutN2);
+		SET_VECTOR_ELT(rv_ans, 3, OutGrp);
+		UNPROTECT(5);
 
-	PutRNGstate();
+		PutRNGstate();
+
+	COREARRAY_CATCH
 }
 
 
@@ -1089,6 +1110,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrConvBEDFlag(SEXP, SEXP, SEXP);
 	extern SEXP gnrConvBED2GDS(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrDiss(SEXP, SEXP);
+	extern SEXP gnrDistPerm(SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrEigMix(SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrEigMixSNPLoading(SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrEigMixSampLoading(SEXP, SEXP, SEXP, SEXP);
@@ -1140,7 +1162,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrConvGDS2BED, 3),         CALL(gnrConvGDS2EIGEN, 2),
 		CALL(gnrConvGDS2PED, 5),
 
-		CALL(gnrDiss, 2),                // CALL(gnrDistPerm, 10),
+		CALL(gnrDiss, 2),                CALL(gnrDistPerm, 5),
 		CALL(gnrEigMix, 4),
 		CALL(gnrEigMixSNPLoading, 5),    CALL(gnrEigMixSampLoading, 4),
 		
@@ -1180,7 +1202,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	};
 
 	R_registerRoutines(info, NULL, callMethods, NULL, NULL);
-	// R_useDynamicSymbols(info, FALSE);
+	R_useDynamicSymbols(info, FALSE);
 
 	Init_GDS_Routines();
 }

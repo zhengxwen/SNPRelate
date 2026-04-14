@@ -477,23 +477,19 @@ snpgdsCutTree <- function(hc, z.threshold=15, outlier.n=5, n.perm=5000,
         stopifnot(!is.null(hc$hclust$merge))
 
         n <- dim(hc$dist)[1]
-        rv <- .C(gnrDistPerm, n, as.double(hc$dist),
-            as.integer(hc$hclust$merge), as.integer(n.perm),
-            as.double(z.threshold),
-            OutZ = double(n-1), OutN1 = integer(n-1), OutN2 = integer(n-1),
-            OutGrp = integer(n), err=integer(1), NAOK=TRUE)
-        if (rv$err != 0) stop(snpgdsErrMsg())
+        rv <- .Call(gnrDistPerm, n, as.double(hc$dist),
+            as.integer(hc$hclust$merge), n.perm, z.threshold)
 
-        merge <- data.frame(z=rv$OutZ, n1=rv$OutN1, n2=rv$OutN2)
+        merge <- data.frame(z=rv[[1L]], n1=rv[[2L]], n2=rv[[3L]])
 
         if (is.finite(outlier.n))
         {
-            tab <- table(rv$OutGrp)
+            tab <- table(rv[[4L]])
             x <- as.integer(names(tab)[tab <= outlier.n])
-            flag <- rv$OutGrp %in% x
+            flag <- rv[[4L]] %in% x
 
-            samp.group <- sprintf("G%03d", rv$OutGrp)
-            samp.group[flag] <- sprintf("Outlier%03d", rv$OutGrp[flag])
+            samp.group <- sprintf("G%03d", rv[[4L]])
+            samp.group[flag] <- sprintf("Outlier%03d", rv[[4L]][flag])
             samp.group <- as.factor(samp.group)
 
             n.g <- length(tab) - length(x)
@@ -507,7 +503,7 @@ snpgdsCutTree <- function(hc, z.threshold=15, outlier.n=5, n.perm=5000,
         } else {
             # not detect outliers
 
-            samp.group <- as.factor(sprintf("G%03d", rv$OutGrp))
+            samp.group <- as.factor(sprintf("G%03d", rv[[4L]]))
             n <- levels(samp.group)
             n <- sprintf("G%03d", 1:length(n))
             levels(samp.group) <- n     
