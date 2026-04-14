@@ -9,7 +9,7 @@
 // SNPRelate.cpp: Relatedness, Linkage Disequilibrium and
 //				  Principal Component Analysis
 //
-// Copyright (C) 2011-2024    Xiuwen Zheng [zhengx@u.washington.edu]
+// Copyright (C) 2011-2026    Xiuwen Zheng [zhengx@u.washington.edu]
 //
 // This file is part of SNPRelate.
 //
@@ -1090,6 +1090,8 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	extern SEXP gnrConvBED2GDS(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrDiss(SEXP, SEXP);
 	extern SEXP gnrEigMix(SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrEigMixSNPLoading(SEXP, SEXP, SEXP, SEXP, SEXP);
+	extern SEXP gnrEigMixSampLoading(SEXP, SEXP, SEXP, SEXP);
 	extern SEXP gnrFst(SEXP, SEXP, SEXP);
 	extern SEXP gnrHWE();
 	extern SEXP gnrGRM(SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1138,9 +1140,10 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrConvGDS2BED, 3),         CALL(gnrConvGDS2EIGEN, 2),
 		CALL(gnrConvGDS2PED, 5),
 
-		CALL(gnrDiss, 2),
-		// CALL(gnrDistPerm, ),
+		CALL(gnrDiss, 2),                // CALL(gnrDistPerm, 10),
 		CALL(gnrEigMix, 4),
+		CALL(gnrEigMixSNPLoading, 5),    CALL(gnrEigMixSampLoading, 4),
+		
 		CALL(gnrErrMsg, 0),
 		CALL(gnrFst, 3),                 CALL(gnrHWE, 0),
 
@@ -1177,6 +1180,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	};
 
 	R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+	// R_useDynamicSymbols(info, FALSE);
 
 	Init_GDS_Routines();
 }
