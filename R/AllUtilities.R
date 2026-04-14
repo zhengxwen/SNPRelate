@@ -479,7 +479,7 @@ snpgdsCutTree <- function(hc, z.threshold=15, outlier.n=5, n.perm=5000,
         n <- dim(hc$dist)[1]
         rv <- .Call(gnrDistPerm, n, as.double(hc$dist),
             as.integer(hc$hclust$merge), n.perm, z.threshold)
-
+        # rv = list(OutZ, OutN1, OutN2, OutGroup)
         merge <- data.frame(z=rv[[1L]], n1=rv[[2L]], n2=rv[[3L]])
 
         if (is.finite(outlier.n))
