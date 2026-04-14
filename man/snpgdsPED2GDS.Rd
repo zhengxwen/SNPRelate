@@ -29,7 +29,7 @@ snpgdsPED2GDS(ped.fn, map.fn, out.gdsfn, family=TRUE, snpfirstdim=FALSE,
 }
 \details{
     GDS -- Genomic Data Structures, the extended file name used for storing
-        genetic data, and the file format is used in the \link{gdsfmt} package.
+        genetic data, and the file format is used in the \code{gdsfmt} package.
 
     PED -- PLINK PED format.
 }

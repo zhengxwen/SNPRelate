@@ -32,7 +32,7 @@ snpgdsVCF2GDS_R(vcf.fn, out.fn, nblock=1024,
 }
 \details{
     GDS -- Genomic Data Structures used for storing genetic array-oriented
-        data, and the file format used in the \link{gdsfmt} package.
+        data, and the file format used in the \code{gdsfmt} package.
 
     VCF -- The Variant Call Format (VCF), which is a generic format for storing
         DNA polymorphism data such as SNPs, insertions, deletions and
@@ -89,6 +89,9 @@ snpgdsSummary("test3.gds")
 
 snpgdsVCF2GDS_R(vcf.fn, "test4.gds", method="copy.num.of.ref")
 snpgdsSummary("test4.gds")
+
+# delete the temporary files
+unlink(paste0("test", 1:4, ".gds"), force=TRUE)
 }
 
 \keyword{gds}

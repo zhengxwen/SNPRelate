@@ -43,7 +43,7 @@ snpgdsBED2GDS(bed.fn, fam.fn, bim.fn, out.gdsfn, family=FALSE,
 }
 \details{
     GDS -- Genomic Data Structures, the extended file name used for storing
-        genetic data, and the file format is used in the \link{gdsfmt} package.
+        genetic data, and the file format is used in the \code{gdsfmt} package.
 
     BED -- the PLINK binary ped format.
 

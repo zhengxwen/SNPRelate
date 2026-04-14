@@ -34,7 +34,7 @@ snpgdsPCACorr(pcaobj, gdsobj, snp.id=NULL, eig.which=NULL, num.thread=1L,
 "snp.id" and "correlation" will be stored in the GDS file. The GDS node
 "correlation" is a matrix of correlation coefficients, and it is stored with
 the format of packed real number ("packedreal16" preserving 4 digits, 0.0001
-is the smallest number greater zero, see \link{add.gdsn}).
+is the smallest number greater zero, see \link[gdsfmt]{add.gdsn}).
 }
 \value{
     Return a list if \code{outgds=NULL},

@@ -7,7 +7,7 @@
 
 \description{
     A \code{SNPGDSFileClass} object provides access to a GDS file containing
-genome-wide SNP data. It extends the class \code{\link{gds.class}} in
+genome-wide SNP data. It extends the class \code{\link[gdsfmt]{gds.class}} in
 the gdsfmt package.
 }
 

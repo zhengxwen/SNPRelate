@@ -27,7 +27,7 @@ snpgdsGDS2PED(gdsobj, ped.fn, sample.id=NULL, snp.id=NULL, use.snp.rsid=TRUE,
 }
 \details{
     GDS -- Genomic Data Structures, the extended file name used for storing
-        genetic data, and the file format used in the \link{gdsfmt} package.
+        genetic data, and the file format used in the \code{gdsfmt} package.
 
     PED -- the PLINK text ped format.
 }

@@ -22,7 +22,7 @@ snpgdsGDS2Eigen(gdsobj, eigen.fn, sample.id=NULL, snp.id=NULL, verbose=TRUE)
 }
 \details{
     GDS -- Genomic Data Structures, the extended file name used for storing
-genetic data, and the file format used in the \link{gdsfmt} package.
+genetic data, and the file format used in the \code{gdsfmt} package.
 
     Eigen -- the text format used in EIGENSTRAT.
 }

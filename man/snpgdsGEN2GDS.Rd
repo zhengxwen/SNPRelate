@@ -34,7 +34,7 @@ snpgdsGEN2GDS(gen.fn, sample.fn, out.fn, chr.code=NULL,
 }
 \details{
     GDS -- Genomic Data Structures, the extended file name used for storing
-        genetic data, and the file format is used in the \link{gdsfmt} package.
+        genetic data, and the file format is used in the \code{gdsfmt} package.
 
     NOTE : the sample file format (\code{sample.fn}) has changed with the
 release of SNPTEST v2. Specifically, the way in which covariates and phenotypes
