@@ -1,1 +1,5 @@
+^\.git$
+^\.github$
+^\.gitignore$
+^\.vscode$
 \.yml$

@@ -24,7 +24,7 @@ useDynLib(SNPRelate,
 )
 
 # Export all names
-exportPattern("^snpgds*")
+exportPattern("^snpgds")
 export(.onAttach)
 
 # Import all packages listed as Imports or Depends
