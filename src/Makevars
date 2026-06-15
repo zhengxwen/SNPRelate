@@ -9,7 +9,3 @@ PKG_CPPFLAGS = -DUSING_R -DUSE_FC_LEN_T -I.
 PKG_LIBS = -lpthread $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
 all: $(SHLIB)
-
-clean:
-	rm -f ../.gitignore
-	rm -rf ../.github
