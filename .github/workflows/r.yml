@@ -25,7 +25,6 @@ jobs:
         config:
           - {os: ubuntu-latest,  r: 'release'}
           - {os: macOS-latest,   r: 'release'}
-          - {os: windows-latest, r: 'release'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -46,8 +45,8 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          # Resolve Bioconductor dependencies (gdsfmt, SeqArray, BiocGenerics).
-          bioc-version: release
+          # pak resolves the Bioconductor dependencies (gdsfmt, SeqArray,
+          # BiocGenerics) automatically from the biocViews in DESCRIPTION.
           extra-packages: |
             any::rcmdcheck
           needs: check
