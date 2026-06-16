@@ -1,3 +1,31 @@
+CHANGES IN VERSION 1.99.0
+-------------------------
+
+NEW FEATURES
+
+    o runtime CPU dispatch for the vectorized kernels: the best available
+      instruction set is now selected automatically at run time -- SSE2, AVX2
+      or AVX-512 on x86/x86-64, NEON on ARM64 (including Apple Silicon), with a
+      scalar fallback otherwise -- instead of being fixed when the package is
+      compiled. This enables SIMD acceleration on ARM64/Apple Silicon for the
+      first time, and allows prebuilt binaries to use AVX2/AVX-512 on capable
+      CPUs
+
+    o `snpgdsIBS()`, `snpgdsIBSNum()`, `snpgdsIBDKING(type="KING-robust")` and
+      the PLINK method-of-moment IBD (`snpgdsIBDMoM()`) now use the new
+      runtime-dispatched kernels; the results are unchanged and bit-identical
+      across all instruction-set paths
+
+UTILITIES
+
+    o the active SIMD instruction set can be queried from R, and the environment
+      variable 'SNPRELATE_FORCE_ISA' can pin a specific path (e.g. "scalar",
+      "sse2", "avx2", "avx512", "neon") for testing and benchmarking
+
+    o new unit tests asserting that all instruction-set code paths produce
+      identical results
+
+
 CHANGES IN VERSION 1.46.0
 -------------------------
 

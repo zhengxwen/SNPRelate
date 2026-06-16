@@ -32,74 +32,83 @@
 namespace SNPvec
 {
 
-// Count IBS0/IBS1/IBS2 for one sample pair over the two bit-planes.
-// Processes 16 bytes/plane per iteration.  The bitwise expressions mirror the
-// scalar reference exactly, so the counts are bit-identical.
-//
 // NEON op map (vs. the scalar bit ops):
-//   a | ~b           -> vornq_u8(a, b)
-//   ~x & m  (== m AND NOT x) -> vbicq_u8(m, x)
-//   a ^ ~b  (== ~(a ^ b))    -> vmvnq_u8(veorq_u8(a, b))
-//   popcount(byte)   -> vcntq_u8   (then widen-accumulate via vpadalq_u8)
+//   a | ~b    -> vornq_u8(a, b)        a & ~b -> vbicq_u8(a, b)
+//   ~x & m    -> vbicq_u8(m, x)        popcount(byte) -> vcntq_u8
+// All bit expressions mirror the scalar reference, so counts are bit-identical.
+
+// ---- IBS: 16 bytes/plane per iteration ----
 void ibs_count_neon(const uint8_t *gi, const uint8_t *gj, size_t npack,
 	uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2)
 {
-	const uint8_t *p1a = gi, *p1b = gi + npack;
-	const uint8_t *p2a = gj, *p2b = gj + npack;
-
-	// u32 lane accumulators (overflow-proof for any block size); the inner
-	// loop accumulates raw byte popcounts in cheap u8 lanes and widens in
-	// bulk -- this keeps the loop-carried chain short (vaddq_u8, not vpadalq).
-	uint32x4_t A0 = vdupq_n_u32(0), A2 = vdupq_n_u32(0), AM = vdupq_n_u32(0);
-	size_t m = npack;
-
-	while (m >= 16)
+	const uint8_t *p1a=gi, *p1b=gi+npack, *p2a=gj, *p2b=gj+npack;
+	uint16x8_t a0=vdupq_n_u16(0), a2=vdupq_n_u16(0), am=vdupq_n_u16(0);
+	uint64_t c0=0, c2=0, cm=0;
+	size_t m=npack, iter=0;
+	for (; m >= 16; m -= 16)
 	{
-		uint8x16_t s0 = vdupq_n_u8(0), s2 = vdupq_n_u8(0), sm = vdupq_n_u8(0);
-		// up to 24 iters: each byte lane <= 24*8 = 192 < 256, no u8 overflow
-		for (int k = 0; m >= 16 && k < 24; m -= 16, k++)
+		const uint8x16_t g1_1=vld1q_u8(p1a), g1_2=vld1q_u8(p1b);
+		const uint8x16_t g2_1=vld1q_u8(p2a), g2_2=vld1q_u8(p2b);
+		p1a+=16; p1b+=16; p2a+=16; p2b+=16;
+		const uint8x16_t e1=veorq_u8(g1_1,g2_1), e2=veorq_u8(g1_2,g2_2);
+		const uint8x16_t mask=vandq_u8(vornq_u8(g1_1,g1_2), vornq_u8(g2_1,g2_2));
+		const uint8x16_t v0=vandq_u8(vandq_u8(e1,e2), mask);   // ibs0
+		const uint8x16_t v2=vbicq_u8(vbicq_u8(mask,e1), e2);   // ibs2 = mask&~e1&~e2
+		a0=vpadalq_u8(a0, vcntq_u8(v0));
+		a2=vpadalq_u8(a2, vcntq_u8(v2));
+		am=vpadalq_u8(am, vcntq_u8(mask));
+		if (++iter == 4000)
 		{
-			const uint8x16_t g1_1 = vld1q_u8(p1a), g1_2 = vld1q_u8(p1b);
-			const uint8x16_t g2_1 = vld1q_u8(p2a), g2_2 = vld1q_u8(p2b);
-			p1a += 16; p1b += 16; p2a += 16; p2b += 16;
-
-			// e1/e2: per-bit-plane allele disagreement between the two samples
-			const uint8x16_t e1 = veorq_u8(g1_1, g2_1);
-			const uint8x16_t e2 = veorq_u8(g1_2, g2_2);
-			// mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2)  (both genotypes non-missing)
-			const uint8x16_t mask =
-				vandq_u8(vornq_u8(g1_1, g1_2), vornq_u8(g2_1, g2_2));
-			// ibs0 = (e1 & e2) & mask    [De Morgan of the scalar form]
-			const uint8x16_t v0 = vandq_u8(vandq_u8(e1, e2), mask);
-			// ibs2 = ~e1 & ~e2 & mask
-			const uint8x16_t v2 = vbicq_u8(vbicq_u8(mask, e1), e2);
-
-			s0 = vaddq_u8(s0, vcntq_u8(v0));
-			s2 = vaddq_u8(s2, vcntq_u8(v2));
-			sm = vaddq_u8(sm, vcntq_u8(mask));
+			c0+=vaddlvq_u16(a0); c2+=vaddlvq_u16(a2); cm+=vaddlvq_u16(am);
+			a0=vdupq_n_u16(0); a2=vdupq_n_u16(0); am=vdupq_n_u16(0); iter=0;
 		}
-		// widen the u8 partials: u8 ->(pairwise) u16 ->(pairwise-accum) u32
-		A0 = vpadalq_u16(A0, vpaddlq_u8(s0));
-		A2 = vpadalq_u16(A2, vpaddlq_u8(s2));
-		AM = vpadalq_u16(AM, vpaddlq_u8(sm));
 	}
-	uint64_t c0 = vaddvq_u32(A0), c2 = vaddvq_u32(A2), cm = vaddvq_u32(AM);
+	c0+=vaddlvq_u16(a0); c2+=vaddlvq_u16(a2); cm+=vaddlvq_u16(am);
+	ibs_tail(p1a, p1b, p2a, p2b, m, c0, c2, cm);
+	ibs0 += (uint32_t)c0; ibs2 += (uint32_t)c2; ibs1 += (uint32_t)(cm-c0-c2);
+}
 
-	// tail (< 16 bytes): defensive -- npack is a multiple of 16 in practice
-	for (; m > 0; m--)
+// ---- KING robust: five counters, 16 bytes/plane per iteration ----
+void king_robust_neon(const uint8_t *gi, const uint8_t *gj, size_t npack,
+	TKINGRobust &out)
+{
+	const uint8_t *p1a=gi, *p1b=gi+npack, *p2a=gj, *p2b=gj+npack;
+	uint16x8_t Ai=vdupq_n_u16(0), Am=vdupq_n_u16(0), Ah=vdupq_n_u16(0),
+		A1=vdupq_n_u16(0), A2=vdupq_n_u16(0);
+	uint64_t c_ibs0=0, c_mask=0, c_het=0, c_aa1=0, c_aa2=0;
+	size_t m=npack, iter=0;
+	for (; m >= 16; m -= 16)
 	{
-		const uint8_t g1_1 = *p1a++, g1_2 = *p1b++, g2_1 = *p2a++, g2_2 = *p2b++;
-		const uint8_t mask = (uint8_t)((g1_1 | ~g1_2) & (g2_1 | ~g2_2));
-		const uint8_t v0 = (uint8_t)((~((g1_1 ^ ~g2_1) | (g1_2 ^ ~g2_2))) & mask);
-		const uint8_t v2 = (uint8_t)((~((g1_1 ^  g2_1) | (g1_2 ^  g2_2))) & mask);
-		c0 += __builtin_popcount(v0);
-		c2 += __builtin_popcount(v2);
-		cm += __builtin_popcount(mask);
+		const uint8x16_t g1_1=vld1q_u8(p1a), g1_2=vld1q_u8(p1b);
+		const uint8x16_t g2_1=vld1q_u8(p2a), g2_2=vld1q_u8(p2b);
+		p1a+=16; p1b+=16; p2a+=16; p2b+=16;
+		const uint8x16_t e1=veorq_u8(g1_1,g2_1), e2=veorq_u8(g1_2,g2_2);
+		const uint8x16_t mask=vandq_u8(vornq_u8(g1_1,g1_2), vornq_u8(g2_1,g2_2));
+		const uint8x16_t ibs0=vandq_u8(vandq_u8(e1,e2), mask);
+		const uint8x16_t het=vandq_u8(veorq_u8(e1,e2), mask);  // (e1^e2)&mask
+		const uint8x16_t aa1=vandq_u8(vbicq_u8(g1_1,g1_2), mask);
+		const uint8x16_t aa2=vandq_u8(vbicq_u8(g2_1,g2_2), mask);
+		Ai=vpadalq_u8(Ai, vcntq_u8(ibs0));
+		Am=vpadalq_u8(Am, vcntq_u8(mask));
+		Ah=vpadalq_u8(Ah, vcntq_u8(het));
+		A1=vpadalq_u8(A1, vcntq_u8(aa1));
+		A2=vpadalq_u8(A2, vcntq_u8(aa2));
+		if (++iter == 4000)
+		{
+			c_ibs0+=vaddlvq_u16(Ai); c_mask+=vaddlvq_u16(Am); c_het+=vaddlvq_u16(Ah);
+			c_aa1+=vaddlvq_u16(A1); c_aa2+=vaddlvq_u16(A2);
+			Ai=vdupq_n_u16(0); Am=vdupq_n_u16(0); Ah=vdupq_n_u16(0);
+			A1=vdupq_n_u16(0); A2=vdupq_n_u16(0); iter=0;
+		}
 	}
-
-	ibs0 += (uint32_t)c0;
-	ibs2 += (uint32_t)c2;
-	ibs1 += (uint32_t)(cm - c0 - c2);
+	c_ibs0+=vaddlvq_u16(Ai); c_mask+=vaddlvq_u16(Am); c_het+=vaddlvq_u16(Ah);
+	c_aa1+=vaddlvq_u16(A1); c_aa2+=vaddlvq_u16(A2);
+	king_tail(p1a, p1b, p2a, p2b, m, c_ibs0, c_mask, c_het, c_aa1, c_aa2);
+	out.ibs0  += (uint32_t)c_ibs0;
+	out.nloci += (uint32_t)c_mask;
+	out.sumsq += (uint32_t)(c_het + 4*c_ibs0);
+	out.n1_aa += (uint32_t)c_aa1;
+	out.n2_aa += (uint32_t)c_aa2;
 }
 
 }  // namespace SNPvec

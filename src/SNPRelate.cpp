@@ -71,10 +71,17 @@ COREARRAY_DLL_EXPORT SEXP gnrSSEFlag()
 }
 
 
-/// return the name of the active runtime-dispatched IBS kernel (v2)
+/// return the name of the active runtime-dispatched kernel ISA (v2)
 COREARRAY_DLL_EXPORT SEXP gnrSIMDInfo()
 {
 	return Rf_mkString(SNPvec::active_isa());
+}
+
+/// test hook: pin the dispatched kernels to a specific ISA; returns the ISA
+/// actually activated (may differ if unsupported on this CPU)
+COREARRAY_DLL_EXPORT SEXP gnrSetISA(SEXP name)
+{
+	return Rf_mkString(SNPvec::set_isa(CHAR(STRING_ELT(name, 0))));
 }
 
 
@@ -1175,6 +1182,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrEigMixSNPLoading, 5),    CALL(gnrEigMixSampLoading, 4),
 		
 		CALL(gnrErrMsg, 0),              CALL(gnrSIMDInfo, 0),
+		CALL(gnrSetISA, 1),
 		CALL(gnrFst, 3),                 CALL(gnrHWE, 0),
 
 		CALL(gnrGRM, 5),                 CALL(gnrGRMMerge, 5),

@@ -172,7 +172,7 @@ private:
 			// for the running CPU (AVX-512 / AVX2 / SSE2 on x86, NEON on AArch64,
 			// scalar otherwise) is bound once at first use; see vec_ext.*.
 			uint32_t i0=0, i1=0, i2=0;
-			SNPvec::ibs().count(p1, p2, npack, i0, i1, i2);
+			SNPvec::cpu().ibs(p1, p2, npack, i0, i1, i2);
 			p->IBS0 += i0; p->IBS1 += i1; p->IBS2 += i2;
 		}
 	}

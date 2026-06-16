@@ -29,9 +29,11 @@
 #include <algorithm>
 
 // CoreArray library header
+#include <cstdint>
 #include <dGenGWAS.h>
 #include <dVect.h>
 #include "ThreadPool.h"
+#include "vec_ext.h"
 
 
 namespace IBD_KING
@@ -303,125 +305,12 @@ private:
 		{
 			C_UInt8 *p1 = Base + I.Row() * npack2;
 			C_UInt8 *p2 = Base + I.Column() * npack2;
-			ssize_t m = npack;
-
-		#if defined(COREARRAY_SIMD_AVX2)
-			POPCNT_AVX2_HEAD
-			SIMD256_NOT_HEAD
-			__m256i ibs0_sum, nloci_sum, sumsq_sum, n1_Aa, n2_Aa;
-			ibs0_sum = nloci_sum = sumsq_sum = n1_Aa = n2_Aa = _mm256_setzero_si256();
-
-			for (; m >= 32; m-=32)
-			{
-				__m256i g1_1 = _mm256_load_si256((__m256i*)p1);
-				__m256i g1_2 = _mm256_load_si256((__m256i*)(p1 + npack));
-				__m256i g2_1 = _mm256_load_si256((__m256i*)p2);
-				__m256i g2_2 = _mm256_load_si256((__m256i*)(p2 + npack));
-				p1 += 32; p2 += 32;
-				__m256i r_g1_2 = SIMD256_NOT(g1_2);
-				__m256i r_g2_1 = SIMD256_NOT(g2_1);
-				__m256i r_g2_2 = SIMD256_NOT(g2_2);
-
-				__m256i mask = (g1_1 | r_g1_2) & (g2_1 | r_g2_2);
-				__m256i ibs0 = SIMD256_NOT((g1_1 ^ r_g2_1) | (g1_2 ^ r_g2_2)) & mask;
-				__m256i het  = ((g1_1 ^ g1_2) ^ (g2_1 ^ g2_2)) & mask;
-				__m256i Aa1  = g1_1 & r_g1_2 & mask;
-				__m256i Aa2  = g2_1 & r_g2_2 & mask;
-
-				POPCNT_AVX2_RUN(ibs0)
-				ibs0_sum = _mm256_add_epi32(ibs0_sum, ibs0);
-
-				POPCNT_AVX2_RUN(mask)
-				nloci_sum = _mm256_add_epi32(nloci_sum, mask);
-
-				POPCNT_AVX2_RUN(het)
-				sumsq_sum = _mm256_add_epi32(_mm256_add_epi32(sumsq_sum, het),
-					_mm256_slli_epi32(ibs0, 2));
-
-				POPCNT_AVX2_RUN(Aa1)
-				n1_Aa = _mm256_add_epi32(n1_Aa, Aa1);
-
-				POPCNT_AVX2_RUN(Aa2)
-				n2_Aa = _mm256_add_epi32(n2_Aa, Aa2);
-			}
-
-			p->IBS0  += vec_avx_sum_i32(ibs0_sum);
-			p->nLoci += vec_avx_sum_i32(nloci_sum);
-			p->SumSq += vec_avx_sum_i32(sumsq_sum);
-			p->N1_Aa += vec_avx_sum_i32(n1_Aa);
-			p->N2_Aa += vec_avx_sum_i32(n2_Aa);
-
-			if (m >= 16)
-		#endif
-		#if defined(COREARRAY_SIMD_SSE2)
-		{
-			POPCNT_SSE2_HEAD
-			SIMD128_NOT_HEAD
-			__m128i ibs0_sum, nloci_sum, sumsq_sum, n1_Aa, n2_Aa;
-			ibs0_sum = nloci_sum = sumsq_sum = n1_Aa = n2_Aa = _mm_setzero_si128();
-
-			for (; m > 0; m-=16)
-			{
-				__m128i g1_1 = _mm_load_si128((__m128i*)p1);
-				__m128i g1_2 = _mm_load_si128((__m128i*)(p1 + npack));
-				__m128i g2_1 = _mm_load_si128((__m128i*)p2);
-				__m128i g2_2 = _mm_load_si128((__m128i*)(p2 + npack));
-				p1 += 16; p2 += 16;
-				__m128i r_g1_2 = SIMD128_NOT(g1_2);
-				__m128i r_g2_1 = SIMD128_NOT(g2_1);
-				__m128i r_g2_2 = SIMD128_NOT(g2_2);
-
-				__m128i mask = (g1_1 | r_g1_2) & (g2_1 | r_g2_2);
-				__m128i ibs0 = SIMD128_NOT((g1_1 ^ r_g2_1) | (g1_2 ^ r_g2_2)) & mask;
-				__m128i het  = ((g1_1 ^ g1_2) ^ (g2_1 ^ g2_2)) & mask;
-				__m128i Aa1  = g1_1 & r_g1_2 & mask;
-				__m128i Aa2  = g2_1 & r_g2_2 & mask;
-
-				POPCNT_SSE2_RUN(ibs0)
-				ibs0_sum = _mm_add_epi32(ibs0_sum, ibs0);
-
-				POPCNT_SSE2_RUN(mask)
-				nloci_sum = _mm_add_epi32(nloci_sum, mask);
-
-				POPCNT_SSE2_RUN(het)
-				sumsq_sum = _mm_add_epi32(_mm_add_epi32(sumsq_sum, het),
-					_mm_slli_epi32(ibs0, 2));
-
-				POPCNT_SSE2_RUN(Aa1)
-				n1_Aa = _mm_add_epi32(n1_Aa, Aa1);
-
-				POPCNT_SSE2_RUN(Aa2)
-				n2_Aa = _mm_add_epi32(n2_Aa, Aa2);
-			}
-
-			p->IBS0  += vec_sum_i32(ibs0_sum);
-			p->nLoci += vec_sum_i32(nloci_sum);
-			p->SumSq += vec_sum_i32(sumsq_sum);
-			p->N1_Aa += vec_sum_i32(n1_Aa);
-			p->N2_Aa += vec_sum_i32(n2_Aa);
-		}
-		#else
-			for (; m > 0; m-=8)
-			{
-				C_UInt64 g1_1 = *((C_UInt64*)p1);
-				C_UInt64 g1_2 = *((C_UInt64*)(p1 + npack));
-				C_UInt64 g2_1 = *((C_UInt64*)p2);
-				C_UInt64 g2_2 = *((C_UInt64*)(p2 + npack));
-				p1 += 8; p2 += 8;
-
-				C_UInt64 mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
-				C_UInt64 ibs0 = (~((g1_1 ^ ~g2_1) | (g1_2 ^ ~g2_2))) & mask;
-				C_UInt64 het  = ((g1_1 ^ g1_2) ^ (g2_1 ^ g2_2)) & mask;
-				C_UInt64 Aa1  = g1_1 & ~g1_2 & mask;
-				C_UInt64 Aa2  = g2_1 & ~g2_2 & mask;
-
-				p->IBS0  += POPCNT_U64(ibs0);
-				p->nLoci += POPCNT_U64(mask);
-				p->SumSq += POPCNT_U64(het) + POPCNT_U64(ibs0)*4;
-				p->N1_Aa += POPCNT_U64(Aa1);
-				p->N2_Aa += POPCNT_U64(Aa2);
-			}
-		#endif
+			// SNPRelate v2: runtime-dispatched KING-robust kernel (NEON / SSE2 /
+			// AVX2 / AVX-512 / scalar), bound once at first use; see vec_ext.*.
+			SNPvec::TKINGRobust o = { 0, 0, 0, 0, 0 };
+			SNPvec::cpu().king_robust(p1, p2, npack, o);
+			p->IBS0 += o.ibs0; p->nLoci += o.nloci; p->SumSq += o.sumsq;
+			p->N1_Aa += o.n1_aa; p->N2_Aa += o.n2_aa;
 		}
 	}
 

@@ -20,21 +20,19 @@
 // If not, see <http://www.gnu.org/licenses/>.
 
 // ---------------------------------------------------------------------------
-// This is the modernized, C++17 replacement for the compile-time SIMD layer
-// (dVect.h).  Each hot kernel is published as a function pointer that is bound
-// once, at first use, to the best implementation for the running CPU.  The
-// architecture-specific kernels live in their own translation units
-// (vec_ext_neon.cpp, vec_ext_avx2.cpp, ...) so each can be compiled with its
-// own target options without affecting the rest of the package.
+// Modernized, C++17 replacement for the compile-time SIMD layer (dVect.h).
+// Each hot kernel is published as a function pointer bound at first use to the
+// best implementation for the running CPU.  Architecture-specific kernels live
+// in their own translation units (vec_ext_neon.cpp, vec_ext_sse2/avx2/avx512.cpp)
+// so each is compiled with its own target options without affecting the rest.
 //
-// Design notes (vs. the 7-year-old SAIGEgds dispatcher this is modeled on):
-//   * selection happens through a function-local `static const` table, so it
-//     is thread-safe and lazy (C++11 "magic statics") -- no global mutable
-//     state and no "remember to call vec_init_function()" footgun;
-//   * one struct groups the related kernels and records the active ISA name,
-//     which is exported to R for testing/observability (see gnrSIMDInfo);
-//   * the override env-var SNPRELATE_FORCE_ISA lets the unit tests pin a path
-//     (e.g. "def" vs "neon") and assert bit-identical results.
+//   * one rebindable table (`kernels`) groups the related kernels and records
+//     the active ISA name (exported to R via gnrSIMDInfo);
+//   * the table is initialized once, lazily and thread-safely (C++11 magic
+//     static) to the best available ISA -- no global mutable state, no
+//     "remember to call vec_init_function()" footgun;
+//   * for tests, set_isa()/SNPRELATE_FORCE_ISA pin a specific path so all ISAs
+//     can be exercised and asserted bit-identical in one process.
 // ---------------------------------------------------------------------------
 
 #ifndef _HEADER_SNP_VEC_EXT_
@@ -50,32 +48,6 @@
 #include <CoreDEF.h>
 
 
-namespace SNPvec
-{
-	// =====================================================================
-	// IBS pairwise kernel
-	//
-	// Count IBS0/IBS1/IBS2 between two samples using the 1-bit "two bit-plane"
-	// packed genotype representation (see GWAS::PackSNPGeno1b).  For sample i,
-	// bit-plane 1 is gi[0 .. npack-1] and bit-plane 2 is gi[npack .. 2*npack-1]
-	// (likewise for sample j).  The three counts are *added* to ibs0/ibs1/ibs2.
-	//
-	// The bit logic is identical across all implementations, so every ISA path
-	// must produce exactly the same integer counts as the scalar reference.
-
-	typedef void (*ibs_count_t)(const uint8_t *gi, const uint8_t *gj,
-		size_t npack, uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2);
-
-	// scalar reference / portable fallback (always available)
-	void ibs_count_def(const uint8_t *gi, const uint8_t *gj, size_t npack,
-		uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2);
-
-#ifdef COREARRAY_SIMD_NEON
-	// AArch64 Advanced SIMD (NEON) -- baseline on ARMv8, no runtime probe
-	void ibs_count_neon(const uint8_t *gi, const uint8_t *gj, size_t npack,
-		uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2);
-#endif
-
 // x86: runtime dispatch must compile every ISA variant regardless of the
 // compile-time -m flags, so it cannot key off the compile-time COREARRAY_SIMD_*
 // macros. We use the raw architecture predefined macro (the same primitive
@@ -88,19 +60,65 @@ namespace SNPvec
 #   endif
 #endif
 
-#ifdef SNP_VEC_X86
-	void ibs_count_sse2(const uint8_t *gi, const uint8_t *gj, size_t npack,
-		uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2);
-#   ifdef SNP_VEC_X86_TARGET
-	void ibs_count_avx2(const uint8_t *gi, const uint8_t *gj, size_t npack,
-		uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2);
-	void ibs_count_avx512(const uint8_t *gi, const uint8_t *gj, size_t npack,
-		uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2);
-#   endif
 
-	// Scalar remainder shared by the x86 SIMD kernels (the < SIMD-width tail).
-	// npack is a multiple of 16 in practice, so this usually does nothing; it is
-	// pure scalar (no SIMD), safe to compile in any target context.
+namespace SNPvec
+{
+	// =====================================================================
+	// Packed genotype representation (see GWAS::PackSNPGeno1b)
+	//
+	// For sample i, bit-plane 1 is gi[0 .. npack-1] and bit-plane 2 is
+	// gi[npack .. 2*npack-1] (likewise for sample j).  All ISA paths use the
+	// same bit logic, so every one must produce identical integer counts.
+
+
+	// ---- IBS: count IBS0/IBS1/IBS2 (added to ibs0/ibs1/ibs2) ----
+	typedef void (*ibs_count_t)(const uint8_t *gi, const uint8_t *gj,
+		size_t npack, uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2);
+
+
+	// ---- KING robust: five counters (added to the fields of TKINGRobust) ----
+	struct TKINGRobust
+	{
+		uint32_t ibs0;   ///< loci sharing no allele
+		uint32_t nloci;  ///< total non-missing loci
+		uint32_t sumsq;  ///< \sum (g_i - g_j)^2  ( = #het-mismatch + 4*#ibs0 )
+		uint32_t n1_aa;  ///< heterozygous loci of sample i
+		uint32_t n2_aa;  ///< heterozygous loci of sample j
+	};
+	typedef void (*king_robust_t)(const uint8_t *gi, const uint8_t *gj,
+		size_t npack, TKINGRobust &out);
+
+
+	// per-ISA implementations (defined in the matching translation unit)
+	void ibs_count_def(const uint8_t*, const uint8_t*, size_t,
+		uint32_t&, uint32_t&, uint32_t&);
+	void king_robust_def(const uint8_t*, const uint8_t*, size_t, TKINGRobust&);
+
+#ifdef COREARRAY_SIMD_NEON
+	void ibs_count_neon(const uint8_t*, const uint8_t*, size_t,
+		uint32_t&, uint32_t&, uint32_t&);
+	void king_robust_neon(const uint8_t*, const uint8_t*, size_t, TKINGRobust&);
+#endif
+
+#ifdef SNP_VEC_X86
+	void ibs_count_sse2(const uint8_t*, const uint8_t*, size_t,
+		uint32_t&, uint32_t&, uint32_t&);
+	void king_robust_sse2(const uint8_t*, const uint8_t*, size_t, TKINGRobust&);
+#   ifdef SNP_VEC_X86_TARGET
+	void ibs_count_avx2(const uint8_t*, const uint8_t*, size_t,
+		uint32_t&, uint32_t&, uint32_t&);
+	void king_robust_avx2(const uint8_t*, const uint8_t*, size_t, TKINGRobust&);
+	void ibs_count_avx512(const uint8_t*, const uint8_t*, size_t,
+		uint32_t&, uint32_t&, uint32_t&);
+	void king_robust_avx512(const uint8_t*, const uint8_t*, size_t, TKINGRobust&);
+#   endif
+#endif
+
+
+	// ---- scalar remainders shared by the SIMD kernels (the < width tail) ----
+	// npack is a multiple of 16 in practice, so these usually do nothing; they
+	// are pure scalar (no SIMD), safe to compile in any target context.
+
 	static inline void ibs_tail(const uint8_t *a1, const uint8_t *a2,
 		const uint8_t *b1, const uint8_t *b2, size_t nb,
 		uint64_t &c0, uint64_t &c2, uint64_t &cm)
@@ -115,21 +133,48 @@ namespace SNPvec
 			cm += __builtin_popcount(mask);
 		}
 	}
-#endif
 
-
-	/// A bound set of IBS kernels plus the name of the active ISA.
-	struct ibs_kernels
+	static inline void king_tail(const uint8_t *a1, const uint8_t *a2,
+		const uint8_t *b1, const uint8_t *b2, size_t nb,
+		uint64_t &c_ibs0, uint64_t &c_mask, uint64_t &c_het,
+		uint64_t &c_aa1, uint64_t &c_aa2)
 	{
-		ibs_count_t count;
-		const char *name;
+		for (size_t k=0; k < nb; k++)
+		{
+			const uint8_t g1_1=a1[k], g1_2=a2[k], g2_1=b1[k], g2_2=b2[k];
+			const uint8_t mask = (uint8_t)((g1_1 | ~g1_2) & (g2_1 | ~g2_2));
+			const uint8_t e1 = (uint8_t)(g1_1 ^ g2_1), e2 = (uint8_t)(g1_2 ^ g2_2);
+			const uint8_t het = (uint8_t)(((g1_1 ^ g1_2) ^ (g2_1 ^ g2_2)) & mask);
+			c_ibs0 += __builtin_popcount((uint8_t)(e1 & e2 & mask));
+			c_mask += __builtin_popcount(mask);
+			c_het  += __builtin_popcount(het);
+			c_aa1  += __builtin_popcount((uint8_t)(g1_1 & (uint8_t)~g1_2 & mask));
+			c_aa2  += __builtin_popcount((uint8_t)(g2_1 & (uint8_t)~g2_2 & mask));
+		}
+	}
+
+
+	// =====================================================================
+	// Dispatch table
+
+	/// A bound set of kernels plus the name of the active ISA.
+	struct kernels
+	{
+		ibs_count_t    ibs;
+		king_robust_t  king_robust;
+		const char    *name;
 	};
 
-	/// Thread-safe, lazy, one-time dispatch (resolved on first call).
-	const ibs_kernels& ibs();
+	/// The active kernel table (resolved once, lazily, to the best ISA).
+	const kernels& cpu();
 
-	/// Name of the active IBS ISA path ("neon", "scalar", ...); for R/tests.
+	/// Name of the active ISA path ("avx2", "neon", "scalar", ...); for R/tests.
 	const char* active_isa();
+
+	/// Test hook: rebind the table to a specific ISA by name; returns the ISA
+	/// actually activated (may differ if unsupported on this CPU). Must not be
+	/// called concurrently with a running computation.
+	const char* set_isa(const char *name);
 }
 
 #endif  /* _HEADER_SNP_VEC_EXT_ */

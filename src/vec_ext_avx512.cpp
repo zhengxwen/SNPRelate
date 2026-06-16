@@ -84,6 +84,43 @@ void ibs_count_avx512(const uint8_t *gi, const uint8_t *gj, size_t npack,
 	ibs0 += (uint32_t)c0; ibs2 += (uint32_t)c2; ibs1 += (uint32_t)(cm-c0-c2);
 }
 
+KTGT
+void king_robust_avx512(const uint8_t *gi, const uint8_t *gj, size_t npack,
+	TKINGRobust &out)
+{
+	const __m512i ONES = _mm512_set1_epi32(-1), ZERO = _mm512_setzero_si512();
+	__m512i Ai=ZERO, Am=ZERO, Ah=ZERO, A1=ZERO, A2=ZERO;
+	const uint8_t *p1=gi, *p2=gj;
+	size_t m = npack;
+	for (; m >= 64; m -= 64)
+	{
+		const __m512i g1_1=_mm512_loadu_si512((const void*)p1);
+		const __m512i g1_2=_mm512_loadu_si512((const void*)(p1+npack));
+		const __m512i g2_1=_mm512_loadu_si512((const void*)p2);
+		const __m512i g2_2=_mm512_loadu_si512((const void*)(p2+npack));
+		p1 += 64; p2 += 64;
+		const __m512i e1=_mm512_xor_si512(g1_1,g2_1), e2=_mm512_xor_si512(g1_2,g2_2);
+		const __m512i mask=_mm512_and_si512(
+			_mm512_or_si512(g1_1,_mm512_andnot_si512(g1_2,ONES)),
+			_mm512_or_si512(g2_1,_mm512_andnot_si512(g2_2,ONES)));
+		const __m512i ibs0=_mm512_and_si512(_mm512_and_si512(e1,e2),mask);
+		const __m512i het =_mm512_and_si512(_mm512_xor_si512(e1,e2),mask);
+		const __m512i aa1 =_mm512_and_si512(_mm512_andnot_si512(g1_2,g1_1),mask);
+		const __m512i aa2 =_mm512_and_si512(_mm512_andnot_si512(g2_2,g2_1),mask);
+		Ai=_mm512_add_epi64(Ai,_mm512_sad_epu8(bytecnt(ibs0),ZERO));
+		Am=_mm512_add_epi64(Am,_mm512_sad_epu8(bytecnt(mask),ZERO));
+		Ah=_mm512_add_epi64(Ah,_mm512_sad_epu8(bytecnt(het ),ZERO));
+		A1=_mm512_add_epi64(A1,_mm512_sad_epu8(bytecnt(aa1 ),ZERO));
+		A2=_mm512_add_epi64(A2,_mm512_sad_epu8(bytecnt(aa2 ),ZERO));
+	}
+	uint64_t c_ibs0=hsum64(Ai), c_mask=hsum64(Am), c_het=hsum64(Ah),
+		c_aa1=hsum64(A1), c_aa2=hsum64(A2);
+	king_tail(p1, p1+npack, p2, p2+npack, m, c_ibs0, c_mask, c_het, c_aa1, c_aa2);
+	out.ibs0+=(uint32_t)c_ibs0; out.nloci+=(uint32_t)c_mask;
+	out.sumsq+=(uint32_t)(c_het+4*c_ibs0);
+	out.n1_aa+=(uint32_t)c_aa1; out.n2_aa+=(uint32_t)c_aa2;
+}
+
 }  // namespace SNPvec
 
 #if defined(__GNUC__) && !defined(__clang__)
