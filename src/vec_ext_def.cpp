@@ -76,25 +76,51 @@ void ibs_count_def(const uint8_t *gi, const uint8_t *gj, size_t npack,
 // ---------------------------------------------------------------------------
 // Runtime dispatcher
 
+static inline bool isa_eq(const char *f, const char *name)
+{
+	return f && !std::strcmp(f, name);
+}
+
 static ibs_kernels select_ibs()
 {
 	// default: portable scalar
 	ibs_kernels k = { &ibs_count_def, "scalar" };
 
-	// optional override for testing / benchmarking
+	// optional override for testing / benchmarking (SNPRELATE_FORCE_ISA)
 	const char *force = std::getenv("SNPRELATE_FORCE_ISA");
-	const bool want_scalar = force &&
-		(!std::strcmp(force, "def") || !std::strcmp(force, "scalar"));
+	if (isa_eq(force, "def") || isa_eq(force, "scalar"))
+		return k;
 
-#ifdef COREARRAY_SIMD_NEON
-	// On AArch64, NEON is a mandatory baseline feature: no probe needed.
-	if (!want_scalar)
+#if defined(COREARRAY_SIMD_NEON)
+	// AArch64: NEON is a mandatory baseline feature, so no runtime probe.
+	if (!force || isa_eq(force, "neon"))
 	{
 		k.count = &ibs_count_neon;
 		k.name  = "neon";
 	}
+
+#elif defined(SNP_VEC_X86)
+	// x86: pick the best instruction set the running CPU actually supports.
+	__builtin_cpu_init();
+#  ifdef SNP_VEC_X86_TARGET
+	if ((!force || isa_eq(force, "avx512")) &&
+		__builtin_cpu_supports("avx512f") && __builtin_cpu_supports("avx512bw"))
+	{
+		k.count = &ibs_count_avx512; k.name = "avx512";
+	}
+	else if ((!force || isa_eq(force, "avx2")) && __builtin_cpu_supports("avx2"))
+	{
+		k.count = &ibs_count_avx2; k.name = "avx2";
+	}
+	else
+#  endif
+	if ((!force || isa_eq(force, "sse2")) && __builtin_cpu_supports("sse2"))
+	{
+		k.count = &ibs_count_sse2; k.name = "sse2";
+	}
+
 #else
-	(void)want_scalar;
+	(void)force;
 #endif
 
 	return k;

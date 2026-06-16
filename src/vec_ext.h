@@ -76,6 +76,47 @@ namespace SNPvec
 		uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2);
 #endif
 
+// x86: runtime dispatch must compile every ISA variant regardless of the
+// compile-time -m flags, so it cannot key off the compile-time COREARRAY_SIMD_*
+// macros. We use the raw architecture predefined macro (the same primitive
+// CoreDEF.h itself keys on) and per-function target attributes (GCC/Clang) so
+// AVX2/AVX-512 code is emitted even in a baseline build and selected at runtime.
+#if (defined(__x86_64__) || defined(__i386__)) && !defined(COREARRAY_NO_SIMD)
+#   define SNP_VEC_X86  1
+#   if defined(__GNUC__) || defined(__clang__)
+#       define SNP_VEC_X86_TARGET  1   // __attribute__((target(...))) available
+#   endif
+#endif
+
+#ifdef SNP_VEC_X86
+	void ibs_count_sse2(const uint8_t *gi, const uint8_t *gj, size_t npack,
+		uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2);
+#   ifdef SNP_VEC_X86_TARGET
+	void ibs_count_avx2(const uint8_t *gi, const uint8_t *gj, size_t npack,
+		uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2);
+	void ibs_count_avx512(const uint8_t *gi, const uint8_t *gj, size_t npack,
+		uint32_t &ibs0, uint32_t &ibs1, uint32_t &ibs2);
+#   endif
+
+	// Scalar remainder shared by the x86 SIMD kernels (the < SIMD-width tail).
+	// npack is a multiple of 16 in practice, so this usually does nothing; it is
+	// pure scalar (no SIMD), safe to compile in any target context.
+	static inline void ibs_tail(const uint8_t *a1, const uint8_t *a2,
+		const uint8_t *b1, const uint8_t *b2, size_t nb,
+		uint64_t &c0, uint64_t &c2, uint64_t &cm)
+	{
+		for (size_t k=0; k < nb; k++)
+		{
+			const uint8_t g1_1=a1[k], g1_2=a2[k], g2_1=b1[k], g2_2=b2[k];
+			const uint8_t mask = (uint8_t)((g1_1 | ~g1_2) & (g2_1 | ~g2_2));
+			const uint8_t e1 = (uint8_t)(g1_1 ^ g2_1), e2 = (uint8_t)(g1_2 ^ g2_2);
+			c0 += __builtin_popcount((uint8_t)(e1 & e2 & mask));
+			c2 += __builtin_popcount((uint8_t)(mask & (uint8_t)~e1 & (uint8_t)~e2));
+			cm += __builtin_popcount(mask);
+		}
+	}
+#endif
+
 
 	/// A bound set of IBS kernels plus the name of the active ISA.
 	struct ibs_kernels
