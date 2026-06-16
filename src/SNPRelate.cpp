@@ -36,6 +36,7 @@
 
 #include <dGenGWAS.h>
 #include <dVect.h>
+#include "vec_ext.h"
 
 #include <Rinternals.h>
 #include <R_ext/Lapack.h>
@@ -67,6 +68,13 @@ COREARRAY_DLL_EXPORT SEXP gnrSSEFlag()
 	int I = 0;
 #endif
 	return Rf_ScalarInteger(I);
+}
+
+
+/// return the name of the active runtime-dispatched IBS kernel (v2)
+COREARRAY_DLL_EXPORT SEXP gnrSIMDInfo()
+{
+	return Rf_mkString(SNPvec::active_isa());
 }
 
 
@@ -1166,7 +1174,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 		CALL(gnrEigMix, 4),
 		CALL(gnrEigMixSNPLoading, 5),    CALL(gnrEigMixSampLoading, 4),
 		
-		CALL(gnrErrMsg, 0),
+		CALL(gnrErrMsg, 0),              CALL(gnrSIMDInfo, 0),
 		CALL(gnrFst, 3),                 CALL(gnrHWE, 0),
 
 		CALL(gnrGRM, 5),                 CALL(gnrGRMMerge, 5),

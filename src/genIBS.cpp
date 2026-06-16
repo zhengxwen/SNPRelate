@@ -30,9 +30,11 @@
 #include <algorithm>
 
 // CoreArray library header
+#include <cstdint>
 #include "dGenGWAS.h"
 #include "dVect.h"
 #include "ThreadPool.h"
+#include "vec_ext.h"
 
 
 namespace IBS
@@ -248,25 +250,13 @@ private:
 			p->IBS2 += vec_sum_i32(ibs2_sum);
 		}
 		#else
-			for (; m > 0; m-=8)
+			// SNPRelate v2: runtime-dispatched kernel (NEON on AArch64, scalar
+			// fallback elsewhere). The x86 SSE2/AVX path above is unchanged.
 			{
-				C_UInt64 g1_1 = *((C_UInt64*)p1);
-				C_UInt64 g1_2 = *((C_UInt64*)(p1 + npack));
-				C_UInt64 g2_1 = *((C_UInt64*)p2);
-				C_UInt64 g2_2 = *((C_UInt64*)(p2 + npack));
-				p1 += 8; p2 += 8;
-
-				C_UInt64 mask = (g1_1 | ~g1_2) & (g2_1 | ~g2_2);
-				C_UInt64 ibs0 = (~((g1_1 ^ ~g2_1) | (g1_2 ^ ~g2_2))) & mask;
-				C_UInt64 ibs2 = (~((g1_1 ^ g2_1) | (g1_2 ^ g2_2))) & mask;
-
-				size_t i0 = POPCNT_U64(ibs0);
-				size_t i2 = POPCNT_U64(ibs2);
-				size_t i1 = POPCNT_U64(mask) - i0 - i2;
-
-				p->IBS0 += i0;
-				p->IBS1 += i1;
-				p->IBS2 += i2;
+				(void)m;
+				uint32_t i0=0, i1=0, i2=0;
+				SNPvec::ibs().count(p1, p2, npack, i0, i1, i2);
+				p->IBS0 += i0; p->IBS1 += i1; p->IBS2 += i2;
 			}
 		#endif
 		}
