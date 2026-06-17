@@ -11,10 +11,15 @@ NEW FEATURES
       first time, and allows prebuilt binaries to use AVX2/AVX-512 on capable
       CPUs
 
-    o `snpgdsIBS()`, `snpgdsIBSNum()`, `snpgdsIBDKING(type="KING-robust")` and
-      the PLINK method-of-moment IBD (`snpgdsIBDMoM()`) now use the new
-      runtime-dispatched kernels; the results are unchanged and bit-identical
-      across all instruction-set paths
+    o the IBS-based methods -- `snpgdsIBS()`, `snpgdsIBSNum()`,
+      `snpgdsIBDKING(type="KING-robust")` and the PLINK method-of-moment IBD
+      (`snpgdsIBDMoM()`) -- now use the runtime-dispatched kernels; results are
+      bit-identical across all instruction-set paths
+
+    o `snpgdsPCA()`, `snpgdsGRM()` and `snpgdsEIGMIX()` now use a
+      runtime-dispatched genotype cross-product (covariance/GRM) kernel; results
+      match the previous double-precision computation up to floating-point
+      rounding
 
 UTILITIES
 

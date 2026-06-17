@@ -54,3 +54,40 @@ test.SIMD.dispatch <- function()
 		checkEquals(v.king, ref.king, paste("KING-robust dispatch:", isa))
 	}
 }
+
+
+# GRM/PCA use a floating-point cross-product kernel, so results are NOT
+# bit-identical across instruction sets (accumulation order differs); they must
+# agree up to floating-point rounding.
+test.SIMD.dispatch.grm_pca <- function()
+{
+	avail <- character(0L)
+	for (isa in .simd_candidates)
+		if (identical(.set_isa(isa), isa)) avail <- c(avail, isa)
+
+	genofile <- snpgdsOpen(snpgdsExampleFileName(), allow.duplicate=TRUE)
+	on.exit({ .set_isa("auto"); snpgdsClose(genofile) })
+	samp.id <- read.gdsn(index.gdsn(genofile, "sample.id"))
+	sid <- samp.id[1:90]
+
+	.set_isa("scalar")
+	ref.grm <- snpgdsGRM(genofile, sample.id=sid, method="GCTA",
+		missing.rate=NaN, num.thread=1L, verbose=FALSE)$grm
+	ref.eval <- snpgdsPCA(genofile, sample.id=sid, eigen.cnt=8L,
+		missing.rate=NaN, num.thread=1L, verbose=FALSE)$eigenval[1:8]
+
+	for (isa in setdiff(avail, "scalar"))
+	{
+		checkEquals(.set_isa(isa), isa, paste("activate ISA:", isa))
+
+		v.grm <- snpgdsGRM(genofile, sample.id=sid, method="GCTA",
+			missing.rate=NaN, num.thread=1L, verbose=FALSE)$grm
+		checkEquals(v.grm, ref.grm, tolerance=1e-6,
+			msg=paste("GRM dispatch:", isa))
+
+		v.eval <- snpgdsPCA(genofile, sample.id=sid, eigen.cnt=8L,
+			missing.rate=NaN, num.thread=1L, verbose=FALSE)$eigenval[1:8]
+		checkEquals(v.eval, ref.eval, tolerance=1e-6,
+			msg=paste("PCA eigenvalues dispatch:", isa))
+	}
+}
