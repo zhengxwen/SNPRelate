@@ -1218,7 +1218,7 @@ COREARRAY_DLL_EXPORT void R_init_SNPRelate(DllInfo *info)
 	};
 
 	R_registerRoutines(info, NULL, callMethods, NULL, NULL);
-	R_useDynamicSymbols(info, FALSE);
+	R_useDynamicSymbols(info, (Rboolean) FALSE);
 
 	Init_GDS_Routines();
 }
