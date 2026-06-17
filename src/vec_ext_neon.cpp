@@ -111,6 +111,21 @@ void king_robust_neon(const uint8_t *gi, const uint8_t *gj, size_t npack,
 	out.n2_aa += (uint32_t)c_aa2;
 }
 
+// ---- PCA/GRM dot product: 2x f64 FMA lanes, 2 accumulators for ILP ----
+double dot_f64_neon(const double *a, const double *b, size_t n)
+{
+	float64x2_t s0=vdupq_n_f64(0), s1=vdupq_n_f64(0);
+	size_t k=0;
+	for (; k+4 <= n; k += 4)
+	{
+		s0 = vfmaq_f64(s0, vld1q_f64(a+k),   vld1q_f64(b+k));
+		s1 = vfmaq_f64(s1, vld1q_f64(a+k+2), vld1q_f64(b+k+2));
+	}
+	double s = vaddvq_f64(vaddq_f64(s0, s1));
+	for (; k < n; k++) s += a[k]*b[k];
+	return s;
+}
+
 }  // namespace SNPvec
 
 #endif  /* COREARRAY_SIMD_NEON */

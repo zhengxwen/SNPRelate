@@ -124,6 +124,23 @@ void king_robust_sse2(const uint8_t *gi, const uint8_t *gj, size_t npack,
 	out.n1_aa+=(uint32_t)c_aa1; out.n2_aa+=(uint32_t)c_aa2;
 }
 
+// ---- PCA/GRM dot product: 2x f64 lanes (SSE2 has no FMA), 2 accumulators ----
+KTGT
+double dot_f64_sse2(const double *a, const double *b, size_t n)
+{
+	__m128d s0=_mm_setzero_pd(), s1=_mm_setzero_pd();
+	size_t k=0;
+	for (; k+4 <= n; k += 4)
+	{
+		s0=_mm_add_pd(s0,_mm_mul_pd(_mm_loadu_pd(a+k),  _mm_loadu_pd(b+k)));
+		s1=_mm_add_pd(s1,_mm_mul_pd(_mm_loadu_pd(a+k+2),_mm_loadu_pd(b+k+2)));
+	}
+	__m128d s=_mm_add_pd(s0,s1);
+	double r=_mm_cvtsd_f64(_mm_add_pd(s,_mm_unpackhi_pd(s,s)));
+	for (; k < n; k++) r += a[k]*b[k];
+	return r;
+}
+
 }  // namespace SNPvec
 
 #if defined(__GNUC__) && !defined(__clang__)

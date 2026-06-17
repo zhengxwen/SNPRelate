@@ -121,6 +121,25 @@ void king_robust_avx512(const uint8_t *gi, const uint8_t *gj, size_t npack,
 	out.n1_aa+=(uint32_t)c_aa1; out.n2_aa+=(uint32_t)c_aa2;
 }
 
+// ---- PCA/GRM dot product: 8x f64 lanes, 2 accumulators ----
+KTGT
+double dot_f64_avx512(const double *a, const double *b, size_t n)
+{
+	__m512d s0=_mm512_setzero_pd(), s1=_mm512_setzero_pd();
+	size_t k=0;
+	for (; k+16 <= n; k += 16)
+	{
+		s0=_mm512_add_pd(s0,_mm512_mul_pd(_mm512_loadu_pd(a+k),  _mm512_loadu_pd(b+k)));
+		s1=_mm512_add_pd(s1,_mm512_mul_pd(_mm512_loadu_pd(a+k+8),_mm512_loadu_pd(b+k+8)));
+	}
+	__m512d s=_mm512_add_pd(s0,s1);
+	__m256d s256=_mm256_add_pd(_mm512_castpd512_pd256(s), _mm512_extractf64x4_pd(s,1));
+	__m128d t=_mm_add_pd(_mm256_castpd256_pd128(s256), _mm256_extractf128_pd(s256,1));
+	double r=_mm_cvtsd_f64(_mm_add_pd(t,_mm_unpackhi_pd(t,t)));
+	for (; k < n; k++) r += a[k]*b[k];
+	return r;
+}
+
 }  // namespace SNPvec
 
 #if defined(__GNUC__) && !defined(__clang__)

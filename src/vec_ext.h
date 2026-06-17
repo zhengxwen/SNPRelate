@@ -88,29 +88,38 @@ namespace SNPvec
 	typedef void (*king_robust_t)(const uint8_t *gi, const uint8_t *gj,
 		size_t npack, TKINGRobust &out);
 
+	// ---- PCA/GRM: dot product of two standardized genotype rows (length n);
+	// used by CProdMat_AlgArith::MulAdd, the O(n^2 * m) hot kernel ----
+	typedef double (*dot_f64_t)(const double *a, const double *b, size_t n);
+
 
 	// per-ISA implementations (defined in the matching translation unit)
 	void ibs_count_def(const uint8_t*, const uint8_t*, size_t,
 		uint32_t&, uint32_t&, uint32_t&);
 	void king_robust_def(const uint8_t*, const uint8_t*, size_t, TKINGRobust&);
+	double dot_f64_def(const double*, const double*, size_t);
 
 #ifdef COREARRAY_SIMD_NEON
 	void ibs_count_neon(const uint8_t*, const uint8_t*, size_t,
 		uint32_t&, uint32_t&, uint32_t&);
 	void king_robust_neon(const uint8_t*, const uint8_t*, size_t, TKINGRobust&);
+	double dot_f64_neon(const double*, const double*, size_t);
 #endif
 
 #ifdef SNP_VEC_X86
 	void ibs_count_sse2(const uint8_t*, const uint8_t*, size_t,
 		uint32_t&, uint32_t&, uint32_t&);
 	void king_robust_sse2(const uint8_t*, const uint8_t*, size_t, TKINGRobust&);
+	double dot_f64_sse2(const double*, const double*, size_t);
 #   ifdef SNP_VEC_X86_TARGET
 	void ibs_count_avx2(const uint8_t*, const uint8_t*, size_t,
 		uint32_t&, uint32_t&, uint32_t&);
 	void king_robust_avx2(const uint8_t*, const uint8_t*, size_t, TKINGRobust&);
+	double dot_f64_avx2(const double*, const double*, size_t);
 	void ibs_count_avx512(const uint8_t*, const uint8_t*, size_t,
 		uint32_t&, uint32_t&, uint32_t&);
 	void king_robust_avx512(const uint8_t*, const uint8_t*, size_t, TKINGRobust&);
+	double dot_f64_avx512(const double*, const double*, size_t);
 #   endif
 #endif
 
@@ -162,6 +171,7 @@ namespace SNPvec
 	{
 		ibs_count_t    ibs;
 		king_robust_t  king_robust;
+		dot_f64_t      dot_f64;
 		const char    *name;
 	};
 

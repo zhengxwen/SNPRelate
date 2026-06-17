@@ -118,6 +118,24 @@ void king_robust_avx2(const uint8_t *gi, const uint8_t *gj, size_t npack,
 	out.n1_aa+=(uint32_t)c_aa1; out.n2_aa+=(uint32_t)c_aa2;
 }
 
+// ---- PCA/GRM dot product: 4x f64 lanes, 2 accumulators ----
+KTGT
+double dot_f64_avx2(const double *a, const double *b, size_t n)
+{
+	__m256d s0=_mm256_setzero_pd(), s1=_mm256_setzero_pd();
+	size_t k=0;
+	for (; k+8 <= n; k += 8)
+	{
+		s0=_mm256_add_pd(s0,_mm256_mul_pd(_mm256_loadu_pd(a+k),  _mm256_loadu_pd(b+k)));
+		s1=_mm256_add_pd(s1,_mm256_mul_pd(_mm256_loadu_pd(a+k+4),_mm256_loadu_pd(b+k+4)));
+	}
+	__m256d s=_mm256_add_pd(s0,s1);
+	__m128d t=_mm_add_pd(_mm256_castpd256_pd128(s), _mm256_extractf128_pd(s,1));
+	double r=_mm_cvtsd_f64(_mm_add_pd(t,_mm_unpackhi_pd(t,t)));
+	for (; k < n; k++) r += a[k]*b[k];
+	return r;
+}
+
 }  // namespace SNPvec
 
 #if defined(__GNUC__) && !defined(__clang__)

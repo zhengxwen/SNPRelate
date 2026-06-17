@@ -23,6 +23,7 @@
 #include <memory>
 #include <algorithm>
 #include "genPCA.h"
+#include "vec_ext.h"
 #include <R_ext/Lapack.h>
 
 #ifndef FCONE
@@ -233,81 +234,9 @@ void COREARRAY_CALL_ALIGN CProdMat_AlgArith::MulAdd(IdMatTri &Idx,
 	{
 		double *p1 = base() + Idx.Row() * fM;
 		double *p2 = base() + Idx.Column() * fM;
-		size_t n = fM;
-
-	#if defined(COREARRAY_SIMD_AVX)
-
-		// fM can be divided by 4
-		__m256d rv4_1, rv4_2;
-		rv4_1 = rv4_2 = _mm256_setzero_pd();
-		for (; n >= 16; n -= 16)
-		{
-			rv4_1 = _mm256_add_pd(rv4_1, _mm256_mul_pd(
-				_mm256_load_pd(p1), _mm256_load_pd(p2)));
-			rv4_2 = _mm256_add_pd(rv4_2, _mm256_mul_pd(
-				_mm256_load_pd(p1 + 4), _mm256_load_pd(p2 + 4)));
-			p1 += 8; p2 += 8;
-			rv4_1 = _mm256_add_pd(rv4_1, _mm256_mul_pd(
-				_mm256_load_pd(p1), _mm256_load_pd(p2)));
-			rv4_2 = _mm256_add_pd(rv4_2, _mm256_mul_pd(
-				_mm256_load_pd(p1 + 4), _mm256_load_pd(p2 + 4)));
-			p1 += 8; p2 += 8;
-		}
-
-		__m256d rv4 = _mm256_add_pd(rv4_1, rv4_2);
-		for (; n >= 4; n -= 4)
-		{
-			rv4 = _mm256_add_pd(rv4, _mm256_mul_pd(
-				_mm256_load_pd(p1), _mm256_load_pd(p2)));
-			p1 += 4; p2 += 4;
-		}
-
-		(*pOut++) += vec_avx_sum_f64(rv4);
-
-	#elif defined(COREARRAY_SIMD_SSE2)
-
-		// unroll loop
-		__m128d rv2_1, rv2_2;
-		rv2_1 = rv2_2 = _mm_setzero_pd();
-		for (; n >= 8; n -= 8)
-		{
-			rv2_1 = _mm_add_pd(rv2_1, _mm_mul_pd(_mm_load_pd(p1),
-				_mm_load_pd(p2)));
-			rv2_2 = _mm_add_pd(rv2_2, _mm_mul_pd(_mm_load_pd(p1+2),
-				_mm_load_pd(p2+2)));
-			p1 += 4; p2 += 4;
-			rv2_1 = _mm_add_pd(rv2_1, _mm_mul_pd(_mm_load_pd(p1),
-				_mm_load_pd(p2)));
-			rv2_2 = _mm_add_pd(rv2_2, _mm_mul_pd(_mm_load_pd(p1+2),
-				_mm_load_pd(p2+2)));
-			p1 += 4; p2 += 4;
-		}
-
-		__m128d rv2 = _mm_add_pd(rv2_1, rv2_2);
-		for (; n >= 2; n -= 2)
-		{
-			rv2 = _mm_add_pd(rv2, _mm_mul_pd(_mm_load_pd(p1),
-				_mm_load_pd(p2)));
-			p1 += 2; p2 += 2;
-		}
-
-		(*pOut++) += vec_sum_f64(rv2);
-
-	#else
-
-		double rv = 0;
-		// unroll loop
-		for (; n >= 4; n -= 4)
-		{
-			rv += p1[0] * p2[0]; rv += p1[1] * p2[1];
-			rv += p1[2] * p2[2]; rv += p1[3] * p2[3];
-			p1 += 4; p2 += 4;
-		}
-		for (; n > 0; n--)
-			rv += (*p1++) * (*p2++);
-		(*pOut++) += rv;
-
-	#endif
+		// SNPRelate v2: runtime-dispatched dot product
+		// (AVX-512/AVX2/SSE2 on x86, NEON on ARM64, scalar fallback); see vec_ext.*
+		(*pOut++) += SNPvec::cpu().dot_f64(p1, p2, fM);
 	}
 }
 

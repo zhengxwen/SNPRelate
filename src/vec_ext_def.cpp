@@ -86,6 +86,20 @@ void king_robust_def(const uint8_t *gi, const uint8_t *gj, size_t npack,
 	out.n2_aa += (uint32_t)c_aa2;
 }
 
+// Strict-IEEE reduction (4-unrolled), identical to the original MulAdd scalar
+// path -- so a forced-scalar build is bit-identical to <= v1.46.
+double dot_f64_def(const double *a, const double *b, size_t n)
+{
+	double rv = 0; size_t k = 0;
+	for (; k+4 <= n; k += 4)
+	{
+		rv += a[k]*b[k]; rv += a[k+1]*b[k+1];
+		rv += a[k+2]*b[k+2]; rv += a[k+3]*b[k+3];
+	}
+	for (; k < n; k++) rv += a[k]*b[k];
+	return rv;
+}
+
 
 // ---------------------------------------------------------------------------
 // Runtime dispatcher
@@ -97,24 +111,24 @@ static inline bool eq(const char *a, const char *b)
 
 static kernels make_def()
 {
-	return kernels{ &ibs_count_def, &king_robust_def, "scalar" };
+	return kernels{ &ibs_count_def, &king_robust_def, &dot_f64_def, "scalar" };
 }
 
 // pick the best ISA the running CPU supports (no name constraint)
 static kernels select_auto()
 {
 #if defined(COREARRAY_SIMD_NEON)
-	return kernels{ &ibs_count_neon, &king_robust_neon, "neon" };
+	return kernels{ &ibs_count_neon, &king_robust_neon, &dot_f64_neon, "neon" };
 #elif defined(SNP_VEC_X86)
 	__builtin_cpu_init();
 #  ifdef SNP_VEC_X86_TARGET
 	if (__builtin_cpu_supports("avx512f") && __builtin_cpu_supports("avx512bw"))
-		return kernels{ &ibs_count_avx512, &king_robust_avx512, "avx512" };
+		return kernels{ &ibs_count_avx512, &king_robust_avx512, &dot_f64_avx512, "avx512" };
 	if (__builtin_cpu_supports("avx2"))
-		return kernels{ &ibs_count_avx2, &king_robust_avx2, "avx2" };
+		return kernels{ &ibs_count_avx2, &king_robust_avx2, &dot_f64_avx2, "avx2" };
 #  endif
 	if (__builtin_cpu_supports("sse2"))
-		return kernels{ &ibs_count_sse2, &king_robust_sse2, "sse2" };
+		return kernels{ &ibs_count_sse2, &king_robust_sse2, &dot_f64_sse2, "sse2" };
 	return make_def();
 #else
 	return make_def();
@@ -130,18 +144,18 @@ static kernels select_named(const char *name)
 	if (eq(name,"def") || eq(name,"scalar")) return make_def();
 #if defined(COREARRAY_SIMD_NEON)
 	if (eq(name,"neon"))
-		return kernels{ &ibs_count_neon, &king_robust_neon, "neon" };
+		return kernels{ &ibs_count_neon, &king_robust_neon, &dot_f64_neon, "neon" };
 #endif
 #if defined(SNP_VEC_X86)
 	__builtin_cpu_init();
 	if (eq(name,"sse2") && __builtin_cpu_supports("sse2"))
-		return kernels{ &ibs_count_sse2, &king_robust_sse2, "sse2" };
+		return kernels{ &ibs_count_sse2, &king_robust_sse2, &dot_f64_sse2, "sse2" };
 #  ifdef SNP_VEC_X86_TARGET
 	if (eq(name,"avx2") && __builtin_cpu_supports("avx2"))
-		return kernels{ &ibs_count_avx2, &king_robust_avx2, "avx2" };
+		return kernels{ &ibs_count_avx2, &king_robust_avx2, &dot_f64_avx2, "avx2" };
 	if (eq(name,"avx512") &&
 		__builtin_cpu_supports("avx512f") && __builtin_cpu_supports("avx512bw"))
-		return kernels{ &ibs_count_avx512, &king_robust_avx512, "avx512" };
+		return kernels{ &ibs_count_avx512, &king_robust_avx512, &dot_f64_avx512, "avx512" };
 #  endif
 #endif
 	return select_auto();
